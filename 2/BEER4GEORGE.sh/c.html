@@ -1,0 +1,40 @@
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>b</title>
+<meta name="color-scheme" content="light dark">
+<link rel=icon href=data:,>
+<style>pre{width:60ex;margin:auto}</style>
+<pre>
+          ___
+         /   \  / .__
+         \____#/#/
+              / /                |
+                          _____  |
+                            ##|  |
+                              |  |
+                                 |
+                               __|
+                               _|
+                                |
+                            ____|
+                             """
+
+<i><b>2048 counter</b></i>
+
+We are <span id=y></span> years, <span id=m></span> months, <span id=d></span> days
+
+<span id=h></span> hours, <span id=M></span> minutes and <span id=s></span> seconds
+
+from year 2048!
+<script>
+	const d = new Date(Date.UTC(2048, 1, 1, 0, 0, 0, 0) - Date.now());
+	document.getElementById("y").innerHTML = d.getFullYear()-1970;
+	document.getElementById("m").innerHTML = d.getMonth();
+	document.getElementById("d").innerHTML = d.getDay() - 1;
+	document.getElementById("h").innerHTML = d.getHours();
+	document.getElementById("M").innerHTML = d.getMinutes();
+	document.getElementById("s").innerHTML = d.getSeconds();
+</script>
+</pre>

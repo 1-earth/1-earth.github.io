@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>BEER4GEORGE</title>
+    <link rel="icon" href="ICON.png" type="image/x-icon">
+    <style>
+        body { 
+            font-family: monospace; 
+            /* overflow: hidden; */
+        }
+        a { text-decoration: none; color: blue; }
+        #moving-image {
+            position: absolute;
+            width: 100px; /* Adjust size as needed */
+            height: auto;
+            transition: transform 0.1s linear;
+            z-index: -1;
+            opacity: 60%;
+        }
+    </style>
+</head>
+<body>
+    <img src="beer.png" id="moving-image" alt="Moving Image">
+    <pre style="width:54ch;margin:auto">
+┌────────────────────────────────────────────────────┐
+│                                                    │
+│   .--. Once upon a time, a man named George,       │
+│   #  | decided it was time to make his next thing  │
+│   #__/ by typing on his laptop, it was 2:10am in   │
+│        the morning, he should probably go to bed...│
+│        <em>but here we are</em>                             │
+│                                                    │
+│   - <b>[<a href="https://buy.stripe.com/cN29Cx8y66Cc52M7ss" target="_blank">BUY ME A BEER</a>]</b>                                │
+│   - I AM NOT AN ALCOHOLIC                          │
+│   - THIS IS A PROOF OF CONCEPT                     │
+│   - THAT I CAN MAKE WEBSITE THAT MAKE YOU MONEY    │
+│   + I WANT BEER                                    │
+│                                                    │
+│                                        .------.    │
+│                                        |>_    |    │
+│                                        │      │    │
+│   I will add another project here      /======/    │
+│   in the future, maybe                /______/     │
+│                                                    │
+│                                                    │
+│                                                    │
+│   o/                                               │
+│                                                    │
+│                                                    │
+├────────────┬──────┬────────────────────────────────┤
+│            │      │                                │
+│  <b>info</b>      │      │   <b>BEER  -> GEORGE</b>              │
+│  <a href="https://en.wikipedia.org/wiki/Beer" target="_blank">beer</a>      ├──────┤                                │
+│            │      │   check my <a href="https://gsymonds1.github.io/Portfolio/INDEXV23.html" target="_blank">portfolio website</a>   │
+│            │      │   or my IG <a href="https://www.instagram.com/georgesymonds_" target="_blank">@georgesymonds_</a>     │
+├────────────┴──────┤                                │ 
+│                   │    + or my Album <a href="https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2" target="_blank">HERE</a>          │
+│  ##>._            │                                │
+│  "  /             │                                │
+│          __   |   │                                │
+│           *|  |   │                                │
+│              _|   │                                │
+│             _|    │                                │
+│           ___|    │                                │
+│           ""      │                                │
+└───────────────────┴────────────────────────────────┘
+    </pre>
+
+    <script>
+        const img = document.getElementById('moving-image');
+        let x = 0, y = 0;
+        let dx = 2, dy = 2; // Speed of movement
+
+        function moveImage() {
+            const width = window.innerWidth - img.clientWidth;
+            const height = window.innerHeight - img.clientHeight;
+
+            x += dx;
+            y += dy;
+
+            if (x >= width || x <= 0) dx = -dx; // Reverse direction on horizontal edges
+            if (y >= height || y <= 0) dy = -dy; // Reverse direction on vertical edges
+
+            img.style.transform = `translate(${x}px, ${y}px)`;
+
+            requestAnimationFrame(moveImage); // Continue the animation
+        }
+
+        moveImage(); // Start the animation
+    </script>
+</body>
+</html>

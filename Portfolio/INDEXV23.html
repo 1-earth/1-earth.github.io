@@ -1,0 +1,1098 @@
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    GEORGE SYMONDS
+  </title>
+
+  <link rel="icon" href="/Portfolio/Images/projects/1EARTH/1ECROP.png" type="image/png">
+  <link rel="stylesheet" type="text/css" href="static/css/1earthcss.css">
+  <link rel="stylesheet" type="text/css" href="static/css/loadingbar.css">
+  <link rel="stylesheet" type="text/css" href="SLIDESHOW//styles.css">
+
+
+  <!--  REQUIRED: Web Components polyfill to support Edge and Firefox < 63 -->
+  <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.1.3/webcomponents-loader.js"></script>
+  
+</head>
+
+<body>
+
+
+
+  <div class="left_content">
+
+
+
+    <header>
+      <div class="menu_section">
+        <select id="menu" name="menu" onchange="handleMenu(this)" class="with_about">
+          <option value="cyberfeminism">GEORGE SYMONDS</option>
+          <option value="images">WORK/PORTFOLIO</option>
+          <option value="about">ABOUT</option>
+          <option value="collections">VIRTUAL EXHIBITION SPACE</option>
+          <option value="search">RESEARCH & FORWARD THINKING</option>
+        </select>
+        <div id="green_box"></div>
+      </div>
+    </header>
+
+    <script>
+      // Set the default selection to 'cyberfeminism' only if not already on that page
+      document.addEventListener("DOMContentLoaded", function () {
+        var select = document.getElementById("menu");
+        if (window.location.pathname !== '/cyberfeminism') {
+          select.value = "cyberfeminism";
+          handleMenu(select);
+        }
+      });
+
+      function handleMenu(select) {
+        var selectedValue = select.value;
+
+        switch (selectedValue) {
+          case 'cyberfeminism':
+            //window.location.href = '/index.html'; // Change the URL accordingly
+            break;
+          case 'about':
+            window.location.href = '/Portfolio/INDEXV23.html#contact_location'; // Change the URL accordingly
+            break;
+          case 'images':
+            window.location.href = '/Portfolio/INDEXV23.html#work_location'; // Change the URL accordingly
+            break;
+          case 'collections':
+            window.location.href = 'collections'; // Change the URL accordingly
+            break;
+          case 'search':
+            window.location.href = 'search'; // Change the URL accordingly
+            break;
+          default:
+            // Handle other cases or do nothing
+            break;
+        }
+      }
+    </script>
+
+    <!-- Your other body elements go here -->
+
+
+
+
+
+
+
+    <div id="top_location"></div>
+
+    <!-- MAINSLIDESHOW -->
+
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loading-bar"></div>
+  </div>
+
+    <div class="slideshow-container">
+
+
+      <!-- 0 -->
+      <div class="slide">
+        <a href="work/work_INDEX.html">
+          <img src="Images/ME_bio/DAGIF.gif" alt="TRT">
+        </a>
+      </div>
+      <!-- 1 -->
+      <div class="slide">
+        <a href="/Portfolio/work/work_CSD.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/The Community Support Directory/main.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 2 -->
+      <div class="slide">
+        <a href="/Portfolio/work/work_TCR.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/TCR/fullmain.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 3 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <img src="Images/projects/The Raw Tapes Vol.1/full23.jpg" alt="TRT">
+        </a>
+      </div>
+      <!-- 4 -->
+      <div class="slide">
+        <a href="work/work_DOC2.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/HowCanWeMakeADifference/full.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 5 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/Memo/full.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 6 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <img src="Images/projects/Photography/full23.jpg" alt="Photography">
+        </a>
+      </div>
+      <!-- 7 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/musicvideos/DTPCUT.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 8 -->
+      <div class="slide">
+        <a href="work2.html">
+          <img src="Images/projects/KR/full23.jpg" alt="KR 2">
+        </a>
+      </div>
+      <!-- 9 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <img src="Images/projects/DataDeception/full23.jpg" alt="DD">
+        </a>
+      </div>
+      <!-- 10 -->
+      <div class="slide">
+        <a href="work/work_TCR.html">
+          <img src="Images/projects/Virtual Exhibition Space/full23.jpg" alt="VES">
+        </a>
+      </div>
+
+      <!-- 11 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/UV3/UV3.png" alt="UV2">
+        </a>
+      </div>
+
+      <!-- 12 -->
+      <div class="slide">
+        <a href="work3.html">
+          <video autoplay loop muted playsinline>
+            <source src="/Portfolio/Images/projects/Nerf Gun Sentry Turret/full.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </a>
+      </div>
+      <!-- 13 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/SmileyBeanie/IMG_7350.png" alt="SmileyBeanie">
+        </a>
+      </div>
+      <!-- 14 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/KeyScape/KeyScape.png" alt="KeyScape">
+        </a>
+      </div>
+      <!-- 15 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="/Portfolio/Images/projects/Jakarta Is Sinking/cut.gif" alt="JKT">
+        </a>
+      </div>
+      <!-- 16 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/MappingEmotion/main1.png" alt="DataViz">
+        </a>
+      </div>
+      <!-- 17 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/WeCare/fc97a2cf-0e59-47fe-bc89-2c570b719ca5_rw_1200.png" alt="WeCare">
+        </a>
+      </div>
+      <!-- 18 -->
+      <div class="slide">
+        <a href="work3.html">
+          <img src="Images/projects/AI Celebs_Paeul/Paeul.png" alt="Paeul">
+        </a>
+      </div>
+
+      <!-- Add more slides as needed -->
+      <div class="vertical-line"></div>
+
+
+      <!-- BOTTOMBIT -->
+      <div class="thumbnails">
+        <div class="thumbnail" onclick="showSlide(0)" id="thumbnail0">
+          <img src="Images/ME_bio/DAPIC.png" alt="GS">
+        </div>
+        <div class="thumbnail" onclick="showSlide(1)" id="thumbnail1">
+          <img src="/Portfolio/Images/projects/The Community Support Directory/thumbnail23.jpg" alt="CSD">
+        </div>
+        <div class="thumbnail" onclick="showSlide(2)" id="thumbnail2">
+          <img src="Images/projects/TCR/thumbnail23.jpg" alt="CSD">
+        </div>
+        <div class="thumbnail" onclick="showSlide(3)" id="thumbnail3">
+          <img src="Images/projects/The Raw Tapes Vol.1/thumbnail23.jpg" alt="TRT">
+        </div>
+        <div class="thumbnail" onclick="showSlide(4)" id="thumbnail4">
+          <img src="Images/projects/HowCanWeMakeADifference/thumbnail23.jpg" alt="RepresentHollowayH">
+        </div>
+        <div class="thumbnail" onclick="showSlide(5)" id="thumbnail5">
+          <img src="Images/projects/Memo/thumbnail23.jpg" alt="Memo Approved">
+        </div>
+        <div class="thumbnail" onclick="showSlide(6)" id="thumbnail6">
+          <img src="Images/projects/Photography/thumbnail23.jpg" alt="Photography">
+        </div>
+        <div class="thumbnail" onclick="showSlide(7)" id="thumbnail7">
+          <img src="/Portfolio/Images/projects/musicvideos/thumbnail23.jpg" alt="Music Videos">
+        </div>
+        <div class="thumbnail" onclick="showSlide(8)" id="thumbnail8">
+          <img src="/Portfolio/Images/projects/KR/thumbnail23.jpg" alt="Kang Records">
+        </div>
+        <div class="thumbnail" onclick="showSlide(9)" id="thumbnail9">
+          <img src="Images/projects/DataDeception/thumbnail23.jpg" alt="DataDeception">
+        </div>
+        <div class="thumbnail" onclick="showSlide(10)" id="thumbnail10">
+          <img src="Images/projects/Virtual Exhibition Space/thumbnail23.jpg" alt="Virtual Exhbition Space">
+        </div>
+        <div class="thumbnail" onclick="showSlide(11)" id="thumbnail11">
+          <img src="Images/projects/UV3/thumbnail23.jpg" alt="Unititled Vol. 2">
+        </div>
+        <div class="thumbnail" onclick="showSlide(12)" id="thumbnail12">
+          <img src="Images/projects/Nerf Gun Sentry Turret/thumbnail23.jpg" alt="GUN">
+        </div>
+        <div class="thumbnail" onclick="showSlide(13)" id="thumbnail13">
+          <img src="Images/projects/SmileyBeanie/thumbnail23.jpg" alt="Smiley">
+        </div>
+        <div class="thumbnail" onclick="showSlide(14)" id="thumbnail14">
+          <img src="Images/projects/KeyScape/thumbnail23.jpg" alt="KeyScape">
+        </div>
+        <div class="thumbnail" onclick="showSlide(15)" id="thumbnail15">
+          <img src="Images/projects/Jakarta Is Sinking/thumbnail23.jpg" alt="Jakarta Is Sinking">
+        </div>
+        <div class="thumbnail" onclick="showSlide(16)" id="thumbnail16">
+          <img src="Images/projects/MappingEmotion/thumbnail23.jpg" alt="Mapping Emotion">
+        </div>
+        <div class="thumbnail" onclick="showSlide(17)" id="thumbnail17">
+          <img src="Images/projects/WeCare/thumbnail23.jpg" alt="WeCare">
+        </div>
+        <div class="thumbnail" onclick="showSlide(18)" id="thumbnail18">
+          <img src="Images/projects/AI Celebs_Paeul/thumbnail23.jpg" alt="Paeul">
+        </div>
+
+        <!-- Add more thumbnails as needed -->
+      </div>
+
+    </div>
+    <div id="work_location"></div>
+    <section id="work_location"></section>
+<!-- BOUNCINGTHING -->
+<style>
+ 
+  .canvasparent {
+      position: relative;
+      height: 120%;
+      z-index: -1; /* Set a lower z-index to place it underneath other elements */
+  }
+
+  .canvasborder {
+      position: absolute;
+  }
+
+  #tv-screen {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 120vh;
+      z-index: -1; /* Send it to the background */
+      background-color: rgb(173, 173, 173);
+  }
+
+  .text-layer {
+      color: white; /* Set the text color */
+      z-index: 10; /* Higher z-index to place it on top of the canvas */
+      position: absolute;
+  }
+
+  /* Add other styles as needed */
+</style>
+<!-- <p>bounce</p>bounce
+
+<div class="canvasborder">
+  <canvas id="tv-screen" style="background-color: white;"></canvas>
+</div>
+<script src="bouncinglogo/js/app.js"></script> -->
+
+
+    <!-- WWWWWWWOOOOOOOOORRRKRRRRKKKKKKKKKKKKWWWWWWWOOOOOOOOORRRKRRRRKKKKKKKKKKKKWWWWWWWOOOOOOOOORRRKRRRRKKKKKKKKKKKK -->
+    <br><br>
+    <div id="about_pg_content" class="internal_pg_containertext about_pg">
+
+
+
+      <!--USE THIS CSS TAG FOR BODY-->
+
+      <h2>Work/Portfolio:</h2>
+
+      <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search..." title="Type in a name"
+        class="searchbar">
+
+      <div class="filterSection">
+        <p>Filter by category:</p>
+        <div class="menu_section">
+          <select id="filter" name="filter" onchange="handleFilter()" class="filteroptions">
+            <option value="all">All</option>
+            <option value="community">Community</option>
+            <option value="computation">Computation</option>
+            <option value="education">Education</option>
+            <option value="film">Film</option>
+            <option value="image">Image</option>
+            <option value="music">Music</option>
+            <option value="strategyidentity">Strategy & Identity</option>
+            <option value="web">Web</option>
+          </select>
+        </div>
+      </div>
+
+
+
+      <div class="menuContents">
+
+        <div class="contexttalk all">
+          <p>Have a look around and see my work! My practice & skillset are diverse, it centres around<em>
+              community, computation, education, film, image, film, image, music, identity, & web.</em>
+            <strong class="blue">Use the filter menu above to find what you want! </strong> & feel free to reach
+            out to me
+            using the “contact” button
+            at the bottom of all pages!
+          </p>
+        </div>
+        <div class="contexttalk community">
+          <p>Community is key, my whole creative practice revolves around it. To represent a community is to
+            explore its core meanings and values, and to identify how they can be translated into public-facing
+            outcomes that resonate with authenticity and purpose. View my projects below to find how I do this:
+          </p>
+        </div>
+        <div class="contexttalk computation">
+          <p>I merge design with technical computation in my practice to deliver functioning outcomes that can’t
+            be solved with just design alone. My outcomes are designed to exist and thrive in the real world,
+            addressing the specific needs of my aim. View my projects below to find how I do this:
+          </p>
+        </div>
+
+        <div class="contexttalk education">
+          <p>Education to me is a dynamic transfer of knowledge. I dissect this process, exploring how creatively
+            designed mediums can make learning engaging, powerful, and experimental through creating crafted
+            experiences. In my self-initiated practice, I talk on topics such as the cost-of-living crisis and
+            raise awareness of lesser-known societal issues. View my projects below to find how I do this:
+          </p>
+        </div>
+
+        <div class="contexttalk film">
+          <p>In my practice, I’m gravitated towards film as it’s one of the most powerful forms of translating
+            ideas and stories. I use it to empower and amplify independent & alternate stories, through
+            constructing deep audio+visual landscapes channelling emotions that resonate with my viewer. View my
+            projects below to find how I do this:
+          </p>
+        </div>
+
+        <div class="contexttalk image">
+          <p>I use image to give form & represent conceptual ideas, creating new points of understanding for my
+            viewers. I focus on the translation & representation of my subjects, positioning them within the
+            world to create a bridge between abstract concepts and tangible connections. View my projects below
+            to find how I do this:
+          </p>
+        </div>
+
+        <div class="contexttalk music">
+          <p>I am a producer, I work with my community to bring out their best. Through collaboration & developing
+            mediums to cultivate their identity (such as music videos, album covers, and photography) and
+            bringing the dopest beats. (KR) is my community, our mentality, and our collective identity. We all
+            do this together:
+          </p>
+        </div>
+
+        <div class="contexttalk strategyidentity">
+          <p>I approach identity as a strategy. I aim to accurately represent my subject's core values, beliefs,
+            and history and incorporate them in all the designed facets of public-facing outcomes through
+            thorough research & investigation. View my projects below to find how I do this:
+          </p>
+        </div>
+
+        <div class="contexttalk web">
+          <p>I use the web to frame my self-initiated work, making it universally accessible, and inviting a
+            diverse audience to engage with it. You can check out my projects below to see how I put this into
+            practice:
+          </p>
+        </div>
+
+        <br>
+
+        <div class="gallery">
+
+          <div class="hoverproject_img community computation strategyidentity image film education music web">
+            <div class="worktitlenimage">
+              <a href="work/work_1EARTH.html" class="black hiddenheader">>1EARTH</a>
+              <a href="work/work_1EARTH.html"><span><img src="z" class="centrecrop alt=" image">
+                </span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation strategyidentity web community">
+            <div class="worktitlenimage">
+              <a href="work/work_CSD.html" class="black hiddenheader">>The Community Support Directory</a>
+              <a href="work/work_CSD.html"><span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/The Community Support Directory/main.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community film education">
+            <div class="worktitlenimage">
+              <a href="work/work_TCR.html" class="black hiddenheader">>Tottenham Court Road (2021)</a>
+              <a href="work/work_TCR.html" class="black"><span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/TCR/fullmain.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation, web, education">
+            <div class="worktitlenimage">
+              <a href="work/work_RESEARCHDATABASE.html" class="black hiddenheader">>The Research Database</a>
+              <a href="work/work_RESEARCHDATABASE.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/The Research Database/main23.jpg" alt="image"></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community, strategyidentity, film, music">
+            <div class="worktitlenimage">
+              <a href="work/work_KR.html" class="black hiddenheader">>KANG RECORDS</a>
+              <a href="work/work_KR.html" class="black"><span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/KR/main.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span></a>
+            </div>
+          </div>
+
+          <div class=" hoverproject_img community computation film education">
+            <div class="worktitlenimage">
+              <a href="work/work_DOC2.html" class="black hiddenheader">>"How Can We Make A Difference?"</a>
+              <a href="work/work_DOC2.html" class="black"><span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/HowCanWeMakeADifference/main.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community strategyidentity community">
+            <div class="worktitlenimage">
+              <a href="work/work_MEMO.html" class="black hiddenheader">>Memo Approved</a>
+              <a href="work/work_MEMO.html" class="black"><span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/Memo/main.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community image music">
+            <div class="worktitlenimage">
+              <a href="work/work_Photography.html" class="black hiddenheader">>Film Photography</a>
+              <a href="work/work_Photography.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/Photography/main23.jpg" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community film music">
+            <div class="worktitlenimage">
+              <a href="work/work_MusicVideos.html" class="black hiddenheader">>Music Videos</a>
+              <a href="work/work_MusicVideos.html" class="black">
+                <span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/musicvideos/DTPCUT.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span>
+              </a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img music community film">
+            <div class="worktitlenimage">
+              <a href="work/work_TRT.html" class="black hiddenheader">>The Raw Tapes Vol. 1</a>
+              <a href="work/work_TRT.html" class="black">
+                <span>
+                  <img src="/Portfolio/Images/projects/The Raw Tapes Vol.1/main23.jpg" alt="image" />
+                </span>
+              </a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation web">
+            <div class="worktitlenimage">
+              <a href="work/work_VES.html" class="black hiddenheader">>Virtual Exhbition Space</a>
+              <a href="work/work_VES.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/Virtual Exhibition Space/main23.jpg" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img community strategyidentity">
+            <div class="worktitlenimage">
+              <a href="work/work_LIFE.html" class="black hiddenheader">>Community + Collaborative Design</a>
+              <a href="work/work_LIFE.html" class="black"><span><video autoplay loop muted playsinline>
+                <source src="/Portfolio/Images/projects/Community Collaborative Design/fullmain.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img music strategyidentity">
+            <div class="worktitlenimage">
+              <a href="work/work_DataDeception.html" class="black hiddenheader">>Muriel Artists</a>
+              <a href="work/work_DataDeception.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/murielartists/main23.jpg" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation education web">
+            <div class="worktitlenimage">
+              <a href="work/work_DataDeception.html" class="black hiddenheader">>DataDeception</a>
+              <a href="work/work_DataDeception.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/DataDeception/main23.jpg" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img music">
+            <div class="worktitlenimage">
+              <a href="work/work_UV2.html" class="black hiddenheader">>Untitled Vol.2</a>
+              <a href="work/work_UV2.html" class="black"><span><img src="/Portfolio/Images/projects/UV3/main23.jpg"
+                    alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation">
+            <div class="worktitlenimage">
+              <a href="work/work_GUN.html" class="black hiddenheader">>The Nerf Gun Sentry Turret</a>
+              <a href="work/work_GUN.html" class="black"> <span>
+                  <video autoplay loop muted playsinline>
+                    <source src="/Portfolio/Images/projects/Nerf Gun Sentry Turret/main.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                </span>
+              </a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation">
+            <div class="worktitlenimage">
+              <a href="work/work_BEANIE.html" class="black hiddenheader">>Smiley Beanie</a>
+              <a href="work/work_BEANIE.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/SmileyBeanie/main23.jpg" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation music">
+            <div class="worktitlenimage">
+              <a href="work/work_KEYSCAPE.html" class="black hiddenheader">>KeyScape</a>
+              <a href="work/work_KEYSCAPE.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/KeyScape/main23.jpg" class="up50" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img film education">
+            <div class="worktitlenimage">
+              <a href="work/work_JKT.html" class="black hiddenheader">>Jakarta Is Sinking (2022)</a>
+              <a href="work/work_JKT.html" class="black">)<span><img
+                    src="/Portfolio/Images/projects/Jakarta Is Sinking/main23.jpg"
+                    alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img image">
+            <div class="worktitlenimage">
+              <a href="work/work_EMOTIONS.html" class="black hiddenheader">>Mapping Emotions</a>
+              <a href="work/work_EMOTIONS.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/MappingEmotion/main23.jpg" class="up50" alt="image" /></span></a>
+            </div>
+          </div>
+          <div class="hoverproject_img community image music strategyidentity">
+            <div class="worktitlenimage">
+              <a href="work/work_ALBUMCOVERS.html" class="black hiddenheader">>Album Covers</a>
+              <a href="work/work_ALBUMCOVERS.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/Album Covers/main23.jpg" class="up100" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img strategyidentity film">
+            <div class="worktitlenimage">
+              <a href="work/work_WECARE.html" class="black hiddenheader">>WeCare</a>
+              <a href="work/work_WECARE.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/WeCare/main23.jpg"
+                    alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation">
+            <div class="worktitlenimage">
+              <a href="work/work_CREATIONSTATION.html" class="black hiddenheader">>Creation Station</a>
+              <a href="work/work_CREATIONSTATION.html" class="black"><span><img
+                    src="/Portfolio/Images/projects/Creation Station/main23.jpg" class="up100" alt="image" /></span></a>
+            </div>
+          </div>
+
+          <div class="hoverproject_img computation web">
+            <div class="worktitlenimage">
+              <a href="work/work_LIFE.html" class="black hiddenheader">>(The Game of) Life</a>
+              <a href="work/work_LIFE.html" class="black"><span><img src="/Portfolio/Images/projects/LifeGame/main23.jpg"
+                    alt="image" /></span></a>
+            </div>
+          </div>
+
+          
+
+        </div>
+
+      </div>
+
+
+
+
+      <script>
+        function handleFilter() {
+          var selectedCategory = document.getElementById('filter').value;
+
+          var projects = document.querySelectorAll('.hoverproject_img');
+          projects.forEach(function (project) {
+            var projectCategories = project.className.split(' ');
+
+            if (selectedCategory === 'all' || projectCategories.includes(selectedCategory)) {
+              project.style.display = 'block';
+            } else {
+              project.style.display = 'none';
+            }
+          });
+
+
+          var projects2 = document.querySelectorAll('.contexttalk');
+          projects2.forEach(function (project2) {
+            var project2Categories = project2.className.split(' ');
+
+            if (project2Categories.includes(selectedCategory)) {
+              project2.style.display = 'block';
+            } else {
+              project2.style.display = 'none';
+            }
+          });
+
+
+        }
+
+        function handleSearch() {
+          var searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+          var projects = document.querySelectorAll('.hoverproject_img');
+          projects.forEach(function (project) {
+            var projectName = project.textContent.toLowerCase();
+            var projectKeywords = project.className.toLowerCase();
+
+            if (projectName.includes(searchInput) || projectKeywords.includes(searchInput)) {
+              project.style.display = 'block';
+            } else {
+              project.style.display = 'none';
+            }
+          });
+        }
+      </script>
+    </div>
+
+
+    <!-- ABBBBBBOOOOOOOOOUUUUUUTUTTTTBBBBBBOOOOOOOOOUUUUUUTUTTTTBBBBBBOOOOOOOOOUUUUUUTUTTTTT -->
+
+    <div id="about_pg_content" class="internal_pg_containertext about_pg">
+      <!--USE THIS CSS TAG FOR BODY-->
+      <div id="contact_location"></div>
+
+      <div class="thismywork">
+        <div style="text-align: center;">
+          <p style=" margin-top: 0px;">--------------------------------------------</p>
+        </div>
+
+        <div id="workContentTitle" class="workContentTitle">
+          <br>
+          <h2>WELCOME TO MY WEBSITE! IT HOUSES ALL OF MY PROJECTS & CODING EXPERIMENTS
+            <br>
+            <a href="https://gsymonds1.github.io/Portfolio/INDEXV23.html" target="_blank">GEORGE
+              SYMONDS</a>
+          </h2>
+
+          <div class="threedanchor">
+            <div class="threedposition">
+              <model-viewer id="reveal" loading="eager" src="about/LOWPOLY/george.glb" camera-controls
+                touch-action="pan-y" alt="GEORGE3D" shadow-intensity="1" auto-rotate ar camera-orbit="230deg 90deg 30m">
+              </model-viewer>
+            </div>
+          </div>
+
+          <p>
+            (ABOUT) GEORGE SYMONDS, ALWAYS IN PROGRESS. Graphic Communication Designer & Creative Coder
+            & <a href="https://www.instagram.com/kangrecords_/" target="_blank">Kang Records General</a>.
+            Have a look around and see my work! <em>My Practice range of skills is wide & includes (but
+              is not
+              limited to) </em> Web Development, UX Design, Film, Photography, Music
+            Production,Creative Direction, Physical Computing, Brand Strategy & Identity, <em>Please
+              feel welcome to reach out to me!</em></p>
+          <p>[<a href="https://www.instagram.com/georgeysymonds_/" target="_blank">INSTAGRAM</a>] [<a
+              href="mailto:symonds.george@gmail.com" target="_blank">EMAIL</a>]</p>
+
+
+
+
+
+
+          <div class="filterSection">
+            <p>Filter Design Statement by category:</p>
+            <div class="menu_section">
+              <select id="filter" name="filter" onchange="handleFilter()" class="filteroptions">
+                <option value="all">All</option>
+                <option value="community">Community</option>
+                <option value="computation">Computation</option>
+                <option value="education">Education</option>
+                <option value="film">Film</option>
+                <option value="image">Image</option>
+                <option value="music">Music</option>
+                <option value="strategyidentity">Strategy & Identity</option>
+                <option value="web">Web</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="menuContents">
+
+            <div class="contexttalk all">
+              <p>Currently a final year university student at CSM, specialising in translating the core
+                meanings and values of communities into authentic and purposeful public-facing outcomes.
+                In my practice, I combine design with technical computation to produce functional
+                outcomes that cannot be achieved through design alone. My outcomes are designed to exist
+                and thrive in the real world, catering to the specific needs of my target audience.
+              </p>
+            </div>
+            <div class="contexttalk community">
+              <p>Community is key, my whole creative practice revolves around it. To represent a community
+                is to
+                explore its core meanings and values, and to identify how they can be translated into
+                public-facing
+                outcomes that resonate with authenticity and purpose. View my projects below to find how
+                I do this:
+              </p>
+            </div>
+            <div class="contexttalk computation">
+              <p>I merge design with technical computation in my practice to deliver functioning outcomes
+                that can’t
+                be solved with just design alone. My outcomes are designed to exist and thrive in the
+                real world,
+                addressing the specific needs of my aim. View my projects below to find how I do this:
+              </p>
+            </div>
+
+            <div class="contexttalk education">
+              <p>Education to me is a dynamic transfer of knowledge. I dissect this process, exploring how
+                creatively
+                designed mediums can make learning engaging, powerful, and experimental through creating
+                crafted
+                experiences. In my self-initiated practice, I talk on topics such as the cost-of-living
+                crisis and
+                raise awareness of lesser-known societal issues. View my projects below to find how I do
+                this:
+              </p>
+            </div>
+
+            <div class="contexttalk film">
+              <p>In my practice, I’m gravitated towards film as it’s one of the most powerful forms of
+                translating
+                ideas and stories. I use it to empower and amplify independent & alternate stories,
+                through
+                constructing deep audio+visual landscapes channelling emotions that resonate with my
+                viewer. View my
+                projects below to find how I do this:
+              </p>
+            </div>
+
+            <div class="contexttalk image">
+              <p>I use image to give form & represent conceptual ideas, creating new points of
+                understanding for my
+                viewers. I focus on the translation & representation of my subjects, positioning them
+                within the
+                world to create a bridge between abstract concepts and tangible connections. View my
+                projects below
+                to find how I do this:
+              </p>
+            </div>
+
+            <div class="contexttalk music">
+              <p>I am a producer, I work with my community to bring out their best. Through collaboration
+                & developing
+                mediums to cultivate their identity (such as music videos, album covers, and
+                photography) and
+                bringing the dopest beats. (KR) is my community, our mentality, and our collective
+                identity. We all
+                do this together:
+              </p>
+            </div>
+
+            <div class="contexttalk strategyidentity">
+              <p>I approach identity as a strategy. I aim to accurately represent my subject's core
+                values, beliefs,
+                and history and incorporate them in all the designed facets of public-facing outcomes
+                through
+                thorough research & investigation. View my projects below to find how I do this:
+              </p>
+            </div>
+
+            <div class="contexttalk web">
+              <p>I use the web to frame my self-initiated work, making it universally accessible, and
+                inviting a
+                diverse audience to engage with it. You can check out my projects below to see how I put
+                this into
+                practice:
+              </p>
+            </div>
+
+
+          </div>
+
+          <script>
+            function handleFilter() {
+              var selectedCategory = document.getElementById('filter').value;
+
+              var projects = document.querySelectorAll('.hoverproject_img');
+              projects.forEach(function (project) {
+                var projectCategories = project.className.split(' ');
+
+                if (selectedCategory === 'all' || projectCategories.includes(selectedCategory)) {
+                  project.style.display = 'block';
+                } else {
+                  project.style.display = 'none';
+                }
+              });
+
+
+              var projects2 = document.querySelectorAll('.contexttalk');
+              projects2.forEach(function (project2) {
+                var project2Categories = project2.className.split(' ');
+
+                if (project2Categories.includes(selectedCategory)) {
+                  project2.style.display = 'block';
+                } else {
+                  project2.style.display = 'none';
+                }
+              });
+
+
+            }
+
+            function handleSearch() {
+              var searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+              var projects = document.querySelectorAll('.hoverproject_img');
+              projects.forEach(function (project) {
+                var projectName = project.textContent.toLowerCase();
+                var projectKeywords = project.className.toLowerCase();
+
+                if (projectName.includes(searchInput) || projectKeywords.includes(searchInput)) {
+                  project.style.display = 'block';
+                } else {
+                  project.style.display = 'none';
+                }
+              });
+            }
+          </script>
+
+
+          <img src="/Portfolio/Images/1EspinLowRes.gif" alt="1earthlogo" style="width: 150px; max-width: 23%; height: auto;">
+
+
+        </div>
+        <br><br>
+
+        <p><strong>COLLABORATIONS:</strong></p>
+        <div id="relatedWorkContentTitle" class="relatedWorkContentTitle">
+          <div id="scrollingContainer" class="scrolling-container">
+
+            <!-- Repeat the following structure for each of the 23 pictures -->
+            <div class="relatedWorkItem">
+              <a href="linkfromrow[i][12]" target="_blank">
+                <img src="/Portfolio/Images/projects/murielartists/logo.png" alt="Image 1">
+              </a>
+              <p>muriel artists</p>
+            </div>
+            <div class="relatedWorkItem">
+              <a href="linkfromrow[i][12]" target="_blank">
+                <img src="/Portfolio/Images/projects/Memo/logoSS.png" alt="Image 1">
+              </a>
+              <p>memo approved</p>
+            </div>
+            <div class="relatedWorkItem">
+              <a href="linkfromrow[i][12]" target="_blank">
+                <img src="/Portfolio/Images/projects/murielartists/DTPLOGOblack.png" alt="Image 1">
+              </a>
+              <p>driven thru prayer</p>
+            </div>
+            <div class="relatedWorkItem">
+              <a href="linkfromrow[i][12]" target="_blank">
+                <img src="/Portfolio/Images/projects/murielartists/JTPGLOBALwhite2.png" alt="Image 1">
+              </a>
+              <p>JTP</p>
+            </div>
+            <!-- ^Repeats for however many there is -->
+
+          </div>
+        </div>
+
+
+        <br>
+
+
+
+
+
+        <br><br>
+        <div class="bottomessege">
+          <p class="blue">℗2024 1EARTH PRODUCTIONS</p>
+          <p class="blue"><a href="mailto:SYMONDS.GEORGE@GMAIL.COM">SYMONDS.GEORGE@GMAIL.COM</a>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- Loads <model-viewer> for modern browsers: -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+    </script>
+    <!-- Loads <model-viewer> for old browsers like IE11: -->
+    <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js">
+    </script>
+
+
+    <!-- BOTTOM OF BODY EVERYTIME -->
+    <div class="bottom-buttons">
+      <button class="back_to_top" onclick="back_to_top('top_location')">back to top</button>
+      <button class="contact" onclick="back_to_top('contact_location')">contact</a></button>
+      <button class="submit" onclick="back_to_top('work_location')">portfolio</a></button>
+    </div>
+
+    <!-- <script type="text/javascript" src="SLIDESHOW/script.js"></script> -->
+    <script>
+      let currentSlide = 0;
+      const slides = document.querySelectorAll('.slide');
+      // console.log("s:" + slides.length);
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      // console.log("t:" + thumbnails.length);
+
+      function showSlide(index) {
+        //NEW
+        // Remove 'active' class from all thumbnails
+        thumbnails.forEach((thumbnail) => {
+          thumbnail.classList.remove('active');
+        });
+
+
+
+        if (index < 0) {
+          index = slides.length + 1;
+        } else if (index >= slides.length) {
+          index = 0;
+        }
+
+        console.log("DAINDEXHERE " + index)
+        // Add 'active' class to the currently selected thumbnail
+        document.getElementById(`thumbnail${index}`).classList.add('active');
+
+        slides.forEach((slide, i) => {
+          slide.classList.remove('active');
+        });
+        slides[index].classList.add('active');
+        currentSlide = index;
+      }
+
+      function changeSlide() {
+        showSlide(currentSlide + 1);
+      }
+
+      // Function to start the slideshow and change images every 3 seconds
+      function startSlideshow() {
+        showSlide(0);
+        setInterval(changeSlide, 1200); // Change the interval to 3000ms (3 seconds)
+      }
+
+      // Add click event listeners to the thumbnails
+      thumbnails.forEach((thumbnail, index) => {
+        thumbnail.addEventListener('click', () => {
+          showSlide(index);
+        });
+      });
+
+      // Start the slideshow when the page is loaded
+      window.onload = startSlideshow;
+
+      //SCROLLING OF THUUMBNAILS
+      const thumbnailsContainer = document.querySelector('.thumbnails');
+
+      // Function to handle scroll events
+      function handleScroll() {
+        const scrollY = window.scrollY;
+        console.log("SCROLLY" + scrollY)
+
+        // Define the scroll threshold where you want the thumbnails to start moving
+        const scrollThreshold = 100;
+
+        // Check if scroll position has passed the threshold
+        if (scrollY > scrollThreshold) {
+          thumbnailsContainer.classList.remove('initial');
+          thumbnailsContainer.classList.add('scrolled');
+        } else {
+          thumbnailsContainer.classList.remove('scrolled');
+          thumbnailsContainer.classList.add('initial');
+        }
+      }
+
+      // Add a scroll event listener
+      window.addEventListener('scroll', handleScroll);
+
+      // Call the handleScroll function once to set initial state
+      handleScroll();
+    </script>
+    <script type="text/javascript" src="static/js/1earthjs.js"></script>
+    <script type="text/javascript" src="static/js/loadingbar.js"></script>
+
+  </div>
+</body>
+
+</html>
