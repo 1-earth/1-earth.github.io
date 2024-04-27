@@ -492,8 +492,7 @@ header #tag_btn button:hover {
     height: 100%;
     object-fit: cover;
   }
-
-
+  
 
   .gallery {
     display: flex;
@@ -527,6 +526,7 @@ header #tag_btn button:hover {
 
   ::-webkit-scrollbar {
     -webkit-appearance: none;
+    display: none;
     width: 10px;
   }
 

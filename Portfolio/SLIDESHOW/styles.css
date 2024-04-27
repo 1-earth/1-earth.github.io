@@ -10,6 +10,7 @@ body {
     height: 100vh;
     /* top: 23;MOVE THIS UP TO FIX GAP */
     z-index: 0;
+    box-shadow: 0 5px 5px rgba(0,0,0,0.2);
   }
   
   .slide {

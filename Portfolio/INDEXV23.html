@@ -348,28 +348,31 @@
 
       <!--USE THIS CSS TAG FOR BODY-->
 
-      <h2>Work/Portfolio:</h2>
+      <div class="sticky-header">
 
-      <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search..." title="Type in a name"
-        class="searchbar">
+        <h2>Work/Portfolio:</h2>
 
-      <div class="filterSection">
-        <p>Filter by category:</p>
-        <div class="menu_section">
-          <select id="filter" name="filter" onchange="handleFilter()" class="filteroptions">
-            <option value="all">All</option>
-            <option value="community">Community</option>
-            <option value="computation">Computation</option>
-            <option value="education">Education</option>
-            <option value="film">Film</option>
-            <option value="image">Image</option>
-            <option value="music">Music</option>
-            <option value="strategyidentity">Strategy & Identity</option>
-            <option value="web">Web</option>
-          </select>
+        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search..." title="Type in a name"
+          class="searchbar">
+
+        <div class="filterSection">
+          <p>Filter by category:</p>
+          <div class="menu_section">
+            <select id="filter" name="filter" onchange="handleFilter()" class="filteroptions">
+              <option value="all">All</option>
+              <option value="community">Community</option>
+              <option value="computation">Computation</option>
+              <option value="education">Education</option>
+              <option value="film">Film</option>
+              <option value="image">Image</option>
+              <option value="music">Music</option>
+              <option value="strategyidentity">Strategy & Identity</option>
+              <option value="web">Web</option>
+            </select>
+          </div>
         </div>
-      </div>
 
+    </div>
 
 
       <div class="menuContents">
@@ -449,7 +452,7 @@
           <div class="hoverproject_img community computation strategyidentity image film education music web">
             <div class="worktitlenimage">
               <a href="work/work_1EARTH.html" class="black hiddenheader">>1EARTH</a>
-              <a href="work/work_1EARTH.html"><span><img src="z" class="centrecrop alt=" image">
+              <a href="work/work_1EARTH.html"><span><img src="/Portfolio/Images/1EspinLowRes.gif" class="centrecrop alt=" image">
                 </span></a>
             </div>
           </div>
@@ -776,7 +779,7 @@
 
 
 
-          <div class="filterSection">
+          <!-- <div class="filterSection">
             <p>Filter Design Statement by category:</p>
             <div class="menu_section">
               <select id="filter" name="filter" onchange="handleFilter()" class="filteroptions">
@@ -882,40 +885,12 @@
                 this into
                 practice:
               </p>
-            </div>
+            </div> -->
 
 
           </div>
 
           <script>
-            function handleFilter() {
-              var selectedCategory = document.getElementById('filter').value;
-
-              var projects = document.querySelectorAll('.hoverproject_img');
-              projects.forEach(function (project) {
-                var projectCategories = project.className.split(' ');
-
-                if (selectedCategory === 'all' || projectCategories.includes(selectedCategory)) {
-                  project.style.display = 'block';
-                } else {
-                  project.style.display = 'none';
-                }
-              });
-
-
-              var projects2 = document.querySelectorAll('.contexttalk');
-              projects2.forEach(function (project2) {
-                var project2Categories = project2.className.split(' ');
-
-                if (project2Categories.includes(selectedCategory)) {
-                  project2.style.display = 'block';
-                } else {
-                  project2.style.display = 'none';
-                }
-              });
-
-
-            }
 
             function handleSearch() {
               var searchInput = document.getElementById('searchInput').value.toLowerCase();
