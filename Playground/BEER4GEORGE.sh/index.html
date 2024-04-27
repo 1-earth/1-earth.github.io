@@ -25,6 +25,7 @@
 </head>
 <body>
     <img src="beer.png" id="moving-image" alt="Moving Image">
+    
     <pre style="width:54ch;margin:auto">
 ┌────────────────────────────────────────────────────┐
 │                                                    │
@@ -34,7 +35,7 @@
 │        the morning, he should probably go to bed...│
 │        <em>but here we are</em>                             │
 │                                                    │
-│   - <b>[<a href="https://buy.stripe.com/cN29Cx8y66Cc52M7ss" target="_blank">BUY ME A BEER</a>]</b>                                │
+│   - <b>> >[<a href="https://buy.stripe.com/cN29Cx8y66Cc52M7ss" target="_blank">BUY ME A BEER</a>]< <---CLICK HERE TODAY   </b>    │
 │   - I AM NOT AN ALCOHOLIC                          │
 │   - THIS IS A PROOF OF CONCEPT                     │
 │   - THAT I CAN MAKE WEBSITE THAT MAKE YOU MONEY    │
@@ -72,6 +73,16 @@
 
     <script>
         const img = document.getElementById('moving-image');
+        img.onload = function() {
+            document.body.style.display = 'block'; // Show the body when the image is loaded
+            moveImage();
+        };
+
+        img.onerror = function() {
+            console.error('Failed to load image');
+            document.body.style.display = 'block'; // Optionally still show the body even if the image fails to load
+        };
+
         let x = 0, y = 0;
         let dx = 2, dy = 2; // Speed of movement
 
@@ -82,15 +93,14 @@
             x += dx;
             y += dy;
 
-            if (x >= width || x <= 0) dx = -dx; // Reverse direction on horizontal edges
-            if (y >= height || y <= 0) dy = -dy; // Reverse direction on vertical edges
+            if (x >= width || x <= 0) dx = -dx;
+            if (y >= height || y <= 0) dy = -dy;
 
             img.style.transform = `translate(${x}px, ${y}px)`;
-
-            requestAnimationFrame(moveImage); // Continue the animation
+            requestAnimationFrame(moveImage);
         }
 
-        moveImage(); // Start the animation
+        img.src = 'beer.png'; // Set source here to ensure onload is handled correctly
     </script>
 </body>
 </html>
