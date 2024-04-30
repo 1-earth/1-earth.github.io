@@ -1,15 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    hello world, this took a while to make<br>
-    <a href="/Portfolio/INDEXV23.html">portfolio</a><br>
-    <a href="/Playground/index.html">playground</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="/Portfolio/Images/projects/1EARTH/1ECROP.png"
+      type="image/png"
+    />
+    <title>ONEEARTH</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/oneearth.css" />
+  </head>
 
-</body>
+  <body>
+    <div class="landingsection">
+      <div class="masterframe">
+        <div class="masterbar-menu">
+          <button class="masterbar-button rounded">THE 1EARTH NETWORK</button>
+          <button class="masterbar-button rounded">ABOUT</button>
+          <button class="masterbar-button rounded">JOIN</button>
+        </div>
+
+        <p class="s1 whitetext">
+          Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
+          progress, scroll down to see the network/resource base/forum.
+        </p>
+
+        <div class="white-line"></div>
+
+        <h1 class="centretext whitetext">1EARTH</h1>
+        <p class="whitetext">
+          1EARTH IS:<br /><br />
+
+          A platform for empowering creatives making positive changes within
+          their communities.<br /><br />
+
+          We are an open community bound by our shared core values of equality,
+          inclusivity, and accessibility.<br /><br />
+
+          We believe that as creatives, it is our duty to lead and inspire
+          collective action, organising efforts for broader impact to shape the
+          future we envision.<br /><br />
+        </p>
+      </div>
+    </div>
+    <div class="fading-div"></div>
+
+    <div class="masterframe">
+      <div class="bodyframe">
+        <div class="masterbar-menu-fixed">
+          <button class="masterbar-button rounded">THE 1EARTH NETWORK</button>
+          <button class="masterbar-button rounded">
+            THE COMMUNITY RESOURCE BASE
+          </button>
+          <button class="masterbar-button rounded">FORUM</button>
+        </div>
+
+        <script>
+ 
+        </script>
+
+        <h1>THE 1EARTH NETWORK</h1>
+        <h2>
+          CONNECTING INDIVIDUALS TO COMMUNITIES PLAYING IN MAKING POSITIVE
+          SOCIAL CHANGE
+        </h2>
+        <h2>THE COMMUNITY-LED 1EARTH NETWORK</h2>
+
+        <div class="search-container">
+          <input
+            type="text"
+            placeholder="Search..."
+            class="search-input rounded inputcolor"
+          />
+        </div>
+        <p class="s1">
+          Welcome to the 1EARTH NETWORK. For the creatives, by the creatives.
+          All groups & events that are shown have been uploaded by You! The
+          Community, The 1 Earth network is open to all who believe in our core
+          values of empowerment, inclusivity, and equality.
+        </p>
+
+        <div class="filtermenu-container">
+          <div class="dropdown">
+            <button class="dropbtn inputcolor rounded">
+              <img
+                src="https://via.placeholder.com/20"
+                alt="Icon"
+                class="icon"
+              />
+              <div class="filtertitle">NETWORK [all]</div>
+              <span class="arrow">&#9662;</span>
+            </button>
+            <div class="dropdown-content">
+              <a href="#">Link 1</a>
+              <a href="#">Link 2</a>
+              <a href="#">Link 3</a>
+            </div>
+          </div>
+          <div class="dropdown">
+            <button class="dropbtn inputcolor rounded">
+              <img
+                src="https://via.placeholder.com/20"
+                alt="Icon"
+                class="icon"
+              />
+              <div class="filtertitle">London</div>
+              <span class="arrow">&#9662;</span>
+            </button>
+            <div class="dropdown-content">
+              <a href="#">Link 1</a>
+              <a href="#">Link 2</a>
+              <a href="#">Link 3</a>
+            </div>
+          </div>
+          <div class="dropdown">
+            <button class="dropbtn inputcolor rounded">
+              <img
+                src="https://via.placeholder.com/20"
+                alt="Icon"
+                class="icon"
+              />
+              <div class="filtertitle">All Categories</div>
+              <span class="arrow">&#9662;</span>
+            </button>
+            <div class="dropdown-content">
+              <a href="#">Link 1</a>
+              <a href="#">Link 2</a>
+              <a href="#">Link 3</a>
+            </div>
+          </div>
+          <div class="dropdown">
+            <button class="dropbtn inputcolor rounded">
+              <img
+                src="https://via.placeholder.com/20"
+                alt="Icon"
+                class="icon"
+              />
+              <div class="filtertitle">All Practices</div>
+              <span class="arrow">&#9662;</span>
+            </button>
+            <div class="dropdown-content">
+              <a href="#">Link 1</a>
+              <a href="#">Link 2</a>
+              <a href="#">Link 3</a>
+            </div>
+          </div>
+        </div>
+        <script>
+          // Get all the dropdown buttons
+          var dropdowns = document.getElementsByClassName("dropdown");
+          for (var i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].addEventListener("click", function () {
+              var dropdownContent =
+                this.getElementsByClassName("dropdown-content")[0];
+              if (dropdownContent.style.display === "block") {
+                dropdownContent.style.display = "none";
+              } else {
+                // Close other dropdowns when one is opened
+                var openDropdowns =
+                  document.getElementsByClassName("dropdown-content");
+                for (var j = 0; j < openDropdowns.length; j++) {
+                  openDropdowns[j].style.display = "none";
+                }
+                dropdownContent.style.display = "block";
+              }
+            });
+          }
+
+          // Close the dropdown if the user clicks outside of it
+          window.onclick = function (event) {
+            if (!event.target.matches(".dropbtn")) {
+              var dropdowns =
+                document.getElementsByClassName("dropdown-content");
+              for (var i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.style.display === "block") {
+                  openDropdown.style.display = "none";
+                }
+              }
+            }
+          };
+        </script>
+
+        <div class="dynamicbody">
+          <div class="leftbody">
+            <div class="contentisland rounded">
+              <div class="contentislandtitle">
+                <img
+                  src="https://via.placeholder.com/20"
+                  alt="Icon"
+                  class="icon"
+                />
+                Map:
+              </div>
+              <img
+                src="static/images/temporary/map.png"
+                alt="map"
+                class="responsive-image roundedbottom"
+              />
+            </div>
+
+            <div class="button-container">
+              <button class="masterbar-button rounded">
+                >SUBMIT TO OUR NETWORK HERE!
+              </button>
+              <button class="masterbar-button rounded">
+                BUILD YOUR OWN EVENT PAGE!
+              </button>
+            </div>
+
+            <p class="s1">
+              Submit or build your own version of this webpage!<br /><br />
+
+              Our platform is open and designed to be used by anyone to organise
+              their own communities
+            </p>
+            <div class="contentisland rounded">
+              <div class="contentislandtitle">
+                <img
+                  src="https://via.placeholder.com/20"
+                  alt="Icon"
+                  class="icon"
+                />
+                Upcoming
+              </div>
+
+              <div class="contentgrid3">
+                <img
+                  src="static/images/temporary/temporarycontent2.png"
+                  alt="content"
+                  class="responsive-image3"
+                  st
+                />
+                <img
+                  src="static/images/temporary/temporarycontent2.png"
+                  alt="content"
+                  class="responsive-image3"
+                  st
+                />
+                <img
+                  src="static/images/temporary/temporarycontent2.png"
+                  alt="content"
+                  class="responsive-image3"
+                  st
+                />
+                <img
+                  src="static/images/temporary/temporarycontent2.png"
+                  alt="content"
+                  class="responsive-image3"
+                  st
+                />
+                <img
+                  src="static/images/temporary/temporarycontent2.png"
+                  alt="content"
+                  class="responsive-image3"
+                  st
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="rightbody">
+            <div class="custom-form-container">
+              <input
+                type="text"
+                class="full-width-input rounded inputcolor"
+                placeholder="me@email.com"
+              />
+              <button type="submit" class="full-width-submit rounded">
+                Subscibe
+              </button>
+            </div>
+
+            <div class="contentisland rounded">
+              <div class="contentislandtitle">
+                <img
+                  src="https://via.placeholder.com/20"
+                  alt="Icon"
+                  class="icon"
+                />
+                Upcoming
+              </div>
+
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <img
+                src="static/images/temporary/temporarycontent.png"
+                alt="map"
+                class="responsive-image"
+                st
+              />
+              <br /><br /><br />
+            </div>
+
+            <p>topleftofright</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br /><br /><br /><a href="/Portfolio/INDEXV23.html">portfolio</a><br />
+    <a href="/Playground/index.html">playground</a>
+  </body>
 </html>
