@@ -28,7 +28,7 @@ document.getElementById('resourceForm').addEventListener('submit', function(even
 });
 
 function sendDataToGoogleSheets() {
-    const url = 'https://script.google.com/macros/s/AKfycbzfpU5VAMJ6xQUW-nPWoK7osl5j6c19rrVwO0YKy3uQyUBdzCg3TPu3pHdeh7N143aeaQ/exec';
+    const url = 'https://script.google.com/macros/s/AKfycbys73_iUb2xviqSo285E83lqEEL-7ymnwkkXXRUQdIS4vVH6zl8YqWq3fHu1gelovqc/exec';
 
     // Create a new FormData object
     const formData = new FormData();
@@ -36,6 +36,7 @@ function sendDataToGoogleSheets() {
     // Manually append text inputs
     formData.append('nameResource', document.getElementById('nameResource').value);
     formData.append('authorCreator', document.getElementById('authorCreator').value);
+    formData.append('description', document.getElementById('description').value);
     formData.append('category', document.getElementById('category').value);
     formData.append('linkURL', document.getElementById('linkURL').value);
     formData.append('nameUser', document.getElementById('nameUser').value);

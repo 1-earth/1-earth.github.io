@@ -273,13 +273,62 @@ display: flex;              /* Enables flexbox layout */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
+.leftbodyforum {
+  width: calc(66.67% - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
 .gap20{
   gap: 20px;
+}
+
+.authortext{
+  margin-top: 7px;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.descriptiontext{
+  margin-top: 7px;
+  font-size: 14px;
+}
+
+.addedbytext{
+  margin-top: 7px;
+  margin-bottom: 7px;
+  font-size: 10px;
+}
+
+.resourceimage{
+  margin-top: 7px;
+  width: 100%; 
+  height: auto; 
+  max-width: 150px; 
+  font-size: 4px; 
+  background-color: #d9d9d9;
+}
+
+.bold{
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.resourcescontainer{
+  padding: 12px;
 }
 
 .rightbody {
   width: calc(33.33% - 10px); /* 1/3 width minus half the gap */
   background-color: #f2f2f2; /* Slightly darker for contrast */
+}
+
+.rightbodyforum {
+  width: calc(33.33% - 10px); /* 1/3 width minus half the gap */
+  background-color: #f2f2f2; /* Slightly darker for contrast */
+}
+
+.islandtextcontent{
+  margin: 10px;
 }
 
 /* here is for 1/3, 1/3 & 1/3 split */
