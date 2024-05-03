@@ -17,32 +17,48 @@
     <div class="landingsection">
       <div class="masterframe">
         <div class="masterbar-menu">
-          <button class="masterbar-button rounded">THE 1EARTH NETWORK</button>
-          <button class="masterbar-button rounded activeblack">ABOUT</button>
-          <button class="masterbar-button rounded activeblack">JOIN</button>
-        </div>
+          <a href="index.html" class="masterbar-button rounded ">THE 1EARTH NETWORK</a>
+          <a href="about.html" class="masterbar-button rounded activeblack">ABOUT</a>
+          <a href="join.html" class="masterbar-button rounded activeblack">JOIN</a>
+      </div>
 
-        <p class="s1 whitetext">
-          Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
-          progress, scroll down to see the network/resource base/forum.
-        </p>
+        <div class="topheader">
+          <p class="s1 whitetext" style="max-width: 66%;">
+            Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
+            progress, scroll down to see the network/resource base/forum.
+          </p>
+
+          <div class="switchcontainer">
+            <p class="s1 whitetext"> accessibility</p>
+          <label class="switch">
+            <input type="checkbox" aria-label="Toggle accessibility options" />
+            <span class="slider round"></span>
+          </label>
+        </div>
+        </div>
 
         <div class="white-line"></div>
 
         <h1 class="centretext whitetext">1EARTH</h1>
-        <p class="whitetext">
-          1EARTH IS:<br /><br />
+        <div class="landingcontent">
+          <p class="whitetext landingtext">
+            1EARTH IS:<br /><br />
 
-          A platform for empowering creatives making positive changes within
-          their communities.<br /><br />
+            A platform for empowering creatives making positive changes within
+            their communities.<br /><br />
 
-          We are an open community bound by our shared core values of equality,
-          inclusivity, and accessibility.<br /><br />
+            We are an open community bound by our shared core values of
+            equality, inclusivity, and accessibility.<br /><br />
 
-          We believe that as creatives, it is our duty to lead and inspire
-          collective action, organising efforts for broader impact to shape the
-          future we envision.<br /><br />
-        </p>
+            We believe that as creatives, it is our duty to lead and inspire
+            collective action, organising efforts for broader impact to shape
+            the future we envision.<br /><br />
+          </p>
+          <video class="responsive-video" autoplay muted loop playsinline>
+            <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
     </div>
     <div class="fading-div"></div>
@@ -50,14 +66,18 @@
     <div class="masterframe">
       <div class="bodyframe">
         <div id="navbar">
-          <button class="masterbar-button rounded activeblack">THE 1EARTH NETWORK</button>
-          <button class="masterbar-button rounded">
-            THE COMMUNITY RESOURCE BASE
-          </button>
+          <a href="" class="masterbar-button rounded activeblack" role="button">
+            THE 1EARTH NETWORK
+          </a>
+          <a
+            href="resources.html"
+            class="masterbar-button rounded"
+            role="button"
+          >
+            THE RESOURCE BASE
+          </a>
           <button class="masterbar-button rounded">FORUM</button>
         </div>
-
-        
 
         <div id="contentcarrier">
           <h1>THE 1EARTH NETWORK</h1>
@@ -341,27 +361,35 @@
       </div>
     </div>
 
-    <br /><br /><br /><a href="/Portfolio/INDEXV23.html">portfolio</a><br />
+    <br /><br /><br />
     <a href="/Playground/index.html">playground</a>
 
     <script>
-      window.onscroll = function() {myFunction()};
-      
+      window.onscroll = function () {
+        myFunction();
+      };
+
       var navbar = document.getElementById("navbar");
       var contentcarrier = document.getElementById("contentcarrier");
       var sticky = navbar.offsetTop;
-      console.log("we here34")
+      console.log("we here34");
       function myFunction() {
         if (window.pageYOffset >= sticky) {
-          navbar.classList.add("sticky")
-          contentcarrier.classList.add("additionalspacer")
-          console.log("we here23")
+          navbar.classList.add("sticky");
+          contentcarrier.classList.add("additionalspacer");
+          console.log("we here23");
         } else {
           navbar.classList.remove("sticky");
-          contentcarrier.classList.remove("additionalspacer")
-          console.log("we here")
+          contentcarrier.classList.remove("additionalspacer");
+          console.log("we here");
         }
       }
-      </script>
+    </script>
+
+<footer>
+  <p class="centretext">🌐 1EARTH ℗ 2024. Designed by <a href="https://1-earth.github.io/Portfolio/INDEXV23.html">George Symonds</a>. All code is open-source & available <a href="https://github.com/1-earth/1-earth.github.io">here</a>.</p>
+</footer>
+
+
   </body>
 </html>

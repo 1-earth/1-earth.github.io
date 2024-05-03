@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+          rel="icon"
+          href="/Portfolio/Images/projects/1EARTH/1ECROP.png"
+          type="image/png"
+        />
+        <title>ONEEARTH</title>
+        <link rel="stylesheet" type="text/css" href="/static/styles/oneearth.css" />
+      </head>
+<body>
+    <h1>Resource Submission Form</h1>
+    <form id="resourceForm">
+        <label for="nameResource">Name of Resource:</label>
+        <input type="text" id="nameResource" name="nameResource" required><br><br>
+
+        <label for="authorCreator">Author/Creator:</label>
+        <input type="text" id="authorCreator" name="authorCreator" required><br><br>
+
+        <label for="authorCreator">Description of Resource:</label>
+        <input type="text" id="description" name="description" required><br><br>
+
+
+        <label for="category">Category:</label>
+        <select id="category" name="category" required>
+            <option value="Research & Inspiration">Research & Inspiration</option>
+            <option value="Opportunities & Funding">Opportunities & Funding</option>
+            <option value="Other Community Hubs">Other Community Hubs</option>
+        </select><br><br>
+
+        <label for="linkURL">Link (URL):</label>
+        <input type="url" id="linkURL" name="linkURL" required><br><br>
+
+        <label for="nameUser">Name of User:</label>
+        <input type="text" id="nameUser" name="nameUser" required><br><br>
+
+        <fieldset>
+            <legend>Topic Tags (select all appropiate):</legend>
+            <input type="checkbox" id="healthWellbeing" name="topicTags" value="Health/Well-being">
+            <label for="healthWellbeing">Health/Well-being</label><br>
+        
+            <input type="checkbox" id="community" name="topicTags" value="Community">
+            <label for="community">Community</label><br>
+        
+            <input type="checkbox" id="social" name="topicTags" value="Social">
+            <label for="social">Social</label><br>
+        
+            <input type="checkbox" id="creative" name="topicTags" value="Creative">
+            <label for="creative">Creative</label><br>
+        
+            <input type="checkbox" id="food" name="topicTags" value="Food">
+            <label for="food">Food</label><br>
+        
+            <input type="checkbox" id="technology" name="topicTags" value="Technology">
+            <label for="technology">Technology</label><br>
+        
+            <input type="checkbox" id="liveEvent" name="topicTags" value="Live Event">
+            <label for="liveEvent">Live Event</label><br>
+        
+            <input type="checkbox" id="art" name="topicTags" value="Art">
+            <label for="art">Art</label><br>
+        
+            <input type="checkbox" id="volunteering" name="topicTags" value="Volunteering">
+            <label for="volunteering">Volunteering</label><br>
+        
+            <input type="checkbox" id="education" name="topicTags" value="Education">
+            <label for="education">Education</label><br>
+        
+            <input type="checkbox" id="exercise" name="topicTags" value="Exercise">
+            <label for="exercise">Exercise</label><br>
+        
+            <input type="checkbox" id="sustainability" name="topicTags" value="Sustainability">
+            <label for="sustainability">Sustainability</label><br>
+        
+            <input type="checkbox" id="accessibility" name="topicTags" value="Accessibility">
+            <label for="accessibility">Accessibility</label><br>
+        
+            <input type="checkbox" id="innovation" name="topicTags" value="Innovation">
+            <label for="innovation">Innovation</label><br>
+        
+            <input type="checkbox" id="historicalCulturalHeritage" name="topicTags" value="Historical/Cultural Heritage">
+            <label for="historicalCulturalHeritage">Historical/Cultural Heritage</label><br>
+        
+            <input type="checkbox" id="policyAdvocacy" name="topicTags" value="Policy and Advocacy">
+            <label for="policyAdvocacy">Policy and Advocacy</label><br>
+        
+            <input type="checkbox" id="entrepreneurship" name="topicTags" value="Entrepreneurship">
+            <label for="entrepreneurship">Entrepreneurship</label><br>
+        
+            <input type="checkbox" id="inclusion" name="topicTags" value="Inclusion">
+            <label for="inclusion">Inclusion</label><br>
+        
+            <input type="checkbox" id="ecologyNature" name="topicTags" value="Ecology/Nature">
+            <label for="ecologyNature">Ecology/Nature</label><br>
+        </fieldset>
+
+        <fieldset>
+            <legend>Practice Tags(select all appropiate): </legend>
+            <input type="checkbox" id="design" name="practiceTags" value="Design">
+            <label for="design">Design</label><br>
+        
+            <input type="checkbox" id="music" name="practiceTags" value="Music">
+            <label for="music">Music</label><br>
+        
+            <input type="checkbox" id="image" name="practiceTags" value="Image">
+            <label for="image">Image</label><br>
+        
+            <input type="checkbox" id="film" name="practiceTags" value="Film">
+            <label for="film">Film</label><br>
+        
+            <input type="checkbox" id="fashion" name="practiceTags" value="Fashion">
+            <label for="fashion">Fashion</label><br>
+        
+            <input type="checkbox" id="publication" name="practiceTags" value="Publication">
+            <label for="publication">Publication</label><br>
+        
+            <input type="checkbox" id="sound" name="practiceTags" value="Sound">
+            <label for="sound">Sound</label><br>
+        
+            <input type="checkbox" id="computing" name="practiceTags" value="Computing">
+            <label for="computing">Computing</label><br>
+        
+            <input type="checkbox" id="threeD" name="practiceTags" value="3D">
+            <label for="threeD">3D</label><br>
+        </fieldset>
+        
+        <br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="formScript.js"></script>
+</body>
+</html>

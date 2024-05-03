@@ -13,12 +13,20 @@ body {
   /* color: black; */
 }
 
+footer {
+  margin-top: 34px;
+  margin-bottom: 53px;
+
+}
+
 h2 {
   font-size: 23px;
+  padding-top: 15px;
 }
 
 h1 {
   font-size: 34px;
+  padding-top: 20px;
 }
 
 .masterframe {
@@ -38,12 +46,32 @@ h1 {
   justify-content: space-between; /* Spreads out the items */
 }
 
+.landingcontent {
+margin-left: 13.7vw;
+margin-right: 13.7vw;
+padding-bottom: 40px;
+display: flex;              /* Enables flexbox layout */
+    align-items: center;        /* Vertically centers the children (text and image) */
+    justify-content: space-between; 
+}
+
+.landingtext{
+  max-width: 33vw;
+}
+.landingcontent img {
+  filter: brightness(0) invert(1); /* Apply filter to make the image white */
+  cursor: pointer; /* Ensure the cursor indicates a clickable item */
+  width: 23px; /* Set a specific width for the image */
+  height: auto; /* Maintain aspect ratio */
+}
+
+
 #navbar {
   /* background-color: #333; */
   display: flex;
   justify-content: space-between; /* Spreads out the items */
-  background-color: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
   overflow: hidden;
   width: 100%;
   padding-top: 0px;
@@ -111,6 +139,7 @@ h1 {
 
 .s1 {
   font-size: 14px;
+  padding-bottom: 20px;
 }
 
 .whitetext {
@@ -141,8 +170,14 @@ h1 {
 .centretext {
   text-align: center;
 }
+.centreimage{
+  justify-content: center; 
+  display: flex;
+}
 
 .search-container {
+  padding-top: 15px;
+  padding-bottom: 15px;
 }
 
 .inputcolor {
@@ -152,7 +187,7 @@ h1 {
 /* Styles the search input field */
 .search-input {
   width: 100%; /* Makes the input take up 100% of its container's width */
-  padding: 10px 15px; /* Adds padding inside the search bar */
+  padding: 3px 15px; /* Adds padding inside the search bar */
   font-size: 18px; /* Sets the font size */
   border: 0px solid #ccc; /* Adds a light grey border */
   box-sizing: border-box; /* Ensures padding and border are included in the width */
@@ -162,13 +197,14 @@ h1 {
   display: flex;
   width: 80%; /* Makes the container take 80% of its parent width */
   /* background-color: #333; */
+  gap:20px;
 }
 
 .dropdown {
   flex-grow: 1;
   position: relative;
   display: inline-block;
-  margin-right: 23px;
+  width: 19vw;
 }
 
 .dropdown:last-child {
@@ -232,14 +268,35 @@ h1 {
   margin-top: 20px;
 }
 
+/* here is for 2/3 & 1/3 split */
 .leftbody {
   width: calc(66.67% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
+.gap20{
+  gap: 20px;
+}
+
 .rightbody {
   width: calc(33.33% - 10px); /* 1/3 width minus half the gap */
   background-color: #f2f2f2; /* Slightly darker for contrast */
+}
+
+/* here is for 1/3, 1/3 & 1/3 split */
+.leftbody13 {
+  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
+.middlebody13 {
+  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
+.rightbody13 {
+  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
 /* Adding margin to create the gap */
@@ -263,6 +320,8 @@ h1 {
   height: auto; /* Maintain aspect ratio */
   display: block; /* Remove any extra space below the image */
 }
+
+
 
 .button-container {
   display: flex; /* Enables flexbox layout */
@@ -323,4 +382,135 @@ h1 {
   ); /* Slightly less than one-third, accounting for the gap */
   height: auto; /* Maintains aspect ratio */
   border: 0.5px solid black;
+}
+
+.topheader {
+  display: flex;
+  justify-content: space-between; /* Positions the text and switch on opposite sides */
+  align-items: flex-start;        /* Aligns items to the top of the container */
+  color: white;                   /* Text color for readability */
+}
+/* Styling for the switch and its container */
+.switchcontainer {
+  display: flex;                  /* Enables flexbox for the switch container */
+  align-items: top;            /* Vertically centers the text and the switch */
+  gap: 10px;                      /* Adds space between the text and the switch */
+}
+
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 21px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: black;
+  -webkit-transition: .4s;
+  transition: .4s;
+  height: 21px;
+  width: 48px;
+  border: 1px solid #ccc;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 4px;
+  bottom: 2.3px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.responsive-video {
+  width: 50%;                 /* Assigns 45% of the container width to video */
+  height: auto;               /* Maintain aspect ratio */
+  border-radius: 8px;  
+  max-width: 300px;       /* Rounded corners for the video */
+}
+
+
+.contributebar {
+  width: 100%;
+  height: 60px; /* Adjusted for better visibility and fit */
+  position: fixed;
+  top: 85%;
+  /* background-color: #f8f8f8; */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+ 
+}
+
+.contribute-buttons-container {
+  justify-items: end;
+ gap:16vw;
+  /* display: flex; */
+  /* margin-right: 57px; */
+  /* justify-content: space-between; */
+  /* width: 85.66%; Covers the remaining 2/3 of the navbar */
+}
+
+.contribute-button {
+  /* margin-left: 23%; */
+  padding: 5px 20px;
+  text-decoration: none;
+  font-size: 14px;
+  color: #0000ff;
+  background-color: #52FF00;
+  /* border-radius: 5px; */
+  transition: background-color 0.3s ease;
+  border: 0.5px solid #0000FF;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5); /* Drop shadow */
+  
+
+  /* position: fixed; */
+}
+
+.contribute-button:hover {
+  background-color: #0000ff;
+  color: white;
+  
 }
