@@ -20,26 +20,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const userName = row[5];
             let imageUrl = row[9]; // Primary image URL
 
+            // Check if the primary image URL is empty or not a valid URL
             if (!imageUrl || !isValidUrl(imageUrl)) {
                 imageUrl = row[10]; // Fallback to secondary image URL
             }
 
-            const keywordsCategory = row[6].split(',');
-            const keywordsAudience = row[7].split(',');
-
-            let categoryButtonsHtml = keywordsCategory.map(keyword => `<button class="keyword-btn category-btn">${keyword.trim()}</button>`).join('');
-            let audienceButtonsHtml = keywordsAudience.map(keyword => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`).join('');
-
             const htmlContent = `
                 <h2><a href="${url}">${name}</a></h2>
                 <p class='authortext'>Author/Creator: ${author}</p>
-                <p class='descriptiontext'>${description}</p>
+                <p class='descriptiontext'> ${description}</p>
                 <div class="resourceimagesection">
                     <img src="${imageUrl}" alt="Image of ${name}" class="rounded resourceimage">
-                    <div class="keyword-buttons">
-                        <div class="audience-row">${audienceButtonsHtml}</div>
-                        <div class="category-row">${categoryButtonsHtml}</div>
-                    </div>
                 </div>
                 <p class='addedbytext'>Added by: ${userName}</p>
                 <hr>
@@ -59,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Helper function to validate URL
     function isValidUrl(string) {
         try {
             new URL(string);

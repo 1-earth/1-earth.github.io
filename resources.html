@@ -37,11 +37,8 @@
           <div class="switchcontainer">
             <p class="s1 whitetext">accessibility</p>
             <label class="switch">
-              <input
-                type="checkbox"
-                aria-label="Toggle accessibility options"
-              />
-              <span class="slider round"></span>
+                <input type="checkbox" aria-label="Toggle accessibility options" />
+                <span class="slider round"></span>
             </label>
           </div>
         </div>
@@ -231,7 +228,7 @@
                 });
               </script>
               
-            <div class="leftbody13">
+            <div class="leftbody13 rounded">
               <div class="contentisland rounded">
                 <div class="resourcescontainer">
                   <div class="contentislandtitle bold">
@@ -241,7 +238,7 @@
                 </div>
               </div>
             </div>
-            <div class="middlebody13">
+            <div class="middlebody13 rounded">
               <div class="contentisland rounded">
                 <div class="resourcescontainer">
                 <div class="contentislandtitle bold">
@@ -251,7 +248,7 @@
               </div>
               </div>
             </div>
-            <div class="rightbody13">
+            <div class="rightbody13 rounded" >
               <div class="contentisland rounded">
                 <div class="resourcescontainer">
                 <div class="contentislandtitle bold ">
@@ -327,6 +324,19 @@ window.addEventListener('resize', adjustFixedDiv);
         section.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const switchControl = document.querySelector('.switch input[type="checkbox"]');
+      switchControl.addEventListener('change', function() {
+          if (this.checked) {
+              document.body.classList.add('dyslexia-mode');
+          } else {
+              document.body.classList.remove('dyslexia-mode');
+          }
+      });
+  });
+  </script>
 
     <footer>
       <p class="centretext">

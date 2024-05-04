@@ -300,15 +300,70 @@ display: flex;              /* Enables flexbox layout */
   font-size: 10px;
 }
 
+.resourceimagesection {
+  width: 100%; /* Ensures the div takes up 100% of its parent's width */
+  position: relative;
+    display: flex;
+    align-items: flex-end;
+}
+
 .resourceimage{
   margin-top: 7px;
-  width: 100%; 
+  display: block;
+  width: 50%; 
   height: auto; 
   max-width: 150px; 
   font-size: 4px; 
   background-color: #d9d9d9;
 }
 
+.keyword-buttons {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;  /* Aligns buttons to the bottom */
+  justify-content: flex-end;  /* Aligns buttons to the right */
+  margin-left: auto;  /* Ensures buttons are on the right side */
+  gap: 5px;  /* Space between buttons */
+}
+
+.keyword-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.category-row, .audience-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding-left: 10px;
+}
+
+.keyword-btn {
+  padding: 2px 4px;
+  border: none;
+  border-radius: 17px;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.category-btn {
+  border: 0.5px solid #0000ff;
+  background-color: white;
+  color: #0000ff;
+  
+}
+
+.audience-btn {
+  border: 0.5px solid #FF8000;
+  background-color: white;
+  color: #FF8000;
+}
 .bold{
   font-weight: bold;
   font-size: 18px;
@@ -523,7 +578,7 @@ input:checked + .slider:before {
 
 .contributebar {
   width: 100%;
-  height: 60px; /* Adjusted for better visibility and fit */
+  height: 80px; /* Adjusted for better visibility and fit */
   position: fixed;
   top: 85%;
   /* background-color: #f8f8f8; */
@@ -536,8 +591,8 @@ input:checked + .slider:before {
 .contribute-buttons-container {
   /* justify-items: end; */
   position: fixed;
- gap:16vw;
- top: 95%;
+ /* gap:16vw; */
+ top: 85%;
  width: 300px;
   /* display: flex; */
   /* margin-right: 57px; */
@@ -547,10 +602,10 @@ input:checked + .slider:before {
 
 .contribute-button {
   text-decoration: none;
-  width: 100%;
+  width: 10%;
   font-size: 18px;
-  padding-top: 1px;
-  padding-bottom: 1px;
+  padding-top: 3px;
+  padding-bottom: 3px;
   color: #ffffff;
   background-color: #0000ff;
   transition: background-color 0.3s ease, bottom 0.5s ease; /* Add transition for bottom property */
@@ -559,6 +614,7 @@ input:checked + .slider:before {
   position: fixed;
   bottom: -50px; /* Start off-screen */
   text-align: center;
+  z-index: 100;
 }
 
 .contribute-button:hover {
@@ -566,3 +622,26 @@ input:checked + .slider:before {
   color: white;
   
 }
+
+
+/* Dyslexia-friendly styles */
+.dyslexia-mode {
+  color: #2a2536; /* Black text */
+  background-color: #DBE1F1 !important; /* Light yellow background */
+  font-family: 'Arial', sans-serif; /* Dyslexia-friendly font */
+}
+
+.dyslexia-mode a, .dyslexia-mode p, .dyslexia-mode h1, .dyslexia-mode h2, .dyslexia-mode h3 {
+  line-height: 1.6; /* Increased line height for readability */
+}
+
+.dyslexia-mode .resourcescontainer {
+  border-radius: 17px;
+  background-color: #E0E0E0; /* Light grey, change as needed for dyslexia friendliness */
+}
+
+.dyslexia-mode .landingsection {
+  /* border-radius: 17px; */
+  background-color: #707070; /* Light grey, change as needed for dyslexia friendliness */
+}
+
