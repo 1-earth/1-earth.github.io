@@ -215,7 +215,8 @@
             };
           </script>
 
-          <div class="dynamicbody gap20">
+          <div class="dynamicbody gap20" id="parentDiv">
+            <a href="/resourcebase/resourcebasesubmission.html" id = 'fixedDiv'class="contribute-button rounded"  >Contribute Your Own!</a >
             <div class="leftbody13">
               <div class="contentisland rounded">
                 <div class="resourcescontainer">
@@ -249,23 +250,36 @@
           </div>
 
           <script src="resourcebase/resourceprint.js"></script>
+
+          <script>
+function adjustFixedDiv() {
+  var parent = document.getElementById('parentDiv');
+  var fixed = document.getElementById('fixedDiv');
+  if (parent && fixed) {
+    var parentRect = parent.getBoundingClientRect();
+    fixed.style.width = `${parentRect.width}px`; // Set width of fixed div to match parent
+    fixed.style.left = `${parentRect.left}px`; // Align left edge with parent
+  }
+}
+
+// Adjust on load and on resize
+window.addEventListener('load', adjustFixedDiv);
+window.addEventListener('resize', adjustFixedDiv);
+
+          </script>
 </body>
 
-          <div class="contributebar">
-            <div class="contribute-buttons-container rounded">
-              <a
-                href="/resourcebase/resourcebasesubmission.html"
-                class="contribute-button rounded"
-                >Contribute Your Own!</a
-              >
+         
+            
+              
               <!-- <a href="#contribute2" class="contribute-button rounded"
                 >Contribute Your Own!</a
               >
               <a href="#contribute3" class="contribute-button rounded"
                 >Contribute Your Own!</a
               > -->
-            </div>
-          </div>
+            
+          
         </div>
       </div>
     </div>
