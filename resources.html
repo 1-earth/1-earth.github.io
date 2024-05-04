@@ -217,6 +217,20 @@
 
           <div class="dynamicbody gap20" id="parentDiv">
             <a href="/resourcebase/resourcebasesubmission.html" id = 'fixedDiv'class="contribute-button rounded"  >Contribute Your Own!</a >
+              <script>
+                window.addEventListener('scroll', function() {
+                  var scrollPosition = window.scrollY;
+                  var button = document.getElementById('fixedDiv');
+              
+                  // Adjust '100' to when you want the button to appear (distance in pixels scrolled down)
+                  if (scrollPosition > 230) {
+                    button.style.bottom = '1.5%'; // Move button to its final position
+                  } else {
+                    button.style.bottom = '-50px'; // Hide button off-screen
+                  }
+                });
+              </script>
+              
             <div class="leftbody13">
               <div class="contentisland rounded">
                 <div class="resourcescontainer">

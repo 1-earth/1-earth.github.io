@@ -537,7 +537,7 @@ input:checked + .slider:before {
   /* justify-items: end; */
   position: fixed;
  gap:16vw;
- top: 85%;
+ top: 95%;
  width: 300px;
   /* display: flex; */
   /* margin-right: 57px; */
@@ -546,20 +546,20 @@ input:checked + .slider:before {
 }
 
 .contribute-button {
-  padding: 5px 20px;
   text-decoration: none;
-  font-size: 14px;
-  color: #0000ff;
-  background-color: #52FF00;
-  transition: background-color 0.3s ease;
-  border: 0.5px solid #0000FF;
+  width: 100%;
+  font-size: 18px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  color: #ffffff;
+  background-color: #0000ff;
+  transition: background-color 0.3s ease, bottom 0.5s ease; /* Add transition for bottom property */
+  border: 0.5px solid #FFFFFF;
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
   position: fixed;
-  top: 85%;  /* Check if this needs adjustment based on your page layout */
-  left: 0;   /* Start aligned to the left edge of the viewport, will adjust with JS */
+  bottom: -50px; /* Start off-screen */
   text-align: center;
 }
-
 
 .contribute-button:hover {
   background-color: #0000ff;
