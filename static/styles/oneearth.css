@@ -231,11 +231,16 @@ display: flex;              /* Enables flexbox layout */
   max-height: 13px;
 }
 
+
 .filtertitle {
   margin-left: 10px;
+  pointer-events: none;
 }
 
+
+
 .arrow {
+  pointer-events: none;
   font-size: 12px; /* Smaller font size for the arrow */
 }
 
@@ -298,6 +303,11 @@ display: flex;              /* Enables flexbox layout */
   margin-top: 7px;
   margin-bottom: 7px;
   font-size: 10px;
+}
+
+.resourcetitle{
+color: #581c8c;
+
 }
 
 .resourceimagesection {

@@ -96,13 +96,14 @@
           <h2>RESOURCES FOR CREATIVES</h2>
           <h2>FIND & SHARE RESOURCES HERE:</h2>
 
-          <div class="search-container">
+          <<div class="search-container">
             <input
               type="text"
               placeholder="Search..."
               class="search-input rounded inputcolor"
+              id="search-input"
             />
-          </div>
+        </div>
           <p class="s1">
             Welcome to the 1EARTH RESOURCE BASE. For the creatives, by the
             creatives. All resources shown have been uploaded by You! The
@@ -118,61 +119,60 @@
                   alt="Icon"
                   class="icon"
                 />
-                <div class="filtertitle">NETWORK [all]</div>
+                <div class="filtertitle">NETWORK [All]</div>
                 <span class="arrow">&#9662;</span>
               </button>
               <div class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
+                <a href="#">All</a>
+                <a href="#">More coming soon...</a>
               </div>
             </div>
             <div class="dropdown">
               <button class="dropbtn inputcolor rounded">
-                <img
-                  src="static/images/icons/location-pin-svgrepo-com.svg"
-                  alt="Icon"
-                  class="icon"
-                />
-                <div class="filtertitle">London</div>
-                <span class="arrow">&#9662;</span>
+                  <img src="static/images/icons/category-svgrepo-com.svg" alt="Icon" class="icon"/>
+                  <div class="filtertitle">Categories <span id="selected-category">[All]</span></div>
+                  <span class="arrow">&#9662;</span>
               </button>
-              <div class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
+              <div class="dropdown-content" id="category-dropdown">
+                <a href="#">Community</a>
+                <a href="#">Social</a>
+                <a href="#">Creative</a>
+                <a href="#">Education</a>
+                <a href="#">Sustainability</a>
+                <a href="#">Accessibility</a>
+                <a href="#">Technology</a>
+                <a href="#">Live Event</a>
+                <a href="#">Volunteering</a>
+                <a href="#">Health & Well-being</a>
+                <a href="#">Excercise</a>
+                <a href="#">Food</a>
+                <a href="#">Innovation</a>
+                <a href="#">Historical/Cultural Heritage</a>
+                <a href="#">Policy and Advocacy</a>
+                <a href="#">Entrepreneurship</a>
+                <a href="#">Diversity & Inclusion</a>
+                <a href="#">Ecology & Nature</a>
               </div>
             </div>
             <div class="dropdown">
               <button class="dropbtn inputcolor rounded">
-                <img
-                  src="static/images/icons/category-svgrepo-com.svg"
-                  alt="Icon"
-                  class="icon"
-                />
-                <div class="filtertitle">All Categories</div>
-                <span class="arrow">&#9662;</span>
+                  <img src="static/images/icons/artist-svgrepo-com.svg" alt="Icon" class="icon"/>
+                  <div class="filtertitle">Practices <span id="selected-practice">[All]</span></div>
+                  <span class="arrow">&#9662;</span>
               </button>
-              <div class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
-              </div>
-            </div>
-            <div class="dropdown">
-              <button class="dropbtn inputcolor rounded">
-                <img
-                  src="static/images/icons/artist-svgrepo-com.svg"
-                  alt="Icon"
-                  class="icon"
-                />
-                <div class="filtertitle">All Practices</div>
-                <span class="arrow">&#9662;</span>
-              </button>
-              <div class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
+              <div class="dropdown-content" id="practice-dropdown">
+                <a href="#">Design</a>
+                <a href="#">Community Engagement</a>
+                <a href="#">Music</a>
+                <a href="#">Image</a>
+                <a href="#">Film & Media</a>
+                <a href="#">Fashion</a>
+                <a href="#">Publication</a>
+                <a href="#">Sound</a>
+                <a href="#">Fine Art</a>
+                <a href="#">Performance Arts</a>
+                <a href="#">Computing</a>
+                <a href="#">3D</a>
               </div>
             </div>
           </div>
@@ -252,7 +252,7 @@
               <div class="contentisland rounded">
                 <div class="resourcescontainer">
                 <div class="contentislandtitle bold ">
-                  Other Digital Community Hubs
+                  Other Community Hubs
                 </div>
                 <div id="other-community-hubs"></div>
               </div>
