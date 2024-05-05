@@ -49,8 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let audienceButtonsHtml = keywordsAudience.map(keyword => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`).join('');
 
             const htmlContent = `
-            <h2><a href="${url}" class="resourcetitle">${name}</a></h2>
-
+                <h2><a href="${url}">${name}</a></h2>
                 <p class='authortext'>Author/Creator: ${author}</p>
                 <p class='descriptiontext'>${description}</p>
                 <div class="resourceimagesection">
@@ -82,9 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('search-input').addEventListener('input', function() {
         const searchText = this.value;
         const categoryFilter = document.getElementById('category-dropdown').getAttribute('data-selected') || '';
-        
         const practiceFilter = document.getElementById('practice-dropdown').getAttribute('data-selected') || '';
-        console.log(practiceFilter);
         displayData(searchText, categoryFilter, practiceFilter);
     });
 
@@ -96,9 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const searchText = document.getElementById('search-input').value;
             const categoryFilter = document.getElementById('category-dropdown').getAttribute('data-selected') || '';
             const practiceFilter = document.getElementById('practice-dropdown').getAttribute('data-selected') || '';
-            console.log("C: "+categoryFilter);
             displayData(searchText, categoryFilter, practiceFilter);
-            console.log("P: "+practiceFilter);
         });
     });
 
