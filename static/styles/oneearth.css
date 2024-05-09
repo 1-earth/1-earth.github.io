@@ -17,8 +17,15 @@ footer {
   margin-top: 34px;
   margin-bottom: 53px;
   color: #635b75;
-
 }
+
+
+
+#map {
+  width: 100%;
+  height: 500px;
+}
+
 
 fieldset {
   border: none;
@@ -29,7 +36,7 @@ h2 {
   padding-top: 15px;
 }
 
-.hidden{
+.hidden {
   display: none;
   border: 1px solid white !important;
 }
@@ -57,15 +64,15 @@ h1 {
 }
 
 .landingcontent {
-margin-left: 34px;
-margin-right: 34px;
-padding-bottom: 40px;
-display: flex;              /* Enables flexbox layout */
-    align-items: center;        /* Vertically centers the children (text and image) */
-    justify-content: space-between; 
+  margin-left: 34px;
+  margin-right: 34px;
+  padding-bottom: 40px;
+  display: flex; /* Enables flexbox layout */
+  align-items: center; /* Vertically centers the children (text and image) */
+  justify-content: space-between;
 }
 
-.landingtext{
+.landingtext {
   max-width: 33vw;
 }
 .landingcontent img {
@@ -74,7 +81,6 @@ display: flex;              /* Enables flexbox layout */
   width: 23px; /* Set a specific width for the image */
   height: auto; /* Maintain aspect ratio */
 }
-
 
 #navbar {
   /* background-color: #333; */
@@ -86,7 +92,6 @@ display: flex;              /* Enables flexbox layout */
   width: 100%;
   padding-top: 0px;
 }
-
 
 .sticky {
   position: fixed;
@@ -103,7 +108,7 @@ display: flex;              /* Enables flexbox layout */
   padding-top: 10px;
 }
 
-.additionalspacer{
+.additionalspacer {
   margin-top: 45px;
 }
 
@@ -119,7 +124,6 @@ display: flex;              /* Enables flexbox layout */
   margin: 10px; /* 23px divided by 2 for even spacing between buttons */
   width: 33%;
   cursor: pointer;
- 
 }
 
 #navbar .activeblack {
@@ -180,8 +184,8 @@ display: flex;              /* Enables flexbox layout */
 .centretext {
   text-align: center;
 }
-.centreimage{
-  justify-content: center; 
+.centreimage {
+  justify-content: center;
   display: flex;
 }
 
@@ -207,7 +211,7 @@ display: flex;              /* Enables flexbox layout */
   display: flex;
   width: 80%; /* Makes the container take 80% of its parent width */
   /* background-color: #333; */
-  gap:20px;
+  gap: 20px;
 }
 
 .dropdown {
@@ -242,13 +246,10 @@ display: flex;              /* Enables flexbox layout */
   max-height: 13px;
 }
 
-
 .filtertitle {
   margin-left: 10px;
   pointer-events: none;
 }
-
-
 
 .arrow {
   pointer-events: none;
@@ -281,7 +282,7 @@ display: flex;              /* Enables flexbox layout */
   display: flex; /* Use flexbox to layout child elements */
   width: 100%;
   margin-top: 20px;
-  position: relative; 
+  position: relative;
 }
 
 /* here is for 2/3 & 1/3 split */
@@ -295,53 +296,111 @@ display: flex;              /* Enables flexbox layout */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
-.gap20{
+.gap20 {
   gap: 20px;
 }
 
-.authortext{
+.authortext {
   margin-top: 7px;
   font-size: 14px;
   font-style: italic;
 }
 
-.descriptiontext{
+.descriptiontext {
   margin-top: 7px;
   font-size: 14px;
 }
 
-.addedbytext{
+.addedbytext {
   margin-top: 7px;
   margin-bottom: 7px;
   font-size: 10px;
 }
 
-.resourcetitle{
-color: #581c8c;
-
+.resourcetitle {
+  color: #581c8c;
 }
 
 .upcomingEvent {
   position: relative;
-  display: flex;                  /* Enables flexbox layout */
-  width: 100%;                    /* Ensures the container takes full width of its parent */
+  display: flex; /* Enables flexbox layout */
+  width: 100%; /* Ensures the container takes full width of its parent */
 }
 
-.f14{
+
+#upcoming-events3{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Creates three columns of equal width */
+  /* gap: 10px; Sets the space between grid items */
+}
+
+.grid-item3 {
+  background-color: #f0f0f0; /* Light grey background for visibility */
+  border: 1px solid #ccc; /* Adds a border to each grid item */
+  padding: 0px; /* Padding inside each grid item for content */
+ }
+
+
+.upcomingEventItem3{
+    /* background-color: #f0f0f0; Light grey background for visibility */
+    border: 1px solid #ccc; /* Adds a border to each grid item */
+    /* padding: 20px; Padding inside each grid item for content */
+    text-align: center;
+}
+
+.f12 {
+  font-size: 12px;
+  color: white;
+  background-color: #2a2536;
+}
+
+.f14 {
   font-size: 14px;
 }
 
-.upcomingeventimage, .upcomingeventtext, .upcomingeventdate {
-  display: flex;                  /* Enables flexbox layout for vertical alignment if needed */
-  align-items: flex-start;        /* Aligns items to the top by default */
+.upcomingeventimage,
+.upcomingeventtext,
+.upcomingeventdate {
+  display: flex; /* Enables flexbox layout for vertical alignment if needed */
+  align-items: flex-start; /* Aligns items to the top by default */
 }
 
-.upcomingeventimage{
-  width: 20%;               
+.upcomingeventimage {
+  width: 20%;
 }
+
+.upcomingeventimage3 {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .contentgrid3 {
+      grid-template-columns: repeat(1, 1fr); /* Stacks the items in one column on smaller screens */
+  }
+}
+
+.top-event-info {
+  display: flex;           /* Enable flexbox to align children horizontally */
+  justify-content: space-between; /* Space between to push children to each end */
+  align-items: center;     /* Align items vertically in the center */
+  width: 100%;             /* Optional: set the width of the parent div */
+ padding-left: 12px;
+ padding-right: 12px;
+}
+
+.event-tag {
+  /* Styles for the left div */
+  margin-right: 10px;      /* Pushes all extra space to the right */
+}
+
+.event-date {
+  /* Styles for the right div */
+  margin-left: 10px;       /* Pushes all extra space to the left */
+}
+
 
 .upcomingeventdate {
-  width: 15%;  
+  width: 15%;
   background-color: #5c5c5c;
   color: white;
 }
@@ -349,41 +408,39 @@ color: #581c8c;
 .upcomingeventtext {
   padding-left: 12px;
   padding-right: 5px;
-  width: 60%;                     /* Sets width to 70% of the parent div */
-  align-items: flex-start;        /* Ensures text content aligns to the top */
+ width: 69%;
+  align-items: flex-start; /* Ensures text content aligns to the top */
 }
 
 .upcomingeventdate {
   right: 0;
-bottom: 0;
-position: absolute;
-  align-items: flex-end;          /* Aligns the date content to the bottom of the div */
-  justify-content: flex-end;    
+  bottom: 0;
+  position: absolute;
+  align-items: flex-end; /* Aligns the date content to the bottom of the div */
+  justify-content: flex-end;
   /* height: 100px;  Ensures content aligns to the bottom if there are multiple lines or elements */
 }
 
-
-.eventtitle{
+.eventtitle {
   text-decoration: none;
   font-size: 23px;
   color: black;
-  
-  }
+}
 
 .resourceimagesection {
   width: 100%; /* Ensures the div takes up 100% of its parent's width */
   position: relative;
-    display: flex;
-    align-items: flex-end;
+  display: flex;
+  align-items: flex-end;
 }
 
-.resourceimage{
+.resourceimage {
   margin-top: 7px;
   display: block;
-  width: 50%; 
-  height: auto; 
-  max-width: 150px; 
-  font-size: 4px; 
+  width: 50%;
+  height: auto;
+  max-width: 150px;
+  font-size: 4px;
   background-color: #d9d9d9;
 }
 
@@ -391,10 +448,10 @@ position: absolute;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: flex-end;  /* Aligns buttons to the bottom */
-  justify-content: flex-end;  /* Aligns buttons to the right */
-  margin-left: auto;  /* Ensures buttons are on the right side */
-  gap: 5px;  /* Space between buttons */
+  align-items: flex-end; /* Aligns buttons to the bottom */
+  justify-content: flex-end; /* Aligns buttons to the right */
+  margin-left: auto; /* Ensures buttons are on the right side */
+  gap: 5px; /* Space between buttons */
 }
 
 .keyword-buttons {
@@ -405,7 +462,8 @@ position: absolute;
   gap: 5px;
 }
 
-.category-row, .audience-row {
+.category-row,
+.audience-row {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -426,20 +484,27 @@ position: absolute;
   border: 0.5px solid #0000ff;
   background-color: white;
   color: #0000ff;
-  
+}
+
+.upcomingeventtextcontainer{
+  /* width: 50%; */
 }
 
 .audience-btn {
-  border: 0.5px solid #FF8000;
+  border: 0.5px solid #ff8000;
   background-color: white;
-  color: #FF8000;
+  color: #ff8000;
 }
-.bold{
+.bold {
   font-weight: bold;
   font-size: 18px;
 }
 
-.resourcescontainer{
+.purebold{
+  font-weight: bold;
+}
+
+.resourcescontainer {
   padding: 12px;
 }
 
@@ -453,23 +518,23 @@ position: absolute;
   background-color: #f2f2f2; /* Slightly darker for contrast */
 }
 
-.islandtextcontent{
+.islandtextcontent {
   margin: 10px;
 }
 
 /* here is for 1/3, 1/3 & 1/3 split */
 .leftbody13 {
-  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
 .middlebody13 {
-  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
 .rightbody13 {
-  width: calc(33.33%  - 10px); /* 2/3 width minus half the gap */
+  width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
@@ -489,36 +554,46 @@ position: absolute;
   font-size: 18px;
 }
 
+
+
+.grid-item{
+  border: 1px solid #0000ff;
+}
+
 .tag-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Adjust minmax for size */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(120px, 1fr)
+  ); /* Adjust minmax for size */
   gap: 10px;
   width: 100%;
   margin-top: 20px;
   margin-bottom: 40px;
 }
 
-.topic-tag-button{
+.topic-tag-button {
   color: #0000ff;
   border: 1px solid #0000ff;
 }
 
-.practice-tag-button{
-  color: #FF8000;
-  border: 1px solid #FF8000;
+.practice-tag-button {
+  color: #ff8000;
+  border: 1px solid #ff8000;
 }
 
-.topic-tag-button, .practice-tag-button {
+.topic-tag-button,
+.practice-tag-button {
   background-color: #f6f6f6;
   /* color: #333; */
-  
+
   padding: 2px;
   font-size: 14px;
   cursor: pointer;
   text-align: center;
 }
 
-.formInputSection{
+.formInputSection {
   width: 100%;
 }
 
@@ -528,10 +603,9 @@ position: absolute;
 }
 
 .practice-tag-button.active {
-  background-color: #FF8000; /* Change as needed */
+  background-color: #ff8000; /* Change as needed */
   color: white; /* Change as needed */
 }
-
 
 .responsive-image {
   width: 100%; /* Make image width equal to container width */
@@ -539,13 +613,13 @@ position: absolute;
   display: block; /* Remove any extra space below the image */
 }
 
-.formtitle{
+.formtitle {
   font-weight: bold;
   font-size: 18px;
   margin-bottom: 5px;
 }
 
-.subheader{
+.subheader {
   font-size: 23px;
   font-weight: bold;
 }
@@ -560,9 +634,8 @@ position: absolute;
 
 .label-container {
   display: flex;
-  justify-content: space-between;  /* Adjust the spacing between each label */
-  align-items: center;            /* Align items vertically in the center */
-
+  justify-content: space-between; /* Adjust the spacing between each label */
+  align-items: center; /* Align items vertically in the center */
 }
 
 .step-number {
@@ -604,36 +677,36 @@ position: absolute;
   /* Centers the image in the label */
 }
 
-.w40,.w80{
-  background-color: #D9D9D9;
+.w40,
+.w80 {
+  background-color: #d9d9d9;
   border-radius: 7px 7px 7px 7px;
-  border: 0px solid #FF8000;
+  border: 0px solid #ff8000;
   padding: 4px;
   margin-top: 10px;
 }
 
-.w40{
+.w40 {
   width: 40%;
-  
 }
 
-.w80{
+.w80 {
   width: 80%;
 }
 
 .image-radio {
-  background-color: #D9D9D9;
+  background-color: #d9d9d9;
   padding-top: 20px;
   padding-bottom: 20px;
 }
 
-.image-radio input[type="radio"]:checked+img {
-  border: 4px solid #FF8000;
+.image-radio input[type="radio"]:checked + img {
+  border: 4px solid #ff8000;
   padding: 10px;
   /* Red border for demonstration */
 }
 
-.eventimage{
+.eventimage {
   width: 100%;
 }
 
@@ -643,11 +716,11 @@ position: absolute;
   margin-top: 5px;
   font-size: 14px;
   margin-bottom: 10px;
-  margin-left:10px;
+  margin-left: 10px;
   margin-right: 10px;
   height: auto;
   padding-top: 8px;
- 
+
   /* Space between image and text */
 }
 
@@ -680,7 +753,7 @@ position: absolute;
 
 .formsubmitbutton {
   margin-top: 45px;
-  background-color: #33FF00;
+  background-color: #33ff00;
 }
 
 .full-width-input {
@@ -704,11 +777,12 @@ position: absolute;
 }
 
 .contentgrid3 {
-  display: flex;
-  flex-wrap: wrap;
-  /* gap: 10px; */
-  justify-content: flex-start; /* Aligns content to the start, you can use 'center' if preferred */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Creates three columns of equal width */
+    gap: 10px; /* Sets the space between grid items */
+    padding: 10px; /* Optional: Adds some padding around the grid */
 }
+
 .responsive-image3 {
   width: calc(
     33.21%
@@ -720,16 +794,15 @@ position: absolute;
 .topheader {
   display: flex;
   justify-content: space-between; /* Positions the text and switch on opposite sides */
-  align-items: flex-start;        /* Aligns items to the top of the container */
-  color: white;                   /* Text color for readability */
+  align-items: flex-start; /* Aligns items to the top of the container */
+  color: white; /* Text color for readability */
 }
 /* Styling for the switch and its container */
 .switchcontainer {
-  display: flex;                  /* Enables flexbox for the switch container */
-  align-items: top;            /* Vertically centers the text and the switch */
-  gap: 10px;                      /* Adds space between the text and the switch */
+  display: flex; /* Enables flexbox for the switch container */
+  align-items: top; /* Vertically centers the text and the switch */
+  gap: 10px; /* Adds space between the text and the switch */
 }
-
 
 /* The switch - the box around the slider */
 .switch {
@@ -755,8 +828,8 @@ position: absolute;
   right: 0;
   bottom: 0;
   background-color: black;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
   height: 21px;
   width: 48px;
   border: 1px solid #ccc;
@@ -770,16 +843,16 @@ position: absolute;
   left: 4px;
   bottom: 2.3px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
 
 input:checked + .slider {
-  background-color: #2196F3;
+  background-color: #2196f3;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+  box-shadow: 0 0 1px #2196f3;
 }
 
 input:checked + .slider:before {
@@ -798,12 +871,11 @@ input:checked + .slider:before {
 }
 
 .responsive-video {
-  width: 50%;                 /* Assigns 45% of the container width to video */
-  height: auto;               /* Maintain aspect ratio */
-  border-radius: 8px;  
-  max-width: 300px;       /* Rounded corners for the video */
+  width: 50%; /* Assigns 45% of the container width to video */
+  height: auto; /* Maintain aspect ratio */
+  border-radius: 8px;
+  max-width: 300px; /* Rounded corners for the video */
 }
-
 
 .contributebar {
   width: 100%;
@@ -814,15 +886,14 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: flex-start;
- 
 }
 
 .contribute-buttons-container {
   /* justify-items: end; */
   position: fixed;
- /* gap:16vw; */
- top: 85%;
- width: 300px;
+  /* gap:16vw; */
+  top: 85%;
+  width: 300px;
   /* display: flex; */
   /* margin-right: 57px; */
   /* justify-content: space-between; */
@@ -838,7 +909,7 @@ input:checked + .slider:before {
   color: #ffffff;
   background-color: #0000ff;
   transition: background-color 0.3s ease, bottom 0.5s ease; /* Add transition for bottom property */
-  border: 0.5px solid #FFFFFF;
+  border: 0.5px solid #ffffff;
   box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
   position: fixed;
   bottom: -50px; /* Start off-screen */
@@ -849,24 +920,26 @@ input:checked + .slider:before {
 .contribute-button:hover {
   background-color: #0000ff;
   color: white;
-  
 }
-
 
 /* Dyslexia-friendly styles */
 .dyslexia-mode {
   color: #2a2536; /* Black text */
-  background-color: #DBE1F1 !important; /* Light yellow background */
-  font-family: 'Arial', sans-serif; /* Dyslexia-friendly font */
+  background-color: #dbe1f1 !important; /* Light yellow background */
+  font-family: "Arial", sans-serif; /* Dyslexia-friendly font */
 }
 
-.dyslexia-mode a, .dyslexia-mode p, .dyslexia-mode h1, .dyslexia-mode h2, .dyslexia-mode h3 {
+.dyslexia-mode a,
+.dyslexia-mode p,
+.dyslexia-mode h1,
+.dyslexia-mode h2,
+.dyslexia-mode h3 {
   line-height: 1.6; /* Increased line height for readability */
 }
 
 .dyslexia-mode .resourcescontainer {
   border-radius: 17px;
-  background-color: #E0E0E0; /* Light grey, change as needed for dyslexia friendliness */
+  background-color: #e0e0e0; /* Light grey, change as needed for dyslexia friendliness */
 }
 
 .dyslexia-mode .landingsection {
@@ -875,8 +948,7 @@ input:checked + .slider:before {
 }
 
 .full-width-line {
-  width: 100%;   /* Ensures the line takes up 100% of the container's width */
-  height: 2px;   /* Sets the thickness of the line */
+  width: 100%; /* Ensures the line takes up 100% of the container's width */
+  height: 2px; /* Sets the thickness of the line */
   background-color: #ccc; /* Sets the color of the line */
 }
-
