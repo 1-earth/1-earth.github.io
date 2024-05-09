@@ -11,6 +11,7 @@ body {
   overflow-x: hidden;
   font-family: "Helvetica Neue", Arial, sans-serif;
   /* color: black; */
+  /* scroll-behavior: smooth; */
 }
 
 footer {
@@ -46,6 +47,16 @@ h1 {
   padding-top: 20px;
 }
 
+.topbuttons{
+  top: 45px;
+  right: 0px;
+  margin-right: 17px;
+}
+
+.shadow{
+  box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.4);
+}
+
 .masterframe {
   margin-left: 23px;
   margin-right: 23px;
@@ -57,16 +68,25 @@ h1 {
   /* width: 100%; */
 }
 
+.navbarspacer{
+  width: 100%;
+  height: 20px;
+}
+
 .masterbar-menu {
   /* background-color: #333; */
   display: flex;
-  justify-content: space-between; /* Spreads out the items */
+  justify-content: right; /* Spreads out the items */
+}
+
+.absoulutepositioning{
+  position:absolute;
 }
 
 .landingcontent {
   margin-left: 34px;
   margin-right: 34px;
-  padding-bottom: 40px;
+  padding-bottom: 10px;
   display: flex; /* Enables flexbox layout */
   align-items: center; /* Vertically centers the children (text and image) */
   justify-content: space-between;
@@ -86,11 +106,39 @@ h1 {
   /* background-color: #333; */
   display: flex;
   justify-content: space-between; /* Spreads out the items */
-  background-color: rgba(255, 255, 255, 0.1);
+  /* background-color: rgba(255, 255, 255, 0.1); */
   backdrop-filter: blur(5px);
   overflow: hidden;
   width: 100%;
-  padding-top: 0px;
+  padding-top: 10px;
+  margin-top: 0px;
+}
+
+.centrelogo {
+  padding-top: 17px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.accessibilityspace{
+  margin-top: 14px;
+  margin-right: 10px;
+  position: absolute;
+  right: 70px;
+  
+}
+
+@media (max-width: 860px) {
+  .accessibilityspace {
+    display: none;
+  }
+}
+
+.centrelogo video {
+  width: 70px; /* Set the width of the image */
+  height: auto; /* Maintain the aspect ratio */
+  margin-bottom: 10px;
 }
 
 .sticky {
@@ -121,8 +169,27 @@ h1 {
   font-size: 18px;
   transition: background-color 0.3s;
   border: 0.5px solid black;
-  margin: 10px; /* 23px divided by 2 for even spacing between buttons */
+  margin: 5px; /* 23px divided by 2 for even spacing between buttons */
   width: 33%;
+  cursor: pointer;
+}
+
+.onestrokeborder{
+  border: 1ssssssdasdsadasdsadsadpx solid black !important;
+}
+
+
+.masterbar-button-small {
+  background-color: #f2f2f2;
+  border: none;
+  color: black;
+  text-align: center;
+  text-decoration: none;
+  font-size: 18px;
+  transition: background-color 0.3s;
+  border: 0.5px solid black;
+  margin: 5px; /* 23px divided by 2 for even spacing between buttons */
+  width: 100px;
   cursor: pointer;
 }
 
@@ -183,6 +250,8 @@ h1 {
 
 .centretext {
   text-align: center;
+  width: 100%; /* Ensures the element uses full container width */
+  display: block; 
 }
 .centreimage {
   justify-content: center;
@@ -306,6 +375,10 @@ h1 {
   font-style: italic;
 }
 
+.italic{
+  font-style: italic;
+}
+
 .descriptiontext {
   margin-top: 7px;
   font-size: 14px;
@@ -335,8 +408,8 @@ h1 {
 }
 
 .grid-item3 {
-  background-color: #f0f0f0; /* Light grey background for visibility */
-  border: 1px solid #ccc; /* Adds a border to each grid item */
+  background-color: white; /* Light grey background for visibility */
+  border: 0.5px solid rgb(0, 0, 0); /* Adds a border to each grid item */
   padding: 0px; /* Padding inside each grid item for content */
  }
 
@@ -454,19 +527,34 @@ h1 {
   gap: 5px; /* Space between buttons */
 }
 
-.keyword-buttons {
+.keyword-buttons3 {
+  padding-top: 10px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 5px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start; /* Aligns buttons to the bottom */
+  justify-content: flex-start; /* Aligns buttons to the right */
+  /* margin-left: auto; Ensures buttons are on the right side */
+  gap: 5px; /* Space between buttons */
 }
+
+
 
 .category-row,
 .audience-row {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  gap: 5px;
+  flex-wrap: wrap;
+  padding-left: 10px;
+}
+
+.category-row3,
+.audience-row3 {
+  display: flex;
+  flex-direction: row;
+  justify-content:flex-start;
   gap: 5px;
   flex-wrap: wrap;
   padding-left: 10px;
@@ -791,24 +879,29 @@ h1 {
   border: 0.5px solid black;
 }
 
+.f16{
+  font-size: 16px;
+}
+
 .topheader {
-  display: flex;
+  /* display: flex; */
   justify-content: space-between; /* Positions the text and switch on opposite sides */
   align-items: flex-start; /* Aligns items to the top of the container */
   color: white; /* Text color for readability */
 }
 /* Styling for the switch and its container */
 .switchcontainer {
-  display: flex; /* Enables flexbox for the switch container */
-  align-items: top; /* Vertically centers the text and the switch */
-  gap: 10px; /* Adds space between the text and the switch */
+  display: flex;
+  justify-content: space-between; /* Aligns items to the start, center, and end */
+  align-items: center; /* Centers items vertically */
+  width: 100%; /* Ensures the div takes the full width of its parent */
 }
 
 /* The switch - the box around the slider */
 .switch {
   position: relative;
   display: inline-block;
-  width: 48px;
+  width: 40px;
   height: 21px;
 }
 
@@ -831,7 +924,7 @@ h1 {
   -webkit-transition: 0.4s;
   transition: 0.4s;
   height: 21px;
-  width: 48px;
+  width: 40px;
   border: 1px solid #ccc;
 }
 
@@ -856,9 +949,9 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+  -webkit-transform: translateX(16px);
+  -ms-transform: translateX(16px);
+  transform: translateX(16px);
 }
 
 /* Rounded sliders */
@@ -915,6 +1008,11 @@ input:checked + .slider:before {
   bottom: -50px; /* Start off-screen */
   text-align: center;
   z-index: 100;
+}
+
+.contribute-button-blue{
+  color: #ffffff;
+  background-color: #0000ff;
 }
 
 .contribute-button:hover {

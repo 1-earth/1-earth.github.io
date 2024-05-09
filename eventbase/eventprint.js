@@ -33,8 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 imageUrl = row[9]; // Fallback to secondary image URL
             // }
 
-            // const keywordsCategory = row[6].split(',');
-            // const keywordsAudience = row[7].split(',');
+            const keywordsCategory = row[11].split(',');
+            const keywordsAudience = row[12].split(',');
 
             // Filtering logic
             // if (
@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
             //     return;
             // }
 
-            // let categoryButtonsHtml = keywordsCategory.map(keyword => `<button class="keyword-btn category-btn">${keyword.trim()}</button>`).join('');
-            // let audienceButtonsHtml = keywordsAudience.map(keyword => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`).join('');
+            let categoryButtonsHtml = keywordsCategory.map(keyword => `<button class="keyword-btn category-btn">${keyword.trim()}</button>`).join('');
+            let audienceButtonsHtml = keywordsAudience.map(keyword => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`).join('');
 
             const htmlContent = `
             <div class="upcomingEvent">
@@ -89,6 +89,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p class='f14'>${time}</p>
                         <p class='f14'>${description}</p>
                     </div>
+                    
+                </div>
+                <div class="keyword-buttons3">
+                    <div class="audience-row3">${audienceButtonsHtml}</div>
+                    <div class="category-row3">${categoryButtonsHtml}</div>
                 </div>
             
             

@@ -16,87 +16,73 @@
   <body>
     <div class="landingsection">
       <div class="masterframe">
-        <div class="masterbar-menu">
-          <a href="index.html" class="masterbar-button rounded"
-            >THE 1EARTH NETWORK</a
-          >
-          <a href="about.html" class="masterbar-button rounded activeblack"
+        <div class="masterbar-menu absoulutepositioning topbuttons">
+        
+          <a href="about.html" class="masterbar-button-small rounded activeblack"
             >ABOUT</a
           >
-          <a href="join.html" class="masterbar-button rounded activeblack"
+          <a href="join.html" class="masterbar-button-small rounded activeblack"
             >JOIN</a
           >
         </div>
 
         <div class="topheader">
-          <p class="s1 whitetext" style="max-width: 66%">
-            Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
-            progress, scroll down to see the network/resource base/forum.
-          </p>
+          
 
-          <div class="switchcontainer">
-            <p class="s1 whitetext">accessibility</p>
-            <label class="switch">
-                <input type="checkbox" aria-label="Toggle accessibility options" />
-                <span class="slider round"></span>
-            </label>
+          <div class="centrelogo">
+            <a href="index.html">
+              <video class="responsive-video" autoplay muted loop playsinline>
+                <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </a>
           </div>
-        </div>
 
+          
+        </div>
+        
         <div class="white-line"></div>
 
-        <h1 class="centretext whitetext">1EARTH</h1>
-        <div class="landingcontent">
-          <p class="whitetext landingtext">
-            1EARTH IS:<br /><br />
-
-            A platform for empowering creatives making positive changes within
-            their communities.<br /><br />
-
-            We are an open community bound by our shared core values of
-            equality, inclusivity, and accessibility.<br /><br />
-
-            We believe that as creatives, it is our duty to lead and inspire
-            collective action, organising efforts for broader impact to shape
-            the future we envision.<br /><br />
-          </p>
-          <video class="responsive-video" autoplay muted loop playsinline>
-            <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+        <div class="switchcontainer">
+          <div class="spacer"></div>  <!-- Invisible spacer to balance the text centering -->
+          <h2 class="centretext whitetext f16 italic">EMPOWERING POSITIVITY. BUILDING COMMUNITY. UNITING CHANGE.</h2>
+          <p class="s1 whitetext accessibilityspace">accessibility</p>
+          <label class="switch">
+              <input type="checkbox" aria-label="Toggle accessibility options" />
+              <span class="slider round"></span>
+          </label>
         </div>
+
+        
         <div class="landingcontent">
-          <img
-            src="static/images/icons/down.svg"
-            alt="Scroll Down"
-            style="cursor: pointer"
-            onclick="scrollToSection()"
-          />
+          <div id="navbar">
+            <a href="index.html#target-section" class="masterbar-button rounded shadow onestrokeborder" role="button">
+              THE 1EARTH NETWORK
+            </a>
+            <button class="masterbar-button rounded activeblack shadow onestrokeborder">
+              THE COMMUNITY RESOURCE BASE
+            </button>
+            <a href="forum.html" class="masterbar-button rounded shadow onestrokeborder" role="button">
+              FORUM
+            </a>
+          </div>
+          
         </div>
+        
       </div>
     </div>
     <div class="fading-div"></div>
 
     <div class="masterframe" id="target-section">
       <div class="bodyframe">
-        <div id="navbar">
-          <a href="index.html" class="masterbar-button rounded" role="button">
-            THE 1EARTH NETWORK
-          </a>
-          <button class="masterbar-button rounded activeblack">
-            THE COMMUNITY RESOURCE BASE
-          </button>
-          <a href="forum.html" class="masterbar-button rounded" role="button">
-            FORUM
-          </a>
-        </div>
+        
 
         <div id="contentcarrier">
           <h1>THE COMMUNITY RESOURCE BASE</h1>
           <h2>RESOURCES FOR CREATIVES</h2>
           <h2>FIND & SHARE RESOURCES HERE:</h2>
 
-          <<div class="search-container">
+          <div class="search-container">
             <input
               type="text"
               placeholder="Search..."

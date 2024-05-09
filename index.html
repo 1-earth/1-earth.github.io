@@ -16,29 +16,36 @@
 
   <body>
     <div class="landingsection">
-      <div class="masterframe">
-        <div class="masterbar-menu">
-          <a href="index.html" class="masterbar-button rounded ">THE 1EARTH NETWORK</a>
-          <a href="about.html" class="masterbar-button rounded activeblack">ABOUT</a>
-          <a href="join.html" class="masterbar-button rounded activeblack">JOIN</a>
+      <div class="masterframe" >
+        <div class="masterbar-menu absoulutepositioning topbuttons">
+
+        <a href="about.html" class="masterbar-button-small rounded activeblack"
+        >ABOUT</a
+      >
+      <a href="join.html" class="masterbar-button-small rounded activeblack"
+        >JOIN</a
+      >
       </div>
 
         <div class="topheader">
-          <p class="s1 whitetext" style="max-width: 66%;">
+          <!-- <p class="s1 whitetext" style="max-width: 66%;">
             Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
             progress, scroll down to see the network/resource base/forum.
-          </p>
+          </p> -->
 
           <div class="switchcontainer">
-            <p class="s1 whitetext"> accessibility</p>
-          <label class="switch">
-            <input type="checkbox" aria-label="Toggle accessibility options" />
-            <span class="slider round"></span>
-          </label>
-        </div>
+            <div class="spacer"></div>  <!-- Invisible spacer to balance the text centering -->
+            <h2 class="centretext whitetext f16 italic">EMPOWERING POSITIVITY. BUILDING COMMUNITY. UNITING CHANGE.</h2>
+            <p class="s1 whitetext accessibilityspace">accessibility</p>
+            <label class="switch">
+                <input type="checkbox" aria-label="Toggle accessibility options" />
+                <span class="slider round"></span>
+            </label>
+          </div>
+
         </div>
 
-        <div class="white-line"></div>
+        <!-- <div class="white-line"></div> -->
 
         <h1 class="centretext whitetext">1EARTH</h1>
         <div class="landingcontent">
@@ -59,25 +66,33 @@
             <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
+
+          <img
+          src="static/images/icons/down.svg"
+          alt="Scroll Down"
+          style="cursor: pointer"
+          onclick="scrollToSection()"
+        />
         </div>
       </div>
     </div>
     <div class="fading-div"></div>
 
-    <div class="masterframe">
+    <div class="masterframe" id="target-section">
+     <div class="navbarspacer"></div>
       <div class="bodyframe">
         <div id="navbar">
-          <a href="" class="masterbar-button rounded activeblack" role="button">
+          <a href="" class="masterbar-button rounded activeblack shadow" role="button">
             THE 1EARTH NETWORK
           </a>
           <a
             href="resources.html"
-            class="masterbar-button rounded"
+            class="masterbar-button rounded shadow"
             role="button"
           >
             THE RESOURCE BASE
           </a>
-          <a href="forum.html" class="masterbar-button rounded" role="button">
+          <a href="forum.html" class="masterbar-button rounded shadow" role="button">
             FORUM
           </a>
         </div>
@@ -116,7 +131,7 @@
                 <span class="arrow">&#9662;</span>
               </button>
               <div class="dropdown-content">
-                <a href="#">Link 111</a>
+                <a href="#">Link 1</a>
                 <a href="#">Link 2</a>
                 <a href="#">Link 3</a>
               </div>
@@ -223,7 +238,7 @@
               </div>
 
               <div class="button-container">
-                <button class="masterbar-button rounded" onclick="location.href='eventbase/eventbasesubmission.html';">
+                <button class="masterbar-button rounded contribute-button-blue" onclick="location.href='eventbase/eventbasesubmission.html';">
                   SUBMIT TO OUR NETWORK HERE!
               </button>
               
@@ -285,7 +300,7 @@
                 <br /><br /><br />
               </div>
 
-              <p>topleftofright</p>
+              <!-- <p>topleftofright</p> -->
             </div>
           </div>
         </div>
@@ -295,6 +310,12 @@
     <br /><br /><br />
     <a href="/Playground/index.html">playground</a>
 
+    <script>
+      function scrollToSection() {
+        var section = document.getElementById("target-section");
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    </script>
     <script>
       window.onscroll = function () {
         myFunction();
