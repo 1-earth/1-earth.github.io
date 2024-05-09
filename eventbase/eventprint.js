@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = await fetchData();
         // Clear previous data
         document.getElementById('upcoming-events').innerHTML = '';
-        // document.getElementById('opportunities-funding').innerHTML = '';
+        document.getElementById('upcoming-events3').innerHTML = '';
         // document.getElementById('other-community-hubs').innerHTML = '';
 
         data.slice(1).forEach(row => {
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="upcomingeventtext">
                     <div class=upcomingeventtextcontainer"
-                        <h2><a href="${url}" class="eventtitle">${name}</a></h2>
+                        <h2><a href="${url}" class="eventtitle purebold">${name}</a></h2>
                         <p class='f14'>${time}</p>
                         <p class='f14'>${description}</p>
                     </div>
@@ -67,6 +67,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="upcomingeventdate"><p>${date}</p></div>
             </div>
             <div class="full-width-line"></div>
+
+                
+            `;
+
+            const htmlContent3 = `
+            
+               
+                    
+            <div class="grid-item3">
+                <div class="upcomingeventimage3">
+                    <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimage3">
+                </div>
+                <div class="top-event-info">
+                    <div class="event-tag f12">EVENT</div>
+                    <div class="event-date f14 purebold">${date}</div>
+                </div>
+                <div class="upcomingeventtext">
+                    <div class=upcomingeventtextcontainer"
+                        <h2><a href="${url}" class="eventtitle purebold">${name}</a></h2>
+                        <p class='f14'>${time}</p>
+                        <p class='f14'>${description}</p>
+                    </div>
+                </div>
+            
+            
+            </div>
+           
+                
+            
+            
 
                 
             `;
@@ -89,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('upcoming-events').innerHTML += htmlContent;
             //         break;
             //     case 'Opportunities & Funding':
-            //         document.getElementById('opportunities-funding').innerHTML += htmlContent;
+                    document.getElementById('upcoming-events3').innerHTML += htmlContent3;
             //         break;
             //     case 'Other Community Hubs':
             //         document.getElementById('other-community-hubs').innerHTML += htmlContent;

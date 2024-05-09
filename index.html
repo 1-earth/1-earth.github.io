@@ -11,6 +11,7 @@
     />
     <title>ONEEARTH</title>
     <link rel="stylesheet" type="text/css" href="static/styles/oneearth.css" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
   </head>
 
   <body>
@@ -216,11 +217,9 @@
                   />
                   Map:
                 </div>
-                <img
-                  src="static/images/temporary/map.png"
-                  alt="map"
-                  class="responsive-image roundedbottom"
-                />
+                <div id="map"></div>
+
+
               </div>
 
               <div class="button-container">
@@ -249,38 +248,13 @@
                   Upcoming
                 </div>
 
-                <div class="contentgrid3">
-                  <img
-                    src="static/images/temporary/temporarycontent2.png"
-                    alt="content"
-                    class="responsive-image3"
-                    st
-                  />
-                  <img
-                    src="static/images/temporary/temporarycontent2.png"
-                    alt="content"
-                    class="responsive-image3"
-                    st
-                  />
-                  <img
-                    src="static/images/temporary/temporarycontent2.png"
-                    alt="content"
-                    class="responsive-image3"
-                    st
-                  />
-                  <img
-                    src="static/images/temporary/temporarycontent2.png"
-                    alt="content"
-                    class="responsive-image3"
-                    st
-                  />
-                  <img
-                    src="static/images/temporary/temporarycontent2.png"
-                    alt="content"
-                    class="responsive-image3"
-                    st
-                  />
-                </div>
+                
+                  <div id="upcoming-events3">
+
+                    
+                  </div>
+                
+
               </div>
             </div>
 
@@ -306,56 +280,8 @@
                   Upcoming
                 </div>
 
-content
                 <div id="upcoming-events"></div>
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
-                <img
-                  src="static/images/temporary/temporarycontent.png"
-                  alt="map"
-                  class="responsive-image"
-                  st
-                />
+                
                 <br /><br /><br />
               </div>
 
@@ -392,6 +318,10 @@ content
     </script>
 
 <script src="eventbase/eventprint.js"></script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly" defer></script>
+
+<script src="static/scripts/mapscript.js"></script>
 
 <footer>
   <p class="centretext">🌐 1EARTH ℗ 2024. Designed by <a href="https://1-earth.github.io/Portfolio/INDEXV23.html">George Symonds</a>. All code is open-source & available <a href="https://github.com/1-earth/1-earth.github.io">here</a>.</p>
