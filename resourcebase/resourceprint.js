@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const API_KEY = 'AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ';
     const SPREADSHEET_ID = '1Cy2EdQwPH-GErwqtC3tD6QvX40kcyCmhuRg5G7wIw_g';
-    const RANGE = 'Sheet1';
+    const RANGE = 'Resources';
 
     async function fetchData() {
         const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`);

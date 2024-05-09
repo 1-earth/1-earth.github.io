@@ -1,98 +1,341 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link
-          rel="icon"
-          href="/Portfolio/Images/projects/1EARTH/1ECROP.png"
-          type="image/png"
-        />
-        <title>ONEEARTH</title>
-        <link rel="stylesheet" type="text/css" href="/static/styles/oneearth.css" />
-        <style>
-            form {
-                width: 80%;
-                margin: 0 auto;
-            }
-            label, input, select, textarea {
-                display: block;
-                width: 100%;
-                margin-top: 5px;
-            }
-            label {
-                margin-top: 20px;
-            }
-            input[type="radio"] {
-                display: inline-block;
-                width: auto;
-            }
-        </style>
-      </head>
-<body>
-    <h1>Event Submission Form</h1>
-    <form id="eventForm">
-        <label for="eventName">Name of Event:</label>
-        <input type="text" id="eventName" name="eventName" placeholder="Name of Event" required>
-
-        <label for="communityName">Name of Community:</label>
-        <input type="text" id="communityName" name="communityName" placeholder="Name of Community" required>
-
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" placeholder="Description" required></textarea>
-
-        <label for="eventLink">Link (URL):</label>
-        <input type="url" id="eventLink" name="eventLink" placeholder="Event Link">
-
-        <label>Event Type:</label>
-        <input type="radio" id="oneTime" name="eventType" value="One-time" checked> One-time
-        <input type="radio" id="recurring" name="eventType" value="Recurring"> Recurring
-
-        <label for="eventDate">Date:</label>
-        <input type="date" id="eventDate" name="eventDate" required>
-
-        <label for="eventTime">Time:</label>
-        <input type="time" id="eventTime" name="eventTime" required>
-
-        <div id="recurrenceOptions" style="display: none;">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      href="/Portfolio/Images/projects/1EARTH/1ECROP.png"
+      type="image/png"
+    />
+    <title>1E Event Submission</title>
+    
+    <link rel="stylesheet" type="text/css" href="/static/styles/oneearth.css" />
+  </head>
+  <body>
+    <div class="masterframe">
+      <div class="bodyframe">
+        <h1>Submit Your Event to 1EARTH!</h1>
+        <a href="/index.html">go back</a>
+        <form id="eventForm">
+          <div>
+            <label for="nameEvent">Event Name:</label>
+            <input type="text" id="nameEvent" name="nameEvent" required />
+          </div>
+          <div>
+            <label for="nameCommunity">Name of Community:</label>
+            <input
+              type="text"
+              id="nameCommunity"
+              name="nameCommunity"
+              required
+            />
+          </div>
+          <div>
+            <label for="eventDate">Event Date:</label>
+            <input type="date" id="eventDate" name="eventDate" required />
+          </div>
+          <div>
+            <label for="time">Time (HH:MM AM/PM):</label>
+            <input type="time" id="time" name="time" required />
+          </div>
+          <div>
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required />
+          </div>
+          <div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+          </div>
+          <div>
+            <label for="linkURL">Link (URL):</label>
+            <input type="url" id="linkURL" name="linkURL" />
+          </div>
+          <div>
+            <label for="primaryImage">Primary Image URL:</label>
+            <input type="url" id="primaryImage" name="primaryImage" />
+          </div>
+          <div>
+            <label for="secondaryImage">Secondary Image URL:</label>
+            <input type="url" id="secondaryImage" name="secondaryImage" />
+          </div>
+          <div>
+            <legend>Topic Tags (select all appropiate):</legend>
+            <div>
+              <!-- Add your topics tags here as checkboxes -->
+              <fieldset>
+                
+                <input
+                  type="checkbox"
+                  id="healthWellbeing"
+                  name="topicTags"
+                  value="Health/Well-being"
+                />
+                <label for="healthWellbeing">Health/Well-being</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="community"
+                  name="topicTags"
+                  value="Community"
+                />
+                <label for="community">Community</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="social"
+                  name="topicTags"
+                  value="Social"
+                />
+                <label for="social">Social</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="creative"
+                  name="topicTags"
+                  value="Creative"
+                />
+                <label for="creative">Creative</label><br />
+    
+                <input type="checkbox" id="food" name="topicTags" value="Food" />
+                <label for="food">Food</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="technology"
+                  name="topicTags"
+                  value="Technology"
+                />
+                <label for="technology">Technology</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="liveEvent"
+                  name="topicTags"
+                  value="Live Event"
+                />
+                <label for="liveEvent">Live Event</label><br />
+    
+                <input type="checkbox" id="art" name="topicTags" value="Art" />
+                <label for="art">Art</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="volunteering"
+                  name="topicTags"
+                  value="Volunteering"
+                />
+                <label for="volunteering">Volunteering</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="education"
+                  name="topicTags"
+                  value="Education"
+                />
+                <label for="education">Education</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="exercise"
+                  name="topicTags"
+                  value="Exercise"
+                />
+                <label for="exercise">Exercise</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="sustainability"
+                  name="topicTags"
+                  value="Sustainability"
+                />
+                <label for="sustainability">Sustainability</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="accessibility"
+                  name="topicTags"
+                  value="Accessibility"
+                />
+                <label for="accessibility">Accessibility</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="innovation"
+                  name="topicTags"
+                  value="Innovation"
+                />
+                <label for="innovation">Innovation</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="historicalCulturalHeritage"
+                  name="topicTags"
+                  value="Historical/Cultural Heritage"
+                />
+                <label for="historicalCulturalHeritage"
+                  >Historical/Cultural Heritage</label
+                ><br />
+    
+                <input
+                  type="checkbox"
+                  id="socialJustice"
+                  name="topicTags"
+                  value="Social Justice"
+                />
+                <label for="ecologyNature">Social Justice</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="policyAdvocacy"
+                  name="topicTags"
+                  value="Policy and Advocacy"
+                />
+                <label for="policyAdvocacy">Policy and Advocacy</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="entrepreneurship"
+                  name="topicTags"
+                  value="Entrepreneurship"
+                />
+                <label for="entrepreneurship">Entrepreneurship</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="inclusion"
+                  name="topicTags"
+                  value="Diversity & Inclusion"
+                />
+                <label for="diversityInclusion">Diversity & Inclusion</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="ecologyNature"
+                  name="topicTags"
+                  value="Ecology/Nature"
+                />
+                <label for="ecologyNature">Ecology/Nature</label><br />
+              </fieldset>
+              
+              <!-- Add more checkboxes similarly -->
+            </div>
+          </div>
+          <div>
+            <legend>Practice Tags(select all appropiate):</legend>
+            <div>
+              <!-- Add your practice tags here as checkboxes -->
+              <fieldset>
+                
+                <input
+                  type="checkbox"
+                  id="design"
+                  name="practiceTags"
+                  value="Design"
+                />
+                <label for="design">Design</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="music"
+                  name="practiceTags"
+                  value="Music"
+                />
+                <label for="music">Music</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="image"
+                  name="practiceTags"
+                  value="Image"
+                />
+                <label for="image">Image</label><br />
+    
+                <input type="checkbox" id="film" name="practiceTags" value="Film" />
+                <label for="film">Film</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="fashion"
+                  name="practiceTags"
+                  value="Fashion"
+                />
+                <label for="fashion">Fashion</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="publication"
+                  name="practiceTags"
+                  value="Publication"
+                />
+                <label for="publication">Publication</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="sound"
+                  name="practiceTags"
+                  value="Sound"
+                />
+                <label for="sound">Sound</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="sound"
+                  name="practiceTags"
+                  value="Fine Art"
+                />
+                <label for="fineart">Fine Art</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="threeD"
+                  name="performanceArts"
+                  value="Performance Arts"
+                />
+                <label for="threeD">Performance Arts</label><br />
+    
+                <input
+                  type="checkbox"
+                  id="computing"
+                  name="practiceTags"
+                  value="Computing"
+                />
+                <label for="computing">Computing</label><br />
+    
+                <input type="checkbox" id="threeD" name="practiceTags" value="3D" />
+                <label for="threeD">3D</label><br />
+              </fieldset>
+              <!-- Add more checkboxes similarly -->
+            </div>
+          </div>
+          <div>
             <label for="recurrencePattern">Recurrence Pattern:</label>
-            <select id="recurrencePattern" name="recurrencePattern" onchange="updateRecurrenceDetailsInput()">
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+            <select
+              id="recurrencePattern"
+              name="recurrencePattern"
+              onchange="toggleRecurrenceEndDate(this);"
+            >
+              <option value="non-recurring">Non-Recurring</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
             </select>
+          </div>
+          <div id="recurrenceEndDateContainer" style="display: none">
+            <label for="recurrenceEndDate">Recurrence End Date:</label>
+            <input
+              type="date"
+              id="recurrenceEndDate"
+              name="recurrenceEndDate"
+            />
+          </div>
+          <div>
+            <label for="nameUser">Your Name(user):</label>
+            <input type="text" id="nameUser" name="nameUser" required />
+          </div>
 
-            <label for="recurrenceDetails">Day of Week/Month:</label>
-            <input type="date" id="recurrenceDetails" name="recurrenceDetails" placeholder="Day of Week/Month">
-        </div>
-
-        <label for="userName">Name of User:</label>
-        <input type="text" id="userName" name="userName" placeholder="Your Name" required>
-
-        <!-- Include other fields like checkbox groups for tags -->
-        <button type="submit">Submit Event</button>
-    </form>
-
-    <script>
-        document.getElementById('eventForm').elements['eventType'].forEach(input => {
-            input.addEventListener('change', function() {
-                const isRecurring = document.getElementById('recurring').checked;
-                const displayStyle = isRecurring ? 'block' : 'none';
-                document.getElementById('recurrenceOptions').style.display = displayStyle;
-            });
-        });
-
-        function updateRecurrenceDetailsInput() {
-            const pattern = document.getElementById('recurrencePattern').value;
-            const input = document.getElementById('recurrenceDetails');
-            if (pattern === 'weekly') {
-                input.type = 'week';
-                input.placeholder = 'Select a week';
-            } else if (pattern === 'monthly') {
-                input.type = 'month';
-                input.placeholder = 'Select a month';
-            }
-        }
-    </script>
-</body>
+          <button type="submit">Submit Event</button>
+        </form>
+        <script src="eventFormScript.js"></script>
+      </div>
+    </div>
+  </body>
 </html>

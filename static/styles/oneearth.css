@@ -16,12 +16,22 @@ body {
 footer {
   margin-top: 34px;
   margin-bottom: 53px;
+  color: #635b75;
 
+}
+
+fieldset {
+  border: none;
 }
 
 h2 {
   font-size: 23px;
   padding-top: 15px;
+}
+
+.hidden{
+  display: none;
+  border: 1px solid white !important;
 }
 
 h1 {
@@ -108,6 +118,7 @@ display: flex;              /* Enables flexbox layout */
   border: 0.5px solid black;
   margin: 10px; /* 23px divided by 2 for even spacing between buttons */
   width: 33%;
+  cursor: pointer;
  
 }
 
@@ -310,6 +321,55 @@ color: #581c8c;
 
 }
 
+.upcomingEvent {
+  position: relative;
+  display: flex;                  /* Enables flexbox layout */
+  width: 100%;                    /* Ensures the container takes full width of its parent */
+}
+
+.f14{
+  font-size: 14px;
+}
+
+.upcomingeventimage, .upcomingeventtext, .upcomingeventdate {
+  display: flex;                  /* Enables flexbox layout for vertical alignment if needed */
+  align-items: flex-start;        /* Aligns items to the top by default */
+}
+
+.upcomingeventimage{
+  width: 20%;               
+}
+
+.upcomingeventdate {
+  width: 15%;  
+  background-color: #5c5c5c;
+  color: white;
+}
+
+.upcomingeventtext {
+  padding-left: 12px;
+  padding-right: 5px;
+  width: 60%;                     /* Sets width to 70% of the parent div */
+  align-items: flex-start;        /* Ensures text content aligns to the top */
+}
+
+.upcomingeventdate {
+  right: 0;
+bottom: 0;
+position: absolute;
+  align-items: flex-end;          /* Aligns the date content to the bottom of the div */
+  justify-content: flex-end;    
+  /* height: 100px;  Ensures content aligns to the bottom if there are multiple lines or elements */
+}
+
+
+.eventtitle{
+  text-decoration: none;
+  font-size: 23px;
+  color: black;
+  
+  }
+
 .resourceimagesection {
   width: 100%; /* Ensures the div takes up 100% of its parent's width */
   position: relative;
@@ -429,13 +489,167 @@ color: #581c8c;
   font-size: 18px;
 }
 
+.tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Adjust minmax for size */
+  gap: 10px;
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 40px;
+}
+
+.topic-tag-button{
+  color: #0000ff;
+  border: 1px solid #0000ff;
+}
+
+.practice-tag-button{
+  color: #FF8000;
+  border: 1px solid #FF8000;
+}
+
+.topic-tag-button, .practice-tag-button {
+  background-color: #f6f6f6;
+  /* color: #333; */
+  
+  padding: 2px;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.formInputSection{
+  width: 100%;
+}
+
+.topic-tag-button.active {
+  background-color: #0000ff; /* Change as needed */
+  color: white; /* Change as needed */
+}
+
+.practice-tag-button.active {
+  background-color: #FF8000; /* Change as needed */
+  color: white; /* Change as needed */
+}
+
+
 .responsive-image {
   width: 100%; /* Make image width equal to container width */
   height: auto; /* Maintain aspect ratio */
   display: block; /* Remove any extra space below the image */
 }
 
+.formtitle{
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
 
+.subheader{
+  font-size: 23px;
+  font-weight: bold;
+}
+
+.formSection {
+  display: flex;
+  align-items: start;
+  /* Align items to the top */
+  gap: 20px;
+  /* Add some space between the number and the fieldset */
+}
+
+.label-container {
+  display: flex;
+  justify-content: space-between;  /* Adjust the spacing between each label */
+  align-items: center;            /* Align items vertically in the center */
+
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  /* Adjust size as needed */
+  height: 30px;
+  /* Adjust size as needed */
+  border: 1px solid #0000ff;
+  border-radius: 50%;
+  /* Creates the circle */
+  font-size: 18px;
+  /* Adjust size as needed */
+  font-weight: bold;
+  color: #0000ff;
+  /* Dark text color */
+}
+
+.image-radio {
+  display: inline-block;
+  /* Align labels side by side */
+  text-align: center;
+  /* Center content within the label */
+  margin-right: 10px;
+  /* Spacing between labels */
+  height: 100%;
+}
+
+.image-radio img {
+  width: 100%;
+  max-width: 7vw;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  /* Ensures the image does not have inline whitespace below it */
+  margin: 0 auto;
+  /* Centers the image in the label */
+}
+
+.w40,.w80{
+  background-color: #D9D9D9;
+  border-radius: 7px 7px 7px 7px;
+  border: 0px solid #FF8000;
+  padding: 4px;
+  margin-top: 10px;
+}
+
+.w40{
+  width: 40%;
+  
+}
+
+.w80{
+  width: 80%;
+}
+
+.image-radio {
+  background-color: #D9D9D9;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.image-radio input[type="radio"]:checked+img {
+  border: 4px solid #FF8000;
+  padding: 10px;
+  /* Red border for demonstration */
+}
+
+.eventimage{
+  width: 100%;
+}
+
+.image-radio span {
+  display: block;
+  /* Ensures the text appears on a new line under the image */
+  margin-top: 5px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  margin-left:10px;
+  margin-right: 10px;
+  height: auto;
+  padding-top: 8px;
+ 
+  /* Space between image and text */
+}
 
 .button-container {
   display: flex; /* Enables flexbox layout */
@@ -462,6 +676,11 @@ color: #581c8c;
   padding: 5px;
   margin-bottom: 10px;
   box-sizing: border-box; /* includes padding and border in the element's width */
+}
+
+.formsubmitbutton {
+  margin-top: 45px;
+  background-color: #33FF00;
 }
 
 .full-width-input {
@@ -653,5 +872,11 @@ input:checked + .slider:before {
 .dyslexia-mode .landingsection {
   /* border-radius: 17px; */
   background-color: #707070; /* Light grey, change as needed for dyslexia friendliness */
+}
+
+.full-width-line {
+  width: 100%;   /* Ensures the line takes up 100% of the container's width */
+  height: 2px;   /* Sets the thickness of the line */
+  background-color: #ccc; /* Sets the color of the line */
 }
 
