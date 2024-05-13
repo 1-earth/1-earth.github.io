@@ -39,6 +39,7 @@ document.getElementById('resourceForm').addEventListener('submit', function(even
 
     // Continue with form submission and data handling
     sendDataToGoogleSheets(formData);
+    
 });
 
 function sendDataToGoogleSheets(formData) {

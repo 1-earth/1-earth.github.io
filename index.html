@@ -12,11 +12,23 @@
     <title>ONEEARTH</title>
     <link rel="stylesheet" type="text/css" href="static/styles/oneearth.css" />
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly" ></script>
+    <script src="https://unpkg.com/@googlemaps/advanced-markers"></script>
   </head>
 
   <body>
-    <div class="landingsection">
+    <div class="landingsection homelanding">
+      <video class="landingvideo" autoplay muted loop playsinline>
+        <source src="static/videos/Loopback.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      
+
       <div class="masterframe" >
+
+        
+
+
         <div class="masterbar-menu absoulutepositioning topbuttons">
 
         <a href="about.html" class="masterbar-button-small rounded activeblack"
@@ -47,32 +59,35 @@
 
         <!-- <div class="white-line"></div> -->
 
-        <h1 class="centretext whitetext">1EARTH</h1>
+        <h1 class="centretext whitetext">ONE EARTH</h1>
+
+        <img
+        src="static/images/images/1ETRANS.gif"
+        alt="Icon"
+        class="logo-video"
+      />
+
         <div class="landingcontent">
-          <p class="whitetext landingtext">
-            1EARTH IS:<br /><br />
 
-            A platform for empowering creatives making positive changes within
-            their communities.<br /><br />
-
-            We are an open community bound by our shared core values of
-            equality, inclusivity, and accessibility.<br /><br />
-
-            We believe that as creatives, it is our duty to lead and inspire
-            collective action, organising efforts for broader impact to shape
-            the future we envision.<br /><br />
-          </p>
-          <video class="responsive-video" autoplay muted loop playsinline>
+         
+          <!-- <video class="logo-video z100" autoplay muted loop playsinline>
             <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
             Your browser does not support the video tag.
-          </video>
+          </video> -->
 
-          <img
-          src="static/images/icons/down.svg"
-          alt="Scroll Down"
-          style="cursor: pointer"
-          onclick="scrollToSection()"
-        />
+          <div class="secondarycontent">
+            <img class='downbutton'src="static/images/icons/down.svg" alt="Scroll Down" style="cursor: pointer; width: 50px; height: auto;" onclick="scrollToSection()" />
+
+            <p class="whitetext landingtext  f12">
+                1EARTH IS:<br /><br />
+                A platform for empowering creatives making positive changes within their communities.<br /><br />
+                We are an open community bound by our shared core values of equality, inclusivity, and accessibility.<br /><br />
+                We believe that as creatives, it is our duty to lead and inspire collective action, organising efforts for broader impact to shape the future we envision.<br /><br />
+            </p>
+        </div>
+        
+
+          
         </div>
       </div>
     </div>
@@ -338,9 +353,8 @@
       }
     </script>
 
-<script src="eventbase/eventprint.js"></script>
+<!-- <script src="eventbase/eventprint.js"></script> -->
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly" defer></script>
 
 <script src="static/scripts/mapscript.js"></script>
 
