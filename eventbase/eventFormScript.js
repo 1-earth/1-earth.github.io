@@ -1,3 +1,7 @@
+function toggleTag(button) {
+    button.classList.toggle('active');
+}
+
 console.log(document.getElementById('eventForm')+"found"); 
 
 document.getElementById('eventForm').addEventListener('submit', function(event) {
@@ -12,11 +16,14 @@ document.getElementById('eventForm').addEventListener('submit', function(event) 
     const linkURL = document.getElementById('linkURL').value;
     const primaryImage = document.getElementById('primaryImage').value;
     const secondaryImage = document.getElementById('secondaryImage').value;
-    const topicTags = Array.from(document.querySelectorAll('input[name="topicTags"]:checked')).map(el => el.value).join(', ');
-    const practiceTags = Array.from(document.querySelectorAll('input[name="practiceTags"]:checked')).map(el => el.value).join(', ');
     const recurrencePattern = document.getElementById('recurrencePattern').value;
     const recurrenceEndDate = document.getElementById('recurrenceEndDate').value;
     const nameUser = document.getElementById('nameUser').value;
+
+
+    const topicTags = Array.from(document.querySelectorAll('.topic-tag-button.active')).map(btn => btn.getAttribute('data-value'));
+    const practiceTags = Array.from(document.querySelectorAll('.practice-tag-button.active')).map(btn => btn.getAttribute('data-value'));
+    console.log(topicTags+', '+practiceTags);
 
     if (!nameEvent || !nameCommunity || !eventDate || !time || !address || !description || !linkURL || !primaryImage || !secondaryImage || !recurrencePattern  || !nameUser  ) {
         alert('Please fill out all required fields.');
@@ -28,11 +35,16 @@ document.getElementById('eventForm').addEventListener('submit', function(event) 
         return;
     }
 
-    sendDataToGoogleSheets(
-        // {nameEvent, eventDate, time, address, description, linkURL, primaryImage, secondaryImage,
-        // topicTags, practiceTags, recurrencePattern, recurrenceEndDate}
-        );
+    // Append selected category and tags to FormData
+    const formData = new FormData();
+    formData.append('topicTags', topicTags.join(', '));
+    formData.append('practiceTags', practiceTags.join(', '));
+
+
+    // Continue 
+    sendDataToGoogleSheets(formData);
 });
+
 
 
 function toggleRecurrenceEndDate(select) {
@@ -44,11 +56,10 @@ function toggleRecurrenceEndDate(select) {
     }
 }
 
-function sendDataToGoogleSheets(data) {
+function sendDataToGoogleSheets(formData) {
     const url = 'https://script.google.com/macros/s/AKfycbyrKL-s4Mfj1cohwITmkNTT4aczTYzq3tqjR9mUXcsYpsLAEAyuwxWR1eL6nPKbK9E91g/exec';
 
-    const formData = new FormData();
-
+     // Add other form fields to formData
     formData.append('nameEvent', document.getElementById('nameEvent').value);
     formData.append('nameCommunity', document.getElementById('nameCommunity').value);
     formData.append('eventDate', document.getElementById('eventDate').value);
@@ -63,14 +74,6 @@ function sendDataToGoogleSheets(data) {
     formData.append('nameUser', document.getElementById('nameUser').value);
 
 
-
-    // Handle checkboxes for topicTags
-    let topicTags = Array.from(document.querySelectorAll('input[name="topicTags"]:checked')).map(el => el.value).join(', ');
-    formData.append('topicTags', topicTags);
-
-    // Handle checkboxes for practiceTags
-    let practiceTags = Array.from(document.querySelectorAll('input[name="practiceTags"]:checked')).map(el => el.value).join(', ');
-    formData.append('practiceTags', practiceTags);
 
 
 
@@ -98,5 +101,11 @@ function resetForm() {
     let checkboxes = document.querySelectorAll('input[type=checkbox]');
     for (let checkbox of checkboxes) {
         checkbox.checked = false;
+    }
+
+    // Reset all toggle buttons (used in place of checkboxes)
+    let toggleButtons = document.querySelectorAll('.topic-tag-button, .practice-tag-button');
+    for (let button of toggleButtons) {
+        button.classList.remove('active');
     }
 }

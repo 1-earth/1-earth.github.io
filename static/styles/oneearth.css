@@ -92,9 +92,7 @@ h1 {
   justify-content: space-between;
 }
 
-.landingtext {
-  max-width: 33vw;
-}
+
 .landingcontent img {
   filter: brightness(0) invert(1); /* Apply filter to make the image white */
   cursor: pointer; /* Ensure the cursor indicates a clickable item */
@@ -119,6 +117,10 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.z100{
+  z-index: 100px;
 }
 
 .accessibilityspace{
@@ -234,9 +236,36 @@ h1 {
   left: -30px;
 }
 
+.homelanding{
+  height: 100vh; /* Adjust height as needed */
+}
+
 .landingsection {
-  background: linear-gradient(to bottom, black 0%, transparent 80%);
-  background-color: black; /* Solid background color */
+  position: relative;
+    width: 100%; /* Full width */
+    
+    overflow: hidden;
+    color: white; /* Ensures text is readable on potentially dark video */
+    background: black; /* Fallback color */
+}
+
+.landingsection > *:not(.landingvideo) {
+    position: relative;
+    z-index: 2; /* Ensures content is above the video */
+}
+
+.landingvideo
+{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  z-index: 0; /* Ensures video stays in the background */
+  opacity: 0.5; /* Set video opacity to 50% */
 }
 
 .fading-div {
@@ -414,6 +443,8 @@ h1 {
  }
 
 
+
+
 .upcomingEventItem3{
     /* background-color: #f0f0f0; Light grey background for visibility */
     border: 1px solid #ccc; /* Adds a border to each grid item */
@@ -424,7 +455,7 @@ h1 {
 .f12 {
   font-size: 12px;
   color: white;
-  background-color: #2a2536;
+  /* background-color: #2a2536; */
 }
 
 .f14 {
@@ -701,6 +732,9 @@ h1 {
   display: block; /* Remove any extra space below the image */
 }
 
+
+
+
 .formtitle {
   font-weight: bold;
   font-size: 18px;
@@ -954,6 +988,44 @@ input:checked + .slider:before {
   transform: translateX(16px);
 }
 
+
+.secondarycontent{
+  margin-top: 300px;
+  /* display: flex; */
+  /* background:#fefefe; */
+  width: 100%;
+    padding:5px;
+    /* border:1px solid black; */
+    text-align:center;
+    position:relative;
+}
+
+.downbutton{
+  /* flex: 1; */
+  
+
+  left: 0px;
+  /* padding:40px; */
+    
+    width:40px;
+    position:absolute;
+    left:0;
+    z-index: 100;
+}
+
+
+.landingtext {
+  width: 23%;
+  /* border:1px solid green; */
+    /* background:gold; */
+    /* padding:90px; */
+    text-align: left;
+    display:inline-block;
+    right:0px;
+    position:absolute;
+}
+
+
 /* Rounded sliders */
 .slider.round {
   border-radius: 34px;
@@ -969,6 +1041,16 @@ input:checked + .slider:before {
   border-radius: 8px;
   max-width: 300px; /* Rounded corners for the video */
 }
+
+.logo-video {
+  width: 30%; /* Assigns 45% of the container width to video */
+  top: calc(50% + 134px);
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust the positioning to the exact center */
+  margin: auto;
+  position: absolute;
+}
+
 
 .contributebar {
   width: 100%;
