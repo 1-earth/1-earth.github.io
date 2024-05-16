@@ -12,7 +12,11 @@
     <title>ONEEARTH</title>
     <link rel="stylesheet" type="text/css" href="static/styles/oneearth.css" />
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly" ></script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly"
+    ></script>
     <script src="https://unpkg.com/@googlemaps/advanced-markers"></script>
   </head>
 
@@ -22,22 +26,18 @@
         <source src="static/videos/Loopback.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      
 
-      <div class="masterframe" >
-
-        
-
-
-        <div class="masterbar-menu absoulutepositioning topbuttons">
-
-        <a href="about.html" class="masterbar-button-small rounded activeblack"
-        >ABOUT</a
-      >
-      <a href="join.html" class="masterbar-button-small rounded activeblack"
-        >JOIN</a
-      >
-      </div>
+      <div class="masterframe">
+        <div class="masterbar-menu  topbuttons">
+          <a
+            href="about.html"
+            class="masterbar-button-small rounded  "
+            >ABOUT US</a
+          >
+          <!-- <a href="join.html" class="masterbar-button-small rounded activeblack"
+            >JOIN</a
+          > -->
+        </div>
 
         <div class="topheader">
           <!-- <p class="s1 whitetext" style="max-width: 66%;">
@@ -46,93 +46,124 @@
           </p> -->
 
           <div class="switchcontainer">
-            <div class="spacer"></div>  <!-- Invisible spacer to balance the text centering -->
-            <h2 class="centretext whitetext f16 italic">EMPOWERING POSITIVITY. BUILDING COMMUNITY. UNITING CHANGE.</h2>
+            <img src="static/images/icons/lines-svgrepo-com.svg" alt="Image" class="left-image">
+            <div class="spacer"></div>
             <p class="s1 whitetext accessibilityspace">accessibility</p>
             <label class="switch">
-                <input type="checkbox" aria-label="Toggle accessibility options" />
-                <span class="slider round"></span>
+              <input type="checkbox" aria-label="Toggle accessibility options" />
+              <span class="slider round"></span>
             </label>
           </div>
+          <p class="centretext whitetext f18 toplandingtext avenir-roman">
+            Connecting all initiatives <br />
+            making a positive impact in their communities<br />
+            to individuals sharing the same core beliefs
+          </p>
+        </div>
 
+        <div class="heromaincontent">
+          <button
+            class="side-button masterbar-button activeblack rounded"
+            id="scroll-button"
+            style="margin-left: 100px;"
+          >
+            FIND COMMUNITIES
+          </button>
+          <img
+            src="static/images/images/1ETRANS.gif"
+            alt="Icon"
+            class="logo-video"
+          />
+          <button style="margin-right: 100px;" class="side-button masterbar-button activeblack rounded" onclick="location.href='eventbase/eventbasesubmission.html';">
+            SHARE YOURS
+          </button>
         </div>
 
         <!-- <div class="white-line"></div> -->
 
-        <h1 class="centretext whitetext">ONE EARTH</h1>
-
+        <h2 class="centretext whitetext f16 italic spacing4hero">
+          EMPOWERING POSITIVITY. BUILDING COMMUNITY. UNITING CHANGE.
+        </h2>
+        <div class="herotitlelinks">
+          <a href="#" class="left-link">Watch The Documentary</a>
+          <h1 class="centretext whitetext titlespace">ONE EARTH</h1>
+          <a href="#" class="right-link">Read The Manifesto</a>
+        </div>
         <img
-        src="static/images/images/1ETRANS.gif"
-        alt="Icon"
-        class="logo-video"
-      />
+          class="downbutton"
+          src="static/images/icons/down.svg"
+          alt="Scroll Down"
+          style="cursor: pointer; width: 50px; display: block; margin: auto"
+          onclick="scrollToSection()"
+        />
 
         <div class="landingcontent">
-
-         
           <!-- <video class="logo-video z100" autoplay muted loop playsinline>
             <source src="static/videos/DA1ESPIN.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video> -->
 
           <div class="secondarycontent">
-            <img class='downbutton'src="static/images/icons/down.svg" alt="Scroll Down" style="cursor: pointer; width: 50px; height: auto;" onclick="scrollToSection()" />
-
-            <p class="whitetext landingtext  f12">
+            <!-- <p class="whitetext landingtext  f12">
                 1EARTH IS:<br /><br />
                 A platform for empowering creatives making positive changes within their communities.<br /><br />
                 We are an open community bound by our shared core values of equality, inclusivity, and accessibility.<br /><br />
                 We believe that as creatives, it is our duty to lead and inspire collective action, organising efforts for broader impact to shape the future we envision.<br /><br />
-            </p>
-        </div>
-        
-
-          
+            </p> -->
+          </div>
         </div>
       </div>
     </div>
     <div class="fading-div"></div>
 
     <div class="masterframe" id="target-section">
-     <div class="navbarspacer"></div>
+      <div class="navbarspacer"></div>
       <div class="bodyframe">
         <div id="navbar">
-          <a href="" class="masterbar-button rounded activeblack shadow" role="button">
+          <a
+            href=""
+            class="masterbar-button rounded activeblack shadow avenir-roman f17"
+            role="button"
+          >
             THE 1EARTH NETWORK
           </a>
           <a
             href="resources.html"
-            class="masterbar-button rounded shadow"
+            class="masterbar-button rounded shadow avenir-roman f17"
             role="button"
           >
-            THE RESOURCE BASE
+            THE RESOURCE SPACE
           </a>
-          <a href="forum.html" class="masterbar-button rounded shadow" role="button">
+          <a
+            href="forum.html"
+            class="masterbar-button rounded shadow avenir-roman f17"
+            role="button"
+          >
             FORUM
           </a>
         </div>
 
         <div id="contentcarrier">
-          <h1>THE 1EARTH NETWORK</h1>
-          <h2>
-            CONNECTING INDIVIDUALS TO COMMUNITIES PLAYING IN MAKING POSITIVE
-            SOCIAL CHANGE
+          <h1 class="f34">THE 1EARTH NETWORK</h1>
+          <h2 class="avenir-heavy">
+            CONNECTING INDIVIDUALS TO INITIATIVES MAKING POSITIVE IMPACT IN
+            THIER COMMUNITY
           </h2>
-          <h2>THE COMMUNITY-LED 1EARTH NETWORK</h2>
+          <!-- <h2>THE COMMUNITY-LED 1EARTH NETWORK</h2> -->
+
+          <!-- <p class="s1">
+            <strong>Welcome to the 1EARTH NETWORK.  </strong><br><br>
+
+            All groups & events that are shown here have been uploaded by You! The Community, The 1EARTH NETWORK is a platform frame-working an environment of active participation & individual to collective action towards the future, encouraging shared growth & collaboration between all.
+          </p> -->
 
           <div class="search-container">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search Keyword / Organisation / Activities / Practices / Locations..."
               class="search-input rounded inputcolor"
             />
           </div>
-          <p class="s1">
-            Welcome to the 1EARTH NETWORK. For the creatives, by the creatives.
-            All groups & events that are shown have been uploaded by You! The
-            Community, The 1 Earth network is open to all who believe in our
-            core values of empowerment, inclusivity, and equality.
-          </p>
 
           <div class="filtermenu-container">
             <div class="dropdown">
@@ -146,9 +177,9 @@
                 <span class="arrow">&#9662;</span>
               </button>
               <div class="dropdown-content">
-                <a href="#">Link 1</a>
-                <a href="#">Link 2</a>
-                <a href="#">Link 3</a>
+                <a href="#">[ALL]</a>
+                <a href="#">[THE COMMUNITY SUPPORT DIRECTORY]</a>
+                <a href="#">[THE CREATIVE ]</a>
               </div>
             </div>
             <div class="dropdown">
@@ -239,25 +270,26 @@
           <div class="dynamicbody">
             <div class="leftbody">
               <div class="contentisland rounded">
-                <div class="contentislandtitle bold">
+                <div class="contentislandtitle">
                   <img
                     src="static/images/icons/map-location-pin-svgrepo-com.svg"
                     alt="Icon"
                     class="icon"
                   />
-                  Map:
+                  Find Communities:
                 </div>
                 <div id="map"></div>
-
-
               </div>
 
-              <div class="button-container">
-                <button class="masterbar-button rounded contribute-button-blue" onclick="location.href='eventbase/eventbasesubmission.html';">
+              <div class="button-container toppadding">
+                <button
+                  class="masterbar-button rounded contribute-button-green"
+                  onclick="location.href='eventbase/eventbasesubmission.html';"
+                >
                   SUBMIT TO OUR NETWORK HERE!
-              </button>
-              
-                <button class="masterbar-button rounded">
+                </button>
+
+                <button class="masterbar-button rounded whiteback">
                   BUILD YOUR OWN EVENT PAGE!
                 </button>
               </div>
@@ -269,26 +301,62 @@
                 organise their own communities
               </p>
               <div class="contentisland rounded">
-                <div class="contentislandtitle bold">
+                <div class="contentislandtitle">
+                  <img
+                    src="static/images/icons/community-group-leader-svgrepo-com.svg"
+                    alt="Icon"
+                    class="icon"
+                  />
+                  Initiatives:
+                </div>
+
+                <div id="upcoming-events3"></div>
+              </div>
+            </div>
+
+            <div class="rightbody">
+              <h2 class="f18" style="padding-top: 0px">
+                [!] <span class="avenir-heavy f34 datgreen">WELCOME</span> TO
+                THE 1EARTH NETWORK
+              </h2>
+
+              <p class="s1 avenir-medium f15" style="margin-bottom: 10px">
+                This is a map of all initiatives making a positive impact within
+                their communities. <br /><br />
+
+                The nodes represent each initiative & contains information on
+                their activities.<br /><br />
+
+                Use the menus in the top lefthand bar to filter for relevant
+                information. <br /><br />
+
+                <span class="f10"
+                  >For example, click the box 'NETWORK' and select 'COMMUNITY
+                  SUPPORT DIRECTORY' to a specified network that relates to all
+                  the ways you can volunteer & help out in your local
+                  community<br /><br />
+
+                  You can then also use other filters - use the “Categories” box
+                  and select 'Design' to see all communities that are related to
+                  design.</span
+                >
+              </p>
+
+              <div class="contentisland rounded">
+                <div class="contentislandtitle">
                   <img
                     src="static/images/icons/important-svgrepo-com.svg"
                     alt="Icon"
                     class="icon"
                   />
-                  Upcoming
+                  Upcoming Events:
                 </div>
 
-                
-                  <div id="upcoming-events3">
+                <div id="upcoming-events"></div>
 
-                    
-                  </div>
-                
-
+                <br /><br /><br />
               </div>
-            </div>
 
-            <div class="rightbody">
               <div class="custom-form-container">
                 <input
                   type="text"
@@ -299,22 +367,6 @@
                   Subscibe
                 </button>
               </div>
-
-              <div class="contentisland rounded">
-                <div class="contentislandtitle bold">
-                  <img
-                    src="static/images/icons/important-svgrepo-com.svg"
-                    alt="Icon"
-                    class="icon"
-                  />
-                  Upcoming
-                </div>
-
-                <div id="upcoming-events"></div>
-                
-                <br /><br /><br />
-              </div>
-
               <!-- <p>topleftofright</p> -->
             </div>
           </div>
@@ -323,7 +375,7 @@
     </div>
 
     <br /><br /><br />
-    <a href="/Playground/index.html">playground</a>
+    <!-- <a href="/Playground/index.html">playground</a> -->
 
     <script>
       function scrollToSection() {
@@ -351,17 +403,28 @@
           console.log("we here");
         }
       }
+
+      document
+        .getElementById("scroll-button")
+        .addEventListener("click", function () {
+          document
+            .getElementById("target-section")
+            .scrollIntoView({ behavior: "smooth" });
+        });
     </script>
 
-<!-- <script src="eventbase/eventprint.js"></script> -->
+    <!-- <script src="eventbase/eventprint.js"></script> -->
 
+    <script src="static/scripts/mapscript.js"></script>
 
-<script src="static/scripts/mapscript.js"></script>
-
-<footer>
-  <p class="centretext">🌐 1EARTH ℗ 2024. Designed by <a href="https://1-earth.github.io/Portfolio/INDEXV23.html">George Symonds</a>. All code is open-source & available <a href="https://github.com/1-earth/1-earth.github.io">here</a>.</p>
-</footer>
-
-
+    <footer>
+      <p class="centretext">
+        🌐 1EARTH ℗ 2024. Designed by
+        <a href="https://1-earth.github.io/Portfolio/INDEXV23.html"
+          >George Symonds</a
+        >. All code is open-source & available
+        <a href="https://github.com/1-earth/1-earth.github.io">here</a>.
+      </p>
+    </footer>
   </body>
 </html>

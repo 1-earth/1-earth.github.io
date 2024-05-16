@@ -4,6 +4,53 @@
   box-sizing: border-box; /* This ensures padding and borders are included in the width/height */
 }
 
+@font-face {
+  font-family: "Avenir";
+  src: url("static/fonts/avenir/Avenir-Roman.woff2") format("woff2"),
+    url("static/fonts/avenir/Avenir-Roman.woff") format("woff"),
+    url("static/fonts/avenir/Avenir-Roman.ttf") format("truetype");
+  font-weight: 400; /* Normal weight */
+  font-style: normal;
+}
+
+/* Define the Avenir Medium font-face */
+@font-face {
+  font-family: "Avenir";
+  src: url("static/fonts/avenir/Avenir-Medium.woff2") format("woff2"),
+    url("static/fonts/avenir/Avenir-Medium.woff") format("woff"),
+    url("static/fonts/avenir/Avenir-Medium.ttf") format("truetype");
+  font-weight: 500; /* Medium weight */
+  font-style: normal;
+}
+
+/* Define the Avenir Heavy font-face */
+@font-face {
+  font-family: "Avenir";
+  src: url("static/fonts/avenir/Avenir-Heavy.woff2") format("woff2"),
+    url("static/fonts/avenir/Avenir-Heavy.woff") format("woff"),
+    url("static/fonts/avenir/Avenir-Heavy.ttf") format("truetype");
+  font-weight: 700; /* Heavy weight */
+  font-style: normal;
+}
+
+/* Class to apply Avenir Roman */
+.avenir-roman {
+  font-family: "Avenir", sans-serif;
+  font-weight: 400;
+}
+
+/* Class to apply Avenir Medium */
+.avenir-medium {
+  font-family: "Avenir", sans-serif;
+  font-weight: 500;
+}
+
+/* Class to apply Avenir Heavy */
+.avenir-heavy {
+  font-family: "Avenir", sans-serif;
+  font-weight: 700;
+}
+
 html,
 body {
   margin: 0;
@@ -12,6 +59,12 @@ body {
   font-family: "Helvetica Neue", Arial, sans-serif;
   /* color: black; */
   /* scroll-behavior: smooth; */
+
+  background-image: url("/static/images/images/1EARTHLOGOblack23.png"); /* Update this path to your image */
+  background-size: cover; /* Ensure the image covers the entire background */
+  background-attachment: fixed; /* Fix the image in place */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevent the image from repeating */
 }
 
 footer {
@@ -20,13 +73,15 @@ footer {
   color: #635b75;
 }
 
-
-
 #map {
   width: 100%;
   height: 500px;
+  border-radius: 0px 0px 17px 17px;
 }
 
+#map * {
+  font-family: "Helvetica", sans-serif !important;
+}
 
 fieldset {
   border: none;
@@ -43,32 +98,32 @@ h2 {
 }
 
 h1 {
-  font-size: 34px;
-  padding-top: 20px;
+  font-size: 53px;
+  padding-top: 40px;
 }
-
-.topbuttons{
+/* 
+.topbuttons {
   top: 45px;
   right: 0px;
   margin-right: 17px;
-}
+} */
 
-.shadow{
+.shadow {
   box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.4);
 }
 
 .masterframe {
-  margin-left: 23px;
-  margin-right: 23px;
+  margin-left: 53px;
+  margin-right: 53px;
   /* width: 100%; */
 }
 .bodyframe {
-  margin-left: 34px;
-  margin-right: 34px;
+  margin-left: 53px;
+  margin-right: 53px;
   /* width: 100%; */
 }
 
-.navbarspacer{
+.navbarspacer {
   width: 100%;
   height: 20px;
 }
@@ -79,8 +134,8 @@ h1 {
   justify-content: right; /* Spreads out the items */
 }
 
-.absoulutepositioning{
-  position:absolute;
+.absoulutepositioning {
+  position: absolute;
 }
 
 .landingcontent {
@@ -91,7 +146,6 @@ h1 {
   align-items: center; /* Vertically centers the children (text and image) */
   justify-content: space-between;
 }
-
 
 .landingcontent img {
   filter: brightness(0) invert(1); /* Apply filter to make the image white */
@@ -119,16 +173,15 @@ h1 {
   align-items: center;
 }
 
-.z100{
+.z100 {
   z-index: 100px;
 }
 
-.accessibilityspace{
-  margin-top: 14px;
-  margin-right: 10px;
+.accessibilityspace {
+  /* margin-top: 14px; */
+  /* margin-right: 10px; */
   position: absolute;
   right: 70px;
-  
 }
 
 @media (max-width: 860px) {
@@ -149,8 +202,8 @@ h1 {
   /* width: 90vw; */
   z-index: 1000;
   right: 0px;
-  padding-left: 60px;
-  padding-right: 60px;
+  padding-left: 87px;
+  padding-right: 87px;
   padding-top: 0px;
 }
 
@@ -176,23 +229,32 @@ h1 {
   cursor: pointer;
 }
 
-.onestrokeborder{
+.onestrokeborder {
   border: 1ssssssdasdsadasdsadsadpx solid black !important;
 }
 
+.topbuttons {
+
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Optional: centers vertically within the container */
+}
 
 .masterbar-button-small {
-  background-color: #f2f2f2;
+  
+  margin-top: 23px;
+  font-size: 18px;
   border: none;
-  color: black;
+  color: white;
   text-align: center;
   text-decoration: none;
   font-size: 18px;
   transition: background-color 0.3s;
-  border: 0.5px solid black;
-  margin: 5px; /* 23px divided by 2 for even spacing between buttons */
+  border: 0.5px solid white;
+  /* margin: 5px; 23px divided by 2 for even spacing between buttons */
   width: 100px;
   cursor: pointer;
+  padding: 2px;
 }
 
 #navbar .activeblack {
@@ -223,6 +285,7 @@ h1 {
 .s1 {
   font-size: 14px;
   padding-bottom: 20px;
+  padding-top: 20px;
 }
 
 .whitetext {
@@ -236,26 +299,25 @@ h1 {
   left: -30px;
 }
 
-.homelanding{
+.homelanding {
   height: 100vh; /* Adjust height as needed */
 }
 
 .landingsection {
   position: relative;
-    width: 100%; /* Full width */
-    
-    overflow: hidden;
-    color: white; /* Ensures text is readable on potentially dark video */
-    background: black; /* Fallback color */
+  width: 100%; /* Full width */
+
+  overflow: hidden;
+  color: white; /* Ensures text is readable on potentially dark video */
+  background: black; /* Fallback color */
 }
 
 .landingsection > *:not(.landingvideo) {
-    position: relative;
-    z-index: 2; /* Ensures content is above the video */
+  position: relative;
+  z-index: 2; /* Ensures content is above the video */
 }
 
-.landingvideo
-{
+.landingvideo {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -265,7 +327,7 @@ h1 {
   width: auto;
   height: auto;
   z-index: 0; /* Ensures video stays in the background */
-  opacity: 0.5; /* Set video opacity to 50% */
+  opacity: 0.2; /* Set video opacity to 50% */
 }
 
 .fading-div {
@@ -280,7 +342,7 @@ h1 {
 .centretext {
   text-align: center;
   width: 100%; /* Ensures the element uses full container width */
-  display: block; 
+  display: block;
 }
 .centreimage {
   justify-content: center;
@@ -288,8 +350,8 @@ h1 {
 }
 
 .search-container {
-  padding-top: 15px;
-  padding-bottom: 15px;
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
 
 .inputcolor {
@@ -310,6 +372,7 @@ h1 {
   width: 80%; /* Makes the container take 80% of its parent width */
   /* background-color: #333; */
   gap: 20px;
+  margin-bottom: 30px;
 }
 
 .dropdown {
@@ -381,12 +444,14 @@ h1 {
   width: 100%;
   margin-top: 20px;
   position: relative;
+  justify-content: space-between;
 }
 
 /* here is for 2/3 & 1/3 split */
 .leftbody {
-  width: calc(66.67% - 10px); /* 2/3 width minus half the gap */
-  background-color: #f2f2f2; /* Light grey background for visibility */
+  width: calc(59.67% - 10px); /* 2/3 width minus half the gap */
+  /* background-color: #f2f2f2; Light grey background for visibility */
+  margin-right: 60px;
 }
 
 .leftbodyforum {
@@ -404,7 +469,7 @@ h1 {
   font-style: italic;
 }
 
-.italic{
+.italic {
   font-style: italic;
 }
 
@@ -421,18 +486,26 @@ h1 {
 
 .resourcetitle {
   color: #581c8c;
+  font-size: 18px;
 }
 
 .upcomingEvent {
   position: relative;
+  cursor: pointer;
+  /* padding-top: 10px; */
+  padding-left: 10px;
+  padding-right: 10px;
   display: flex; /* Enables flexbox layout */
   width: 100%; /* Ensures the container takes full width of its parent */
+  padding-bottom: 10px;
 }
 
-
-#upcoming-events3{
+#upcoming-events3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Creates three columns of equal width */
+  grid-template-columns: repeat(
+    3,
+    1fr
+  ); /* Creates three columns of equal width */
   /* gap: 10px; Sets the space between grid items */
 }
 
@@ -440,27 +513,70 @@ h1 {
   background-color: white; /* Light grey background for visibility */
   border: 0.5px solid rgb(0, 0, 0); /* Adds a border to each grid item */
   padding: 0px; /* Padding inside each grid item for content */
- }
+  /* max-width: 33%; */
+}
 
-
-
-
-.upcomingEventItem3{
-    /* background-color: #f0f0f0; Light grey background for visibility */
-    border: 1px solid #ccc; /* Adds a border to each grid item */
-    /* padding: 20px; Padding inside each grid item for content */
-    text-align: center;
+.upcomingEventItem3 {
+  /* background-color: #f0f0f0; Light grey background for visibility */
+  border: 1px solid #ccc; /* Adds a border to each grid item */
+  /* padding: 20px; Padding inside each grid item for content */
+  text-align: center;
 }
 
 .f12 {
-  font-size: 12px;
+  font-size: 12px !important;
   color: white;
   /* background-color: #2a2536; */
+}
+
+.datgreen {
+  color: #35ea07;
+}
+
+img[src^="data:image/svg+xml"][alt="Google"],
+.gm-style-cc {
+  display: none !important;
+}
+
+.f10 {
+  font-size: 10px !important;
 }
 
 .f14 {
   font-size: 14px;
 }
+
+.f15 {
+  font-size: 15px !important;
+}
+
+.f17 {
+  font-size: 18px !important;
+}
+
+.f18 {
+  font-size: 18px;
+}
+
+.f23 {
+  font-size: 23px !important;
+}
+
+.f34 {
+  font-size: 34px !important;
+}
+
+/* #research-inspiration{
+  margin-left: 10px;
+}
+
+#opportunities-funding{ 
+  margin-left: 10px;
+}
+
+#other-community-hubs{
+  margin-left: 10px;
+} */
 
 .upcomingeventimage,
 .upcomingeventtext,
@@ -479,56 +595,68 @@ h1 {
 
 @media (max-width: 600px) {
   .contentgrid3 {
-      grid-template-columns: repeat(1, 1fr); /* Stacks the items in one column on smaller screens */
+    grid-template-columns: repeat(
+      1,
+      1fr
+    ); /* Stacks the items in one column on smaller screens */
   }
 }
 
 .top-event-info {
-  display: flex;           /* Enable flexbox to align children horizontally */
+  display: flex; /* Enable flexbox to align children horizontally */
   justify-content: space-between; /* Space between to push children to each end */
-  align-items: center;     /* Align items vertically in the center */
-  width: 100%;             /* Optional: set the width of the parent div */
- padding-left: 12px;
- padding-right: 12px;
+  align-items: center; /* Align items vertically in the center */
+  width: 100%; /* Optional: set the width of the parent div */
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
-.event-tag {
+.community-tag {
   /* Styles for the left div */
-  margin-right: 10px;      /* Pushes all extra space to the right */
+  background-color: #2a2536;
+  color: #ffffff;
+  margin-top: 5px;
+  margin-right: 11px; /* Pushes all extra space to the right */
 }
 
 .event-date {
   /* Styles for the right div */
-  margin-left: 10px;       /* Pushes all extra space to the left */
+  margin-left: 10px; /* Pushes all extra space to the left */
 }
-
 
 .upcomingeventdate {
-  width: 15%;
-  background-color: #5c5c5c;
-  color: white;
+  width: 60px;
+  height: 60px;
+  background-color: #35ea07;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center the content vertically */
+  text-align: center;
+  border-radius: 50%; /* Make it a circle */
+  padding: 10px; /* Adjust as needed */
+  position: absolute; /* Absolute positioning */
+  bottom: -10px; /* Adjust as needed for spacing from bottom */
+  right: 10px; /* Adjust as needed for spacing from right */
 }
+
 
 .upcomingeventtext {
   padding-left: 12px;
-  padding-right: 5px;
- width: 69%;
+  padding-right: 30px;
+  /* width: 100%; */
   align-items: flex-start; /* Ensures text content aligns to the top */
 }
 
-.upcomingeventdate {
-  right: 0;
-  bottom: 0;
-  position: absolute;
-  align-items: flex-end; /* Aligns the date content to the bottom of the div */
-  justify-content: flex-end;
-  /* height: 100px;  Ensures content aligns to the bottom if there are multiple lines or elements */
+.w69{
+  width: 69%;
 }
-
 .eventtitle {
   text-decoration: none;
   font-size: 23px;
   color: black;
+  margin-bottom: 15px;
 }
 
 .resourceimagesection {
@@ -569,8 +697,6 @@ h1 {
   gap: 5px; /* Space between buttons */
 }
 
-
-
 .category-row,
 .audience-row {
   display: flex;
@@ -585,7 +711,7 @@ h1 {
 .audience-row3 {
   display: flex;
   flex-direction: row;
-  justify-content:flex-start;
+  justify-content: flex-start;
   gap: 5px;
   flex-wrap: wrap;
   padding-left: 10px;
@@ -605,8 +731,9 @@ h1 {
   color: #0000ff;
 }
 
-.upcomingeventtextcontainer{
-  /* width: 50%; */
+.upcomingeventtextcontainer {
+  /* width: 10%; */
+  padding-right: 300px;
 }
 
 .audience-btn {
@@ -619,7 +746,7 @@ h1 {
   font-size: 18px;
 }
 
-.purebold{
+.purebold {
   font-weight: bold;
 }
 
@@ -629,12 +756,14 @@ h1 {
 
 .rightbody {
   width: calc(33.33% - 10px); /* 1/3 width minus half the gap */
-  background-color: #f2f2f2; /* Slightly darker for contrast */
+  /* background-color: #f2f2f2; Slightly darker for contrast */
+  /* padding-left: 100px; */
+  float: right;
 }
 
 .rightbodyforum {
   width: calc(33.33% - 10px); /* 1/3 width minus half the gap */
-  background-color: #f2f2f2; /* Slightly darker for contrast */
+  /* background-color: #f2f2f2; Slightly darker for contrast */
 }
 
 .islandtextcontent {
@@ -664,18 +793,16 @@ h1 {
 
 .contentisland {
   border: 0.5px solid black; /* Thin black border */
-  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5); /* Drop shadow */
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow */
   background-color: white;
 }
 
 .contentislandtitle {
   padding-top: 3px;
-  font-size: 18px;
+  /* font-size: 18px; */
 }
 
-
-
-.grid-item{
+.grid-item {
   border: 1px solid #0000ff;
 }
 
@@ -731,9 +858,6 @@ h1 {
   height: auto; /* Maintain aspect ratio */
   display: block; /* Remove any extra space below the image */
 }
-
-
-
 
 .formtitle {
   font-weight: bold;
@@ -830,6 +954,7 @@ h1 {
 
 .eventimage {
   width: 100%;
+  padding-top: 5px;
 }
 
 .image-radio span {
@@ -844,6 +969,10 @@ h1 {
   padding-top: 8px;
 
   /* Space between image and text */
+}
+
+.toppadding {
+  padding-top: 10px;
 }
 
 .button-container {
@@ -899,10 +1028,13 @@ h1 {
 }
 
 .contentgrid3 {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Creates three columns of equal width */
-    gap: 10px; /* Sets the space between grid items */
-    padding: 10px; /* Optional: Adds some padding around the grid */
+  display: grid;
+  grid-template-columns: repeat(
+    3,
+    1fr
+  ); /* Creates three columns of equal width */
+  gap: 10px; /* Sets the space between grid items */
+  padding: 10px; /* Optional: Adds some padding around the grid */
 }
 
 .responsive-image3 {
@@ -913,7 +1045,7 @@ h1 {
   border: 0.5px solid black;
 }
 
-.f16{
+.f16 {
   font-size: 16px;
 }
 
@@ -929,6 +1061,63 @@ h1 {
   justify-content: space-between; /* Aligns items to the start, center, and end */
   align-items: center; /* Centers items vertically */
   width: 100%; /* Ensures the div takes the full width of its parent */
+  position: relative;
+  
+}
+.spacing4hero{
+  margin-top: 20px;
+}
+
+.top85{
+  top: 85px;
+}
+
+.titlespace {
+  padding-top: 10px !important;
+}
+
+.herotitlelinks {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.left-image {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 17px;
+  /* transform: translateY(-50%); */
+  /* Adjust the top and transform values as needed to vertically center the image */
+  margin-right: 10px; /* Adjust the margin as needed */
+}
+
+.spacer {
+  flex: 1;
+}
+
+
+
+
+
+
+
+
+
+.herotitlelinks a {
+  position: absolute;
+  top: 0;
+  /* text-decoration: none; */
+  color: white;
+  font-size: 14px;
+}
+
+.left-link {
+  left: 100px;
+}
+
+.right-link {
+  right: 100px;
 }
 
 /* The switch - the box around the slider */
@@ -937,6 +1126,7 @@ h1 {
   display: inline-block;
   width: 40px;
   height: 21px;
+  margin-right: 23px;
 }
 
 /* Hide default HTML checkbox */
@@ -988,43 +1178,39 @@ input:checked + .slider:before {
   transform: translateX(16px);
 }
 
-
-.secondarycontent{
+.secondarycontent {
   margin-top: 300px;
   /* display: flex; */
   /* background:#fefefe; */
   width: 100%;
-    padding:5px;
-    /* border:1px solid black; */
-    text-align:center;
-    position:relative;
+  padding: 5px;
+  /* border:1px solid black; */
+  text-align: center;
+  position: relative;
 }
 
-.downbutton{
+.downbutton {
   /* flex: 1; */
-  
 
   left: 0px;
   /* padding:40px; */
-    
-    width:40px;
-    position:absolute;
-    left:0;
-    z-index: 100;
-}
 
+  width: 40px;
+  position: absolute;
+  left: 0;
+  z-index: 100;
+}
 
 .landingtext {
   width: 23%;
   /* border:1px solid green; */
-    /* background:gold; */
-    /* padding:90px; */
-    text-align: left;
-    display:inline-block;
-    right:0px;
-    position:absolute;
+  /* background:gold; */
+  /* padding:90px; */
+  text-align: left;
+  display: inline-block;
+  right: 0px;
+  position: absolute;
 }
-
 
 /* Rounded sliders */
 .slider.round {
@@ -1043,14 +1229,36 @@ input:checked + .slider:before {
 }
 
 .logo-video {
-  width: 30%; /* Assigns 45% of the container width to video */
-  top: calc(50% + 134px);
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%); /* Adjust the positioning to the exact center */
+  width: 25%; /* Assigns 45% of the container width to video */
+  display: block;
   margin: auto;
-  position: absolute;
 }
 
+.heromaincontent {
+  display: flex;
+  align-items: center; /* Vertically center the content */
+  justify-content: center; /* Horizontally center the content */
+  gap: 10px; /* Optional: Add some space between the buttons and the video */
+}
+
+.side-button {
+  width: 20% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  /* background-color: #007BFF; */
+  /* color: white; */
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border: 0.5px solid #ffffff;
+}
+
+.toplandingtext {
+  margin-top: 3px;
+  margin-bottom: 34px;
+}
 
 .contributebar {
   width: 100%;
@@ -1092,14 +1300,26 @@ input:checked + .slider:before {
   z-index: 100;
 }
 
-.contribute-button-blue{
+.contribute-button-blue {
   color: #ffffff;
   background-color: #0000ff;
+}
+
+.contribute-button-green {
+  /* color: #ffffff; */
+  background-color: #35ea07;
+  border: none;
+  box-shadow: 0 0 10px rgba(53, 234, 7, 3);
 }
 
 .contribute-button:hover {
   background-color: #0000ff;
   color: white;
+}
+
+.whiteback {
+  background-color: #ffffff;
+  /* border: none/; */
 }
 
 /* Dyslexia-friendly styles */
@@ -1129,6 +1349,6 @@ input:checked + .slider:before {
 
 .full-width-line {
   width: 100%; /* Ensures the line takes up 100% of the container's width */
-  height: 2px; /* Sets the thickness of the line */
-  background-color: #ccc; /* Sets the color of the line */
+  height: 0.5px; /* Sets the thickness of the line */
+  background-color: rgb(0, 0, 0); /* Sets the color of the line */
 }
