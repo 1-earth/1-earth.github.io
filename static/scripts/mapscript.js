@@ -69,8 +69,8 @@ document.addEventListener("DOMContentLoaded", function () {
             map: map,
             title: "Your Location",
             icon: {
-              url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-              
+              url: "static/images/icons/person.png",
+              scaledSize: new google.maps.Size(18, 20), // Size of the marker
             },
           });
         } else {
@@ -82,9 +82,10 @@ document.addEventListener("DOMContentLoaded", function () {
     data.slice(1).forEach((row) => {
       const name = row[0];
       const community = row[1];
-      const url = row[4];
+      const url = row[8];
       const time = row[3];
       const date = row[2];
+      const address = row[4];
       const description = row[6];
       const imageUrl = row[9];
       const latitude = parseFloat(row[17]);
@@ -165,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
               <div class="upcomingeventtext">
                   <div class=upcomingeventtextcontainer"
-                      <h2><a class="eventtitle purebold">${name}</a></h2>
+                      <h2><a class="eventtitle purebold">${community}</a></h2>
                       <p class='f14 datgreen purebold'> @${community}</p>
                       <p class='f14 descriptioninit'>${description}</p>
                   </div>
@@ -179,13 +180,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.getElementById("upcoming-events").innerHTML += htmlContent;
       document.getElementById("upcoming-events3").innerHTML += htmlContent3;
-
+// MAP INFO HERE
       const infowindow = new google.maps.InfoWindow({
         content: `
           <div id="content">
-            <h3 class="eventtitle purebold">${name}</h3>
-            <p>${description}</p>
-            <img src="${imageUrl}" alt="${name}" style="max-width: 200px;">
+            <h3 class="eventtitle purebold f23">${name}</h3>
+            <p class='datgreen bold f12'>${community}</p>
+            <p class='f12 black'>${time}, ${day}/${monthYear}</p>
+            <p class='f12 black italic'>${address}</p>
+            <div class="description-container">
+              <img src="${imageUrl}" alt="${name}" class="event-image">
+              <p class="event-description"><strong>ABOUT: </strong><br>${description}<strong><br><br>EVENT INFO: </strong><br>${description}</p>
+            </div>
+            <a href="${url}" class="f14 purebold detaillink" target="_blank">details</a>
           </div>
             `,
         ariaLabel: name,
@@ -221,7 +228,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     upcomingEvents.forEach((event, index) => {
       event.addEventListener("click", () => {
+        // Trigger the Google Maps marker click event
         google.maps.event.trigger(markers[index], "click");
+    
+        // Scroll to the target section
+        const targetSection = document.getElementById("map-target-section");
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: "smooth" });
+        }
       });
     });
 
