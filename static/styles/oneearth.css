@@ -505,8 +505,8 @@ h1 {
   grid-template-columns: repeat(
     3,
     1fr
-  ); /* Creates three columns of equal width */
-  /* gap: 10px; Sets the space between grid items */
+  ); 
+  /* gap: 20px; */
 }
 
 .grid-item3 {
@@ -585,13 +585,17 @@ img[src^="data:image/svg+xml"][alt="Google"],
   align-items: flex-start; /* Aligns items to the top by default */
 }
 
+.descriptioninit{
+  overflow-wrap: break-word;
+    word-break: break-word;
+}
+
 .upcomingeventimage {
   width: 20%;
 }
 
-.upcomingeventimage3 {
-  width: 100%;
-}
+
+
 
 @media (max-width: 600px) {
   .contentgrid3 {
@@ -616,6 +620,7 @@ img[src^="data:image/svg+xml"][alt="Google"],
   background-color: #2a2536;
   color: #ffffff;
   margin-top: 5px;
+  margin-bottom: 10px;
   margin-right: 11px; /* Pushes all extra space to the right */
 }
 
@@ -687,7 +692,8 @@ img[src^="data:image/svg+xml"][alt="Google"],
 }
 
 .keyword-buttons3 {
-  padding-top: 10px;
+  padding-top: 40px;
+  padding-bottom: 20px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -804,6 +810,24 @@ img[src^="data:image/svg+xml"][alt="Google"],
 
 .grid-item {
   border: 1px solid #0000ff;
+}
+
+.upcomingeventimage3 {
+  width: 100%;
+  height: 200px; /* Fixed height for the container */
+  overflow: hidden; /* Ensure any overflow is hidden */
+  position: relative; /* For absolute positioning of the image */
+}
+
+.upcomingeventimageinner{
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the container */
+  object-position: center; /* Center the image within the container */
+  display: block; /* Removes inline spacing below the image */
+  position: absolute; /* Ensure the image covers the container completely */
+  top: 0;
+  left: 0;
 }
 
 .tag-grid {
@@ -992,6 +1016,7 @@ img[src^="data:image/svg+xml"][alt="Google"],
   margin: 0 auto; /* centers the div horizontally */
   /* padding: 20px; */
   box-sizing: border-box;
+  padding-top: 30px;
 }
 
 .full-width-input,
