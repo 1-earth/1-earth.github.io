@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const url = row[4];
       const time = row[3];
       const date = row[2];
-      const description = row[5];
+      const description = row[6];
       const imageUrl = row[9];
       const latitude = parseFloat(row[17]);
       const longitude = parseFloat(row[18]);
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <div class=upcomingeventtextcontainer">
                       <p><a class=" f23 bold eventtitle purebold">${name}</a></p>
                       <p class='f12 datgreen bold'>${community}</p>
-                      <p class='f10'>${description}</p>
+                      <p class='f10 '>${description}</p>
                       <p class='f10'>${time}</p>
                   </div>
               </div>
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const htmlContent3 = `
           <div class="grid-item3">
               <div class="upcomingeventimage3">
-                  <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimage3">
+                  <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimageinner">
               </div>
               <div class="top-event-info">
                   <div class="community-tag f12">COMMUNITY</div>
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <div class=upcomingeventtextcontainer"
                       <h2><a class="eventtitle purebold">${name}</a></h2>
                       <p class='f14 datgreen purebold'> @${community}</p>
-                      <p class='f14'>${description}</p>
+                      <p class='f14 descriptioninit'>${description}</p>
                   </div>
               </div>
               <div class="keyword-buttons3">

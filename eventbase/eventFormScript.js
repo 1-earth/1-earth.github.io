@@ -25,7 +25,7 @@ document.getElementById('eventForm').addEventListener('submit', function(event) 
     const practiceTags = Array.from(document.querySelectorAll('.practice-tag-button.active')).map(btn => btn.getAttribute('data-value'));
     console.log(topicTags+', '+practiceTags);
 
-    if (!nameEvent || !nameCommunity || !eventDate || !time || !address || !description || !linkURL || !primaryImage || !secondaryImage || !recurrencePattern  || !nameUser  ) {
+    if (!nameEvent || !nameCommunity || !eventDate || !time || !address || !description || !linkURL || !primaryImage || !recurrencePattern  || !nameUser  ) {
         alert('Please fill out all required fields.');
         return;
     }
