@@ -1,68 +1,86 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const API_KEY = "AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ"; // Replace 'YOUR_API_KEY' with your Google Sheets API key
+  const API_KEY = "AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ";
   const SPREADSHEET_ID = "1Cy2EdQwPH-GErwqtC3tD6QvX40kcyCmhuRg5G7wIw_g";
   const RANGE = "Events";
-  let openInfoWindow = null; // Variable to store the currently open info window
+  let openInfoWindow = null;
 
   async function fetchData() {
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`
-    );
-    const data = await response.json();
-    return data.values;
+    try {
+      const response = await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`
+      );
+      const data = await response.json();
+      return data.values;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      return [];
+    }
   }
 
   const mapStyles = [
-    {
-      featureType: "poi",
-      stylers: [{ visibility: "off" }],
-    },
-
-    {
-      featureType: "administrative",
-      stylers: [{ visibility: "off" }],
-    },
-
-    {
-      featureType: "transit",
-      stylers: [{ visibility: "off" }],
-    },
-
-    {
-      featureType: "road.local",
-      stylers: [{ visibility: "off" }],
-    },
-
-    {
-      featureType: "road",
-      elementType: "labels",
-      stylers: [{ visibility: "off" }],
-    },
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
+    { featureType: "administrative", stylers: [{ visibility: "off" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    { featureType: "road.local", stylers: [{ visibility: "off" }] },
+    { featureType: "road", elementType: "labels", stylers: [{ visibility: "off" }] },
   ];
+
+  function createInfoWindowContent(event) {
+    const { name, community, time, day, monthYear, address, description, imageUrl, url, eventorinit } = event;
+    const eventType = eventorinit === 'I' ? 'Initiative' : 'Event';
+
+    // Conditional content for EVENT INFO
+    const eventInfoContent = eventorinit === 'E' ? `<p class="event-description topmargin"><strong>EVENT INFO: </strong><br>${description}</p>` : '';
+
+    return `
+      <div id="content">
+        <p class='event-type f10 purebold'>${eventType}</p>
+        <h3 class="eventtitle purebold f23">${name}</h3>
+        <p class='datgreen bold f12'>${community}</p>
+        <p class='f12 black'>${time}, ${day}/${monthYear}</p>
+        <p class='f12 black italic'>${address}</p>
+        <div class="description-container">
+          <img src="${imageUrl}" alt="${name}" class="event-image">
+          <p class="event-description"><strong>ABOUT: </strong><br>${description}</p>
+          
+        </div>
+        <p class="event-description topmargin "> ${eventInfoContent}</p>
+        <a href="${url}" class="f14 purebold detaillink" target="_blank">details</a>
+      </div>
+    `;
+}
+
+  
+
+  function parseDate(date) {
+    const day = date.slice(8, 10);
+    const year = date.slice(2, 4);
+    const monthIndex = parseInt(date.slice(5, 7), 10) - 1;
+    const monthNames = [
+      "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST",
+      "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+    ];
+    const monthYear = `${monthNames[monthIndex]}/${year}`;
+    return { day, monthYear };
+  }
 
   async function displayData() {
     const data = await fetchData();
     const map = new google.maps.Map(document.getElementById("map"), {
       zoom: 12,
       center: { lat: 51.53124, lng: -0.116063 },
-      // mapTypeId: "satellite",
-      streetViewControl: false, //no srteetvw
-      styles: mapStyles, // Apply custom map styles
+      streetViewControl: false,
+      styles: mapStyles,
     });
-
-    map.setTilt(50);
-
-    // Create an array to hold marker objects
+  
     const markers = [];
-
-    // Get user's current location and continuously watch for changes
+  
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(function (position) {
         const userLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
-
         if (!window.userMarker) {
           window.userMarker = new google.maps.Marker({
             position: userLocation,
@@ -70,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
             title: "Your Location",
             icon: {
               url: "static/images/icons/person.png",
-              scaledSize: new google.maps.Size(18, 20), // Size of the marker
+              scaledSize: new google.maps.Size(18, 20),
             },
           });
         } else {
@@ -78,62 +96,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
-
+  
     data.slice(1).forEach((row) => {
-      const name = row[0];
-      const community = row[1];
-      const url = row[8];
-      const time = row[3];
-      const date = row[2];
-      const address = row[4];
-      const description = row[6];
-      const imageUrl = row[9];
-      const latitude = parseFloat(row[17]);
-      const longitude = parseFloat(row[18]);
-      const keywordsCategory = row[11].split(",");
-      const keywordsAudience = row[12].split(",");
-      let categoryButtonsHtml = keywordsCategory
-        .map(
-          (keyword) =>
-            `<button class="keyword-btn category-btn">${keyword.trim()}</button>`
-        )
-        .join("");
-      let audienceButtonsHtml = keywordsAudience
-        .map(
-          (keyword) =>
-            `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`
-        )
-        .join("");
-
-      // Assuming date is in the format 'YYYY-MM-DD'
-      const day = date.slice(8, 10); // Extract day as DD
-
-      // Extract month and year
-      const year = date.slice(2, 4); // Extract last two digits of the year
-      const monthIndex = parseInt(date.slice(5, 7), 10) - 1; // Extract month index (0-based)
-
-      // Array of month names
-      const monthNames = [
-        "JANUARY",
-        "FEBRUARY",
-        "MARCH",
-        "APRIL",
-        "MAY",
-        "JUNE",
-        "JULY",
-        "AUGUST",
-        "SEPTEMBER",
-        "OCTOBER",
-        "NOVEMBER",
-        "DECEMBER",
-      ];
-
-      const monthYear = `${monthNames[monthIndex]}/${year}`; // Format as MONTH/YY
-
-      console.log(`Day: ${day}, Month/Year: ${monthYear}`);
-
-      // this is the upcoming events section
-      const htmlContent = `
+      const [
+        name, community, date, time, address, , description, , url, imageUrl,
+        , keywordsCategory, keywordsAudience, , , , , latitude, longitude, eventorinit
+      ] = row;
+  
+      const { day, monthYear } = parseDate(date);
+      const categoryButtonsHtml = keywordsCategory.split(",").map(keyword => `<button class="keyword-btn category-btn">${keyword.trim()}</button>`).join("");
+      const audienceButtonsHtml = keywordsAudience.split(",").map(keyword => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`).join("");
+  
+      const event = { name, community, time, day, monthYear, address, description, imageUrl, url, eventorinit };
+  
+      if (eventorinit === 'E') {
+        const htmlContent = `
           <div class="upcomingEvent">
               <div class="upcomingeventimage">
                   <img src="${imageUrl}" alt="Image of ${name}" class=" eventimage ">
@@ -153,10 +130,9 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
           <div class="full-width-line"></div>
         `;
-
-        // <div class="event-date f14 purebold">${date}</div>
-
-      const htmlContent3 = `
+        document.getElementById("upcoming-events").innerHTML += htmlContent;
+      } else if (eventorinit === 'I') {
+        const htmlContent3 = `
           <div class="grid-item3">
               <div class="upcomingeventimage3">
                   <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimageinner">
@@ -177,103 +153,67 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
           </div>
         `;
-
-      document.getElementById("upcoming-events").innerHTML += htmlContent;
-      document.getElementById("upcoming-events3").innerHTML += htmlContent3;
-// MAP INFO HERE
+        document.getElementById("upcoming-events3").innerHTML += htmlContent3;
+      }
+  
       const infowindow = new google.maps.InfoWindow({
-        content: `
-          <div id="content">
-            <h3 class="eventtitle purebold f23">${name}</h3>
-            <p class='datgreen bold f12'>${community}</p>
-            <p class='f12 black'>${time}, ${day}/${monthYear}</p>
-            <p class='f12 black italic'>${address}</p>
-            <div class="description-container">
-              <img src="${imageUrl}" alt="${name}" class="event-image">
-              <p class="event-description"><strong>ABOUT: </strong><br>${description}<strong><br><br>EVENT INFO: </strong><br>${description}</p>
-            </div>
-            <a href="${url}" class="f14 purebold detaillink" target="_blank">details</a>
-          </div>
-            `,
+        content: createInfoWindowContent(event),
         ariaLabel: name,
       });
-      const iconimage = "static/images/icons/custompin.png";
-
+  
+      const iconimage = eventorinit === 'E' ? "static/images/icons/custompin.png" : "static/images/icons/custompin2.png";
+  
       const marker = new google.maps.Marker({
-        position: { lat: latitude, lng: longitude },
+        position: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
         map: map,
         title: name,
         icon: {
-          url: iconimage, // URL of the marker icon
-          scaledSize: new google.maps.Size(18, 30), // Size of the marker
+          url: iconimage,
+          scaledSize: new google.maps.Size(18, 30),
         },
       });
-
-      markers.push(marker); // Push the created marker into the markers array
-
+  
+      markers.push(marker);
+  
       marker.addListener("click", () => {
         if (openInfoWindow) {
-          openInfoWindow.close(); // Close previously open info window
+          openInfoWindow.close();
         }
-        infowindow.open({
-          anchor: marker,
-          map,
+        infowindow.open({ anchor: marker, map });
+        openInfoWindow = infowindow;
+      });
+    });
+  
+    const addEventListeners = (elements, markers) => {
+      elements.forEach((event, index) => {
+        event.addEventListener("click", () => {
+          google.maps.event.trigger(markers[index], "click");
+          const targetSection = document.getElementById("map-target-section");
+          if (targetSection) {
+            targetSection.scrollIntoView({ behavior: "smooth" });
+          }
         });
-        openInfoWindow = infowindow; // Set the currently open info window
       });
-    });
-
-    const upcomingEvents = document.querySelectorAll(".upcomingEvent");
-    const upcomingEvents3 = document.querySelectorAll(".grid-item3");
-
-    upcomingEvents.forEach((event, index) => {
-      event.addEventListener("click", () => {
-        // Trigger the Google Maps marker click event
-        google.maps.event.trigger(markers[index], "click");
-    
-        // Scroll to the target section
-        const targetSection = document.getElementById("map-target-section");
-        if (targetSection) {
-          targetSection.scrollIntoView({ behavior: "smooth" });
-        }
-      });
-    });
-
-    upcomingEvents3.forEach((event, index) => {
-      event.addEventListener("click", () => {
-        google.maps.event.trigger(markers[index], "click");
-      });
-    });
-
-    // Add a click event listener to the map to close the info window
+    };
+  
+    addEventListeners(document.querySelectorAll(".upcomingEvent"), markers);
+    addEventListeners(document.querySelectorAll(".grid-item3"), markers);
+  
     map.addListener("click", () => {
       if (openInfoWindow) {
         openInfoWindow.close();
-        openInfoWindow = null; // Reset the currently open info window
+        openInfoWindow = null;
       }
     });
   }
+  
 
-  displayData(); // Initial display
-});
+  displayData();
 
-function isValidUrl(string) {
-  try {
-    new URL(string);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-// Wait for the map to load
-google.maps.event.addListenerOnce(map, "tilesloaded", function () {
-  // Find the Google logo element
-  var logo = document.querySelector('.gm-style > a[href="d"]');
-
-  // Check if the logo element exists
-  if (logo) {
-    // Remove the Google logo
-    logo.parentElement.parentElement.removeChild(logo.parentElement);
-  }
+  google.maps.event.addListenerOnce(map, "tilesloaded", function () {
+    const logo = document.querySelector('.gm-style > a[href="d"]');
+    if (logo) {
+      logo.parentElement.parentElement.removeChild(logo.parentElement);
+    }
+  });
 });

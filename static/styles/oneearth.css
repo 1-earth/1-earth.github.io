@@ -118,6 +118,10 @@ h1 {
   box-shadow: 0px 2px 1px 0px rgba(0, 0, 0, 0.4);
 }
 
+.topmargin{
+  margin-top: 15px;
+}
+
 .masterframe {
   margin-left: 53px;
   margin-right: 53px;
@@ -626,7 +630,7 @@ img[src^="data:image/svg+xml"][alt="Google"],
 }
 
 #content{
-  max-width: 300px
+  max-width: 400px
   ;
 }
 

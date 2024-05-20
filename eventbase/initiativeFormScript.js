@@ -2,22 +2,22 @@ function toggleTag(button) {
     button.classList.toggle('active');
 }
 
-console.log(document.getElementById('eventForm')+"found"); 
+console.log(document.getElementById('initiativeForm')+"found"); 
 
-document.getElementById('eventForm').addEventListener('submit', function(event) {
+document.getElementById('initiativeForm').addEventListener('submit', function(event) {
     event.preventDefault();
     
-    const nameEvent = document.getElementById('nameEvent').value;
+    // const nameEvent = document.getElementById('nameEvent').value;
     const nameCommunity = document.getElementById('nameCommunity').value;
-    const eventDate = document.getElementById('eventDate').value;
-    const time = document.getElementById('time').value;
+    // const eventDate = document.getElementById('eventDate').value;
+    // const time = document.getElementById('time').value;
     const address = document.getElementById('address').value;
     const description = document.getElementById('description').value;
     const linkURL = document.getElementById('linkURL').value;
     const primaryImage = document.getElementById('primaryImage').value;
-    const secondaryImage = document.getElementById('secondaryImage').value;
-    const recurrencePattern = document.getElementById('recurrencePattern').value;
-    const recurrenceEndDate = document.getElementById('recurrenceEndDate').value;
+    // const secondaryImage = document.getElementById('secondaryImage').value;
+    // const recurrencePattern = document.getElementById('recurrencePattern').value;
+    // const recurrenceEndDate = document.getElementById('recurrenceEndDate').value;
     const nameUser = document.getElementById('nameUser').value;
 
 
@@ -25,7 +25,7 @@ document.getElementById('eventForm').addEventListener('submit', function(event) 
     const practiceTags = Array.from(document.querySelectorAll('.practice-tag-button.active')).map(btn => btn.getAttribute('data-value'));
     console.log(topicTags+', '+practiceTags);
 
-    if (!nameEvent || !nameCommunity || !eventDate || !time || !address || !description || !linkURL || !primaryImage || !recurrencePattern  || !nameUser  ) {
+    if ( !nameCommunity || !address || !description || !linkURL || !primaryImage || !nameUser  ) {
         alert('Please fill out all required fields.');
         return;
     }
@@ -45,34 +45,23 @@ document.getElementById('eventForm').addEventListener('submit', function(event) 
     sendDataToGoogleSheets(formData);
 });
 
-
-
-function toggleRecurrenceEndDate(select) {
-    const endDateContainer = document.getElementById('recurrenceEndDateContainer');
-    if (select.value === 'non-recurring') {
-        endDateContainer.style.display = 'none';
-    } else {
-        endDateContainer.style.display = 'block';
-    }
-}
-
 function sendDataToGoogleSheets(formData) {
     const url = 'https://script.google.com/macros/s/AKfycby62O21YEycXAzQws7O3Ay6CAfi5yNQ-DofltDMBCs5E1T2coNv0kmnyTE9W7h7d8xX3w/exec';
 
      // Add other form fields to formData
-    formData.append('nameEvent', document.getElementById('nameEvent').value);
+    // formData.append('nameEvent', document.getElementById('nameEvent').value);
     formData.append('nameCommunity', document.getElementById('nameCommunity').value);
-    formData.append('eventDate', document.getElementById('eventDate').value);
-    formData.append('time', document.getElementById('time').value);
+    // formData.append('eventDate', document.getElementById('eventDate').value);
+    // formData.append('time', document.getElementById('time').value);
     formData.append('address', document.getElementById('address').value);
     formData.append('description', document.getElementById('description').value);
     formData.append('linkURL', document.getElementById('linkURL').value);
     formData.append('primaryImage', document.getElementById('primaryImage').value);
-    formData.append('secondaryImage', document.getElementById('secondaryImage').value);
-    formData.append('recurrencePattern', document.getElementById('recurrencePattern').value);
-    formData.append('recurrenceEndDate', document.getElementById('recurrenceEndDate').value);
+    // formData.append('secondaryImage', document.getElementById('secondaryImage').value);
+    // formData.append('recurrencePattern', document.getElementById('recurrencePattern').value);
+    // formData.append('recurrenceEndDate', document.getElementById('recurrenceEndDate').value);
     formData.append('nameUser', document.getElementById('nameUser').value);
-    formData.append('eventorinit', 'E'); //  "E"
+    formData.append('eventorinit', 'I'); //  "I"
 
 
 
@@ -86,6 +75,7 @@ function sendDataToGoogleSheets(formData) {
         console.log('Success:', data);
         alert('Thank you for submitting to the 1EARTH Network! 🌐 Your Submission will be reviewed & added ASAP');
         resetForm();
+        console.log(formData)
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -95,7 +85,7 @@ function sendDataToGoogleSheets(formData) {
 
 function resetForm() {
     // Reset text inputs
-    document.getElementById('eventForm').reset();
+    document.getElementById('initiativeForm').reset();
 
     // Optionally, explicitly uncheck all checkboxes if needed
     let checkboxes = document.querySelectorAll('input[type=checkbox]');
