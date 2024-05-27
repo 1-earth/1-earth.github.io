@@ -147,6 +147,9 @@ document.addEventListener("DOMContentLoaded", function () {
                       <p class='f14 descriptioninit'>${description}</p>
                   </div>
               </div>
+              <div class="upcomingeventtext">
+                <a href="${url}" class="f14 purebold detaillink" target="_blank">details</a>
+              </div>
               <div class="keyword-buttons3">
                   <div class="audience-row3">${audienceButtonsHtml}</div>
                   <div class="category-row3">${categoryButtonsHtml}</div>
