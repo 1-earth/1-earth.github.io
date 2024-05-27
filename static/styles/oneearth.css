@@ -511,6 +511,7 @@ h1 {
 }
 
 #upcoming-events3 {
+  cursor: pointer;
   display: grid;
   grid-template-columns: repeat(
     3,
