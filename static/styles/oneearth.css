@@ -550,6 +550,10 @@ img[src^="data:image/svg+xml"][alt="Google"],
   display: none !important;
 }
 
+.f8{
+  font-size: 8px !important;
+}
+
 .f10 {
   font-size: 10px !important;
 }
@@ -824,12 +828,27 @@ img[src^="data:image/svg+xml"][alt="Google"],
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
+.leftbody23 {
+  width: calc(23.33% - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
 .middlebody13 {
   width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
 
+.middlebody23 {
+  width: calc(53.33% - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
 .rightbody13 {
+  width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
+  background-color: #f2f2f2; /* Light grey background for visibility */
+}
+
+.rightbody23 {
   width: calc(33.33% - 10px); /* 2/3 width minus half the gap */
   background-color: #f2f2f2; /* Light grey background for visibility */
 }
@@ -1071,9 +1090,13 @@ img[src^="data:image/svg+xml"][alt="Google"],
   box-sizing: border-box; /* includes padding and border in the element's width */
 }
 
+.lilpadding{
+  padding: 3px;
+}
+
 .formsubmitbutton {
   margin-top: 45px;
-  background-color: #33ff00;
+  background-color: #33ff00 !important;
 }
 
 .full-width-input {
@@ -1408,7 +1431,7 @@ input:checked + .slider:before {
 
 .dyslexia-mode .resourcescontainer {
   border-radius: 17px;
-  background-color: #e0e0e0; /* Light grey, change as needed for dyslexia friendliness */
+  background-color: #ede3c1; /* Light grey, change as needed for dyslexia friendliness */
 }
 
 .dyslexia-mode .landingsection {
