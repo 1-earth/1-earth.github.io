@@ -992,6 +992,10 @@ img[src^="data:image/svg+xml"][alt="Google"],
   /* Dark text color */
 }
 
+.pointercursor{
+  cursor: pointer;
+}
+
 .image-radio {
   display: inline-block;
   /* Align labels side by side */
