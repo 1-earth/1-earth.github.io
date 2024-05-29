@@ -1007,6 +1007,23 @@ img[src^="data:image/svg+xml"][alt="Google"],
   min-width: 150px;
 }
 
+ol {
+  padding-left: 12px; /* Adjust this value to move the marker to the right */
+}
+ol li.indentpadding {
+  padding-left: 0; /* Reset padding to align text with marker */
+}
+ul {
+  padding-left: 12px; /* Adjust this value to move the marker to the right for nested lists */
+}
+ul li.indentpadding2 {
+  padding-left: 0; /* Reset padding to align text with marker for nested items */
+}
+
+ol[type="i"] {
+  list-style-type: lower-roman; /* Change list marker type for ol with type="i" */
+}
+
 .contentinfoimage{
   padding-right: 10px;
   position: absolute;
