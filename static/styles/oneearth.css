@@ -1040,7 +1040,7 @@ ol[type="i"] {
   /* Centers the image in the label */
 }
 
-#aligned-fig1 {
+#aligned-fig1, #aligned-fig2, #aligned-fig3, #aligned-fig4, #aligned-fig5, #aligned-fig6, #aligned-fig7, #aligned-fig8, #aligned-fig9, #aligned-fig10, #aligned-fig11, #aligned-fig12, #aligned-fig13, #aligned-fig14, #aligned-fig15 {
   position: absolute;
   /* width: 100%; */
 }
