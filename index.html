@@ -267,41 +267,8 @@
         </div>
 
           </div>
-          <script>
-            // Get all the dropdown buttons
-            var dropdowns = document.getElementsByClassName("dropdown");
-            for (var i = 0; i < dropdowns.length; i++) {
-              dropdowns[i].addEventListener("click", function () {
-                var dropdownContent =
-                  this.getElementsByClassName("dropdown-content")[0];
-                if (dropdownContent.style.display === "block") {
-                  dropdownContent.style.display = "none";
-                } else {
-                  // Close other dropdowns when one is opened
-                  var openDropdowns =
-                    document.getElementsByClassName("dropdown-content");
-                  for (var j = 0; j < openDropdowns.length; j++) {
-                    openDropdowns[j].style.display = "none";
-                  }
-                  dropdownContent.style.display = "block";
-                }
-              });
-            }
-
-            // Close the dropdown if the user clicks outside of it
-            window.onclick = function (event) {
-              if (!event.target.matches(".dropbtn")) {
-                var dropdowns =
-                  document.getElementsByClassName("dropdown-content");
-                for (var i = 0; i < dropdowns.length; i++) {
-                  var openDropdown = dropdowns[i];
-                  if (openDropdown.style.display === "block") {
-                    openDropdown.style.display = "none";
-                  }
-                }
-              }
-            };
-          </script>
+        
+          
 
           <div class="dynamicbody">
             <div class="leftbody">
@@ -451,9 +418,22 @@
         });
     </script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const switchControl = document.querySelector('.switch input[type="checkbox"]');
+      switchControl.addEventListener('change', function() {
+          if (this.checked) {
+              document.body.classList.add('dyslexia-mode');
+          } else {
+              document.body.classList.remove('dyslexia-mode');
+          }
+      });
+  });
+  </script>
+
     <!-- <script src="eventbase/eventprint.js"></script> -->
 
-    <script src="static/scripts/mapscript.js"></script>
+    <script src="static/scripts/mapscript.js" defer></script>
 
     <footer>
       <p class="centretext">

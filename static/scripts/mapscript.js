@@ -57,7 +57,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Function to update search query
   function updateSearchQuery() {
-    searchQuery = document.querySelector(".search-input").value.trim().toLowerCase();
+    searchQuery = document
+      .querySelector(".search-input")
+      .value.trim()
+      .toLowerCase();
     displayData(); // Update the display whenever the search query changes
   }
 
@@ -120,8 +123,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const year = date.slice(2, 4);
     const monthIndex = parseInt(date.slice(5, 7), 10) - 1;
     const monthNames = [
-      "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
-      "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",
+      "JANUARY",
+      "FEBRUARY",
+      "MARCH",
+      "APRIL",
+      "MAY",
+      "JUNE",
+      "JULY",
+      "AUGUST",
+      "SEPTEMBER",
+      "OCTOBER",
+      "NOVEMBER",
+      "DECEMBER",
     ];
     const monthYear = `${monthNames[monthIndex]}/${year}`;
     return { day, monthYear };
@@ -164,26 +177,66 @@ document.addEventListener("DOMContentLoaded", function () {
 
     data.slice(1).forEach((row) => {
       const [
-        name, community, date, time, address, , description, , url, imageUrl,
-        , keywordsCategory, keywordsAudience, , , , , latitude, longitude, eventorinit,
+        name,
+        community,
+        date,
+        time,
+        address,
+        ,
+        description,
+        ,
+        url,
+        imageUrl,
+        ,
+        keywordsCategory,
+        keywordsAudience,
+        ,
+        ,
+        ,
+        ,
+        latitude,
+        longitude,
+        eventorinit,
       ] = row;
 
       const { day, monthYear } = parseDate(date);
       const categoryButtonsHtml = keywordsCategory
         .split(",")
-        .map((keyword) => `<button class="keyword-btn category-btn">${keyword.trim()}</button>`)
+        .map(
+          (keyword) =>
+            `<button class="keyword-btn category-btn">${keyword.trim()}</button>`
+        )
         .join("");
       const audienceButtonsHtml = keywordsAudience
         .split(",")
-        .map((keyword) => `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`)
+        .map(
+          (keyword) =>
+            `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`
+        )
         .join("");
 
       const event = {
-        name, community, time, day, monthYear, address, description, imageUrl, url, eventorinit,
+        name,
+        community,
+        time,
+        day,
+        monthYear,
+        address,
+        description,
+        imageUrl,
+        url,
+        eventorinit,
       };
 
       // Check if the event matches the search query
-      const searchFields = [name, community, description, url, keywordsCategory, keywordsAudience];
+      const searchFields = [
+        name,
+        community,
+        description,
+        url,
+        keywordsCategory,
+        keywordsAudience,
+      ];
       const eventMatchesSearchQuery = searchFields.some((field) =>
         field.toLowerCase().includes(searchQuery)
       );
@@ -192,12 +245,18 @@ document.addEventListener("DOMContentLoaded", function () {
       const eventMatchesSelectedTopics =
         selectedTopics.length === 0 ||
         selectedTopics.some((topic) => keywordsCategory.includes(topic));
-      
+
       const eventMatchesSelectedPractices =
         selectedPractices.length === 0 ||
-        selectedPractices.some((practice) => keywordsAudience.includes(practice));
+        selectedPractices.some((practice) =>
+          keywordsAudience.includes(practice)
+        );
 
-      if (eventMatchesSearchQuery && eventMatchesSelectedTopics && eventMatchesSelectedPractices) {
+      if (
+        eventMatchesSearchQuery &&
+        eventMatchesSelectedTopics &&
+        eventMatchesSelectedPractices
+      ) {
         if (eventorinit === "E") {
           const htmlContent = `
             <div class="upcomingEvent">
@@ -312,3 +371,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+
+// Initialize dropdowns
+var dropdowns = document.getElementsByClassName("dropdown");
+for (var i = 0; i < dropdowns.length; i++) {
+  dropdowns[i].addEventListener("click", function (event) {
+    var dropdownContent = this.getElementsByClassName("dropdown-content")[0];
+    if (dropdownContent.style.display === "block") {
+      dropdownContent.style.display = "none";
+    } else {
+      // Close other dropdowns when one is opened
+      var openDropdowns = document.getElementsByClassName("dropdown-content");
+      for (var j = 0; j < openDropdowns.length; j++) {
+        openDropdowns[j].style.display = "none";
+      }
+      dropdownContent.style.display = "block";
+    }
+    // Prevent the event from bubbling up to window click listener
+    event.stopPropagation();
+  });
+}
+
+// Prevent dropdown from closing when clicking inside the dropdown content
+var dropdownContents = document.getElementsByClassName("dropdown-content");
+for (var i = 0; i < dropdownContents.length; i++) {
+  dropdownContents[i].addEventListener("click", function (event) {
+    event.stopPropagation();
+  });// here i am typing about my life, right now my photo is getting taken, by jess for herproject
+}
+
+// Close the dropdown if the user clicks outside of it
+window.onclick = function (event) {
+  if (!event.target.matches(".dropbtn")) {
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    for (var i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.style.display === "block") {
+        openDropdown.style.display = "none";
+      }
+    }
+  }
+};
