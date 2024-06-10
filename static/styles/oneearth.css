@@ -1559,6 +1559,12 @@ input:checked + .slider:before {
     margin-top: 70px;
   }
 
+  #upcoming-events3 {
+    grid: none;
+  }
+
+
+  
 }
 
 @media (min-width: 860px) {

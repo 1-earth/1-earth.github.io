@@ -148,11 +148,12 @@ document.addEventListener("DOMContentLoaded", function () {
       streetViewControl: false,
       styles: mapStyles,
     });
-
+  
     const markers = [];
+    const eventIndices = []; // Array to store indices of filtered events
     document.getElementById("upcoming-events").innerHTML = "";
     document.getElementById("upcoming-events3").innerHTML = "";
-
+  
     if (navigator.geolocation) {
       navigator.geolocation.watchPosition(function (position) {
         const userLocation = {
@@ -174,8 +175,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
     }
-
-    data.slice(1).forEach((row) => {
+  
+    data.slice(1).forEach((row, spreadsheetIndex) => {
       const [
         name,
         community,
@@ -198,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
         longitude,
         eventorinit,
       ] = row;
-
+  
       const { day, monthYear } = parseDate(date);
       const categoryButtonsHtml = keywordsCategory
         .split(",")
@@ -214,7 +215,7 @@ document.addEventListener("DOMContentLoaded", function () {
             `<button class="keyword-btn audience-btn">${keyword.trim()}</button>`
         )
         .join("");
-
+  
       const event = {
         name,
         community,
@@ -227,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
         url,
         eventorinit,
       };
-
+  
       // Check if the event matches the search query
       const searchFields = [
         name,
@@ -240,25 +241,27 @@ document.addEventListener("DOMContentLoaded", function () {
       const eventMatchesSearchQuery = searchFields.some((field) =>
         field.toLowerCase().includes(searchQuery)
       );
-
+  
       // Check if the event matches any of the selected topics and practices
       const eventMatchesSelectedTopics =
         selectedTopics.length === 0 ||
         selectedTopics.some((topic) => keywordsCategory.includes(topic));
-
+  
       const eventMatchesSelectedPractices =
         selectedPractices.length === 0 ||
         selectedPractices.some((practice) =>
           keywordsAudience.includes(practice)
         );
-
+  
       if (
         eventMatchesSearchQuery &&
         eventMatchesSelectedTopics &&
         eventMatchesSelectedPractices
       ) {
+        let htmlContent = '';
+  
         if (eventorinit === "E") {
-          const htmlContent = `
+          htmlContent = `
             <div class="upcomingEvent">
                 <div class="upcomingeventimage">
                     <img src="${imageUrl}" alt="Image of ${name}" class=" eventimage ">
@@ -280,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
           `;
           document.getElementById("upcoming-events").innerHTML += htmlContent;
         } else if (eventorinit === "I") {
-          const htmlContent3 = `
+          htmlContent = `
             <div class="grid-item3">
                 <div class="upcomingeventimage3">
                     <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimageinner">
@@ -304,19 +307,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
           `;
-          document.getElementById("upcoming-events3").innerHTML += htmlContent3;
+          document.getElementById("upcoming-events3").innerHTML += htmlContent;
         }
-
+  
         const infowindow = new google.maps.InfoWindow({
           content: createInfoWindowContent(event),
           ariaLabel: name,
         });
-
+  
         const iconimage =
           eventorinit === "E"
             ? "static/images/icons/custompin.png"
             : "static/images/icons/custompin2.png";
-
+  
         const marker = new google.maps.Marker({
           position: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
           map: map,
@@ -326,9 +329,10 @@ document.addEventListener("DOMContentLoaded", function () {
             scaledSize: new google.maps.Size(18, 30),
           },
         });
-
+  
         markers.push(marker);
-
+        eventIndices.push(markers.length - 1); // Store the index of the marker
+  
         marker.addListener("click", () => {
           if (openInfoWindow) {
             openInfoWindow.close();
@@ -338,11 +342,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     });
-
-    const addEventListeners = (elements, markers) => {
+  
+    const addEventListeners = (elements, eventIndices, markers) => {
       elements.forEach((event, index) => {
         event.addEventListener("click", () => {
-          google.maps.event.trigger(markers[index], "click");
+          google.maps.event.trigger(markers[eventIndices[index]], "click");
           const targetSection = document.getElementById("map-target-section");
           if (targetSection) {
             targetSection.scrollIntoView({ behavior: "smooth" });
@@ -350,10 +354,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     };
-
-    addEventListeners(document.querySelectorAll(".upcomingEvent"), markers);
-    addEventListeners(document.querySelectorAll(".grid-item3"), markers);
-
+  
+    addEventListeners(document.querySelectorAll(".upcomingEvent"), eventIndices, markers);
+    addEventListeners(document.querySelectorAll(".grid-item3"), eventIndices, markers);
+  
     map.addListener("click", () => {
       if (openInfoWindow) {
         openInfoWindow.close();
