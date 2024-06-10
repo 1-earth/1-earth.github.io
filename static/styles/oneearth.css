@@ -1374,6 +1374,7 @@ input:checked + .slider:before {
 }
 
 .heromaincontent {
+  margin-top: 3vw;
   display: flex;
   align-items: center; /* Vertically center the content */
   justify-content: center; /* Horizontally center the content */
@@ -1381,7 +1382,7 @@ input:checked + .slider:before {
 }
 
 .side-button {
-  width: 20% !important;
+  width: 23% !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1543,5 +1544,30 @@ input:checked + .slider:before {
   .dynamicbody{
     justify-content:space-evenly;
   }
+
+  .right-link {
+    right: 10px !important;
+    max-width: 50px;
+  }
+  .left-link {
+    max-width: 50px;
+    /* text-align:right; */
+    left: 10px !important;
+  }
+
+  .titlespace {
+    margin-top: 70px;
+  }
+
+}
+
+@media (min-width: 860px) {
+  #map {
+    
+    height: 600px !important;
+    
+  }
+
+ 
 
 }
