@@ -1360,6 +1360,8 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+
+
 .responsive-video {
   width: 50%; /* Assigns 45% of the container width to video */
   height: auto; /* Maintain aspect ratio */
