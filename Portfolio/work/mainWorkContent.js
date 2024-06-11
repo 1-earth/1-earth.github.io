@@ -31,6 +31,7 @@ function processData(rows) {
         'CREATIONSTATION': 21,
         'LIFE': 22,
         'GEORGE': 23,
+        'hollowaycommunity': 24,
     };
 
     var row = rows[classToRowIndexMap[content.classList.value]] || rows[0];
