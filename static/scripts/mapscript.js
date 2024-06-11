@@ -282,6 +282,35 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="full-width-line"></div>
           `;
           document.getElementById("upcoming-events").innerHTML += htmlContent;
+
+
+          htmlContent = `
+            <div class="grid-item3">
+                <div class="upcomingeventimage3">
+                    <img src="${imageUrl}" alt="Image of ${name}" class="upcomingeventimageinner">
+                </div>
+                <div class="top-event-info">
+                    <div class="community-tag f12">EVENT</div>
+                </div>
+                <div class="upcomingeventtext">
+                    <div class=upcomingeventtextcontainer"
+                        <h2><a class="eventtitle purebold">${community}</a></h2>
+                        <p class='f14 datgreen purebold'> @${community}</p>
+                        <p class='f14 descriptioninit'>${description}</p>
+                    </div>
+                </div>
+                <div class="upcomingeventtext">
+                  <a href="${url}" class="f14 purebold detaillink" target="_blank">details</a>
+                </div>
+                <div class="keyword-buttons3">
+                    <div class="audience-row3">${audienceButtonsHtml}</div>
+                    <div class="category-row3">${categoryButtonsHtml}</div>
+                </div>
+            </div>
+          `;
+          document.getElementById("upcoming-events3").innerHTML += htmlContent;
+
+
         } else if (eventorinit === "I") {
           htmlContent = `
             <div class="grid-item3">
