@@ -1,0 +1,754 @@
+/* @font-face {
+    font-family: 'arial_lc_symbol_regularRg';
+    src: url('arial-symbol-2020-laura-coombs-cyberfeminism-index-webfont.woff2') format('woff2'),
+             url('arial-symbol-2020-laura-coombs-cyberfeminism-index-webfont.otf') format('otf');
+    font-weight: normal;
+    font-style: normal;
+} */
+@font-face {
+  font-family: 'arial_narrow';
+  src: url('ArialNarrowMTStd.otf') format('otf'),
+    url('ArialNarrowMTStd.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.cr {
+  font-family: 'arial_lc_symbol_regularRg';
+  font-variant-ligatures: common-ligatures;
+  -moz-font-feature-settings: "liga", "clig";
+  -webkit-font-feature-settings: "liga", "clig";
+  font-feature-settings: "liga", "clig";
+}
+
+.loadingtext {
+  position: absolute;
+  z-index: 0;
+  top: 100px;
+  font-size: 23px;
+  left: 23px;
+}
+
+#godownpic {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  opacity: 10%;
+  z-index: 0;
+}
+
+.menu_section select {
+  /* Your styles here */
+  height: 23px;
+  background-color: white;
+  border-radius: 3px;
+}
+
+.bottom-buttons button {
+  height: 23px;
+  background-color: white;
+  border-radius: 3px;
+  border: 2px solid #505050;
+}
+
+body,
+html {
+  margin: 0;
+  font-size: 24px;
+  font-family: Arial, sans-serif;
+  overflow: auto;
+  /* or overflow: visible; */
+  /* height: 170vh; */
+  background-color: rgb(233, 233, 233);
+  scroll-behavior: smooth;
+}
+
+.left_content {
+  width: 100%;
+  display: inline-block;
+  /* height: 10vh; */
+  margin: 0;
+  /* overflow: auto;
+  overflow-y: scroll; */
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  border: #000;
+}
+
+ul {
+
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  color: #fff;
+  width: 67vw;
+  font-size: inherit;
+
+}
+
+h2 {
+  color: #000;
+  font-size: 24px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-top: 6px;
+  margin-bottom: 6px;
+
+}
+
+h3 {
+  color: #000;
+  font-size: 24px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-top: 12px;
+  font-weight: normal;
+  margin-bottom: 12px;
+}
+
+h4 {
+  color: #707070;
+  font-size: 12px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-top: 6px;
+  font-weight: normal;
+  margin-bottom: 6px;
+}
+
+p {
+  color: #000;
+  position: relative;
+  font-size: 12px;
+  z-index: 1;
+}
+
+
+.thismyworkpic {
+  width: 50%;
+}
+
+.thismyworkpic {
+  width: 50%;
+  border: 0.5px solid #000;
+}
+
+.workContentTitle {
+  padding: 0;
+  margin: 0;
+}
+
+.workContentTitle .workContent {
+  /* Styles for the ul inside the container div */
+  list-style: none;
+  /* Removes default list styles */
+  padding: 0;
+  margin: 0;
+}
+
+.workContentTitle .workContent li {
+  padding: 0;
+  margin: 0;
+}
+
+/* Media query for screens with a width less than 600px */
+@media (max-width: 599px) {
+  .thismyworkpic {
+    width: 75%;
+  }
+}
+
+select,
+button {
+  font-family: Arial, sans-serif;
+  margin: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+
+#main_content {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+
+.searchbar {
+  width: 100%;
+  box-sizing: border-box;
+  /* padding: 10px; You can adjust the padding as needed */
+  margin: 0;
+  /* Remove default margin */
+  z-index: 10;
+  position: relative;
+  height: 23px;
+  background-color: white;
+  border-radius: 3px;
+}
+
+.images_pg img {
+  height: auto;
+  display: inline;
+  vertical-align: top;
+  max-width: 125px;
+}
+
+.search_pg {
+  margin: 85px 0 50px;
+}
+
+.search_pg #categories_list {
+  margin: 40px 0;
+  padding: 0 20px;
+  columns: 900px 4;
+}
+
+a {
+  color: #0000FF;
+  font-size: 12px;
+}
+
+.black {
+  color: #000;
+}
+
+.italic {
+  font-style: italic;
+}
+
+
+header #menu{
+  width: calc(100% - 10px);
+}
+
+header {
+  margin: 11px 0 30px 0;
+  width: inherit;
+  position: fixed;
+  text-align: center;
+  z-index: 2;
+}
+
+header .menu_section {
+  position: relative;
+  z-index: 10;
+  width: calc(100% - 30px);
+  display: inline-block;
+  height: 100%;
+  /* margin-left: -14px; */
+
+
+}
+
+header #menu {
+  /* box-shadow: 1px 1px 10px 1px #00ff00; */
+  width: calc(100% - 10px);
+  z-index: 3;
+
+}
+
+
+
+header #tag_btn {
+  display: inline-block;
+  height: 100%;
+  vertical-align: top;
+}
+
+header #tag_btn button {
+  padding: 5px 5px;
+}
+
+header #tag_btn button:hover {
+  cursor: pointer;
+}
+
+
+
+#categories_section {
+  width: 100%;
+  display: inline-block;
+}
+
+#about_buttons {
+  position: fixed;
+  bottom: 20px;
+  left: 75px;
+  z-index: 100;
+}
+
+
+
+
+
+.bottom-buttons {
+  position: fixed;
+  bottom: 20px;
+  left: 18px;
+  z-index: 1000;
+
+}
+
+.go {
+  margin-top: 30px;
+}
+
+.bottom-buttons button a {
+  text-decoration: none;
+  color: black;
+
+}
+
+.submit {
+  box-shadow: 0 0 12px #00ff00;
+}
+
+.transparent {
+  color: transparent !important;
+}
+
+
+/* THE PROJECT MENU */
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  /* margin-bottom: 20px; */
+}
+
+.menuContents {
+  /* display: flex; */
+  /* flex-wrap: wrap; */
+
+}
+
+.contexttalk {
+  display: none;
+}
+
+.contexttalk.all p,
+.contexttalk.community p,
+.contexttalk.computation p,
+.contexttalk.education p,
+.contexttalk.film p,
+.contexttalk.image p,
+.contexttalk.film p,
+.contexttalk.image p,
+.contexttalk.music p,
+.contexttalk.strategyidentity p,
+.contexttalk.web p {
+  z-index: 100;
+}
+
+.blue {
+  color: #0000ff;
+}
+
+.all {
+
+  display: block;
+}
+
+
+.hoverproject_img {
+  width: calc(25% - 10px);
+  /* Adjust width and margin as needed */
+  margin: 5px;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+}
+
+@media only screen and (max-width: 1023px) {
+  .hoverproject_img {
+    width: calc(33.33% - 10px);
+  }
+}
+
+  @media only screen and (max-width: 753px) {
+    .hoverproject_img a {
+      height: 175px;
+      /* margin-bottom: 200px;  */
+      color: #fff;
+    }
+
+    .hiddenheader {
+      color: #000 !important;
+      display: block !important;
+    }
+
+    .hoverproject_img {
+      width: calc(50% - 10px) !important;
+      /* Adjust width and margin as needed */
+      margin-bottom: 5px;
+      box-sizing: border-box;
+    }
+
+    .hoverproject_img a span {
+      display: block;
+      /* Show the image by default on mobile */
+      position: static;
+      /* Reset position to static for normal flow */
+      transform: none;
+      /* Reset transform */
+      /* width: 10%; */
+      /* Take full width of the container */
+      max-height: 175px;
+      /* Set the max height */
+      /* left: -50%; */
+      /* Center horizontally */
+      /* top: -50%; */
+      /* Center vertically */
+      /* transform: translate(-50%, -10%); */
+      z-index: 0;
+    }
+  }
+
+  @media only screen and (max-width: 400px) {
+    .hoverproject_img {
+      width: 100% !important;
+    }
+  }
+
+  .hoverproject_img a {
+    /* position: relative; */
+    z-index: 1;
+    overflow: hidden;
+    display: block;
+    height: 100%;
+    outline: 1px solid black;
+    color: #fff;
+
+  }
+
+  .hoverproject_img a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hoverproject_img a span {
+    display: block;
+    /* Show the image by default on mobile */
+    position: static;
+    /* Reset position to static for normal flow */
+    transform: none;
+    /* Reset transform */
+    width: 100%;
+    width: 100%;
+    /* Take full width of the container */
+    max-height: 175px;
+    /* Set the max height */
+    left: -50%;
+    /* Center horizontally */
+    top: -50%;
+    /* Center vertically */
+    /* transform: translate(-50%, -10%); */
+    z-index: 0;
+  }
+
+  /* .hoverproject_img a:hover span {
+  display: block;
+
+} */
+
+  .hiddenheader {
+    height: auto !important;
+    color: #000 !important;
+    display: block !important;
+  }
+
+  @media only screen and (max-width: 753px) {
+    .hoverproject_img a {
+      height: 175px;
+      /* margin-bottom: 200px;  */
+      outline: 1px solid black;
+      color: #fff;
+    }
+
+    .hiddenheader {
+      color: #000 !important;
+      display: block !important;
+    }
+
+    .hoverproject_img {
+      width: 100%;
+      /* Adjust width and margin as needed */
+      margin-bottom: 5px;
+      box-sizing: border-box;
+    }
+
+    .hoverproject_img a span {
+      display: block;
+      /* Show the image by default on mobile */
+      position: static;
+      /* Reset position to static for normal flow */
+      transform: none;
+      /* Reset transform */
+      /* width: 10%; */
+      /* Take full width of the container */
+      max-height: 175px;
+      /* Set the max height */
+      /* left: -50%; */
+      /* Center horizontally */
+      /* top: -50%; */
+      /* Center vertically */
+      /* transform: translate(-50%, -10%); */
+      z-index: 0;
+    }
+  }
+
+  .centrecrop span {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: left;
+    padding: 0 4px;
+    position: relative;
+    /* Adjust alignment as needed */
+    z-index: 10;
+  }
+
+  .thumbnail {
+    border: 0.5px solid #000;
+  }
+
+  .menu_section {
+    flex-grow: 1;
+    /* Take up remaining space */
+    position: relative;
+  }
+
+  .filteroptions {
+    width: calc(100% - 80px);
+    /* Take up the remaining width after leaving 300px for the text */
+    margin-left: 80px;
+    /* Move the dropdown button 300px off the left */
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    /* padding: 8px; Adjust padding as needed */
+  }
+
+  ::-webkit-scrollbar {
+    -webkit-appearance: none;
+    display: none;
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, .5);
+    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+  }
+
+ 
+
+
+
+  #about_pg_content {
+    margin-bottom: 64px;
+    overflow: hidden;
+    /* height: 100vh; */
+    z-index: 1;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  #grad1 {
+    height: 20px;
+    background-color: rgb(223, 223, 223);
+    /* For browsers that do not support gradients */
+    background-image: linear-gradient(rgb(33, 33, 33), rgb(230, 230, 230));
+    border: none;
+  }
+
+  #content {
+    padding: 0vw;
+  }
+
+  .worktitlenimage {
+    /* height: 100%;
+  width: 100%;
+  object-fit: contain; */
+    /* margin: 20px; */
+    background-color: #fff;
+    
+  }
+
+  .slide video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* This ensures the video covers the entire container without distortion */
+  }
+
+  .worktitlenimage video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* This ensures the video covers the entire container without distortion */
+  }
+
+  .picofmyworkandcaption {
+    display: flex;
+    align-items: top;
+  }
+
+  .imagecaption {
+    margin-top: 0px;
+    margin-left: 10px;
+    padding-top: 0px;
+    color: #707070;
+    font-family: 'Times New Roman', Times, serif;
+  }
+
+
+  .you-may-also-like-container {
+    position: relative;
+    width: 1040px;
+    height: 367px;
+    left: 0px;
+    top: 14px;
+  }
+
+  .you-may-also-like-text {
+    /* position: absolute;
+  width: 144px;
+  height: 20px;
+  left: 0px;
+  top: 0;
+
+  font-family: 'Helvetica Neue';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+  identical to box height */
+
+
+    color: #000000;
+  }
+
+
+  .scrollframe-mini {
+    position: relative;
+    width: 1373px;
+    height: 866px;
+    top: 26px;
+    left: -4;
+    overflow-x: scroll;
+    /* overflow-y: hidden; */
+  }
+
+  .scrollmenu {
+    overflow: auto;
+    white-space: nowrap;
+  }
+
+  .row1 {
+    position: relative;
+    width: 2099px;
+    height: 338px;
+    left: 0px;
+    top: 0px;
+  }
+
+  .img-container {
+    position: relative;
+    display: inline-block;
+    color: #0000FF;
+  }
+
+  .project-pic-mini {
+    border: 0.5px solid #000000;
+    object-fit: cover;
+    width: 250px;
+    height: 338px;
+  }
+
+  .relatedWorkContentTitle {
+    overflow-x: auto;
+  }
+
+  .scrolling-container {
+    display: flex;
+    overflow: hidden;
+    /* Make it a flex container to line up items horizontally */
+    overflow-x: auto;
+  }
+
+  .relatedWorkItem {
+    margin-right: 10px;
+    /* Adjust the margin between items as needed */
+    float: left;
+  }
+
+  .relatedWorkItem img {
+    object-fit: cover;
+    width: 150px;
+    height: 200px;
+    border: 0.5px solid #000;
+    background-color: #fff;
+  }
+
+  /* Optional: Add styling for the captions */
+  .relatedWorkItem p {
+    text-align: left;
+    margin-top: 5px;
+    width: 150px;
+    word-wrap: break-word;
+  }
+
+
+  .threedanchor {
+    position: relative;
+  }
+
+  .threeposition {
+    position: absolute;
+  }
+
+  model-viewer {
+    opacity: 50%;
+    position: absolute;
+    top: -100px;
+    right: 0;
+    margin-left: 10px;
+    margin-right: 100px;
+    width: 50vw;
+    height: 80vh;
+    /* background-color: rgb(233, 233, 233); */
+    z-index: 0;
+    /* Set a lower z-index to place it underneath other elements */
+  }
+
+
+  @media only screen and (max-width: 753px) {
+    model-viewer {
+      margin-right: 30px;
+      top: -140px;
+    }
+
+  }
+
+  .bottomessege {
+    position: relative;
+    display: flex;
+  }
+
+  .bottomessege p {
+    flex: 2;
+  }

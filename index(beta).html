@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="/Portfolio/Images/projects/1EARTH/1ECROP.png"
+      type="image/png"
+    />
+    <title>ONEEARTH</title>
+    <link rel="stylesheet" type="text/css" href="static/styles/oneearth(beta).css" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyANM1ISOCrErjZgiLejF_4OyREeCNQ5m2I&callback=initMap&v=weekly"
+    ></script>
+    <script src="https://unpkg.com/@googlemaps/advanced-markers"></script>
+  </head>
+
+  <body>
+    <div class="landingsection homelanding">
+      <video class="landingvideo" autoplay muted loop playsinline>
+        <source src="static/videos/Loopback.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      <div class="masterframe">
+        <div class="masterbar-menu topbuttons">
+          <a href="about.html" class="masterbar-button-small rounded"
+            >ABOUT US</a
+          >
+          <!-- <a href="join.html" class="masterbar-button-small rounded activeblack"
+            >JOIN</a
+          > -->
+        </div>
+
+        <div class="topheader">
+          <!-- <p class="s1 whitetext" style="max-width: 66%;">
+            Welcome to the 1EARTH NETWORK (prototype). It’s still a work in
+            progress, scroll down to see the network/resource base/forum.
+          </p> -->
+
+          <div class="switchcontainer">
+            <img
+              src="static/images/icons/lines-svgrepo-com.svg"
+              alt="Image"
+              class="left-image"
+            />
+            <div class="spacer"></div>
+            <p class="s1 whitetext accessibilityspace">accessibility</p>
+            <label class="switch">
+              <input
+                type="checkbox"
+                aria-label="Toggle accessibility options"
+              />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <p class="centretext whitetext f18 toplandingtext avenir-roman">
+            Connecting all initiatives <br />
+            making a positive impact in their communities<br />
+            to individuals sharing the same core beliefs
+          </p>
+
+          <div class="landingspacer"></div>
+        </div>
+
+        <div class="heromaincontent">
+          <button
+            class="side-button masterbar-button activeblack rounded"
+            id="scroll-button"
+            style="margin-left: 10px"
+          >
+            FIND COMMUNITIES
+          </button>
+          <img
+            src="static/images/images/1ETRANS.gif"
+            alt="Icon"
+            class="logo-video"
+          />
+          <button
+            style="margin-right: 10px"
+            class="side-button masterbar-button activeblack rounded"
+            onclick="location.href='eventbase/eventORinitiativebasesubmission.html';"
+          >
+            SHARE YOURS
+          </button>
+        </div>
+
+
+        <!-- <div class="white-line"></div> -->
+
+        <h2 class="centretext whitetext f16 italic spacing4hero">
+          EMPOWERING POSITIVITY. <br>BUILDING COMMUNITY. <br>UNITING CHANGE.
+        </h2>
+
+        <div class="landingspacer2"></div>
+
+        <div class="herotitlelinks">
+          <a
+            href="https://www.youtube.com/watch?v=KYissIEflTU"
+            class="left-link"
+            >Watch The Documentary</a
+          >
+          <h1 class="centretext whitetext titlespace">ONE EARTH</h1>
+          <a href="/about.html" class="right-link">Read The Manifesto</a>
+        </div>
+        
+        <div class="downbutton-container">
+          <img
+            class="downbutton"
+            src="static/images/icons/downbuttonwhite.png"
+            alt="Scroll Down"
+            onclick="scrollToSection()"
+          />
+        </div>
+
+      </div>
+    </div>
+    <div class="fading-div"></div>
+
+    <div class="masterframe" id="target-section">
+      <div class="navbarspacer"></div>
+      <div class="bodyframe">
+        <div id="navbar">
+          <a
+            href=""
+            class="masterbar-button rounded activeblack shadow avenir-roman f17"
+            role="button"
+          >
+            THE 1EARTH NETWORK
+          </a>
+          <a
+            href="resources.html"
+            class="masterbar-button rounded shadow avenir-roman f17"
+            role="button"
+          >
+            THE RESOURCE SPACE
+          </a>
+          <a
+            href="forum.html"
+            class="masterbar-button rounded shadow avenir-roman f17"
+            role="button"
+          >
+            FORUM (coming soon)
+          </a>
+        </div>
+
+        <div id="contentcarrier">
+          <h1 class="f34">THE 1EARTH NETWORK</h1>
+          <h2 class="avenir-heavy">
+            CONNECTING INDIVIDUALS TO INITIATIVES MAKING POSITIVE IMPACT IN
+            THIER COMMUNITY
+          </h2>
+          <!-- <h2>THE COMMUNITY-LED 1EARTH NETWORK</h2> -->
+
+          <!-- <p class="s1">
+            <strong>Welcome to the 1EARTH NETWORK.  </strong><br><br>
+
+            All groups & events that are shown here have been uploaded by You! The Community, The 1EARTH NETWORK is a platform frame-working an environment of active participation & individual to collective action towards the future, encouraging shared growth & collaboration between all.
+          </p> -->
+
+          <div id="filterbar" class="filterbar">
+
+            <div class="search-container">
+              <input
+                type="text"
+                placeholder="Search Keyword / Organisation / Activities / Practices / Locations..."
+                class="search-input rounded inputcolor"
+              />
+            </div>
+
+            <div class="filtermenu-container" id="map-target-section">
+              <div class="dropdown">
+                <button class="dropbtn inputcolor rounded">
+                  <img
+                    src="static/images/icons/network-wired-svgrepo-com.svg"
+                    alt="Icon"
+                    class="icon"
+                  />
+                  <div class="filtertitle">NETWORK [all]</div>
+                  <span class="arrow">&#9662;</span>
+                </button>
+                <div class="dropdown-content">
+                  <a href="#">[ALL]</a>
+                  <a href="#">[THE COMMUNITY SUPPORT DIRECTORY]</a>
+                  <a href="#">[THE CREATIVE NETWORKING DIRECTORY]</a>
+                  <a href="#">More Coming Soon...</a>
+                </div>
+              </div>
+              <div class="dropdown">
+                <button class="dropbtn inputcolor rounded">
+                  <img
+                    src="static/images/icons/location-pin-svgrepo-com.svg"
+                    alt="Icon"
+                    class="icon"
+                  />
+                  <div class="filtertitle">London</div>
+                  <span class="arrow">&#9662;</span>
+                </button>
+                <div class="dropdown-content">
+                  <a href="#">London</a>
+                  <a href="#">More Coming Soon...</a>
+                </div>
+              </div>
+
+              <div class="dropdown">
+                <button class="dropbtn inputcolor rounded">
+                    <img src="static/images/icons/category-svgrepo-com.svg" alt="Icon" class="icon" />
+                    <div class="filtertitle">Topics</div>
+                    <span class="arrow">&#9662;</span>
+                </button>
+                <div class="dropdown-content">
+                    <label><input type="checkbox" class="checkbox" value="" checked> All Topics</label>
+                    <label><input type="checkbox" class="checkbox" value="Art"> Art</label>
+                    <label><input type="checkbox" class="checkbox" value="Accessibility"> Accessibility</label>
+                    <label><input type="checkbox" class="checkbox" value="Community"> Community</label>
+                    <label><input type="checkbox" class="checkbox" value="Creative"> Creative</label>
+                    <label><input type="checkbox" class="checkbox" value="Diversity & Inclusion"> Diversity/Inclusion</label>
+                    <label><input type="checkbox" class="checkbox" value="Ecology/Nature"> Ecology/Nature</label>
+                    <label><input type="checkbox" class="checkbox" value="Education"> Education</label>
+                    <label><input type="checkbox" class="checkbox" value="Entrepreneurship"> Entrepreneurship</label>
+                    <label><input type="checkbox" class="checkbox" value="Exercise"> Exercise</label>
+                    <label><input type="checkbox" class="checkbox" value="Food"> Food</label>
+                    <label><input type="checkbox" class="checkbox" value="Health/Well-being"> Health/Well-being</label>
+                    <label><input type="checkbox" class="checkbox" value="Historical/Cultural Heritage"> Historical/Cultural Heritage</label>
+                    <label><input type="checkbox" class="checkbox" value="Innovation"> Innovation</label>
+                    <label><input type="checkbox" class="checkbox" value="Live Event"> Live Event</label>
+                    <label><input type="checkbox" class="checkbox" value="Policy and Advocacy"> Policy and Advocacy</label>
+                    <label><input type="checkbox" class="checkbox" value="Social"> Social</label>
+                    <label><input type="checkbox" class="checkbox" value="Social Justice"> Social Justice</label>
+                    <label><input type="checkbox" class="checkbox" value="Sustainability"> Sustainability</label>
+                    <label><input type="checkbox" class="checkbox" value="Technology"> Technology</label>
+                    <label><input type="checkbox" class="checkbox" value="Volunteering"> Volunteering</label> 
+                </div>
+            </div>
+
+            <div class="dropdown">
+              <button class="dropbtn inputcolor rounded">
+                  <img src="static/images/icons/artist-svgrepo-com.svg" alt="Icon" class="icon" />
+                  <div class="filtertitle">All Practices</div>
+                  <span class="arrow">&#9662;</span>
+              </button>
+              <div class="dropdown-content">
+                  <label><input type="checkbox" class="checkbox-practice" value="" checked> All Practices</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="3D"> 3D</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Community Engagement"> Community Engagement</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Computing"> Computing</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Design"> Design</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Fashion"> Fashion</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Film"> Film</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Fine Art"> Fine Art</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Image"> Image</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Music"> Music</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Performance Arts"> Performance Arts</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Publication"> Publication</label>
+                  <label><input type="checkbox" class="checkbox-practice" value="Sound"> Sound</label>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          
+        
+          
+
+          <div class="dynamicbody">
+            <div class="leftbody">
+              <div class="static-container">
+                <div class="contentisland rounded">
+                  <div class="contentislandtitle">
+                    <img
+                      src="static/images/icons/map-location-pin-svgrepo-com.svg"
+                      alt="Icon"
+                      class="icon"
+                    />
+                    Find Communities:
+                  </div>
+
+                  
+
+                  <div id="map"></div>
+
+                  <div class="maininfopopup contentisland rounded">
+                    <button class="close-btn" onclick="closePopup()">×</button>
+                    <h2 class="f18" style="padding-top: 0px">
+                      [!] <span class="avenir-heavy f34 datgreen">WELCOME</span> TO
+                      THE 1EARTH NETWORK
+                    </h2>
+                    <p class="s1 avenir-medium f15" style="margin-bottom: 10px">
+                      This is a map of all initiatives making a positive impact within
+                      their communities. <br /><br />
+                      The nodes represent each initiative & contains information on
+                      their activities.<br /><br />
+                      Use the menus in the top lefthand bar to filter for relevant
+                      information. <br /><br />    
+                    </p>
+                  </div>
+                  
+                  <script>
+                    function closePopup() {
+                      document.querySelector('.maininfopopup').style.display = 'none';
+                    }
+                  </script>
+
+                </div>
+
+
+                <div class="button-container toppadding">
+                  <button
+                    class="masterbar-button rounded contribute-button-green purebold"
+                    onclick="location.href='eventbase/eventORinitiativebasesubmission.html';"
+                  >
+                    SUBMIT TO OUR NETWORK HERE!
+                  </button>
+  
+                  <button class="masterbar-button rounded whiteback purebold">
+                    BUILD YOUR OWN EVENT PAGE!
+                  </button>
+                </div>
+  
+                <h2 class="f18">CHANGE:</h2>
+  
+                <p class="s1">
+                  We believe change comes through
+                  <strong>the collective actions of the individual.</strong>
+                  <br />
+                  Our platform aims to amplify the efforts of all current
+                  initiatives through visibility & public outreach
+                </p>
+
+
+              </div>
+
+              
+
+              <div class="scroll-container">
+                <div class="contentislandscroll rounded">
+                    <div class="contentislandtitle">
+                        <img src="static/images/icons/community-group-leader-svgrepo-com.svg" alt="Icon" class="icon" />
+                        Initiatives:
+                    </div>
+                    <div id="upcoming-events3"></div>
+                </div>
+            
+                <div class="contentislandscroll thin rounded">
+                    <div class="contentislandtitle">
+                        <img src="static/images/icons/important-svgrepo-com.svg" alt="Icon" class="icon" />
+                        Upcoming Events:
+                    </div>
+                    <div id="upcoming-events"></div>
+                </div>
+
+                <div class="contentislandscroll rounded">
+                  <div class="contentislandtitle">
+                      <img src="static/images/icons/important-svgrepo-com.svg" alt="Icon" class="icon" />
+                      Most Active 1EARTH Community Members:
+                  </div>
+                  <div id="upcoming-events"></div>
+              </div>
+
+
+
+
+            </div>
+
+            <!-- <div class="rightbody">
+              <h2 class="f18" style="padding-top: 0px">
+                [!] <span class="avenir-heavy f34 datgreen">WELCOME</span> TO
+                THE 1EARTH NETWORK
+              </h2>
+
+              <p class="s1 avenir-medium f15" style="margin-bottom: 10px">
+                This is a map of all initiatives making a positive impact within
+                their communities. <br /><br />
+
+                The nodes represent each initiative & contains information on
+                their activities.<br /><br />
+
+                Use the menus in the top lefthand bar to filter for relevant
+                information. <br /><br />
+
+                <span class="f10"
+                  >For example, click the box 'NETWORK' and select 'COMMUNITY
+                  SUPPORT DIRECTORY' to a specified network that relates to all
+                  the ways you can volunteer & help out in your local
+                  community<br /><br />
+
+                  You can then also use other filters - use the “Categories” &
+                  “Practices” box too see specified nodes.</span
+                >
+              </p>
+
+              
+
+              
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <br /><br /><br />
+    <!-- <a href="/Playground/index.html">playground</a> -->
+
+    <script>
+      function scrollToSection() {
+        var section = document.getElementById("target-section");
+        section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    </script>
+
+
+
+<script>
+  window.onscroll = function () {
+    myFunction();
+    stickyFilterbar();
+  };
+
+  var navbar = document.getElementById("navbar");
+  var contentcarrier = document.getElementById("contentcarrier");
+  var sticky = navbar.offsetTop;
+
+  function myFunction() {
+    if (window.pageYOffset >= sticky) {
+      navbar.classList.add("sticky");
+      contentcarrier.classList.add("additionalspacer");
+    } else {
+      navbar.classList.remove("sticky");
+      contentcarrier.classList.remove("additionalspacer");
+    }
+  }
+
+  var filterbar = document.getElementById("filterbar");
+  var sticky2 = filterbar.offsetTop -30;
+
+  function stickyFilterbar() {
+    if (window.pageYOffset > sticky2) {
+      filterbar.classList.add("fixed");
+    } else {
+      filterbar.classList.remove("fixed");
+    }
+  }
+
+  document
+    .getElementById("scroll-button")
+    .addEventListener("click", function () {
+      document
+        .getElementById("target-section")
+        .scrollIntoView({ behavior: "smooth" });
+    });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const switchControl = document.querySelector('.switch input[type="checkbox"]');
+      switchControl.addEventListener('change', function() {
+          if (this.checked) {
+              document.body.classList.add('dyslexia-mode');
+          } else {
+              document.body.classList.remove('dyslexia-mode');
+          }
+      });
+  });
+  </script>
+
+    <!-- <script src="eventbase/eventprint.js"></script> -->
+
+    <script src="static/scripts/mapscript.js" defer></script>
+
+    <footer>
+      <p class="centretext">
+        🌐 1EARTH ℗ 2024. Designed by
+        <a href="https://1-earth.github.io/Portfolio/INDEXV23.html"
+          >George Symonds</a
+        >. All code is open-source & available
+        <a href="https://github.com/1-earth/1-earth.github.io">here</a>.
+      </p>
+    </footer>
+  </body>
+</html>
