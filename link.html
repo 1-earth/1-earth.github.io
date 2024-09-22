@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>George Symonds Linktree</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Loading screen style */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #101010;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      #loading-screen img {
+        width: 300px; /* Adjust size of the loading GIF */
+        height: auto;
+      }
+
+      /* Hide the entire content of the page initially */
+      .content {
+        display: none;
+      }
+
+      p {
+        color: white;
+        font-family: "Roboto", Arial, Helvetica, sans-serif; /* Use Roboto as the primary font */
+        margin-top: 0px;
+      }
+
+      body {
+        background-color: #000000;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0px;
+      }
+
+      .matrix {
+        width: 400px;
+        height: 100vh;
+        background-color: black;
+        align-self: end;
+      }
+
+      .topbar {
+        width: 100%;
+      }
+
+      .mid {
+        text-align: center;
+        margin: 0;
+      }
+
+      #time-hm {
+        font-size: 40px; /* Larger font for the hour and minute */
+      }
+
+      #time-ampm {
+        font-size: 18px; /* Smaller font for AM/PM */
+        margin-left: 5px; /* Small space between time and AM/PM */
+      }
+
+      .topbar img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr); /* 4 columns of equal width */
+        grid-gap: 5px; /* Space between images */
+        width: 100%;
+      }
+
+      .grid-container img {
+        width: 100%; /* Make each image take up full width of the grid cell */
+        height: auto; /* Maintain aspect ratio */
+        display: block;
+        transition: filter 0.3s ease; /* Smooth transition for hover effect */
+      }
+
+      .grid-container img:hover {
+        filter: hue-rotate(180deg) brightness(0.8); /* Blue tint on hover */
+      }
+
+      .middle {
+        padding-top: 20px;
+      }
+
+      /* Style for the two images in the bottom */
+      .bottom {
+        margin-top: 200px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .bottom-images {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        gap: 80px; /* Space between the images */
+      }
+
+      .bottom-images img {
+        width: 34px; /* Adjust the size of the images */
+        height: auto;
+      }
+
+      /* Modal styles */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8); /* Black background with transparency */
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background-color: black;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 300px;
+        color: white;
+        position: relative;
+        text-align: center; /* Center the text inside the modal */
+        border-radius: 13px;
+      }
+
+      .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: red;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .no-style {
+        color: inherit; /* Inherit text color from parent element */
+        text-decoration: none; /* Remove underline */
+      }
+
+      .no-style:hover {
+        text-decoration: underline; /* Optional: Add underline on hover */
+        color: #ccc; /* Optional: Slight color change on hover */
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Loading GIF screen -->
+    <div id="loading-screen">
+      <img src="linktree/images/GSSPIN.gif" alt="Loading..." />
+    </div>
+
+    <!-- Content of the webpage -->
+    <div class="content">
+      <div class="matrix">
+        <div class="top">
+          <div class="topbar">
+            <img src="linktree/images/top.png" alt="statusbar" />
+          </div>
+          <p class="mid" id="time">
+            <span id="time-hm">12:34</span><span id="time-ampm">PM</span>
+          </p>
+          <p class="mid" id="date">Thursday, October 13</p>
+          <br />
+          <p class="mid" id="hover-text">George Symonds</p>
+        </div>
+        <div class="middle">
+          <div class="grid-container">
+            <!-- Add 16 images (4x4 grid) with hyperlinks -->
+            <a href="#" id="openPopup1"><img src="linktree/images/1.png" alt="Welcome" /></a>
+            <a
+              href="https://www.1-earth.world/Portfolio/INDEXV23.html"
+              target="_blank"
+              ><img src="linktree/images/2.png" alt="Portfolio"
+            /></a>
+            <a href="https://www.1-earth.world/LINKTREE.html" target="_blank"
+              ><img src="linktree/images/3.png" alt="Music"
+            /></a>
+            <a href="#" id="openPopup2"><img src="linktree/images/4.png" alt="Contact" /></a>
+            <a
+              href="https://www.1-earth.world/Portfolio/INDEXV23.html"
+              target="_blank"
+              ><img src="linktree/images/5.png" alt="Web Development Work"
+            /></a>
+            <a
+              href="https://www.instagram.com/georgesymonds__/"
+              target="_blank"
+              ><img src="linktree/images/6.png" alt="Photography"
+            /></a>
+            <a
+              href="https://www.1-earth.world/Portfolio/INDEXV23.html"
+              target="_blank"
+              ><img src="linktree/images/7.png" alt="Film"
+            /></a>
+            <a href="https://www.youtube.com/@georgesymonds007" target="_blank"
+              ><img src="linktree/images/8.png" alt="YouTube"
+            /></a>
+            <a href="https://github.com/1-earth" target="_blank"
+              ><img src="linktree/images/9.png" alt="GitHub"
+            /></a>
+            <a href="ttps://www.1-earth.world" target="_blank"
+              ><img src="linktree/images/10.png" alt="ONE EARTH"
+            /></a>
+            <a
+              href="https://www.1-earth.world/Portfolio/INDEXV23.html"
+              target="_blank"
+              ><img src="linktree/images/11.png" alt="DJ"
+            /></a>
+            <a
+              href="https://uk.linkedin.com/in/george-symonds-bba04b239"
+              target="_blank"
+              ><img src="linktree/images/12.png" alt="LinkedIn"
+            /></a>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="bottom-images">
+            <img src="linktree/images/iglogo.png" alt="Instagram logo" />
+            <img
+              src="linktree/images/tiktok-round-white-icon.webp"
+              alt="TikTok logo"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Function to hide the loading screen and show the content after 2 seconds
+      window.onload = function () {
+        setTimeout(function () {
+          document.getElementById("loading-screen").style.display = "none";
+          document.querySelector(".content").style.display = "block";
+        }, 2300); // 2000 milliseconds = 2 seconds
+      };
+
+      function updateTimeAndDate() {
+        const timeHmElement = document.getElementById("time-hm");
+        const timeAmPmElement = document.getElementById("time-ampm");
+        const dateElement = document.getElementById("date");
+
+        // Get current time and date
+        const now = new Date();
+
+        // Format time as hh:mm AM/PM
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12; // The hour '0' should be '12'
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        const timeString = hours + ":" + minutes;
+
+        // Format date as Day, Month dd
+        const options = { weekday: "long", month: "long", day: "numeric" };
+        const dateString = now.toLocaleDateString(undefined, options);
+
+        // Update the DOM
+        timeHmElement.textContent = timeString;
+        timeAmPmElement.textContent = ampm;
+        dateElement.textContent = dateString;
+      }
+
+      // Update the time and date once on page load
+      updateTimeAndDate();
+
+      // Optionally, update every minute
+      setInterval(updateTimeAndDate, 60000);
+
+      // Get modals and open/close elements
+      const modal1 = document.getElementById("popupModal1");
+      const modal2 = document.getElementById("popupModal2");
+      const openPopup1 = document.getElementById("openPopup1");
+      const openPopup2 = document.getElementById("openPopup2");
+      const closeBtns = document.getElementsByClassName("close");
+
+      // When the user clicks on the first image, open the first modal
+      openPopup1.onclick = function (event) {
+        event.preventDefault(); // Prevent default anchor action
+        modal1.style.display = "flex"; // Use 'flex' to center the modal
+      };
+
+      // When the user clicks on the fourth image, open the second modal
+      openPopup2.onclick = function (event) {
+        event.preventDefault(); // Prevent default anchor action
+        modal2.style.display = "flex"; // Use 'flex' to center the modal
+      };
+
+      // Close modals when the close button is clicked
+      for (let i = 0; i < closeBtns.length; i++) {
+        closeBtns[i].onclick = function () {
+          modal1.style.display = "none";
+          modal2.style.display = "none";
+        };
+      }
+
+      // When the user clicks anywhere outside the modal, close it
+      window.onclick = function (event) {
+        if (event.target == modal1) {
+          modal1.style.display = "none";
+        } else if (event.target == modal2) {
+          modal2.style.display = "none";
+        }
+      };
+
+      // Hover effect to change text to image alt text
+      const hoverTextElement = document.getElementById("hover-text");
+      const gridImages = document.querySelectorAll(".grid-container img");
+
+      gridImages.forEach((image) => {
+        image.addEventListener("mouseover", function () {
+          hoverTextElement.textContent = this.alt;
+        });
+
+        image.addEventListener("mouseout", function () {
+          hoverTextElement.textContent = "George Symonds"; // Revert the text on mouseout
+        });
+      });
+    </script>
+  </body>
+</html>
