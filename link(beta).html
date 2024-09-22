@@ -94,6 +94,21 @@
         transition: filter 0.3s ease; /* Smooth transition for hover effect */
       }
 
+      .filtered {
+        /* width: 800px; */
+        /* height: 450px; */
+        /* border-radius: 10px; */
+        /* margin: 2px; */
+        background-image: radial-gradient(ellipse, #0000, #0007),
+          linear-gradient(0deg, #9725, #9725),
+          url(https://i.ibb.co/vJt5HSh/noisy-texture-300x300-o10-d10-c-a82851-t1.png),
+          url(https://i.ibb.co/m4sGRmK/pexels-pixabay-247431.jpg);
+        background-size: auto, auto, auto, cover;
+        background-repeat: repeat;
+        background-position: center;
+        filter: saturate(0.7) contrast(1.5) brightness(1.2);
+      }
+
       .grid-container img:hover {
         filter: hue-rotate(180deg) brightness(0.8); /* Blue tint on hover */
       }
@@ -201,7 +216,7 @@
           <p class="mid" id="hover-text">George Symonds</p>
         </div>
         <div class="middle">
-          <div class="grid-container">
+          <div class="grid-container ">
             <!-- Add 16 images (4x4 grid) with hyperlinks -->
             <a href="#" id="openPopup1"
               ><img src="linktree/images/1.png" alt="Welcome"
@@ -267,9 +282,10 @@
     <div id="popupModal1" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <p><em>Welcome!</em>
-        <br><br>
-      Click around to find out what I do</p>
+        <p>
+          <em>Welcome!</em> <br /><br />
+          Click around to find out what I do
+        </p>
       </div>
     </div>
 
@@ -277,9 +293,18 @@
     <div id="popupModal2" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <p>Contact:
-          <br><a href="mailto:symonds.george@gmail.com" class="no-style">Mail: <em>symonds.george@gmail.com</em></a>
-          <br><a href="https://www.instagram.com/georgesymonds" target="_blank" class="no-style">IG: <em>@georgesymonds_</em></a>
+        <p>
+          Contact: <br /><a
+            href="mailto:symonds.george@gmail.com"
+            class="no-style"
+            >Mail: <em>symonds.george@gmail.com</em></a
+          >
+          <br /><a
+            href="https://www.instagram.com/georgesymonds"
+            target="_blank"
+            class="no-style"
+            >IG: <em>@georgesymonds_</em></a
+          >
         </p>
       </div>
     </div>
