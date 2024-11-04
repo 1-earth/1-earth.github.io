@@ -2578,11 +2578,14 @@ video {
 .contactform button {
   width: 50%;
   padding: 10px;
-  background-color: #ffe206;
+  background-color: #000000;
   color: white;
-  border: none;
+  /* border: 2px; */
+  border-color: white;
   cursor: pointer;
   float: right; /* Aligns the button to the right */
+  border-radius: 5px;
+  font-family: 'Helvetica', 'Arial', sans-serif;
 }
 
 .contactform button:hover {
