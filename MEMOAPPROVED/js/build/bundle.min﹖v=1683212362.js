@@ -2,7 +2,7 @@
   "use strict";
   (t.helpers = {}),
     console.log(
-      "Developed with ♥ by Josh Harrison\nhttps://www.joshharrison.net"
+      "Manufactured by 1 EARTH PRODUCTIONS\nhttps://www.1-earth.world/1E%20PRODUCTIONS/index.html"
     );
   const e = new (function () {
       (this.makeTemplate = (t) => {

@@ -2025,6 +2025,7 @@ a .jumbo-title {
 }
 .page-builder {
   --block-spacing: 25px;
+  z-index: 100;
 }
 @media (min-width: 768px) {
   .page-builder {
@@ -2039,6 +2040,13 @@ a .jumbo-title {
     margin-bottom: 60px;
   }
 }
+
+.starter{
+padding: 0px !important;
+margin-bottom: 0px !important;
+height: 0px;
+}
+
 .page-builder .panel:first-child .section-title {
   border-top: none;
 }
