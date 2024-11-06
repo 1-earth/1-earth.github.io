@@ -1643,6 +1643,7 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   border-radius: 15px;
   cursor: pointer;
   transition: background-color 0.3s;
+  width: 300px;
 }
 
 .overlay-button:hover {
