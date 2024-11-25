@@ -1,0 +1,15 @@
+/*
+ * This CSS resource incorporates links to font software which is the valuable copyrighted property of Monotype and/or its suppliers. You may not attempt to copy, install, redistribute, convert, modify or reverse engineer this font software. Please contact Monotype with any questions regarding Web Fonts: https://www.linotype.com
+ *
+ * This tracking stylesheet loaded asynchronously in <head>:
+ * https://fast.fonts.net/lt/1.css?apiType=css&c=6687cd0a-0b13-4fcd-b615-54318afa7af4&fontids=5664103
+ */
+@font-face {
+  font-family: 'Helvetica Neue LT W05 65 Medium';
+  src: url("../../fonts/helvetica-neue-medium/240c57a0-fdce-440d-9ce3-85e0cb56f470.woff2") format("woff2"),
+       url("../../fonts/helvetica-neue-medium/7802e576-2ffa-4f22-a409-534355fbea79.woff") format("woff");
+  font-weight:  500;
+  font-style:   normal;
+  font-stretch: normal;
+  font-display: swap;
+}
