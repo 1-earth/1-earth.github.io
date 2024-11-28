@@ -19,7 +19,7 @@
 
   <link rel="stylesheet" href="scss/build/bundle.min%EF%B9%96v=1690380305.css" />
 
-  <link rel="icon" href="img/MemoIcon.png" />
+  <link rel="icon" href="img/KRICON.png" />
 
   <link rel="preload"
     href="https://fast.fonts.net/lt/1.css?apiType=css&amp;c=3efc039e-d6e4-4305-82b1-84cdd154d8f9&amp;fontids=5664093"
@@ -35,7 +35,7 @@
 
 <body class="home has-hero-takeover no-margin-top">
   <header class="site-header">
-    
+
 
     <button class="nav-toggle unstyled-input" type="button" aria-label="Menu">
       <span></span>
@@ -48,8 +48,8 @@
         <a href="index.html">
           <h1 class="animated-lines" data-auto-animate="false" data-linked-stage-key="jumbo-wordmark">
             <!-- data-additional='["EMPOWERING POSITIVITY","BUILDING COMMUNITIES"]' -->
-            <span class="line current"><span>M</span><span>E</span><span>M</span><span>O</span><span>
-              </span><span>A</span><span>P</span><span>P</span><span>R</span><span>O</span><span>V</span><span>E</span><span>D</span>
+            <span class="line current"><span>K</span><span>A</span><span>N</span><span>G</span><span>
+              </span><span>R</span><span>E</span><span>C</span><span>O</span><span>R</span><span>D</span><span>S</span>
             </span>
 
           </h1>
@@ -111,46 +111,165 @@
     <div class="top-left-links">
       <div class="container">
         <div class="horizontal-scrolling-items">
-        
-        <div class="horizontal-scrolling-items__item">
-          THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. &nbsp
+
+          <div class="horizontal-scrolling-items__item">
+            THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER
+            CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. &nbsp
+          </div>
+
+          <div class="horizontal-scrolling-items__item">
+            THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER
+            CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. &nbsp
+          </div>
+
         </div>
-        
-        <div class="horizontal-scrolling-items__item">
-          THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. THE KR NETWORK IS UNDER CONSTRUCTION. &nbsp
-        </div>
-        
-        </div>
-          
-        </div>
+
+      </div>
     </div>
 
-    <style>@keyframes infiniteScroll {
-      from {transform: translateX(0)}
-      to {transform: translateX(-50%)}
-    }
-    .container {
-      width: 100%;
-      overflow-x: hidden;
-    }
-    .horizontal-scrolling-items {
-      display: flex;
-      font-size: 23px;
-      width: 2600px;
-      animation-name: infiniteScroll;
-      animation-duration: 20s;
-      animation-iteration-count: infinite;
-      animation-timing-function: linear;
-      background-color: #fdd327;
-      color: black;
-    }
-    .horizontal-scrolling-items__item {
-      white-space: nowrap;
-    }</style>
+    <section class="bottom-bar container">
+      <div class="mediaplayback">
+        <button id="play" class="control-btn">
+          <img src="/KANGRECORDS/img/play.svg" alt="Play" class="icon" />
+        </button>
+        <button id="pause" class="control-btn" style="display: none;">
+          <img src="/KANGRECORDS/img/pause.svg" alt="Pause" class="icon" />
+        </button>
+        <button id="forward" class="control-btn">
+          <img src="/KANGRECORDS/img/next.svg" alt="Next" class="icon" />
+        </button>
+        <button id="shuffle-loop" class="control-btn">
+          <img src="/KANGRECORDS/img/shuffle.svg" alt="Shuffle/Loop" class="icon" />
+        </button>
+        <input id="progress" type="range" min="0" max="100" value="0" class="progress-bar" />
+      </div>
+      <div class="metadata" style="display: none;">
+        <span id="track-title" class="track-title"></span>
+        <span id="track-artist" class="track-artist"></span>
+      </div>
+      <div class="bottom-bar-text">
+        (JOIN)
+      </div>
+    </section>
 
-   
+    <script>
+  // List of audio tracks with metadata
+const tracks = [
+  { title: "Eternity", file: '/KANGRECORDS/audio/Eternity.wav' },
+  { title: "Natural Thing", file: '/KANGRECORDS/audio/Natural Thing.wav' },
+  { title: "Your Time Is Now", file: '/KANGRECORDS/audio/Your Time Is Now.wav' }
+];
 
-    
+let currentTrackIndex = 0; // Track index
+let isShuffle = false; // Shuffle/loop toggle
+let audio = new Audio(tracks[currentTrackIndex].file); // Initialize audio object
+
+// Button elements
+const playButton = document.getElementById('play');
+const pauseButton = document.getElementById('pause');
+const forwardButton = document.getElementById('forward');
+const shuffleLoopButton = document.getElementById('shuffle-loop');
+const progressBar = document.getElementById('progress');
+const trackTitle = document.getElementById('track-title');
+const metadata = document.querySelector('.metadata');
+
+// Ensure audio is ready to play
+audio.addEventListener('canplay', () => {
+  console.log(`Loaded: ${tracks[currentTrackIndex].title}`);
+});
+
+// Play music
+playButton.addEventListener('click', () => {
+  audio.play();
+  playButton.style.display = 'none';
+  pauseButton.style.display = 'inline';
+  showMetadata(); // Show metadata when playback starts
+});
+
+// Pause music
+pauseButton.addEventListener('click', () => {
+  audio.pause();
+  pauseButton.style.display = 'none';
+  playButton.style.display = 'inline';
+});
+
+// Next track
+forwardButton.addEventListener('click', () => {
+  nextTrack();
+});
+
+// Shuffle/Loop toggle
+shuffleLoopButton.addEventListener('click', () => {
+  isShuffle = !isShuffle;
+  const icon = isShuffle
+    ? '/KANGRECORDS/img/loop.svg'
+    : '/KANGRECORDS/img/shuffle.svg';
+  shuffleLoopButton.querySelector('img').src = icon;
+});
+
+// Function to go to the next track
+function nextTrack() {
+  if (isShuffle) {
+    // Shuffle: Select a random track
+    let randomIndex;
+    do {
+      randomIndex = Math.floor(Math.random() * tracks.length);
+    } while (randomIndex === currentTrackIndex);
+    currentTrackIndex = randomIndex;
+  } else {
+    // Loop: Move to the next track or start over
+    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+  }
+  switchTrack();
+}
+
+// Function to switch tracks
+function switchTrack() {
+  audio.pause();
+  audio.src = tracks[currentTrackIndex].file; // Update audio source
+  audio.load(); // Reload the audio file
+  audio.play(); // Auto-play the next track
+  progressBar.value = 0; // Reset progress bar
+  playButton.style.display = 'none';
+  pauseButton.style.display = 'inline';
+  showMetadata(); // Update metadata
+}
+
+// Show metadata information
+function showMetadata() {
+  trackTitle.textContent = `Now Playing: ${tracks[currentTrackIndex].title}`;
+  metadata.style.display = 'block';
+}
+
+// Update progress bar
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    const progress = (audio.currentTime / audio.duration) * 100;
+    progressBar.value = progress;
+  }
+});
+
+// Seek within track
+progressBar.addEventListener('input', () => {
+  audio.currentTime = (progressBar.value / 100) * audio.duration;
+});
+
+// Auto-play the next track when the current one ends
+audio.addEventListener('ended', () => {
+  nextTrack();
+});
+
+// Debugging: Log errors
+audio.addEventListener('error', (e) => {
+  console.error(`Error with track: ${tracks[currentTrackIndex].file}`, e);
+});
+    </script>
+
+
+
+
+
+
     <!-- <div class="top-left-links">
         <a href="#work" id="scrollLink">WORK</a>
         <a href="#contact "id="scrollLink2">CONTACT</a>
@@ -335,108 +454,109 @@
 
 
     <div class="hero-takeover-layer">
-      
-        <div class="jumbo-title large-statement no-border border-top">
+
+      <div class="jumbo-title large-statement no-border border-top">
 
 
 
-          <div class="content">
-            <div class="elementcontainer">
-              <a href="about.html">
+        <div class="content">
+          <div class="elementcontainer">
+            <a href="about.html">
               <div class="elementcontainertitle">
                 KANG RECORDS ®
               </div>
               <div class="elementcontainerbody">
-                KR is an open community platform for all Artists. Providing tools and a network everyone to grow, connect, and thrive together.
+                KR is an open community platform for all Artists. Providing tools and a network everyone to grow,
+                connect, and thrive together.
               </div>
               <div class="end-spacer"></div>
             </a>
-              </div>
-          </div>
-
-          <div class="content">
-            <div class="elementcontainer">
-              <div class="elementcontainertitle">
-                FEATURED
-              </div>
-
-              <!-- one article -->
-              <div class="elementcontainerarticle">
-                <div class="elementcontainerarticleimage">
-                  <img src="img/wegotfoodathome.png" alt="We got food at home ">
-                </div>
-                <div class="elementarticlesubtext">
-                  <p class="subtext1">Cap1talA</p>
-                  <p class="subtext2">We Got Food At Home</p>
-                  <p class="subtext3">Album</p>
-                </div>
-              </div>
-
-              <!-- one article -->
-              <div class="elementcontainerarticle">
-                <div class="elementcontainerarticleimage">
-                  <img src="img/Grateful.jpg" alt="We got food at home ">
-                </div>
-                <div class="elementarticlesubtext">
-                  <p class="subtext1">Jesse Ayo</p>
-                  <p class="subtext2">Grateful</p>
-                  <p class="subtext3">Music video</p>
-                </div>
-              </div>
-            
-            </div>
-        
-          
           </div>
         </div>
 
-        <div class="content invertcolor">
-          <div class="elementcontainer invertcolor">
-            <div class="elementcontainertitle invertcolor">
-              STORE
-            </div>
-            <div class="elementcontainersubbody " >
-              All profit from sales gets distributed to everyone in KR, platforming our community.
-            </div>
-
-            <div class="storecontainer">
-              <div class="storeitem1">
-                <div class="storeitemimage">
-                  <img src="img/worldwidetee1.png" alt="Item 1" />
-                </div>
-                <div class="storeitemtext">Worldwide Tee<br>KR £25</div>
-              </div>
-              <div class="storeitem2">
-                <div class="storeitemimage">
-                  <img src="img/KOLtee.png" alt="Item 2" />
-                </div>
-                <div class="storeitemtext">KOL Tee <br>Cap1talA £25</div>
-              </div>
-              <div class="storeitem3">
-                <div class="storeitemimage">
-                  <img src="img/BACK COVER 2.png" alt="Item 3" />
-                </div>
-                <div class="storeitemtext">TRT Vol.1 Vinyl<br>George Symonds £100</div>
-              </div>
-              <div class="storeitem3">
-                <div class="storeitemimage">
-                  
-                </div>
-                <div class="storeitemtext">view more></div>
-              </div>
-            </div>
-
-            
-
-
-            <div class="end-spacer"></div>
-          
-            </div>
-            
-        </div>
         <div class="content">
           <div class="elementcontainer">
-            <a href="about.html">
+            <div class="elementcontainertitle">
+              FEATURED
+            </div>
+
+            <!-- one article -->
+            <div class="elementcontainerarticle">
+              <div class="elementcontainerarticleimage">
+                <img src="img/wegotfoodathome.png" alt="We got food at home ">
+              </div>
+              <div class="elementarticlesubtext">
+                <p class="subtext1">Cap1talA</p>
+                <p class="subtext2">We Got Food At Home</p>
+                <p class="subtext3">Album</p>
+              </div>
+            </div>
+
+            <!-- one article -->
+            <div class="elementcontainerarticle">
+              <div class="elementcontainerarticleimage">
+                <img src="img/Grateful.jpg" alt="We got food at home ">
+              </div>
+              <div class="elementarticlesubtext">
+                <p class="subtext1">Jesse Ayo</p>
+                <p class="subtext2">Grateful</p>
+                <p class="subtext3">Music video</p>
+              </div>
+            </div>
+
+          </div>
+
+
+        </div>
+      </div>
+
+      <div class="content invertcolor">
+        <div class="elementcontainer invertcolor">
+          <div class="elementcontainertitle invertcolor">
+            STORE
+          </div>
+          <div class="elementcontainersubbody ">
+            All profit from sales gets distributed to everyone in KR, platforming our community.
+          </div>
+
+          <div class="storecontainer">
+            <div class="storeitem1">
+              <div class="storeitemimage">
+                <img src="img/worldwidetee1.png" alt="Item 1" />
+              </div>
+              <div class="storeitemtext">Worldwide Tee<br>KR £25</div>
+            </div>
+            <div class="storeitem2">
+              <div class="storeitemimage">
+                <img src="img/KOLtee.png" alt="Item 2" />
+              </div>
+              <div class="storeitemtext">KOL Tee <br>Cap1talA £25</div>
+            </div>
+            <div class="storeitem3">
+              <div class="storeitemimage">
+                <img src="img/BACK COVER 2.png" alt="Item 3" />
+              </div>
+              <div class="storeitemtext">TRT Vol.1 Vinyl<br>George Symonds £100</div>
+            </div>
+            <div class="storeitem3">
+              <div class="storeitemimage">
+
+              </div>
+              <div class="storeitemtext">view more></div>
+            </div>
+          </div>
+
+
+
+
+          <div class="end-spacer"></div>
+
+        </div>
+
+      </div>
+      <div class="content">
+        <div class="elementcontainer">
+          <a href="about.html">
             <div class="elementcontainertitle">
               THE NETWORK
             </div>
@@ -445,14 +565,14 @@
             </div>
             <div class="end-spacer"></div>
           </a>
-            </div>
         </div>
-        
-     
+      </div>
 
 
 
-      
+
+
+
   </main>
 
   <footer class="site-footer">
@@ -551,7 +671,7 @@
       });
     });
   </script>
-  
+
 
 
 </body>
