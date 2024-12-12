@@ -1365,6 +1365,10 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   color: #fdd327;
 }
 
+.yellow{
+  color: #fdd327;
+}
+
 /* Style for the links */
 .top-left-links a {
   text-decoration: none;
@@ -1419,6 +1423,22 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   margin-left: 7px;
 }
 
+@media (max-width: 768px) {
+  .mediaplayback {
+    /* display: block; Change to block layout for mobile */
+    /* align-items: flex-start; Align items to the top */
+    gap: 5px; /* Reduce spacing between elements */
+    margin-left: 0; /* Remove the left margin */
+    padding: 10px; /* Add some padding for spacing */
+  }
+
+  .icon {
+    /* filter: invert(100%); Make SVG icons white */
+    width: 23px;
+    height: 23px;
+  }
+}
+
 .control-btn {
   background: none;
   border: none;
@@ -1460,6 +1480,7 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   text-align: center;
   margin-top: 5px;
   color: white;
+  font-size: 12.5px;
 }
 
 
@@ -1486,14 +1507,14 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   transition: fill 300ms;
 }
 .hero-takeover .hero-takeover-button.prev {
-  left: calc(var(--margin-x) - 12px);
+  left: calc(var(--margin-x));
 }
 .no-touch .hero-takeover .hero-takeover-button.prev:hover,
 .touch .hero-takeover .hero-takeover-button.prev:active {
   transform: translate(-5px, -50%);
 }
 .hero-takeover .hero-takeover-button.next {
-  right: calc(var(--margin-x) - 12px);
+  right: calc(var(--margin-x) );
 }
 .no-touch .hero-takeover .hero-takeover-button.next:hover,
 .touch .hero-takeover .hero-takeover-button.next:active {
@@ -1508,10 +1529,20 @@ html[data-hero-takeover-mods*="white-ui"]
 .hero-takeover .indicator {
   position: absolute;
   z-index: 2;
-  right: var(--margin-x);
+  right: 14px;
   bottom: var(--margin-y);
   white-space: nowrap;
 }
+
+@media (min-width: 768px) {
+  .hero-takeover .indicator {
+    bottom: 70px;
+    
+  }
+}
+
+
+
 .hero-takeover .slide {
   position: absolute;
   left: 0;
@@ -1553,10 +1584,23 @@ html[data-hero-takeover-mods*="white-ui"]
 .hero-takeover .slide.fullscreen .universal-caption {
   position: absolute;
   z-index: 2;
-  left: var(--margin-x);
-  bottom: var(--margin-y);
+  left: 18px;
+  bottom: 70px;
   right: calc(var(--margin-x) + 20%);
 }
+
+@media (max-width: 768px) {
+  .hero-takeover .slide.fullscreen .universal-caption {
+    
+    
+    bottom: var(--margin-y);
+    
+  }
+
+}
+
+
+
 .hero-takeover .slide.contain {
   padding: var(--inset-top) var(--margin-x) var(--margin-y);
   display: flex;
@@ -2028,39 +2072,165 @@ a .jumbo-title {
   }
 }
 
+/* Store container remains the same */
 .storecontainer {
-  display: flex; /* Makes items align in a row */
-  overflow-x: auto; /* Allows horizontal scrolling */
-  max-height: 300px; /* Restricts the height of the container */
-  gap: 16px; /* Adds spacing between items */
-  padding: 16px; /* Optional padding for a nicer look */
-  scroll-snap-type: x mandatory; /* Enables snap scrolling */
+  display: flex;
+  overflow-x: auto;
+  max-height: 300px;
+  gap: 16px;
+  padding: 16px;
+  scroll-snap-type: x mandatory;
+  position: relative; /* Necessary for absolute child positioning */
 }
 
 .storecontainer div {
-  scroll-snap-align: start; /* Aligns items to the start during snapping */
+  scroll-snap-align: start;
 }
 
-.storeitem1, .storeitem2, .storeitem3 {
-  display: flex;
-  flex-direction: column; /* Aligns image and text vertically */
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0; /* Prevents items from shrinking */
-  /* width: 200px; Fixed width for each item (adjust as needed) */
-  text-align: left;
+.storeitem{
+  cursor: pointer;
 }
 
 .storeitemimage img {
-  max-width: 100%; /* Ensures the image fits within its container */
-  max-height: 150px; /* Restricts the height of the image */
+  max-width: 100%;
+  max-height: 150px;
 }
 
 .storeitemtext {
-  margin-top: 8px; /* Spacing between the image and text */
+  margin-top: 8px;
   font-size: 13px;
   font-weight: bold;
 }
+
+/* Hidden item details below the storecontainer */
+.item-details {
+  position: absolute;
+  /* top: 100%; Push below the parent container */
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  color: black;
+  z-index: 1000;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-top: 1px solid #ccc;
+  display: none; /* Initially hidden */
+}
+
+/* Item details active state */
+.item-details.active {
+  display: block;
+  position: relative;
+}
+
+/* Close button */
+.details-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Slider styling */
+.image-slider {
+  display: flex;
+  overflow-x: auto;
+  
+  margin: 20px 0;
+}
+
+.slider-container {
+  display: flex;
+  flex-shrink: 0;
+  gap: 20px;
+}
+
+.slider-container img {
+  max-width: 300px;
+  height: 300px;
+  /* width: 400px */
+  /* border-radius: 5px; */
+}
+
+/* Size buttons */
+.size-buttons {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.size-btn {
+  /* padding: 8px 8px; */
+  width: 43px;
+  height: 43px;
+  background-color: #f0f0f0;
+  color: black;
+  border: 1px solid #000000;
+  /* border-radius: 3px; */
+  cursor: pointer;
+  font-size: 23px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+}
+/* OLD */
+.soldout-size-btn{
+  color: #b9b9b9 !important;
+  border: 1px solid #b9b9b9 !important;
+  background-color: #f0f0f0;
+
+}
+
+.soldout-size-btn:hover {
+  /* background-color: #b9b9b9; */
+  color: #b9b9b9;
+  background-color: #f0f0f0 !important;
+  cursor: default;
+}
+
+/* NEWDisabled BUY button */
+.buy-btn.disabled {
+  background: #ccc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* Active size button */
+.size-btn.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Sold-out size button */
+.soldout-size-btn {
+  color: #b9b9b9 !important;
+  border: 1px solid #b9b9b9 !important;
+  background-color: #f0f0f0;
+  cursor: default;
+}
+
+
+
+.size-btn:hover {
+  background-color: #ddd;
+  color: #000;
+}
+
+.buy-btn {
+  padding: 10px 20px;
+  background: #ff4500;
+  border: none;
+  color: white;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.buy-btn:hover {
+  background-color: #e03d00; /* Slightly darker red */
+}
+
+
 
 .elementcontainer{
   padding-bottom: 20px;
@@ -2076,6 +2246,30 @@ a .jumbo-title {
   padding: 0 10px; /*  justs sides */
   padding-top: 5px;
   font-weight: bold;
+  display: flex;
+  
+}
+
+.elementcontainertitleoption{
+  text-align: right;
+  font-size: 20px;
+  justify-content: space-between;
+  text-decoration: underline;
+  position: absolute;
+  right: 10px;
+  padding-top: 7px;
+}
+
+@media (max-width: 768px) {
+  .elementcontainertitleoption{
+    
+    font-size: 14px;
+    
+  }
+}
+
+.negatepadding{
+  padding-top: 0px;
 }
 
 .elementcontainerbody {
@@ -2105,6 +2299,7 @@ a .jumbo-title {
   width: 100%;
   height: 300px;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .subtext1{
@@ -2729,6 +2924,7 @@ video {
   background: #000;
   position: relative;
   z-index: 1;
+  padding: 0 10px;
 }
 .site-footer .top {
   font-size: 12px;
