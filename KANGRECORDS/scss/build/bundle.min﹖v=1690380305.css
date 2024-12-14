@@ -2093,7 +2093,7 @@ a .jumbo-title {
 
 .storeitemimage img {
   max-width: 100%;
-  max-height: 150px;
+  max-height: 200px;
 }
 
 .storeitemtext {
@@ -2296,7 +2296,8 @@ a .jumbo-title {
 .page-indicators {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 0.5px solid white; /* Add a thin black border on top */
 }
 
 .page-indicators div {
