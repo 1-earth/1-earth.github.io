@@ -938,10 +938,13 @@ img[src^="data:image/svg+xml"][alt="Google"],
   
 }
 
-.maininfopopup{
+.maininfopopup {
   position: absolute;
-  top: 100px;
-  max-width: 50vw;
+  top: 70px;
+  left: 50%;             /* Move the element to the center of the screen */
+  transform: translateX(-50%);  /* Adjust the element's position to ensure it's centered */
+  max-width: 80vw;
+  width: 600px;
   padding: 23px;
 }
 

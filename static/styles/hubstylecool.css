@@ -1485,18 +1485,27 @@ body .cookie-banner .cookie-banner__button-accept {
   z-index: 2;
 }
 
-.hero-takeover,
-.hero-takeover-spacer {
-  height: 133vw;
-  max-height: calc(var(--window-height) - 98px);
+.section-icon {
+  width: 12px;  /* Adjust the size of the icon */
+  height: 14px;  /* Adjust the size of the icon */
+  margin-right: 5px;  /* Space between the icon and the text */
+  vertical-align: bottom;
+  padding-bottom: 2.3px;
 }
 
-@media (min-width: 768px) {
+.hero-takeover,
+.hero-takeover-spacer {
+  height: 92vh;
+  
+}
+
+/* desktop */
+@media (min-width: 768px) { 
 
   .hero-takeover,
   .hero-takeover-spacer {
-    height: var(--window-height);
-    max-height: none;
+    height: 90vh;
+    
   }
 }
 
@@ -1640,7 +1649,7 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   color: white;
   background-color: rgba(0, 0, 0, 0.7);
   border: 1px solid white;
-  border-radius: 15px;
+  border-radius: 7px;
   cursor: pointer;
   transition: background-color 0.3s;
   width: 300px;
@@ -1693,6 +1702,7 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   /* Start fully transparent */
   transition: opacity 2s ease-in;
   /* Fade-in duration */
+  width: 600px;
 }
 
 .welcome-button {
@@ -2956,10 +2966,12 @@ body.no-margin-top .page-builder .page-builder-cookie-wall:first-child {
 }
 
 .section-title {
+  display: inline-flex;
   line-height: 1;
   border-top: 1px solid;
   padding-top: 4px;
   margin-bottom: 21px;
+  align-items: flex-end;
 }
 
 .section-title2 {
