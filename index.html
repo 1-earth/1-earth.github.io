@@ -25,7 +25,7 @@
     href="https://fast.fonts.net/lt/1.css?apiType=css&amp;c=3efc039e-d6e4-4305-82b1-84cdd154d8f9&amp;fontids=5664093"
     as="style" onload="this.onload=null;this.rel='stylesheet'" />
 
-  
+
 </head>
 
 <body class="home has-hero-takeover no-margin-top">
@@ -77,7 +77,7 @@
 
 
 
-    <section  class="hero-takeover" style="opacity: 0">
+    <section class="hero-takeover" style="opacity: 0">
       <div class="jumbo-wordmark">
 
       </div>
@@ -109,7 +109,7 @@
     </section>
 
 
-    <div class="hero-takeover-spacer" ></div>
+    <div class="hero-takeover-spacer"></div>
 
     <div id="hero-section" class="hero-takeover-layer">
 
@@ -117,11 +117,11 @@
       <div id="contact" class="extrainfo no-border">
 
 
-        <div class="page-builder" >
+        <div class="page-builder">
 
           <div class="media type-video inset">
 
-            <h1 class="section-title">
+            <h1 class="section-title welcome-scroll">
               <img src="static/images/icons/down2.png" alt="Icon" class="section-icon"> WHO WE ARE
             </h1>
 
@@ -276,12 +276,12 @@
         window.scrollTo({ top: yPosition, behavior: 'smooth' });  // Scroll to the adjusted position
       });
     });
-  
+
     window.addEventListener("load", function () {
       // Trigger the scale-up animation for the image after the page loads
-    setTimeout(function () {
-      document.querySelector(".centered-image2").classList.add("scale-up");
-    }, 1000); // 1-second delay before starting the scale-up animation
+      setTimeout(function () {
+        document.querySelector(".centered-image2").classList.add("scale-up");
+      }, 1000); // 1-second delay before starting the scale-up animation
 
 
       // Add fade-in class to all elements after 1 second
@@ -290,13 +290,18 @@
         document.querySelector(".welcome-button").classList.add("fade-in");
         document.querySelector(".top-left-links").classList.add("fade-in");
       }, 1000); // 1-second delay before fading in
-  
+
       // Scroll to hero section when "Welcome" button is clicked
       document.querySelector(".welcome-button").addEventListener("click", function () {
         document.querySelector("#hero-section").scrollIntoView({ behavior: "smooth" });
       });
+
+      document.querySelector(".welcome-scroll").addEventListener("click", function () {
+        document.querySelector("#hero-section").scrollIntoView({ behavior: "smooth" });
+      });
+
     });
-    
+
   </script>
 
 </body>

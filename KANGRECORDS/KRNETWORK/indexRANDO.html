@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Network Graph</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+        }
+
+        .link {
+            stroke: #fff;
+            stroke-opacity: 0.6;
+        }
+
+        .highlighted-link {
+            stroke: #ffa500;
+            stroke-width: 2px;
+        }
+
+        .node circle {
+            fill: #69b3a2;
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .node circle:hover {
+            cursor: pointer;
+            fill: #ffa500;
+        }
+
+        .highlighted-node circle {
+            fill: #ffa500;
+            stroke-width: 2px;
+        }
+
+        .dimmed {
+            opacity: 0.45;
+        }
+
+        .instructions {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 5;
+            font-size: 14px;
+            color: white;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        .instructions ul {
+            margin: 5px 0;
+            padding-left: 15px;
+        }
+
+        .instructions ul li {
+            margin: 5px 0;
+        }
+
+        .search-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 5;
+            color: white;
+        }
+
+        .search-container input {
+            padding: 5px;
+            border: none;
+            border-radius: 3px;
+            width: 150px;
+        }
+
+        .search-container button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            background: #69b3a2;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-container button:hover {
+            background: #ffa500;
+        }
+
+        svg {
+            width: 100%;
+            height: calc(100vh - 20px);
+        }
+
+        #popup-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Dark background */
+            display: none; /* Hidden by default */
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        #popup-container .popup {
+            background: rgba(78, 78, 78, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        #popup-container .popup img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+        }
+
+        #popup-container .popup button {
+            background-color: #69b3a2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        #popup-container .popup button:hover {
+            background-color: #ffa500;
+        }
+
+    </style>
+</head>
+
+<body>
+    
+    <div class="instructions">
+        <h2>KR Community Network</h2>
+        <strong>Instructions:</strong>
+        <ul>
+            <li>Hover over a node to preview details.</li>
+            <li>Click a node to view connections.</li>
+            <li>Use mouse scroll or drag to zoom and pan.</li>
+        </ul>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search for a node..." />
+        <button onclick="searchNode()">Search</button>
+    </div>
+
+    <div id="popup-container">
+        <div class="popup">
+            <h2 id="popup-title"></h2>
+            <img id="popup-image" src="" alt="Profile Image">
+            <p id="popup-description"></p>
+            <button onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+    <svg></svg>
+
+    <script>
+        const profiles = {};
+
+const names = [
+    "Alice", "Bob", "Charlie", "Daisy", "Eve", "Frank", "Grace", "Helen", "Ian", "James", 
+    "Kevin", "Liam", "Nina", "Olivia", "Patrick", "Quinn", "Rachel", "Sophie", "Tom", "Uma", 
+    "Victor", "Willow", "Xander", "Yara", "Zara", "Aaron", "Bella", "Chris", "Derek", "Ella", 
+    "Fiona", "George", "Hannah", "Isla", "Jack", "Kate", "Leo", "Mia", "Nathan", "Oscar", 
+    "Penny", "Quincy", "Rita", "Steve", "Tina", "Ursula", "Vera", "Wayne", "Xenia", "Yvonne", 
+    "Zack", "Adrian", "Brenda", "Caleb", "Danielle", "Eric", "Felix", "Gabrielle", "Harry", 
+    "Ivy", "Jacob", "Kelly", "Louis", "Megan", "Neil", "Owen", "Paula", "Quinn", "Ralph", 
+    "Sara", "Travis", "Una", "Victor", "Wendy", "Xavier", "Yvette", "Zane", "Albert", "Betty", 
+    "Connor", "Diana", "Edward", "Faith", "Gary", "Heather", "Isaac", "Julia", "Kyle", 
+    "Linda", "Martin", "Nora", "Oliver", "Patty", "Quinton", "Roger", "Sophia", "Tim", 
+    "Ulysses", "Violet", "Wade", "Xena", "Yasmin", "Zelda"
+];
+
+// Generate profiles with interconnections
+names.forEach((name, index) => {
+    const connections = [];
+
+    // Add up to 5 random connections
+    for (let i = 0; i < Math.floor(Math.random() * 5) + 1; i++) {
+        const randomIndex = Math.floor(Math.random() * names.length);
+        const randomName = names[randomIndex];
+
+        if (randomName !== name && !connections.includes(randomName)) {
+            connections.push(randomName);
+        }
+    }
+
+    profiles[name] = {
+        title: name,
+        img: 'https://via.placeholder.com/150',
+        description: `${name} is a dynamic individual with diverse interests.`,
+        connections: connections
+    };
+});
+
+// Ensure bidirectional connections
+Object.keys(profiles).forEach(name => {
+    profiles[name].connections.forEach(connection => {
+        if (!profiles[connection].connections.includes(name)) {
+            profiles[connection].connections.push(name);
+        }
+    });
+});
+
+console.log(profiles);
+
+
+
+
+        const nodes = Object.keys(profiles).map(id => ({ id, ...profiles[id] }));
+        const links = [];
+        Object.entries(profiles).forEach(([id, profile]) => {
+            profile.connections.forEach(connection => {
+                if (profiles[connection]?.connections.includes(id)) {
+                    links.push({ source: id, target: connection });
+                }
+            });
+        });
+
+        const width = window.innerWidth;
+        const height = window.innerHeight - 20;
+
+        const svg = d3.select('svg')
+            .attr('viewBox', `0 0 ${width} ${height}`)
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .call(d3.zoom().on('zoom', (event) => {
+                svg.select('g').attr('transform', event.transform);
+            }));
+
+        const container = svg.append('g');
+
+        const simulation = d3.forceSimulation(nodes)
+            .force('link', d3.forceLink().id(d => d.id).distance(100))
+            .force('charge', d3.forceManyBody().strength(-300))
+            .force('center', d3.forceCenter(width / 2, height / 2))
+            .force('collision', d3.forceCollide().radius(20))
+            .alphaDecay(0.03);
+
+        const link = container.append('g')
+            .attr('class', 'links')
+            .selectAll('line')
+            .data(links)
+            .enter().append('line')
+            .attr('class', 'link');
+
+        const node = container.append('g')
+            .attr('class', 'nodes')
+            .selectAll('g')
+            .data(nodes)
+            .enter().append('g');
+
+        node.append('circle')
+            .attr('r', 10)
+            .attr('fill', '#0000ff')
+            .on('click', (event, d) => {
+                showPopup(d);
+                highlightNodeAndConnections(d);
+                recenterGraph(d);
+            });
+
+        node.append('text')
+            .attr('x', 12)
+            .attr('y', 4)
+            .text(d => d.title)
+            .style('font-family', "'Helvetica Neue', Helvetica, Arial, sans-serif")
+            .style('font-size', '12px')
+            .style('fill', 'white');
+
+        simulation.nodes(nodes).on('tick', () => {
+            link.attr('x1', d => d.source.x)
+                .attr('y1', d => d.source.y)
+                .attr('x2', d => d.target.x)
+                .attr('y2', d => d.target.y);
+
+            node.attr('transform', d => `translate(${d.x},${d.y})`);
+        });
+
+        simulation.force('link').links(links);
+
+        function showPopup(nodeData) {
+            document.getElementById('popup-title').textContent = nodeData.title;
+            document.getElementById('popup-image').src = nodeData.img;
+            document.getElementById('popup-description').textContent = nodeData.description;
+            document.getElementById('popup-container').style.display = 'flex';
+        }
+
+        function closePopup() {
+            document.getElementById('popup-container').style.display = 'none';
+        }
+
+        function highlightNodeAndConnections(selectedNode) {
+            link.classed('dimmed', d => !(d.source.id === selectedNode.id || d.target.id === selectedNode.id))
+                .classed('highlighted-link', d => (d.source.id === selectedNode.id || d.target.id === selectedNode.id));
+
+            node.classed('dimmed', d => d.id !== selectedNode.id && !selectedNode.connections.includes(d.id))
+                .classed('highlighted-node', d => d.id === selectedNode.id || selectedNode.connections.includes(d.id));
+        }
+
+        function recenterGraph(selectedNode) {
+            const transform = d3.zoomIdentity
+                .translate(width / 2 - selectedNode.x, height / 2 - selectedNode.y);
+
+            container.transition().duration(750).attr('transform', transform);
+
+            svg.transition().duration(750).call(
+                d3.zoom().transform,
+                transform
+            );
+        }
+
+        function searchNode() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const node = nodes.find(n => n.title.toLowerCase().includes(searchTerm));
+            if (node) {
+                highlightNodeAndConnections(node);
+                recenterGraph(node);
+            }
+        }
+    </script>
+</body>
+
+</html>
