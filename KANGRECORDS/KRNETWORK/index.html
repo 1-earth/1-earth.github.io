@@ -1,897 +1,775 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Community Network Graph</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="styles.css" />
-  </head>
+</head>
 
-  <body>
+<body>
     <div class="instructions">
-      <h2>KR Community Network</h2>
-      <strong>Instructions:</strong>
-      <ul>
-        <li>Hover over a node to preview details.</li>
-        <li>Click a node to view connections.</li>
-        <li>Use mouse scroll or drag to zoom and pan.</li>
-      </ul>
+        <h2>KR Community Network</h2>
+        <strong>Instructions:</strong>
+        <ul>
+            <li>Hover over a node to preview details.</li>
+            <li>Click a node to view connections.</li>
+            <li>Use mouse scroll or drag to zoom and pan.</li>
+        </ul>
     </div>
 
     <div class="controls-container">
-      <button id="filter-button" onclick="toggleFilterMenu()">
-        Filter by Practice
-      </button>
-      <div id="filter-menu" class="filter-menu">
-        <div class="filter-checkbox">
-          <input type="checkbox" id="3D" onchange="applyPracticeFilter()" /> 3D
+        <button id="filter-button" onclick="toggleFilterMenu()">
+            Filter by Practice
+        </button>
+        <div id="filter-menu" class="filter-menu">
+            <div class="filter-checkbox">
+                <input type="checkbox" id="3D" onchange="applyPracticeFilter()" /> 3D
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Architecture" onchange="applyPracticeFilter()" />
+                Architecture
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Community Engagement" onchange="applyPracticeFilter()" />
+                Community Engagement
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Computing" onchange="applyPracticeFilter()" />
+                Computing
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Graphic Design" onchange="applyPracticeFilter()" />
+                Graphic Design
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Fashion" onchange="applyPracticeFilter()" />
+                Fashion
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Film" onchange="applyPracticeFilter()" />
+                Film
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Fine Art" onchange="applyPracticeFilter()" />
+                Fine Art
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Image" onchange="applyPracticeFilter()" />
+                Image
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Jewelry" onchange="applyPracticeFilter()" />
+                Jewelry
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Music" onchange="applyPracticeFilter()" />
+                Music
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Performance Arts" onchange="applyPracticeFilter()" />
+                Performance Arts
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Printing" onchange="applyPracticeFilter()" />
+                Printing
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Product Design" onchange="applyPracticeFilter()" />
+                Product Design
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Publication" onchange="applyPracticeFilter()" />
+                Publication
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Set Design" onchange="applyPracticeFilter()" />
+                Set Design
+            </div>
         </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Architecture"
-            onchange="applyPracticeFilter()"
-          />
-          Architecture
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Community Engagement"
-            onchange="applyPracticeFilter()"
-          />
-          Community Engagement
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Computing"
-            onchange="applyPracticeFilter()"
-          />
-          Computing
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Graphic Design"
-            onchange="applyPracticeFilter()"
-          />
-          Graphic Design
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Fashion"
-            onchange="applyPracticeFilter()"
-          />
-          Fashion
-        </div>
-        <div class="filter-checkbox">
-          <input type="checkbox" id="Film" onchange="applyPracticeFilter()" />
-          Film
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Fine Art"
-            onchange="applyPracticeFilter()"
-          />
-          Fine Art
-        </div>
-        <div class="filter-checkbox">
-          <input type="checkbox" id="Image" onchange="applyPracticeFilter()" />
-          Image
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Jewelry"
-            onchange="applyPracticeFilter()"
-          />
-          Jewelry
-        </div>
-        <div class="filter-checkbox">
-          <input type="checkbox" id="Music" onchange="applyPracticeFilter()" />
-          Music
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Performance Arts"
-            onchange="applyPracticeFilter()"
-          />
-          Performance Arts
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Printing"
-            onchange="applyPracticeFilter()"
-          />
-          Printing
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Product Design"
-            onchange="applyPracticeFilter()"
-          />
-          Product Design
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Publication"
-            onchange="applyPracticeFilter()"
-          />
-          Publication
-        </div>
-        <div class="filter-checkbox">
-          <input
-            type="checkbox"
-            id="Set Design"
-            onchange="applyPracticeFilter()"
-          />
-          Set Design
-        </div>
-      </div>
-      <button onclick="clearFilters()">Clear Filters</button>
+        <button onclick="clearFilters()">Clear Filters</button>
     </div>
 
     <div id="popup-container">
-      <div class="popup">
-        <button
-          onclick="closePopup()"
-          class="icon-button"
-          style="margin-top: 0px"
-        >
-          <img src="community.svg" alt="Community Icon" class="button-icon" />
-          VIEW COMMUNITY</button
-        ><br />
+        <div class="popup">
+            <button onclick="closePopup()" class="icon-button" style="margin-top: 0px">
+                <img src="community.svg" alt="Community Icon" class="button-icon" />
+                VIEW COMMUNITY</button><br />
 
-        <img id="popup-image" src="" alt="Profile Image" />
-        <h2 id="popup-title"></h2>
+            <img id="popup-image" src="" alt="Profile Image" />
+            <h2 id="popup-title"></h2>
 
-        <!-- Social Icons -->
-        <div class="social-icons">
-          <img
-            src="static/img/instagram.svg"
-            alt="Instagram"
-            class="social-icon"
-          />
-          <img src="static/img/youtube.svg" alt="YouTube" class="social-icon" />
-          <img src="static/img/tiktok.svg" alt="TikTok" class="social-icon" />
-        </div>
-        <!-- User desc. -->
-        <p id="popup-description"></p>
-
-        <!-- (S) Redirected Link Section -->
-        <a
-          id="popup-link-url1"
-          href="#"
-          target="_blank"
-          class="redirect-link-anchor"
-        >
-          <div class="redirect-link">
-            <img
-              src="placeholder.jpg"
-              id="popup-link-img1"
-              alt="Link Image"
-              class="link-image"
-            />
-            <div class="link-text">
-              <p class="link-title" id="popup-link-title1">Link Title</p>
-              <p class="link-description" id="popup-link-description1">
-                Short description of the link.
-              </p>
+            <!-- Social Icons -->
+            <div class="social-icons">
+                <a id="social1" href="#" target="_blank">
+                    <img src="static/img/instagram.svg" alt="Instagram" class="social-icon" />
+                </a>
+                <a id="social2" href="#" target="_blank">
+                    <img src="static/img/youtube.svg" alt="YouTube" class="social-icon" />
+                </a>
+                <a id="social3" href="#" target="_blank">
+                    <img src="static/img/tiktok.svg" alt="TikTok" class="social-icon" />
+                </a>
             </div>
-            <span class="share-icon">...</span>
-          </div>
-        </a>
+            <!-- User desc. -->
+            <p id="popup-description"></p>
 
-        <!-- (S) Redirected Link Section -->
-        <a
-          id="popup-link-url2"
-          href="#"
-          target="_blank"
-          class="redirect-link-anchor"
-        >
-          <div class="redirect-link">
-            <img
-              src="placeholder.jpg"
-              id="popup-link-img2"
-              alt="Link Image"
-              class="link-image"
-            />
-            <div class="link-text">
-              <p class="link-title" id="popup-link-title2">Link Title</p>
-              <p class="link-description" id="popup-link-description2">
-                Short description of the link.
-              </p>
-            </div>
-            <span class="share-icon">...</span>
-          </div>
-        </a>
-
-        <!-- (L) Redirected Link Section -->
-        <a
-          id="popup-link-url3"
-          href="#"
-          target="_blank"
-          class="redirect-link-anchor"
-        >
-          <div class="redirect-link-L">
-            <img
-              src="https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg"
-              id="popup-link-img3"
-              alt="Link Image"
-              class="link-image-L"
-            />
-            <div class="link-content-L">
-              <div class="link-text-L">
-                <p class="link-title-L" id="popup-link-title3">
-                  The Raw Tapes Vol.1
-                </p>
-                <p class="link-description-L" id="popup-link-description3">
-                  KR Collective Album
-                </p>
-              </div>
-              <span class="share-icon-L">...</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- (S) Redirected Link Section -->
-        <a
-          id="popup-link-url4"
-          href="#"
-          target="_blank"
-          class="redirect-link-anchor"
-        >
-          <div class="redirect-link">
-            <img
-              src="https://www.1-earth.world/KANGRECORDS/img/KRICON.png"
-              id="popup-link-img4"
-              alt="Link Image"
-              class="link-image"
-            />
-            <div class="link-text">
-              <p class="link-title" id="popup-link-title4">KANG RECORDS</p>
-              <p class="link-description" id="popup-link-description4">
-                Community Platform for Artists
-              </p>
-            </div>
-            <span class="share-icon">...</span>
-          </div>
-        </a>
-
-        <!-- ( ) SPACER -->
-        <div class="popup-spacer">
-          <div class="popup-spacer-line"></div>
-        </div>
-
-        <!-- ( ) FEATURED SCROLLCHANNEL -->
-        <div class="redirect-link-featurescroll">
-          <h3>FEATURED:</h3>
-
-          <div class="feature-tile-container">
-            <a
-              id="popup-feature-link-url1"
-              href="#"
-              target="_blank"
-              class="feature-link-anchor"
-            >
-              <div class="feature-tile">
-                <img
-                  src="placeholder.jpg"
-                  id="popup-feature-link-img1"
-                  alt="Link Image"
-                  class="link-image-L"
-                />
-                <div class="link-content-L">
-                  <div class="link-text-L">
-                    <p class="link-title-L" id="popup-feature-link-title1">
-                      Link Title
-                    </p>
-                    <p
-                      class="link-description-L"
-                      id="popup-feature-link-description1"
-                    >
-                      Short description of the link.
-                    </p>
-                  </div>
-                  <span class="share-icon-L">...</span>
+            <!-- (S) Redirected Link Section -->
+            <a id="popup-link-url1" href="#" target="_blank" class="redirect-link-anchor">
+                <div class="redirect-link">
+                    <img src="placeholder.jpg" id="popup-link-img1" alt="Link Image" class="link-image" />
+                    <div class="link-text">
+                        <p class="link-title" id="popup-link-title1">Link Title</p>
+                        <p class="link-description" id="popup-link-description1">
+                            Short description of the link.
+                        </p>
+                    </div>
+                    <span class="share-icon">...</span>
                 </div>
-              </div>
             </a>
 
-            <a
-              id="popup-feature-link-url2"
-              href="#"
-              target="_blank"
-              class="feature-link-anchor"
-            >
-              <div class="feature-tile">
-                <img
-                  src="placeholder.jpg"
-                  id="popup-feature-link-img2"
-                  alt="Link Image"
-                  class="link-image-L"
-                />
-                <div class="link-content-L">
-                  <div class="link-text-L">
-                    <p class="link-title-L" id="popup-feature-link-title2">
-                      Link Title
-                    </p>
-                    <p
-                      class="link-description-L"
-                      id="popup-feature-link-description2"
-                    >
-                      Short description of the link.
-                    </p>
-                  </div>
-                  <span class="share-icon-L">...</span>
+            <!-- (S) Redirected Link Section -->
+            <a id="popup-link-url2" href="#" target="_blank" class="redirect-link-anchor">
+                <div class="redirect-link">
+                    <img src="placeholder.jpg" id="popup-link-img2" alt="Link Image" class="link-image" />
+                    <div class="link-text">
+                        <p class="link-title" id="popup-link-title2">Link Title</p>
+                        <p class="link-description" id="popup-link-description2">
+                            Short description of the link.
+                        </p>
+                    </div>
+                    <span class="share-icon">...</span>
                 </div>
-              </div>
             </a>
 
-            <a
-              id="popup-feature-link-url3"
-              href="#"
-              target="_blank"
-              class="feature-link-anchor"
-            >
-              <div class="feature-tile">
-                <img
-                  src="placeholder.jpg"
-                  id="popup-feature-link-img3"
-                  alt="Link Image"
-                  class="link-image-L"
-                />
-                <div class="link-content-L">
-                  <div class="link-text-L">
-                    <p class="link-title-L" id="popup-feature-link-title3">
-                      Link Title
-                    </p>
-                    <p
-                      class="link-description-L"
-                      id="popup-feature-link-description3"
-                    >
-                      Short description of the link.
-                    </p>
-                  </div>
-                  <span class="share-icon-L">...</span>
+            <!-- (L) Redirected Link Section -->
+            <a id="popup-link-url3" href="#" target="_blank" class="redirect-link-anchor">
+                <div class="redirect-link-L">
+                    <img src="https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg" id="popup-link-img3"
+                        alt="Link Image" class="link-image-L" />
+                    <div class="link-content-L">
+                        <div class="link-text-L">
+                            <p class="link-title-L" id="popup-link-title3">
+                                The Raw Tapes Vol.1
+                            </p>
+                            <p class="link-description-L" id="popup-link-description3">
+                                KR Collective Album
+                            </p>
+                        </div>
+                        <span class="share-icon-L">...</span>
+                    </div>
                 </div>
-              </div>
             </a>
-          </div>
-        </div>
 
-        <!-- ( ) SPACER -->
-        <div class="popup-spacer">
-          <div class="popup-spacer-line"></div>
-        </div>
+            <!-- (S) Redirected Link Section -->
+            <a id="popup-link-url4" href="#" target="_blank" class="redirect-link-anchor">
+                <div class="redirect-link">
+                    <img src="https://www.1-earth.world/KANGRECORDS/img/KRICON.png" id="popup-link-img4"
+                        alt="Link Image" class="link-image" />
+                    <div class="link-text">
+                        <p class="link-title" id="popup-link-title4">KANG RECORDS</p>
+                        <p class="link-description" id="popup-link-description4">
+                            Community Platform for Artists
+                        </p>
+                    </div>
+                    <span class="share-icon">...</span>
+                </div>
+            </a>
 
-        <!-- (S) Redirected Link Section -->
-        <a id="popup-link-url5" href="#" target="_blank">
-          <div class="redirect-link">
-            <img
-              src="placeholder.jpg"
-              id="popup-link-img5"
-              alt="Link Image"
-              class="link-image"
-            />
-            <div class="link-text">
-              <p class="link-title" id="popup-link-title5">Link Title</p>
-              <p class="link-description" id="popup-link-description5">
-                Short description of the link.
-              </p>
+            <!-- ( ) SPACER -->
+            <div class="popup-spacer">
+                <div class="popup-spacer-line"></div>
             </div>
-            <span class="share-icon">...</span>
-          </div>
-        </a>
 
-        <button
-          onclick="closePopup()"
-          class="icon-button altButton"
-          style="margin-top: 0px"
-        >
-          <img src="KRICON.png" alt="Community Icon" class="button-icon" />
-          JOIN USER ON KR</button
-        ><br />
+            <!-- ( ) FEATURED SCROLLCHANNEL -->
+            <div class="redirect-link-featurescroll">
+                <h3>FEATURED:</h3>
 
-        <div class="popup-footer">
-          <p>Powered by 🌐 <a href="/index.html" target="_blank">1EARTH</a></p>
+                <div class="feature-tile-container">
+                    <a id="popup-feature-link-url1" href="#" target="_blank" class="feature-link-anchor">
+                        <div class="feature-tile">
+                            <img src="placeholder.jpg" id="popup-feature-link-img1" alt="Link Image"
+                                class="link-image-L" />
+                            <div class="link-content-L">
+                                <div class="link-text-L">
+                                    <p class="link-title-L" id="popup-feature-link-title1">
+                                        Link Title
+                                    </p>
+                                    <p class="link-description-L" id="popup-feature-link-description1">
+                                        Short description of the link.
+                                    </p>
+                                </div>
+                                <span class="share-icon-L">...</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a id="popup-feature-link-url2" href="#" target="_blank" class="feature-link-anchor">
+                        <div class="feature-tile">
+                            <img src="placeholder.jpg" id="popup-feature-link-img2" alt="Link Image"
+                                class="link-image-L" />
+                            <div class="link-content-L">
+                                <div class="link-text-L">
+                                    <p class="link-title-L" id="popup-feature-link-title2">
+                                        Link Title
+                                    </p>
+                                    <p class="link-description-L" id="popup-feature-link-description2">
+                                        Short description of the link.
+                                    </p>
+                                </div>
+                                <span class="share-icon-L">...</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a id="popup-feature-link-url3" href="#" target="_blank" class="feature-link-anchor">
+                        <div class="feature-tile">
+                            <img src="placeholder.jpg" id="popup-feature-link-img3" alt="Link Image"
+                                class="link-image-L" />
+                            <div class="link-content-L">
+                                <div class="link-text-L">
+                                    <p class="link-title-L" id="popup-feature-link-title3">
+                                        Link Title
+                                    </p>
+                                    <p class="link-description-L" id="popup-feature-link-description3">
+                                        Short description of the link.
+                                    </p>
+                                </div>
+                                <span class="share-icon-L">...</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ( ) SPACER -->
+            <div class="popup-spacer">
+                <div class="popup-spacer-line"></div>
+            </div>
+
+            <!-- (S) Redirected Link Section -->
+            <a id="popup-link-url5" href="#" target="_blank">
+                <div class="redirect-link">
+                    <img src="placeholder.jpg" id="popup-link-img5" alt="Link Image" class="link-image" />
+                    <div class="link-text">
+                        <p class="link-title" id="popup-link-title5">Link Title</p>
+                        <p class="link-description" id="popup-link-description5">
+                            Short description of the link.
+                        </p>
+                    </div>
+                    <span class="share-icon">...</span>
+                </div>
+            </a>
+
+            <button onclick="closePopup()" class="icon-button altButton" style="margin-top: 0px">
+                <img src="KRICON.png" alt="Community Icon" class="button-icon" />
+                JOIN USER ON KR</button><br />
+
+            <div class="popup-footer">
+                <p>Powered by 🌐 <a href="/index.html" target="_blank">1EARTH</a></p>
+            </div>
         </div>
-      </div>
     </div>
 
     <div class="tooltip-legend">
-      <strong>Legend:</strong>
-      <ul>
-        <li>
-          <span style="color: #69b3a2">Default Node Color</span>: Active nodes
-        </li>
-        <li>
-          <span style="color: #ffa500">Highlighted Node</span>:
-          Selected/Filtered nodes
-        </li>
-      </ul>
+        <strong>Legend:</strong>
+        <ul>
+            <li>
+                <span style="color: #69b3a2">Default Node Color</span>: Active nodes
+            </li>
+            <li>
+                <span style="color: #ffa500">Highlighted Node</span>:
+                Selected/Filtered nodes
+            </li>
+        </ul>
     </div>
 
     <svg></svg>
 
     <script>
-      const profiles = {
-        Eva: {
-          title: "Eva",
-          img: "https://via.placeholder.com/150",
-          description: "Eva is passionate about fashion and design.",
-          connections: ["Charlie", "Daisy", "GeorgeSymonds"],
-          practice: ["Fashion", "Graphic Design"],
+        const profiles = {
+            Eva: {
+                title: "Eva",
+                img: "https://via.placeholder.com/150",
+                description: "Eva is passionate about fashion and design.",
+                connections: ["Charlie", "Daisy", "GeorgeSymonds"],
+                practice: ["Fashion", "Graphic Design"],
 
-          //redirect link data
-          popuplinktitle1: ["1"],
-          popuplinkdescription1: ["On All Platforms"],
-          popuplinkimg1: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl1: [
-            "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
-          ],
+                //redirect link data
+                popuplinktitle1: ["1"],
+                popuplinkdescription1: ["On All Platforms"],
+                popuplinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl1: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-          popuplinktitle2: ["2"],
-          popuplinkdescription2: [
-            "Community Platform & Design + Production Agency",
-          ],
-          popuplinkimg2: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl2: ["https://www.1-earth.world/"],
+                popuplinktitle2: ["2"],
+                popuplinkdescription2: [
+                    "Community Platform & Design + Production Agency",
+                ],
+                popuplinkimg2: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl2: ["https://www.1-earth.world/"],
 
-          popuplinktitle3: ["3"],
-          popuplinkdescription3: ["KR Collective Album"],
-          popuplinkimg3: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl3: [
-            "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
-          ],
+                popuplinktitle3: ["3"],
+                popuplinkdescription3: ["KR Collective Album"],
+                popuplinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl3: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-          popuplinktitle4: ["4"],
-          popuplinkdescription4: ["Community Platform for Artists"],
-          popuplinkimg4: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
+                popuplinktitle4: ["4"],
+                popuplinkdescription4: ["Community Platform for Artists"],
+                popuplinkimg4: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
 
-          popuplinktitle5: ["5"],
-          popuplinkdescription5: ["My Youtube Videos"],
-          popuplinkimg5: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
+                popuplinktitle5: ["5"],
+                popuplinkdescription5: ["My Youtube Videos"],
+                popuplinkimg5: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
 
-          // redirect featured link data
-          popupfeaturelinktitle1: ["f1"],
-          popupfeaturelinkdescription1: ["The 1st Collection"],
-          popupfeaturelinkimg1: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popupfeaturelinkurl1: [
-            "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
-          ],
+                // redirect featured link data
+                popupfeaturelinktitle1: ["f1"],
+                popupfeaturelinkdescription1: ["The 1st Collection"],
+                popupfeaturelinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl1: [
+                    "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
+                ],
 
-          popupfeaturelinktitle2: ["f2"],
-          popupfeaturelinkdescription2: ["Website"],
-          popupfeaturelinkimg2: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popupfeaturelinkurl2: [
-            "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
-          ],
+                popupfeaturelinktitle2: ["f2"],
+                popupfeaturelinkdescription2: ["Website"],
+                popupfeaturelinkimg2: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl2: [
+                    "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
+                ],
 
-          popupfeaturelinktitle3: ["f3"],
-          popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
-          popupfeaturelinkimg3: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popupfeaturelinkurl3: [
-            "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
-          ],
-        },
-        GeorgeSymonds: {
-          title: "George Symonds",
-          img: "https://www.1-earth.world/KANGRECORDS/img/worldwidecover.jpg",
-          description: "Producer, Designer & 1E General",
-          connections: ["Charlie", "Daisy", "Eva", "Lily"],
-          practice: ["Film", "Graphic Design"],
+                popupfeaturelinktitle3: ["f3"],
+                popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
+                popupfeaturelinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl3: [
+                    "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
+                ],
+            },
+            GeorgeSymonds: {
+                title: "George Symonds",
+                img: "https://www.1-earth.world/KANGRECORDS/img/worldwidecover.jpg",
+                instagram: "https://www.instagram.com/georgesymonds_/",
+                youtube: "https://www.youtube.com/@georgesymonds007",
+                tiktok: "https://www.tiktok.com/@gsymonds_",
+                description: "Producer, Designer & 1E General",
+                connections: ["Charlie", "Daisy", "Eva", "Lily"],
+                practice: ["Film", "Graphic Design"],
 
-          //redirect link data
-          popuplinktitle1: ["Stream My Music"],
-          popuplinkdescription1: ["On All Platforms"],
-          popuplinkimg1: [
-            "https://i.scdn.co/image/ab67616100005174461b59f42dbfd759b9ce3709",
-          ],
-          popuplinkurl1: [
-            "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
-          ],
+                //redirect link data
+                popuplinktitle1: ["Stream My Music"],
+                popuplinkdescription1: ["On All Platforms"],
+                popuplinkimg1: [
+                    "https://i.scdn.co/image/ab67616100005174461b59f42dbfd759b9ce3709",
+                ],
+                popuplinkurl1: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-          popuplinktitle2: ["1EARTH.PRODUCTIONS"],
-          popuplinkdescription2: [
-            "Community Platform & Design + Production Agency",
-          ],
-          popuplinkimg2: [
-            "https://www.1-earth.world/1E%20PRODUCTIONS/img//1EICON.png",
-          ],
-          popuplinkurl2: ["https://www.1-earth.world/"],
+                popuplinktitle2: ["1EARTH.PRODUCTIONS"],
+                popuplinkdescription2: [
+                    "Community Platform & Design + Production Agency",
+                ],
+                popuplinkimg2: [
+                    "https://www.1-earth.world/1E%20PRODUCTIONS/img//1EICON.png",
+                ],
+                popuplinkurl2: ["https://www.1-earth.world/"],
 
-          popuplinktitle3: ["The Raw Tapes Vol.1"],
-          popuplinkdescription3: ["KR Collective Album"],
-          popuplinkimg3: [
-            "https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg",
-          ],
-          popuplinkurl3: [
-            "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
-          ],
+                popuplinktitle3: ["The Raw Tapes Vol.1"],
+                popuplinkdescription3: ["KR Collective Album"],
+                popuplinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg",
+                ],
+                popuplinkurl3: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-          popuplinktitle4: ["KANG RECORDS"],
-          popuplinkdescription4: ["Community Platform for Artists"],
-          popuplinkimg4: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
-          ],
-          popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
+                popuplinktitle4: ["KANG RECORDS"],
+                popuplinkdescription4: ["Community Platform for Artists"],
+                popuplinkimg4: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
 
-          popuplinktitle5: ["Youtube"],
-          popuplinkdescription5: ["My Youtube Videos"],
-          popuplinkimg5: ["YouTube 2.png"],
-          popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
+                popuplinktitle5: ["Youtube"],
+                popuplinkdescription5: ["My Youtube Videos"],
+                popuplinkimg5: ["YouTube 2.png"],
+                popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
 
-          // redirect featured link data
-          popupfeaturelinktitle1: ["KR WORLDWIDE TEE"],
-          popupfeaturelinkdescription1: ["The 1st Collection"],
-          popupfeaturelinkimg1: [
-            "https://www.1-earth.world/KANGRECORDS/img/KRMODEL.jpg",
-          ],
-          popupfeaturelinkurl1: [
-            "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
-          ],
+                // redirect featured link data
+                popupfeaturelinktitle1: ["KR WORLDWIDE TEE"],
+                popupfeaturelinkdescription1: ["The 1st Collection"],
+                popupfeaturelinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRMODEL.jpg",
+                ],
+                popupfeaturelinkurl1: [
+                    "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
+                ],
 
-          popupfeaturelinktitle2: ["Photography Portfolio"],
-          popupfeaturelinkdescription2: ["Website"],
-          popupfeaturelinkimg2: [
-            "https://www.1-earth.world/Portfolio/Photography/images/p21.JPG",
-          ],
-          popupfeaturelinkurl2: [
-            "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
-          ],
+                popupfeaturelinktitle2: ["Photography Portfolio"],
+                popupfeaturelinkdescription2: ["Website"],
+                popupfeaturelinkimg2: [
+                    "https://www.1-earth.world/Portfolio/Photography/images/p21.JPG",
+                ],
+                popupfeaturelinkurl2: [
+                    "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
+                ],
 
-          popupfeaturelinktitle3: ["ONE LOVE"],
-          popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
-          popupfeaturelinkimg3: [
-            "https://i.ytimg.com/vi/PLxwuvEtQDE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDeLQA70TkoVRG3RPDDlaYE154GZw",
-          ],
-          popupfeaturelinkurl3: [
-            "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
-          ],
-        },
-      };
+                popupfeaturelinktitle3: ["ONE LOVE"],
+                popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
+                popupfeaturelinkimg3: [
+                    "https://i.ytimg.com/vi/PLxwuvEtQDE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDeLQA70TkoVRG3RPDDlaYE154GZw",
+                ],
+                popupfeaturelinkurl3: [
+                    "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
+                ],
+            },
+        };
 
-      const nodes = Object.keys(profiles).map((id) => ({
-        id,
-        ...profiles[id],
-      }));
-      const links = [];
-      Object.entries(profiles).forEach(([id, profile]) => {
-        profile.connections.forEach((connection) => {
-          if (profiles[connection]?.connections.includes(id)) {
-            links.push({ source: id, target: connection });
-          }
-        });
-      });
-
-      const width = window.innerWidth;
-      const height = window.innerHeight - 20;
-
-      const svg = d3
-        .select("svg")
-        .attr("viewBox", `0 0 ${width} ${height}`)
-        .attr("preserveAspectRatio", "xMidYMid meet")
-        .call(
-          d3.zoom().on("zoom", (event) => {
-            svg.select("g").attr("transform", event.transform);
-          })
-        );
-
-      const container = svg.append("g");
-
-      const simulation = d3
-        .forceSimulation(nodes)
-        .force(
-          "link",
-          d3
-            .forceLink()
-            .id((d) => d.id)
-            .distance(100)
-        )
-        .force("charge", d3.forceManyBody().strength(-300))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(20))
-        .alphaDecay(0.03);
-
-      const link = container
-        .append("g")
-        .attr("class", "links")
-        .selectAll("line")
-        .data(links)
-        .enter()
-        .append("line")
-        .attr("class", "link");
-
-      const node = container
-        .append("g")
-        .attr("class", "nodes")
-        .selectAll("g")
-        .data(nodes)
-        .enter()
-        .append("g");
-
-      node
-        .append("circle")
-        .attr("r", 10)
-        .attr("fill", "#69b3a2")
-        .on("click", (event, d) => {
-          showPopup(d);
-          highlightNodeAndConnections(d);
-          recenterGraph(d);
+        const nodes = Object.keys(profiles).map((id) => ({
+            id,
+            ...profiles[id],
+        }));
+        const links = [];
+        Object.entries(profiles).forEach(([id, profile]) => {
+            profile.connections.forEach((connection) => {
+                if (profiles[connection]?.connections.includes(id)) {
+                    links.push({ source: id, target: connection });
+                }
+            });
         });
 
-      node
-        .append("text")
-        .attr("x", 12)
-        .attr("y", 4)
-        .text((d) => d.title)
-        .style("font-family", "'Helvetica Neue', Helvetica, Arial, sans-serif")
-        .style("font-size", "12px")
-        .style("fill", "white");
+        const width = window.innerWidth;
+        const height = window.innerHeight - 20;
 
-      simulation.nodes(nodes).on("tick", () => {
-        link
-          .attr("x1", (d) => d.source.x)
-          .attr("y1", (d) => d.source.y)
-          .attr("x2", (d) => d.target.x)
-          .attr("y2", (d) => d.target.y);
+        const svg = d3
+            .select("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .call(
+                d3.zoom().on("zoom", (event) => {
+                    svg.select("g").attr("transform", event.transform);
+                })
+            );
 
-        node.attr("transform", (d) => `translate(${d.x},${d.y})`);
-      });
+        const container = svg.append("g");
 
-      simulation.force("link").links(links);
+        const simulation = d3
+            .forceSimulation(nodes)
+            .force(
+                "link",
+                d3
+                    .forceLink()
+                    .id((d) => d.id)
+                    .distance(100)
+            )
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(20))
+            .alphaDecay(0.03);
 
-      //ASSIGNING PROFILE VALUES TO POPUP
-      function showPopup(nodeData) {
-        document.getElementById("popup-title").textContent = nodeData.title;
-        document.getElementById("popup-image").src = nodeData.img;
-        document.getElementById("popup-description").textContent =
-          nodeData.description;
-        document.getElementById("popup-container").style.display = "flex";
+        const link = container
+            .append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("class", "link");
 
-        //ASSIGNING REDIRECT LINKS
-        for (let i = 1; i <= 5; i++) {
-          document.getElementById(`popup-link-title${i}`).textContent =
-            nodeData[`popuplinktitle${i}`];
-          document.getElementById(`popup-link-description${i}`).textContent =
-            nodeData[`popuplinkdescription${i}`];
-          document.getElementById(`popup-link-img${i}`).src =
-            nodeData[`popuplinkimg${i}`];
-
-          const urlKey = `popuplinkurl${i}`;
-          const linkElement = document.getElementById(`popup-link-url${i}`);
-
-          if (linkElement) {
-            // Dynamically set the href attribute to the URL from nodeData
-            linkElement.href = nodeData[urlKey][0];
-          }
-        }
-
-        //ASSIGNING FEATURED REDIRECT LINKS
-        for (let i = 1; i <= 3; i++) {
-          document.getElementById(`popup-feature-link-title${i}`).textContent =
-            nodeData[`popupfeaturelinktitle${i}`];
-          document.getElementById(
-            `popup-feature-link-description${i}`
-          ).textContent = nodeData[`popupfeaturelinkdescription${i}`];
-          document.getElementById(`popup-feature-link-img${i}`).src =
-            nodeData[`popupfeaturelinkimg${i}`];
-
-          const urlKey = `popupfeaturelinkurl${i}`;
-          const linkElement = document.getElementById(
-            `popup-feature-link-url${i}`
-          );
-
-          if (linkElement) {
-            // Dynamically set the href attribute to the URL from nodeData
-            linkElement.href = nodeData[urlKey][0];
-          }
-        }
-      }
-
-      function closePopup() {
-        document.getElementById("popup-container").style.display = "none";
-      }
-
-      function highlightNodeAndConnections(selectedNode) {
-        link
-          .classed(
-            "dimmed",
-            (d) =>
-              !(
-                d.source.id === selectedNode.id ||
-                d.target.id === selectedNode.id
-              )
-          )
-          .classed(
-            "highlighted-link",
-            (d) =>
-              d.source.id === selectedNode.id || d.target.id === selectedNode.id
-          );
+        const node = container
+            .append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(nodes)
+            .enter()
+            .append("g");
 
         node
-
-          .classed(
-            "dimmed",
-
-            (d) =>
-              d.id !== selectedNode.id &&
-              !selectedNode.connections.includes(d.id)
-          )
-          .classed(
-            "highlighted-node",
-            (d) =>
-              d.id === selectedNode.id ||
-              selectedNode.connections.includes(d.id)
-          );
-      }
-
-      function recenterGraph(filteredNodes) {
-        if (!filteredNodes || !filteredNodes.length) return;
-        const centerX = d3.mean(filteredNodes, (n) => n.x || 0);
-        const centerY = d3.mean(filteredNodes, (n) => n.y || 0);
-        const transform = d3.zoomIdentity.translate(
-          width / 2 - centerX,
-          height / 2 - centerY
-        );
-        container.transition().duration(750).attr("transform", transform);
-        svg.transition().duration(750).call(d3.zoom().transform, transform);
-      }
-
-      function recenterGraph(selectedNode) {
-        const transform = d3.zoomIdentity.translate(
-          width / 2 - selectedNode.x,
-          height / 2 - selectedNode.y
-        );
-
-        container.transition().duration(750).attr("transform", transform);
-
-        svg.transition().duration(750).call(d3.zoom().transform, transform);
-      }
-
-      function searchNode() {
-        const query = document
-          .getElementById("search-input")
-          .value.toLowerCase();
-        const matchedNode = nodes.find((node) =>
-          node.id.toLowerCase().includes(query)
-        );
-        if (matchedNode) {
-          highlightNodeAndConnections(matchedNode);
-          recenterGraph([matchedNode]);
-        } else {
-          alert("Node not found!");
-        }
-      }
-
-      function clearFilters() {
-        // Uncheck all checkboxes
-        document
-          .querySelectorAll(".filter-checkbox input")
-          .forEach((input) => (input.checked = false));
-        // Remove all highlights and dimmed nodes
-        node.classed("dimmed", false).classed("highlighted-node", false);
-        link.classed("dimmed", false).classed("highlighted-link", false);
-        recenterGraph(nodes);
-      }
-
-      function applyPracticeFilter() {
-        // Get all selected practice filters
-        const selectedPractices = Array.from(
-          document.querySelectorAll(".filter-checkbox input:checked")
-        ).map((input) => input.id);
-
-        if (!selectedPractices.length) {
-          clearFilters();
-          return;
-        }
-
-        const filteredNodes = nodes.filter((node) =>
-          selectedPractices.some((practice) => node.practice.includes(practice))
-        );
+            .append("circle")
+            .attr("r", 10)
+            .attr("fill", "#69b3a2")
+            .on("click", (event, d) => {
+                showPopup(d);
+                highlightNodeAndConnections(d);
+                recenterGraph(d);
+            });
 
         node
-          .classed("dimmed", (d) => !filteredNodes.includes(d))
-          .classed("highlighted-node", (d) => filteredNodes.includes(d));
+            .append("text")
+            .attr("x", 12)
+            .attr("y", 4)
+            .text((d) => d.title)
+            .style("font-family", "'Helvetica Neue', Helvetica, Arial, sans-serif")
+            .style("font-size", "12px")
+            .style("fill", "white");
 
-        link
-          .classed(
-            "dimmed",
-            (d) =>
-              !(
-                filteredNodes.includes(d.source) &&
-                filteredNodes.includes(d.target)
-              )
-          )
-          .classed(
-            "highlighted-link",
-            (d) =>
-              filteredNodes.includes(d.source) &&
-              filteredNodes.includes(d.target)
-          );
+        simulation.nodes(nodes).on("tick", () => {
+            link
+                .attr("x1", (d) => d.source.x)
+                .attr("y1", (d) => d.source.y)
+                .attr("x2", (d) => d.target.x)
+                .attr("y2", (d) => d.target.y);
 
-        recenterGraph(filteredNodes);
-      }
+            node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+        });
 
-      function toggleFilterMenu() {
-        const menu = document.getElementById("filter-menu");
-        const filterButton = document.getElementById("filter-button");
-        if (menu.style.display === "block") {
-          menu.style.display = "none";
-          filterButton.textContent = "Filter by Practice";
-        } else {
-          menu.style.display = "block";
-          filterButton.textContent = "Close Filter";
+        simulation.force("link").links(links);
+
+        //ASSIGNING PROFILE VALUES TO POPUP
+        function showPopup(nodeData) {
+            document.getElementById("popup-title").textContent = nodeData.title;
+            document.getElementById("popup-image").src = nodeData.img;
+            document.getElementById("popup-description").textContent =
+                nodeData.description;
+            document.getElementById("popup-container").style.display = "flex";
+
+            //ASSIGNING REDIRECT LINKS
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`popup-link-title${i}`).textContent =
+                    nodeData[`popuplinktitle${i}`];
+                document.getElementById(`popup-link-description${i}`).textContent =
+                    nodeData[`popuplinkdescription${i}`];
+                document.getElementById(`popup-link-img${i}`).src =
+                    nodeData[`popuplinkimg${i}`];
+
+                const urlKey = `popuplinkurl${i}`;
+                const linkElement = document.getElementById(`popup-link-url${i}`);
+
+                if (linkElement) {
+                    // Dynamically set the href attribute to the URL from nodeData
+                    linkElement.href = nodeData[urlKey][0];
+                }
+            }
+
+            //ASSIGNING FEATURED REDIRECT LINKS
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`popup-feature-link-title${i}`).textContent =
+                    nodeData[`popupfeaturelinktitle${i}`];
+                document.getElementById(
+                    `popup-feature-link-description${i}`
+                ).textContent = nodeData[`popupfeaturelinkdescription${i}`];
+                document.getElementById(`popup-feature-link-img${i}`).src =
+                    nodeData[`popupfeaturelinkimg${i}`];
+
+                const urlKey = `popupfeaturelinkurl${i}`;
+                const linkElement = document.getElementById(
+                    `popup-feature-link-url${i}`
+                );
+
+                if (linkElement) {
+                    // Dynamically set the href attribute to the URL from nodeData
+                    linkElement.href = nodeData[urlKey][0];
+                }
+            }
+            //ASSIGNING SOCIAL MEDIA LINKS
+            document.getElementById("social1").href = nodeData.instagram;
+            document.getElementById("social2").href = nodeData.youtube;
+            document.getElementById("social3").href = nodeData.tiktok;
         }
-      }
 
-      // Close dropdown when clicking outside of it
-      document.addEventListener("click", function (event) {
-        const filterMenu = document.getElementById("filter-menu");
-        const filterButton = document.getElementById("filter-button");
-        if (
-          !filterButton.contains(event.target) &&
-          !filterMenu.contains(event.target)
-        ) {
-          filterMenu.style.display = "none";
-          filterButton.textContent = "Filter by Practice";
+        function closePopup() {
+            document.getElementById("popup-container").style.display = "none";
         }
-      });
 
-     // Function to get query parameter
-function getQueryParam(name) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(name);
-}
+        function highlightNodeAndConnections(selectedNode) {
+            link
+                .classed(
+                    "dimmed",
+                    (d) =>
+                        !(
+                            d.source.id === selectedNode.id ||
+                            d.target.id === selectedNode.id
+                        )
+                )
+                .classed(
+                    "highlighted-link",
+                    (d) =>
+                        d.source.id === selectedNode.id || d.target.id === selectedNode.id
+                );
 
-// Check if URL contains 'popup' parameter
-const popupParam = getQueryParam("popup");
+            node
 
-if (popupParam) {
-  // Manually replace %20 with space and normalize to lowercase
-  const profileName = popupParam.replace(/%20/g, ' ').toLowerCase(); // Normalize to lowercase
+                .classed(
+                    "dimmed",
 
-  console.log("Normalized Profile Name:", profileName); // Check the profile name
-  
-  // Check if the profile exists in the profiles object (also lowercase the keys)
-  const selectedProfile = profiles[Object.keys(profiles).find(key => key.toLowerCase() === profileName)];
+                    (d) =>
+                        d.id !== selectedNode.id &&
+                        !selectedNode.connections.includes(d.id)
+                )
+                .classed(
+                    "highlighted-node",
+                    (d) =>
+                        d.id === selectedNode.id ||
+                        selectedNode.connections.includes(d.id)
+                );
+        }
 
-  if (selectedProfile) {
-    // If the profile is found, show the popup
-    showPopup(selectedProfile);
-  } else {
-    // Alert if the profile is not found
-    alert("Profile not found in the query parameters!");
-  }
-}
+        function recenterGraph(filteredNodes) {
+            if (!filteredNodes || !filteredNodes.length) return;
+            const centerX = d3.mean(filteredNodes, (n) => n.x || 0);
+            const centerY = d3.mean(filteredNodes, (n) => n.y || 0);
+            const transform = d3.zoomIdentity.translate(
+                width / 2 - centerX,
+                height / 2 - centerY
+            );
+            container.transition().duration(750).attr("transform", transform);
+            svg.transition().duration(750).call(d3.zoom().transform, transform);
+        }
 
+        function recenterGraph(selectedNode) {
+            const transform = d3.zoomIdentity.translate(
+                width / 2 - selectedNode.x,
+                height / 2 - selectedNode.y
+            );
+
+            container.transition().duration(750).attr("transform", transform);
+
+            svg.transition().duration(750).call(d3.zoom().transform, transform);
+        }
+
+        function searchNode() {
+            const query = document
+                .getElementById("search-input")
+                .value.toLowerCase();
+            const matchedNode = nodes.find((node) =>
+                node.id.toLowerCase().includes(query)
+            );
+            if (matchedNode) {
+                highlightNodeAndConnections(matchedNode);
+                recenterGraph([matchedNode]);
+            } else {
+                alert("Node not found!");
+            }
+        }
+
+        function clearFilters() {
+            // Uncheck all checkboxes
+            document
+                .querySelectorAll(".filter-checkbox input")
+                .forEach((input) => (input.checked = false));
+            // Remove all highlights and dimmed nodes
+            node.classed("dimmed", false).classed("highlighted-node", false);
+            link.classed("dimmed", false).classed("highlighted-link", false);
+            recenterGraph(nodes);
+        }
+
+        function applyPracticeFilter() {
+            // Get all selected practice filters
+            const selectedPractices = Array.from(
+                document.querySelectorAll(".filter-checkbox input:checked")
+            ).map((input) => input.id);
+
+            if (!selectedPractices.length) {
+                clearFilters();
+                return;
+            }
+
+            const filteredNodes = nodes.filter((node) =>
+                selectedPractices.some((practice) => node.practice.includes(practice))
+            );
+
+            node
+                .classed("dimmed", (d) => !filteredNodes.includes(d))
+                .classed("highlighted-node", (d) => filteredNodes.includes(d));
+
+            link
+                .classed(
+                    "dimmed",
+                    (d) =>
+                        !(
+                            filteredNodes.includes(d.source) &&
+                            filteredNodes.includes(d.target)
+                        )
+                )
+                .classed(
+                    "highlighted-link",
+                    (d) =>
+                        filteredNodes.includes(d.source) &&
+                        filteredNodes.includes(d.target)
+                );
+
+            recenterGraph(filteredNodes);
+        }
+
+        function toggleFilterMenu() {
+            const menu = document.getElementById("filter-menu");
+            const filterButton = document.getElementById("filter-button");
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+                filterButton.textContent = "Filter by Practice";
+            } else {
+                menu.style.display = "block";
+                filterButton.textContent = "Close Filter";
+            }
+        }
+
+        // Close dropdown when clicking outside of it
+        document.addEventListener("click", function (event) {
+            const filterMenu = document.getElementById("filter-menu");
+            const filterButton = document.getElementById("filter-button");
+            if (
+                !filterButton.contains(event.target) &&
+                !filterMenu.contains(event.target)
+            ) {
+                filterMenu.style.display = "none";
+                filterButton.textContent = "Filter by Practice";
+            }
+        });
+
+        // Function to get query parameter
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Check if URL contains 'popup' parameter
+        const popupParam = getQueryParam("popup");
+
+        if (popupParam) {
+            // Manually replace %20 with space and normalize to lowercase
+            const profileName = popupParam.replace(/%20/g, " ").toLowerCase(); // Normalize to lowercase
+
+            console.log("Normalized Profile Name:", profileName); // Check the profile name
+
+            // Check if the profile exists in the profiles object (also lowercase the keys)
+            const selectedProfile =
+                profiles[
+                Object.keys(profiles).find(
+                    (key) => key.toLowerCase() === profileName
+                )
+                ];
+
+            if (selectedProfile) {
+                // If the profile is found, show the popup
+                showPopup(selectedProfile);
+            } else {
+                // Alert if the profile is not found
+                alert("Profile not found in the query parameters!");
+            }
+        }
     </script>
-  </body>
+</body>
+
 </html>
