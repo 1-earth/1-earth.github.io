@@ -293,7 +293,7 @@
             Eva: {
                 title: "Eva",
                 img: "https://via.placeholder.com/150",
-                description: "Eva is passionate about fashion and design.",
+                description: "Eva is not a real person.",
                 connections: ["Charlie", "Daisy", "GeorgeSymonds"],
                 practice: ["Fashion", "Graphic Design"],
 
@@ -588,6 +588,7 @@
             document.getElementById("social2").href = nodeData.youtube;
             document.getElementById("social3").href = nodeData.tiktok;
         }
+        
 
         function closePopup() {
             document.getElementById("popup-container").style.display = "none";
@@ -729,10 +730,8 @@
         document.addEventListener("click", function (event) {
             const filterMenu = document.getElementById("filter-menu");
             const filterButton = document.getElementById("filter-button");
-            if (
-                !filterButton.contains(event.target) &&
-                !filterMenu.contains(event.target)
-            ) {
+
+            if (!filterButton.contains(event.target) && !filterMenu.contains(event.target)) {
                 filterMenu.style.display = "none";
                 filterButton.textContent = "Filter by Practice";
             }
@@ -769,6 +768,19 @@
                 alert("Profile not found in the query parameters!");
             }
         }
+
+        // Close popup when clicking outside of it
+        document.addEventListener("click", function (event) {
+            console.log("clicked1")
+            const popupContainer = document.getElementById("popup-container");
+
+            // Check if the click happened outside the popup container
+            if (!popupContainer.contains(event.target)) {
+                console.log("clicked2")
+                closePopup();
+                
+            }
+        });
     </script>
 </body>
 
