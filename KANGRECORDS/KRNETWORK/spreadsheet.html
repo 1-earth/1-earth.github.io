@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profiles Loader</title>
+</head>
+<body>
+    <script>
+        // Your Google Spreadsheet ID
+        const SPREADSHEET_ID = "13GezfXpZX5-09vY3o9nDg9JZ59lfAkrRt3RSv7G-oGM";
+        // API Key (replace with your actual API key)
+        const API_KEY = "AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ";
+        // URL to fetch the data
+        const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
+
+        async function fetchProfiles() {
+            try {
+                // Fetch data from the Google Sheets API
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                // Process the rows into the desired format
+                const rows = data.values;
+                const headers = rows[0]; // First row is headers
+                const profiles = {};
+
+                // Iterate through the rest of the rows
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const username = row[0]; // Column 1: username
+
+                    profiles[username] = {
+                        title: row[1],                  // Column 2: user title
+                        img: row[2],                   // Column 3: avatar url
+                        instagram: row[3],             // Column 4: Instagram url
+                        youtube: row[4],               // Column 5: YouTube url
+                        tiktok: row[5],                // Column 6: TikTok url
+                        description: row[6],           // Column 7: user description
+                        popuplinkurl1: row[7],         // Column 8: link url 1
+                        popuplinktitle1: row[8],       // Column 9: link title 1
+                        popuplinkdescription1: row[9], // Column 10: link description 1
+                        popuplinkimg1: row[10],        // Column 11: link image 1
+                        popuplinkurl2: row[11],        // Column 12: link url 2
+                        popuplinktitle2: row[12],      // Column 13: link title 2
+                        popuplinkdescription2: row[13],// Column 14: link description 2
+                        popuplinkimg2: row[14],        // Column 15: link image 2
+                        popuplinkurl3: row[15],        // Column 16: link url 3
+                        popuplinktitle3: row[16],      // Column 17: link title 3
+                        popuplinkdescription3: row[17],// Column 18: link description 3
+                        popuplinkimg3: row[18],        // Column 19: link image 3
+                        popuplinkurl4: row[19],        // Column 20: link url 4
+                        popuplinktitle4: row[20],      // Column 21: link title 4
+                        popuplinkdescription4: row[21],// Column 22: link description 4
+                        popuplinkimg4: row[22],        // Column 23: link image 4
+                        popuplinkurl5: row[23],        // Column 24: link url 5
+                        popuplinktitle5: row[24],      // Column 25: link title 5
+                        popuplinkdescription5: row[25],// Column 26: link description 5
+                        popuplinkimg5: row[26],        // Column 27: link image 5
+                        popupfeaturelinkurl1: row[27], // Column 28: feature link url 1
+                        popupfeaturelinktitle1: row[28],// Column 29: feature link title 1
+                        popupfeaturelinkdescription1: row[29],// Column 30: feature link description 1
+                        popupfeaturelinkimg1: row[30], // Column 31: feature link image 1
+                        popupfeaturelinkurl2: row[31], // Column 32: feature link url 2
+                        popupfeaturelinktitle2: row[32],// Column 33: feature link title 2
+                        popupfeaturelinkdescription2: row[33],// Column 34: feature link description 2
+                        popupfeaturelinkimg2: row[34], // Column 35: feature link image 2
+                        popupfeaturelinkurl3: row[35], // Column 36: feature link url 3
+                        popupfeaturelinktitle3: row[36],// Column 37: feature link title 3
+                        popupfeaturelinkdescription3: row[37],// Column 38: feature link description 3
+                        popupfeaturelinkimg3: row[38], // Column 39: feature link image 3
+                        connections: row[39]?.split(",") || [], // Column 40: connections (comma-separated)
+                        practice: row[40]?.split(",") || []     // Column 41: practices (comma-separated)
+                    };
+                }
+
+                console.log("Profiles:", profiles);
+                // You can now use `profiles` in your webpage (e.g., render it, save it, etc.)
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Call the function to fetch and process data
+        fetchProfiles();
+    </script>
+</body>
+</html>

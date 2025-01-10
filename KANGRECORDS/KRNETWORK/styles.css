@@ -9,6 +9,21 @@ body {
   stroke-opacity: 0.6;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Avenir:wght@400;700&display=swap');
+.avenir{
+  /* font-family: 'Avenir', sans-serif; */
+  font-weight: 500; /* Medium weight */
+}
+
+.heavy{
+  
+  font-weight: 800; /* Medium weight */
+}
+
+.greytext{
+  color: #535353;
+}
+
 .highlighted-link {
   stroke: #ffa500;
   stroke-width: 2px;
@@ -34,7 +49,7 @@ body {
   opacity: 0.45;
 }
 
-.instructions {
+.headerbar {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -47,24 +62,42 @@ body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-.instructions ul {
+.center-container {
+  /* position: absolute; */
+  pointer-events: none;
+  display: flex;
+  justify-content: center; /* Horizontally center the image */
+  align-items: center;    /* Vertically center (if needed) */
+  height: 100%;           /* Adjust based on your needs */
+}
+
+.centered-image {
+  width: 100px; /* Set the image width */
+}
+
+.headerbar ul {
   margin: 5px 0;
   padding-left: 15px;
 }
 
-.instructions ul li {
+.headerbar ul li {
   margin: 5px 0;
 }
 
 .controls-container {
+  display: flex;
+  align-items: center; /* Center the items vertically */
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 90px;
+ 
   background: rgba(0, 0, 0, 0.7);
   padding: 10px;
   border-radius: 5px;
   z-index: 5;
   color: white;
+  width: 100%; /* Make it take full width of its parent */
+  box-sizing: border-box; /* Include padding in width */
+  gap: 10px;
 }
 
 .controls-container input,
@@ -73,25 +106,55 @@ body {
   margin: 5px 0;
 }
 
-.controls-container input {
+.controls-container input[type="text"] {
+  flex-grow: 1; /* Take remaining space */
   padding: 5px;
-  border: none;
+  border: 0.5px solid white;
+  background-color: #000;
   border-radius: 3px;
-  width: 20px;
+  font-size: 14px;
+  /* margin-right: 10px; */
+  color: #fff;
+}
+
+.filter-menu {
+  display: none;
+  background-color: #333;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.filter-checkbox {
+  margin: 5px 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.controls-container input[type="checkbox"] {
+  margin: 0;
+  
 }
 
 .controls-container button {
   padding: 5px 10px;
   border: none;
   border-radius: 3px;
-  background: #69b3a2;
+  background: #FF8000;
   color: white;
   cursor: pointer;
+  border: 0.5px solid white;
 }
 
 .controls-container button:hover {
   background: #ffa500;
 }
+
+
+
+button + button {
+  margin-left: 10px;
+}
+
 
 .tooltip-legend {
   position: absolute;
@@ -119,7 +182,7 @@ svg {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: none;
   z-index: 10;
   justify-content: center;
@@ -131,14 +194,22 @@ svg {
 #popup-container .popup {
   background-color: rgba(255, 255, 255, 0.9); /* White with 93% opacity */
   border-radius: 10px;
-  padding: 16px;
+  padding: 20px;
   width: 400px;
   max-width: 70vw;
   text-align: center;
   color: #000;
-  max-height: 80vh;
+  max-height: 87vh;
   overflow-y: auto;
   overflow-x: hidden;
+  margin-top: 4vh;
+}
+
+@media screen and (max-width: 768px) {
+  #popup-container .popup {
+    max-width: 80vw !important;
+  }
+
 }
 
 .icon-button {
@@ -263,6 +334,58 @@ svg {
   font-size: 1.5em;
   cursor: pointer;
   margin-left: 10px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Share popup styles */
+.share-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  background-color: white;
+  /* border: 1px solid #ccc; */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  border-radius: 12px;
+}
+
+.share-popup .popup-content {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #000;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.share-popup .copy-btn {
+  padding: 8px 12px;
+  background-color: #0000ff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  display: block; /* Makes the button a block element */
+  margin-left: auto; /* Pushes it to the center */
+  margin-right: auto; /* Pushes it to the center */
+  border-radius: 34px;
+}
+
+.share-popup .copy-btn:hover {
+  background-color: #ff8000;
+}
+
+.share-popup-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
 
 /* the big L redirect links */
@@ -319,6 +442,7 @@ svg {
 
 #popup-title {
   margin: 8px;
+  text-transform: uppercase;
 }
 
 #popup-container .popup .link-text-L {
@@ -342,6 +466,7 @@ svg {
 #popup-container .popup .share-icon-L {
   font-size: 1.5em;
   cursor: pointer;
+  
 }
 
 #popup-container .popup button {
@@ -358,15 +483,4 @@ svg {
   background-color: #ffa500;
 }
 
-.filter-menu {
-  display: none;
-  background-color: #333;
-  padding: 10px;
-  border-radius: 5px;
-  margin-top: 5px;
-}
 
-.filter-checkbox {
-  margin: 5px 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-}

@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KR NETWORK</title>
+    <title>Community Network Graph</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="styles.css" />
-    <link rel="icon" href="/KANGRECORDS/img/KRICON.png" type="image/png">
 </head>
 
 <body>
@@ -15,8 +14,8 @@
         <img src="/KANGRECORDS/img/WHITE KRLOGO.png" alt="Centered Image" class="centered-image">
     </div>
     <div class="headerbar">
-
-        <!-- <h2>KR Community Network</h2>
+        
+            <!-- <h2>KR Community Network</h2>
         <strong>Instructions:</strong>
         <ul>
             <li>Hover over a node to preview details.</li>
@@ -26,15 +25,9 @@
     </div>
 
     <div class="controls-container">
-        <!-- Search Bar -->
-        <input type="text" id="search-bar" placeholder="Search..." />
-    
-        <!-- Filter Button -->
         <button id="filter-button" onclick="toggleFilterMenu()">
             Filter by Practice
         </button>
-    
-        <!-- Filter Menu -->
         <div id="filter-menu" class="filter-menu">
             <div class="filter-checkbox">
                 <input type="checkbox" id="3D" onchange="applyPracticeFilter()" /> 3D
@@ -100,8 +93,6 @@
                 Set Design
             </div>
         </div>
-    
-        <!-- Clear Filters Button -->
         <button onclick="clearFilters()">Clear Filters</button>
     </div>
 
@@ -127,25 +118,25 @@
                 </a>
             </div>
             <!-- User desc. -->
-            <p class="avenir greytext" id="popup-description"></p>
+            <p id="popup-description"></p>
 
             <!-- (S) Redirected Link Section -->
             <a id="popup-link-url1" href="#" target="_blank" class="redirect-link-anchor">
-                <div class="redirect-link avenir">
+                <div class="redirect-link">
                     <img src="placeholder.jpg" id="popup-link-img1" alt="Link Image" class="link-image" />
                     <div class="link-text">
                         <p class="link-title" id="popup-link-title1">Link Title</p>
-                        <p class="link-description " id="popup-link-description1">
+                        <p class="link-description" id="popup-link-description1">
                             Short description of the link.
                         </p>
                     </div>
-                    <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                    <span class="share-icon">...</span>
                 </div>
             </a>
 
             <!-- (S) Redirected Link Section -->
             <a id="popup-link-url2" href="#" target="_blank" class="redirect-link-anchor">
-                <div class="redirect-link avenir">
+                <div class="redirect-link">
                     <img src="placeholder.jpg" id="popup-link-img2" alt="Link Image" class="link-image" />
                     <div class="link-text">
                         <p class="link-title" id="popup-link-title2">Link Title</p>
@@ -153,13 +144,13 @@
                             Short description of the link.
                         </p>
                     </div>
-                    <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                    <span class="share-icon">...</span>
                 </div>
             </a>
 
             <!-- (L) Redirected Link Section -->
             <a id="popup-link-url3" href="#" target="_blank" class="redirect-link-anchor">
-                <div class="redirect-link-L avenir">
+                <div class="redirect-link-L">
                     <img src="https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg" id="popup-link-img3"
                         alt="Link Image" class="link-image-L" />
                     <div class="link-content-L">
@@ -171,14 +162,14 @@
                                 KR Collective Album
                             </p>
                         </div>
-                        <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                        <span class="share-icon-L">...</span>
                     </div>
                 </div>
             </a>
 
             <!-- (S) Redirected Link Section -->
             <a id="popup-link-url4" href="#" target="_blank" class="redirect-link-anchor">
-                <div class="redirect-link avenir">
+                <div class="redirect-link">
                     <img src="https://www.1-earth.world/KANGRECORDS/img/KRICON.png" id="popup-link-img4"
                         alt="Link Image" class="link-image" />
                     <div class="link-text">
@@ -187,7 +178,7 @@
                             Community Platform for Artists
                         </p>
                     </div>
-                    <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                    <span class="share-icon">...</span>
                 </div>
             </a>
 
@@ -200,7 +191,7 @@
             <div class="redirect-link-featurescroll">
                 <h3>FEATURED:</h3>
 
-                <div class="feature-tile-container avenir">
+                <div class="feature-tile-container">
                     <a id="popup-feature-link-url1" href="#" target="_blank" class="feature-link-anchor">
                         <div class="feature-tile">
                             <img src="placeholder.jpg" id="popup-feature-link-img1" alt="Link Image"
@@ -214,7 +205,7 @@
                                         Short description of the link.
                                     </p>
                                 </div>
-                                <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                                <span class="share-icon-L">...</span>
                             </div>
                         </div>
                     </a>
@@ -232,7 +223,7 @@
                                         Short description of the link.
                                     </p>
                                 </div>
-                                <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                                <span class="share-icon-L">...</span>
                             </div>
                         </div>
                     </a>
@@ -250,7 +241,7 @@
                                         Short description of the link.
                                     </p>
                                 </div>
-                                <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                                <span class="share-icon-L">...</span>
                             </div>
                         </div>
                     </a>
@@ -264,7 +255,7 @@
 
             <!-- (S) Redirected Link Section -->
             <a id="popup-link-url5" href="#" target="_blank">
-                <div class="redirect-link avenir">
+                <div class="redirect-link">
                     <img src="placeholder.jpg" id="popup-link-img5" alt="Link Image" class="link-image" />
                     <div class="link-text">
                         <p class="link-title" id="popup-link-title5">Link Title</p>
@@ -272,7 +263,7 @@
                             Short description of the link.
                         </p>
                     </div>
-                    <img class="share-icon" src="/KANGRECORDS/img/dots.svg" alt="Share Icon" />
+                    <span class="share-icon">...</span>
                 </div>
             </a>
 
@@ -305,186 +296,254 @@
     <svg></svg>
 
     <script>
-        // Your Google Spreadsheet ID
-        const SPREADSHEET_ID = "13GezfXpZX5-09vY3o9nDg9JZ59lfAkrRt3RSv7G-oGM";
-        // API Key (replace with your actual API key)
-        const API_KEY = "AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ";
-        // URL to fetch the data
-        const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/Sheet1?key=${API_KEY}`;
+        const profiles = {
+            Eva: {
+                title: "Eva",
+                img: "https://via.placeholder.com/150",
+                description: "Eva is not a real person.",
+                connections: ["Charlie", "Daisy", "GeorgeSymonds"],
+                practice: ["Fashion", "Graphic Design"],
 
-        // Declare profiles in the outer scope
-        let profiles = {};
+                //redirect link data
+                popuplinktitle1: ["1"],
+                popuplinkdescription1: ["On All Platforms"],
+                popuplinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl1: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-        async function fetchProfiles() {
-            try {
-                // Fetch data from the Google Sheets API
-                const response = await fetch(API_URL);
-                const data = await response.json();
+                popuplinktitle2: ["2"],
+                popuplinkdescription2: [
+                    "Community Platform & Design + Production Agency",
+                ],
+                popuplinkimg2: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl2: ["https://www.1-earth.world/"],
 
-                // Process the rows into the desired format
-                const rows = data.values;
-                const headers = rows[0]; // First row is headers
+                popuplinktitle3: ["3"],
+                popuplinkdescription3: ["KR Collective Album"],
+                popuplinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl3: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
 
-                // Iterate through the rest of the rows
-                for (let i = 1; i < rows.length; i++) {
-                    const row = rows[i];
-                    const username = row[0]; // Column 1: username
+                popuplinktitle4: ["4"],
+                popuplinkdescription4: ["Community Platform for Artists"],
+                popuplinkimg4: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
 
-                    profiles[username] = {
-                        title: row[1],                  // Column 2: user title
-                        img: row[2],                   // Column 3: avatar url
-                        instagram: row[3],             // Column 4: Instagram url
-                        youtube: row[4],               // Column 5: YouTube url
-                        tiktok: row[5],                // Column 6: TikTok url
-                        description: row[6],           // Column 7: user description
-                        popuplinkurl1: row[7],         // Column 8: link url 1
+                popuplinktitle5: ["5"],
+                popuplinkdescription5: ["My Youtube Videos"],
+                popuplinkimg5: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
 
-                        popuplinktitle1: row[8],       // Column 9: link title 1
-                        popuplinkdescription1: row[9], // Column 10: link description 1
-                        popuplinkimg1: row[10],        // Column 11: link image 1
-                        popuplinkurl2: row[11],        // Column 12: link url 2
-                        popuplinktitle2: row[12],      // Column 13: link title 2
-                        popuplinkdescription2: row[13],// Column 14: link description 2
-                        popuplinkimg2: row[14],        // Column 15: link image 2
-                        popuplinkurl3: row[15],        // Column 16: link url 3
-                        popuplinktitle3: row[16],      // Column 17: link title 3
-                        popuplinkdescription3: row[17],// Column 18: link description 3
-                        popuplinkimg3: row[18],        // Column 19: link image 3
-                        popuplinkurl4: row[19],        // Column 20: link url 4
-                        popuplinktitle4: row[20],      // Column 21: link title 4
-                        popuplinkdescription4: row[21],// Column 22: link description 4
-                        popuplinkimg4: row[22],        // Column 23: link image 4
-                        popuplinkurl5: row[23],        // Column 24: link url 5
-                        popuplinktitle5: row[24],      // Column 25: link title 5
-                        popuplinkdescription5: row[25],// Column 26: link description 5
-                        popuplinkimg5: row[26],        // Column 27: link image 5
-                        popupfeaturelinkurl1: row[27], // Column 28: feature link url 1
-                        popupfeaturelinktitle1: row[28],// Column 29: feature link title 1
-                        popupfeaturelinkdescription1: row[29],// Column 30: feature link description 1
-                        popupfeaturelinkimg1: row[30], // Column 31: feature link image 1
-                        popupfeaturelinkurl2: row[31], // Column 32: feature link url 2
-                        popupfeaturelinktitle2: row[32],// Column 33: feature link title 2
-                        popupfeaturelinkdescription2: row[33],// Column 34: feature link description 2
-                        popupfeaturelinkimg2: row[34], // Column 35: feature link image 2
-                        popupfeaturelinkurl3: row[35], // Column 36: feature link url 3
-                        popupfeaturelinktitle3: row[36],// Column 37: feature link title 3
-                        popupfeaturelinkdescription3: row[37],// Column 38: feature link description 3
-                        popupfeaturelinkimg3: row[38], // Column 39: feature link image 3
-                        connections: row[39]?.split(", ") || [], // Column 40: connections (comma-separated)
-                        practice: row[40]?.split(",") || []     // Column 41: practices (comma-separated)
+                // redirect featured link data
+                popupfeaturelinktitle1: ["f1"],
+                popupfeaturelinkdescription1: ["The 1st Collection"],
+                popupfeaturelinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl1: [
+                    "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
+                ],
 
-                    };
+                popupfeaturelinktitle2: ["f2"],
+                popupfeaturelinkdescription2: ["Website"],
+                popupfeaturelinkimg2: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl2: [
+                    "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
+                ],
 
+                popupfeaturelinktitle3: ["f3"],
+                popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
+                popupfeaturelinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popupfeaturelinkurl3: [
+                    "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
+                ],
+            },
+            GeorgeSymonds: {
+                title: "George Symonds",
+                img: "https://www.1-earth.world/KANGRECORDS/img/worldwidecover.jpg",
+                instagram: "https://www.instagram.com/georgesymonds_/",
+                youtube: "https://www.youtube.com/@georgesymonds007",
+                tiktok: "https://www.tiktok.com/@gsymonds_",
+                description: "Producer, Designer & 1E General",
+                connections: ["Charlie", "Daisy", "Eva", "Lily"],
+                practice: ["Film", "Graphic Design"],
+
+                //redirect link data
+                popuplinktitle1: ["Stream My Music"],
+                popuplinkdescription1: ["On All Platforms"],
+                popuplinkimg1: [
+                    "https://i.scdn.co/image/ab67616100005174461b59f42dbfd759b9ce3709",
+                ],
+                popuplinkurl1: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
+
+                popuplinktitle2: ["1EARTH.PRODUCTIONS"],
+                popuplinkdescription2: [
+                    "Community Platform & Design + Production Agency",
+                ],
+                popuplinkimg2: [
+                    "https://www.1-earth.world/1E%20PRODUCTIONS/img//1EICON.png",
+                ],
+                popuplinkurl2: ["https://www.1-earth.world/"],
+
+                popuplinktitle3: ["The Raw Tapes Vol.1"],
+                popuplinkdescription3: ["KR Collective Album"],
+                popuplinkimg3: [
+                    "https://www.1-earth.world/KANGRECORDS/img/TRTCOVERcompress.jpg",
+                ],
+                popuplinkurl3: [
+                    "https://distrokid.com/hyperfollow/georgesymonds/the-raw-tapes-vol-1-2",
+                ],
+
+                popuplinktitle4: ["KANG RECORDS"],
+                popuplinkdescription4: ["Community Platform for Artists"],
+                popuplinkimg4: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRICON.png",
+                ],
+                popuplinkurl4: ["https://www.1-earth.world/KANGRECORDS/index.html"],
+
+                popuplinktitle5: ["Youtube"],
+                popuplinkdescription5: ["My Youtube Videos"],
+                popuplinkimg5: ["YouTube 2.png"],
+                popuplinkurl5: ["https://www.youtube.com/@georgesymonds007"],
+
+                // redirect featured link data
+                popupfeaturelinktitle1: ["KR WORLDWIDE TEE"],
+                popupfeaturelinkdescription1: ["The 1st Collection"],
+                popupfeaturelinkimg1: [
+                    "https://www.1-earth.world/KANGRECORDS/img/KRMODEL.jpg",
+                ],
+                popupfeaturelinkurl1: [
+                    "https://www.1-earth.world/KANGRECORDS/index.html#storesection",
+                ],
+
+                popupfeaturelinktitle2: ["Photography Portfolio"],
+                popupfeaturelinkdescription2: ["Website"],
+                popupfeaturelinkimg2: [
+                    "https://www.1-earth.world/Portfolio/Photography/images/p21.JPG",
+                ],
+                popupfeaturelinkurl2: [
+                    "https://www.1-earth.world/Portfolio/Photography/Portfolio.html",
+                ],
+
+                popupfeaturelinktitle3: ["ONE LOVE"],
+                popupfeaturelinkdescription3: ["Music Video for Cap1talA"],
+                popupfeaturelinkimg3: [
+                    "https://i.ytimg.com/vi/PLxwuvEtQDE/hq720.jpg?sqp=-oaymwEhCK4FEIIDSFryq4qpAxMIARUAAAAAGAElAADIQj0AgKJD&rs=AOn4CLDeLQA70TkoVRG3RPDDlaYE154GZw",
+                ],
+                popupfeaturelinkurl3: [
+                    "https://www.youtube.com/watch?v=PLxwuvEtQDE&ab_channel=CAP1TALA",
+                ],
+            },
+        };
+
+        const nodes = Object.keys(profiles).map((id) => ({
+            id,
+            ...profiles[id],
+        }));
+        const links = [];
+        Object.entries(profiles).forEach(([id, profile]) => {
+            profile.connections.forEach((connection) => {
+                if (profiles[connection]?.connections.includes(id)) {
+                    links.push({ source: id, target: connection });
                 }
+            });
+        });
 
-                console.log("Profiles:", profiles);
+        const width = window.innerWidth;
+        const height = window.innerHeight - 20;
 
-                // Initialize the graph after profiles are fetched
-                initializeGraph();
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
+        const svg = d3
+            .select("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .call(
+                d3.zoom().on("zoom", (event) => {
+                    svg.select("g").attr("transform", event.transform);
+                })
+            );
 
-        // // Call the function to fetch and process data
-        fetchProfiles();
+        const container = svg.append("g");
 
-        let link; // Declare link globally
-        let node; // Declare node globally
+        const simulation = d3
+            .forceSimulation(nodes)
+            .force(
+                "link",
+                d3
+                    .forceLink()
+                    .id((d) => d.id)
+                    .distance(100)
+            )
+            .force("charge", d3.forceManyBody().strength(-300))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(20))
+            .alphaDecay(0.03);
 
+        const link = container
+            .append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("class", "link");
 
-        function initializeGraph() {
-            const nodes = Object.keys(profiles).map((id) => ({
-                id,
-                ...profiles[id],
-            }));
+        const node = container
+            .append("g")
+            .attr("class", "nodes")
+            .selectAll("g")
+            .data(nodes)
+            .enter()
+            .append("g");
 
-            const links = [];
-            Object.entries(profiles).forEach(([id, profile]) => {
-                profile.connections.forEach((connection) => {
-                    if (profiles[connection]?.connections.includes(id)) {
-                        links.push({ source: id, target: connection });
-                    }
-                });
+        node
+            .append("circle")
+            .attr("r", 10)
+            .attr("fill", "#69b3a2")
+            .on("click", (event, d) => {
+                console.log("circle clicked")
+                showPopup(d);
+                highlightNodeAndConnections(d);
+                recenterGraph(d);
             });
 
-            const width = window.innerWidth;
-            const height = window.innerHeight - 20;
+        node
+            .append("text")
+            .attr("x", 12)
+            .attr("y", 4)
+            .text((d) => d.title)
+            .style("font-family", "'Helvetica Neue', Helvetica, Arial, sans-serif")
+            .style("font-size", "12px")
+            .style("fill", "white");
 
-            const svg = d3
-                .select("svg")
-                .attr("viewBox", `0 0 ${width} ${height}`)
-                .attr("preserveAspectRatio", "xMidYMid meet")
-                .call(
-                    d3.zoom().on("zoom", (event) => {
-                        svg.select("g").attr("transform", event.transform);
-                    })
-                );
+        simulation.nodes(nodes).on("tick", () => {
+            link
+                .attr("x1", (d) => d.source.x)
+                .attr("y1", (d) => d.source.y)
+                .attr("x2", (d) => d.target.x)
+                .attr("y2", (d) => d.target.y);
 
-            const container = svg.append("g");
+            node.attr("transform", (d) => `translate(${d.x},${d.y})`);
+        });
 
-            const simulation = d3
-                .forceSimulation(nodes)
-                .force(
-                    "link",
-                    d3
-                        .forceLink()
-                        .id((d) => d.id)
-                        .distance(100)
-                )
-                .force("charge", d3.forceManyBody().strength(-300))
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("collision", d3.forceCollide().radius(20))
-                .alphaDecay(0.03);
-
-            // Assign values to global variables
-            link = container
-                .append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(links)
-                .enter()
-                .append("line")
-                .attr("class", "link");
-
-            node = container
-                .append("g")
-                .attr("class", "nodes")
-                .selectAll("g")
-                .data(nodes)
-                .enter()
-                .append("g");
-
-            node
-                .append("circle")
-                .attr("r", 10)
-                .attr("fill", "#69b3a2")
-                .on("click", (event, d) => {
-                    showPopup(d);
-                    highlightNodeAndConnections(d);
-                });
-
-            node
-                .append("text")
-                .attr("x", 12)
-                .attr("y", 4)
-                .text((d) => d.title)
-                .style("font-family", "'Helvetica Neue', Helvetica, Arial, sans-serif")
-                .style("font-size", "12px")
-                .style("fill", "white");
-
-            simulation.nodes(nodes).on("tick", () => {
-                link
-                    .attr("x1", (d) => d.source.x)
-                    .attr("y1", (d) => d.source.y)
-                    .attr("x2", (d) => d.target.x)
-                    .attr("y2", (d) => d.target.y);
-
-                node.attr("transform", (d) => `translate(${d.x},${d.y})`);
-            });
-
-            simulation.force("link").links(links);
-        }
+        simulation.force("link").links(links);
 
         //ASSIGNING PROFILE VALUES TO POPUP
         function showPopup(nodeData) {
@@ -493,7 +552,7 @@
             document.getElementById("popup-description").textContent =
                 nodeData.description;
             document.getElementById("popup-container").style.display = "flex";
-            console.log("executed: document.getElementById(popup-container).style.display = flex;")
+            console.log( "executed: document.getElementById(popup-container).style.display = flex;")
 
             //ASSIGNING REDIRECT LINKS
             for (let i = 1; i <= 5; i++) {
@@ -505,23 +564,15 @@
                     nodeData[`popuplinkimg${i}`];
 
                 const urlKey = `popuplinkurl${i}`;
-                console.log("urlkey: " + urlKey);
-                console.log(`nodeData[${urlKey}]: `, nodeData[urlKey]); // Log the URL to check
                 const linkElement = document.getElementById(`popup-link-url${i}`);
-                console.log(i + linkElement);
 
                 if (linkElement) {
-                    console.log("Setting link for", urlKey);
-                    if (nodeData[urlKey]) {
-                        linkElement.href = nodeData[urlKey];  // Set the href directly if it's a string
-                        console.log(`Set href for link ${i}: `, linkElement.href);
-                    } else {
-                        console.error(`URL for ${urlKey} is not available`);
-                    }
+                    // Dynamically set the href attribute to the URL from nodeData
+                    linkElement.href = nodeData[urlKey][0];
                 }
             }
 
-            // ASSIGNING FEATURED REDIRECT LINKS
+            //ASSIGNING FEATURED REDIRECT LINKS
             for (let i = 1; i <= 3; i++) {
                 document.getElementById(`popup-feature-link-title${i}`).textContent =
                     nodeData[`popupfeaturelinktitle${i}`];
@@ -538,11 +589,7 @@
 
                 if (linkElement) {
                     // Dynamically set the href attribute to the URL from nodeData
-                    if (nodeData[urlKey]) {
-                        linkElement.href = Array.isArray(nodeData[urlKey]) ? nodeData[urlKey][0] : nodeData[urlKey];
-                    } else {
-                        console.error(`URL for ${urlKey} is not available`);
-                    }
+                    linkElement.href = nodeData[urlKey][0];
                 }
             }
             //ASSIGNING SOCIAL MEDIA LINKS
@@ -550,7 +597,7 @@
             document.getElementById("social2").href = nodeData.youtube;
             document.getElementById("social3").href = nodeData.tiktok;
         }
-
+        
 
         function closePopup() {
             document.getElementById("popup-container").style.display = "none";
@@ -604,7 +651,7 @@
             // Compute the transform
             const transform = d3.zoomIdentity.translate(
                 width / 2 - centerX,
-                height / 2 - (centerY)
+                height / 2 - centerY
             );
 
             // Apply the transform to the container (for the visual transform)
@@ -737,63 +784,28 @@
             }
         }
 
-        // Creating the share popup container
-        const sharePopupOverlay = document.createElement('div');
-        sharePopupOverlay.classList.add('share-popup-overlay');
-        document.body.appendChild(sharePopupOverlay);
+    //         document.addEventListener("click", function (event) {
+    //     // Check if the clicked element is a div
+    //     if (event.target.tagName === "DIV") {
+    //         console.log("Clicked div:", event.target);
+    //     } else {
+    //         console.log("Clicked element is not a div:", event.target);
+    //     }
+    // });
 
-        const sharePopup = document.createElement('div');
-        sharePopup.classList.add('share-popup');
-        sharePopupOverlay.appendChild(sharePopup);
+        // // Close popup when clicking outside of it
+        // document.addEventListener("click", function (event) {
+        //     console.log("clicked1")
+        //     const popupContainer = document.getElementsByClassName("popup");
 
-        const sharePopupContent = document.createElement('div');
-        sharePopupContent.classList.add('popup-content');
-        sharePopup.appendChild(sharePopupContent);
+        //     // Check if the click happened outside the popup container
+        //     if (!popupContainer.contains(event.target)) {
+        //         console.log("clicked2")
+        //         closePopup();
+                
+        //     }
+        // });
 
-        const copyButton = document.createElement('button');
-        copyButton.textContent = 'Copy URL';
-        copyButton.classList.add('copy-btn');
-        sharePopup.appendChild(copyButton);
-
-        // Function to open the share popup
-        function openSharePopup(url) {
-            sharePopupContent.textContent = url; // Set the URL text
-            sharePopupOverlay.style.display = 'block'; // Show the overlay and popup
-            sharePopup.style.display = 'block';
-        }
-
-        // Function to close the share popup
-        function closeSharePopup() {
-            sharePopupOverlay.style.display = 'none'; // Hide the overlay and popup
-            sharePopup.style.display = 'none';
-        }
-
-        // Close popup when the overlay is clicked
-        sharePopupOverlay.addEventListener('click', closeSharePopup);
-
-        // Add event listener to copy the URL to clipboard
-        copyButton.addEventListener('click', function () {
-            const textArea = document.createElement('textarea');
-            textArea.value = sharePopupContent.textContent;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            alert('URL copied to clipboard!');
-        });
-
-        // Adding event listeners to share icons
-        for (let i = 1; i <= 5; i++) {
-            const shareIcon = document.querySelector(`#popup-link-url${i} .share-icon`);
-
-            if (shareIcon) {
-                shareIcon.addEventListener('click', function (e) {
-                    e.preventDefault(); // Prevent default action of the <img> tag
-                    const url = document.getElementById(`popup-link-url${i}`).href; // Get the URL from the corresponding link
-                    openSharePopup(url); // Open the popup with the URL
-                });
-            }
-        }
 
     </script>
 </body>
