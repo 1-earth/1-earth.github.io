@@ -26,84 +26,84 @@
     </div>
 
     <div class="controls-container">
-    <!-- Search Bar -->
-    <input type="text" id="search-bar" placeholder="Search..." />
+        <!-- Search Bar -->
+        <input type="text" id="search-bar" placeholder="Search..." />
 
-    <!-- Filter Button -->
-    <button id="filter-button" onclick="toggleFilterMenu()">
-        Filter by Practice
-    </button>
+        <!-- Filter Button -->
+        <button id="filter-button" onclick="toggleFilterMenu()">
+            Filter by Practice
+        </button>
 
-    <!-- Filter Menu -->
-    <div id="filter-menu" class="filter-menu">
-        <div class="filter-checkbox">
-            <input type="checkbox" id="3D" onchange="applyPracticeFilter()" /> 3D
+        <!-- Filter Menu -->
+        <div id="filter-menu" class="filter-menu">
+            <div class="filter-checkbox">
+                <input type="checkbox" id="3D" onchange="applyPracticeFilter()" /> 3D
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Architecture" onchange="applyPracticeFilter()" />
+                Architecture
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Community Engagement" onchange="applyPracticeFilter()" />
+                Community Engagement
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Computing" onchange="applyPracticeFilter()" />
+                Computing
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Graphic Design" onchange="applyPracticeFilter()" />
+                Graphic Design
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Fashion" onchange="applyPracticeFilter()" />
+                Fashion
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Film" onchange="applyPracticeFilter()" />
+                Film
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Fine Art" onchange="applyPracticeFilter()" />
+                Fine Art
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Image" onchange="applyPracticeFilter()" />
+                Image
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Jewelry" onchange="applyPracticeFilter()" />
+                Jewelry
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Music" onchange="applyPracticeFilter()" />
+                Music
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Performance Arts" onchange="applyPracticeFilter()" />
+                Performance Arts
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Printing" onchange="applyPracticeFilter()" />
+                Printing
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Product Design" onchange="applyPracticeFilter()" />
+                Product Design
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Publication" onchange="applyPracticeFilter()" />
+                Publication
+            </div>
+            <div class="filter-checkbox">
+                <input type="checkbox" id="Set Design" onchange="applyPracticeFilter()" />
+                Set Design
+            </div>
         </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Architecture" onchange="applyPracticeFilter()" />
-            Architecture
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Community Engagement" onchange="applyPracticeFilter()" />
-            Community Engagement
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Computing" onchange="applyPracticeFilter()" />
-            Computing
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Graphic Design" onchange="applyPracticeFilter()" />
-            Graphic Design
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Fashion" onchange="applyPracticeFilter()" />
-            Fashion
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Film" onchange="applyPracticeFilter()" />
-            Film
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Fine Art" onchange="applyPracticeFilter()" />
-            Fine Art
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Image" onchange="applyPracticeFilter()" />
-            Image
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Jewelry" onchange="applyPracticeFilter()" />
-            Jewelry
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Music" onchange="applyPracticeFilter()" />
-            Music
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Performance Arts" onchange="applyPracticeFilter()" />
-            Performance Arts
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Printing" onchange="applyPracticeFilter()" />
-            Printing
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Product Design" onchange="applyPracticeFilter()" />
-            Product Design
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Publication" onchange="applyPracticeFilter()" />
-            Publication
-        </div>
-        <div class="filter-checkbox">
-            <input type="checkbox" id="Set Design" onchange="applyPracticeFilter()" />
-            Set Design
-        </div>
+
+        <!-- Clear Filters Button -->
+        <button onclick="clearFilters()">Clear Filters</button>
     </div>
-
-    <!-- Clear Filters Button -->
-    <button onclick="clearFilters()">Clear Filters</button>
-</div>
 
     <div id="popup-container">
         <div class="popup">
@@ -315,6 +315,10 @@
         // Declare profiles in the outer scope
         let profiles = {};
 
+
+        let link; // Declare link globally
+        let node; // Declare node globally
+
         async function fetchProfiles() {
             try {
                 // Fetch data from the Google Sheets API
@@ -379,6 +383,30 @@
 
                 console.log("Profiles:", profiles);
 
+
+
+                // Process 'popup' query parameter
+                const popupParam = getQueryParam("popup");
+                if (popupParam) {
+                    const profileName = popupParam.replace(/%20/g, " ").toLowerCase();
+                    console.log("Normalized Profile Name:", profileName);
+
+                    const selectedProfile = profiles[profileName];
+                    console.log("selectedProfile:", selectedProfile);
+
+                    if (selectedProfile) {
+                        showPopup(selectedProfile);
+                    } else {
+                        alert("Profile not found in the query parameters!");
+                    }
+                }
+
+
+
+
+
+
+
                 // Initialize the graph after profiles are fetched
                 initializeGraph();
             } catch (error) {
@@ -389,8 +417,7 @@
         // // Call the function to fetch and process data
         fetchProfiles();
 
-        let link; // Declare link globally
-        let node; // Declare node globally
+        
 
 
         function initializeGraph() {
@@ -714,28 +741,30 @@
         // Check if URL contains 'popup' parameter
         const popupParam = getQueryParam("popup");
 
-        if (popupParam) {
-            // Manually replace %20 with space and normalize to lowercase
-            const profileName = popupParam.replace(/%20/g, " ").toLowerCase(); // Normalize to lowercase
+        // if (popupParam) {
+        //     // Manually replace %20 with space and normalize to lowercase
+        //     const profileName = popupParam.replace(/%20/g, " ").toLowerCase(); // Normalize to lowercase
 
-            console.log("Normalized Profile Name:", profileName); // Check the profile name
+        //     console.log("Normalized Profile Name:", profileName); // Check the profile name
 
-            // Check if the profile exists in the profiles object (also lowercase the keys)
-            const selectedProfile =
-                profiles[
-                Object.keys(profiles).find(
-                    (key) => key.toLowerCase() === profileName
-                )
-                ];
+        //     // Check if the profile exists in the profiles object (also lowercase the keys)
+        //     const selectedProfile =
+        //         profiles[
+        //         Object.keys(profiles).find(
+        //             (key) => key.toLowerCase() === profileName
+        //         )
+        //         ];
 
-            if (selectedProfile) {
-                // If the profile is found, show the popup
-                showPopup(selectedProfile);
-            } else {
-                // Alert if the profile is not found
-                alert("Profile not found in the query parameters!");
-            }
-        }
+        //     console.log("selectedProfile:", selectedProfile);
+
+        //     if (selectedProfile) {
+        //         // If the profile is found, show the popup
+        //         showPopup(selectedProfile);
+        //     } else {
+        //         // Alert if the profile is not found
+        //         alert("Profile not found in the query parameters!");
+        //     }
+        // }
 
         // Creating the share popup container
         const sharePopupOverlay = document.createElement('div');
