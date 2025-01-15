@@ -2399,6 +2399,10 @@ body.no-margin-top .page-builder .page-builder-cookie-wall:first-child {
   margin-bottom: 21px;
 }
 
+.hidden {
+  display: none;
+}
+
 
 
 .extrainfo{
