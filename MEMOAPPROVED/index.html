@@ -25,7 +25,7 @@
     href="https://fast.fonts.net/lt/1.css?apiType=css&amp;c=3efc039e-d6e4-4305-82b1-84cdd154d8f9&amp;fontids=5664093"
     as="style" onload="this.onload=null;this.rel='stylesheet'" />
 
-  <link href="cpresources/db0da77b/style%EF%B9%96v=1683212373.css" rel="stylesheet" />
+  <!-- <link href="cpresources/db0da77b/style%EF%B9%96v=1683212373.css" rel="stylesheet" /> -->
 
 
 
@@ -65,7 +65,7 @@
 
         <li><a href="index.html#work" target="_blank">WORK</a></li>
 
-        <li><a href="index.html#contact" target="_blank">CONTACT</a></li>
+        <li><a href="index.html#contact" target="_blank">INQUIRE</a></li>
       </ul>
 
       <!-- <form class="header-search-form" action="search/results.html">
@@ -130,7 +130,7 @@
     <img src="img/MemoApprovedLogoMain.png" alt="Centered Image" class="centered-image">
     <div class="top-left-links">
       <a href="#work" id="scrollLink">WORK</a>
-      <a href="#contact " id="scrollLink2">CONTACT</a>
+      <a href="#contact " id="scrollLink2">INQUIRE</a>
     </div>
 
 
@@ -611,11 +611,12 @@
             </div>
           </div>
         </div>
-
+        <img src="./img/MemoApprovedLogoMain.png" alt="memo background" class="non-interactable memobackground">
         <div id="view-more-button" style="display: flex; align-items: center; cursor: pointer; margin-top: 20px;">
           <span id="arrow-icon" style="font-size: 20px; transform: rotate(90deg);">&#9654;</span>
           <span id="view-more-text" style="margin-left: 10px;">[View more...]</span>
         </div>
+        
 
         <script>
           document.getElementById('view-more-button').addEventListener('click', function () {
@@ -641,53 +642,55 @@
       <div id="contact" class="extrainfo no-border">
 
         <!-- <div class="content2 "> -->
+          
         <div class="content ">
           <br />
+          
           <div class="jumbo-title large-statement no-border border-top">
+            
             <h1 class="content forcewhite upZ">
-              CONTACT TODAY<br>
+              INQUIRE TODAY<br>
             </h1>
             <div class="contactsection">
 
               <div class="contacttext">
 
                 <h1 style="font-size: 34px;" class="forcewhite upZ">
-                  EXPERT SOLUTIONS TO COMPLEX PROBLEMS ARE SIMPLE, JUST LIKE REACHING OUT TO OUR TEAM!
+                  IT’S TIME TO GROW, ESTABLISH WHO YOU ARE AS AN ARTIST.
                 </h1>
                 <br><br>
                 <p style="font-weight: 900 !important;" class="forcewhite upZ">
-                  IT’S TIME TO GROW, BOOK A FREE 20 MINUTE CALL
+                  Let’s collaborate to bring your vision to life.
                 </p><br>
                 <p class="forcewhite upZ">
-                  Fill in our form and we’ll be with you shortly.
+                  Book a FREE CONSULTATION CALL or tell us about your project by filling out the form. We’ll get back to you shortly.
                 </p><br>
-                <p style="font-weight: 900 !important;" class="forcewhite upZ">
+                <p class="forcewhite upZ">
                   We’re interested in:
                 </p><br>
                 <p class="forcewhite upZ">
-                  What is it you do?<br>
-                  How is it you need us to take you to where you need to be.
+                  • Who are you?<br>
+                  • What do you do?<br>
+                  • How can we help you achieve your goals?
                 </p><br>
               </div>
 
               <div class="contactform">
                 <!-- Dropdown (header question) -->
-                <select name="headerquestion" id="headerquestion">
-                  <option value="">Select a Question</option>
-                  <option value="service">What service do you need?</option>
-                  <option value="growth">How can we help you grow?</option>
-                  <option value="other">Other</option>
-                </select>
-
-                <!-- Text input fields -->
-                <input type="text" name="name" placeholder="Your Name">
-                <input type="email" name="email" placeholder="Your Email">
-                <textarea name="message" rows="6" placeholder="Your Message"></textarea>
-                <input type="link" name="email" placeholder="https://link to artist's page">
-
-                <!-- Send button -->
-                <button type="submit">Send</button>
+              
+                <!-- Start the form and ensure it isn't prematurely closed -->
+                <form target="_blank" action="https://formsubmit.co/symonds.george@gmail.com" method="POST" class="z-index">
+                  <!-- Text input fields -->
+                  <input class="forminput" type="text" name="name" placeholder="Your Name" required>
+                  <input class="forminput" type="email" name="email" placeholder="Enter your email address" required>
+                  <textarea class="forminput" name="message" rows="6" placeholder="Tell us about your project, goals, or any ideas you'd like to explore." required></textarea>
+                  <input class="forminput" type="url" name="link" placeholder="Artist’s Page Link">
+              
+                  <!-- Send button -->
+                  <button class="formsubmit" type="submit">Send</button>
+                </form>
               </div>
+
             </div>
           </div>
         </div>
@@ -776,6 +779,7 @@
       });
     });
   </script>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {

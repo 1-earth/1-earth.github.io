@@ -2403,7 +2403,61 @@ body.no-margin-top .page-builder .page-builder-cookie-wall:first-child {
   display: none;
 }
 
+#view-more-text{
+  text-decoration: underline;
+}
 
+.memobackground{
+  position: absolute;
+  width: 100%;
+  opacity: 7%;
+  z-index: 10000;
+}
+
+/* Mobile-specific styling */
+@media (max-width: 768px) {
+  .memobackground {
+    width: 150%; /* Makes the image 20% wider than the screen */
+    /* left: -10%;  Shifts the image slightly to the left to keep the center visible */
+  
+  }
+}
+
+.z-index{
+  z-index: 100;
+}
+
+.forminput{
+  background-color: #000; /* Matches the black background */
+  color: #fff; /* White text to contrast with the black background */
+  border: 0.5px solid #fff; /* White border to match the form style */
+  /* padding: 10px; Add padding for better usability */
+  font-size: 16px; /* Ensure text is legible */
+  width: 100%; /* Make the input fields span the container */
+  margin-bottom: 15px; /* Add spacing between fields */
+  border-radius: 3px; /* Slightly rounded corners for a modern look */
+  outline: none; /* Remove default focus outline */
+  font-family: "Helvetica", "Arial", sans-serif;
+  z-index: 10;
+}
+
+.non-interactable {
+  pointer-events: none;
+  user-select: none; /* Prevents selecting the image accidentally */
+}
+
+.formsubmit{
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
+  border: 0.5px solid #fff;
+  z-index: 10;
+}
+
+.forminput:focus {
+  border-color: #888; /* Slightly lighter border on focus for accessibility */
+  background-color: #111; /* Darker background on focus for subtle contrast */
+}
 
 .extrainfo{
   width: 100%;
@@ -2560,6 +2614,7 @@ video {
   display: flex;
   flex-wrap: wrap; /* Allows wrapping on mobile */
   padding-top: 40px;
+  margin-bottom: 50px;
 }
 
 .contacttext, .contactform {
