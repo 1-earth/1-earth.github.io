@@ -1313,6 +1313,11 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
   width: 100%;
   height: 100%;
 }
+
+.youtubeplayer{
+/* left:-20px; */
+}
+
 .hero-takeover .hero-takeover-button {
   position: absolute;
   z-index: 3;
@@ -1352,6 +1357,10 @@ html[data-hero-takeover-mods*="white-ui"] .hero-takeover .jumbo-wordmark {
 /* Hover effect for the links */
 .top-left-links a:hover {
   color: #fdd327;
+}
+
+.yellow{
+  color: #fdd327 !important;
 }
 
 /* Style for the links */
@@ -1943,7 +1952,7 @@ a .jumbo-title {
   .jumbo-title h1,
   .jumbo-title h2,
   .jumbo-title .content {
-    font-size: 108px;
+    font-size: 90px;
   }
 }
 .jumbo-title .descriptor {

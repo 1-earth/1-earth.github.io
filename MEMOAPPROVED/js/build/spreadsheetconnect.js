@@ -52,7 +52,7 @@ function processData(rows) {
     titlecontent.innerHTML = `<h1>${row[1]}</h1>`;
 
     youtubeembedcontent.innerHTML = `
-      <figure class="carousel-slide aspect-ratio-container aspect-ratio-landscape">
+      <figure class="carousel-slide2 aspect-ratio-container aspect-ratio-landscape">
         <iframe width="560" height="315" src="${row[2]}"
         title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       </figure>`;
