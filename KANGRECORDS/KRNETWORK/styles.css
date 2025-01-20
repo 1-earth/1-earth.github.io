@@ -12,7 +12,7 @@ body {
 @import url('https://fonts.googleapis.com/css2?family=Avenir:wght@400;700&display=swap');
 .avenir{
   /* font-family: 'Avenir', sans-serif; */
-  font-weight: 500; /* Medium weight */
+  /* font-weight: 500; Medium weight */
 }
 
 .heavy{
@@ -282,14 +282,14 @@ svg {
 #popup-container .popup .social-icons {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 20px;
   margin-top: 10px;
   margin-bottom: 20px;
 }
 
 #popup-container .popup .social-icon {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   cursor: pointer;
   border-radius: 0px;
 }
