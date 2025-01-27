@@ -2616,10 +2616,25 @@ body:not(.hide-title) .page-builder> :first-child:not(.panel) {
   margin: 0 var(--margin-x) var(--block-spacing);
 }
 
+.copy2{
+  font-size: 23px
+}
+
 @media (min-width: 768px) {
   .page-builder .copy {
     font-size: 30px;
     letter-spacing: 0.01em;
+  }
+
+ 
+}
+
+
+
+@media (max-width: 768px) {
+
+  .copy2{
+    font-size: 18px
   }
 }
 
@@ -3729,6 +3744,8 @@ body.white-header-at-top:not(.page-scrolled) .site-header .nav-toggle {
     bottom: 20px;
   }
 }
+
+
 
 .video-player .poster-frame p .underline {
   background-image: linear-gradient(to bottom,
@@ -4955,6 +4972,13 @@ body.white-header-at-top:not(.page-scrolled) .site-header .nav-toggle {
     letter-spacing: 0.01em;
   }
 }
+
+.underline2 p{
+  text-decoration: underline !important;
+  font-size: 4em;
+}
+
+
 
 @media (min-width: 1024px) {
   .guide-article-builder-row[data-block="divider"] h2 {

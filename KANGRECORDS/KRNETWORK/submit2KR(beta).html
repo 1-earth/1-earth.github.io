@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Submission Form</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            font-weight: bold;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: left;
+            margin: 10px 0;
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .collapsible.active {
+            background: #e0e0e0;
+        }
+
+        .collapsible-content {
+            display: none;
+            overflow: hidden;
+            padding: 10px 0;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            z-index: 1000;
+            text-align: center;
+            display: none;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .modal button:hover {
+            background: #0056b3;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background: #0056b3;
+        }
+
+        .link-group {
+            margin: 50px 0;
+        }
+
+        .feature-link-group{
+            margin: 50px 0;
+        }
+
+
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Submit Profile</h1>
+        <div class="profile-form">
+            <form 
+              target="_blank" 
+              action="https://formsubmit.co/symonds.george2@gmail.com" 
+              method="POST" 
+              class="z-index"
+            >
+              <!-- Username -->
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+              </div>
+          
+              <!-- Name/Title -->
+              <div class="form-group">
+                <label for="title">Name/Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter your name or title" required>
+              </div>
+          
+              <!-- Social Links -->
+              <div class="form-group">
+                <label for="instagram">Instagram</label>
+                <input type="url" id="instagram" name="instagram" placeholder="https://instagram.com/yourprofile" required>
+              </div>
+              <div class="form-group">
+                <label for="youtube">YouTube</label>
+                <input type="url" id="youtube" name="youtube" placeholder="https://youtube.com/yourchannel" required>
+              </div>
+              <div class="form-group">
+                <label for="tiktok">TikTok</label>
+                <input type="url" id="tiktok" name="tiktok" placeholder="https://tiktok.com/@yourprofile" required>
+              </div>
+          
+              <!-- Bio/Description -->
+              <div class="form-group">
+                <label for="description">Bio/Description</label>
+                <textarea id="description" name="description" rows="4" placeholder="Write a short bio..." required></textarea>
+              </div>
+          
+              <!-- Redirect Links -->
+              <div class="redirect-links">
+                <h3>Redirect Links</h3>
+                <!-- Link 1 -->
+                <div class="redirect-link-group">
+                  <div class="form-group">
+                    <label for="link1-url">Link 1 URL</label>
+                    <input type="url" id="link1-url" name="link1-url" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link1-title">Link 1 Title</label>
+                    <input type="text" id="link1-title" name="link1-title" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link1-description">Link 1 Description</label>
+                    <input type="text" id="link1-description" name="link1-description" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link1-imgurl">Link 1 Image URL</label>
+                    <input type="url" id="link1-imgurl" name="link1-imgurl" required>
+                  </div>
+                </div>
+                <!-- Repeat for Link 2 - 5 -->
+                <!-- Link 2 -->
+                <div class="redirect-link-group">
+                  <div class="form-group">
+                    <label for="link2-url">Link 2 URL</label>
+                    <input type="url" id="link2-url" name="link2-url" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link2-title">Link 2 Title</label>
+                    <input type="text" id="link2-title" name="link2-title" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link2-description">Link 2 Description</label>
+                    <input type="text" id="link2-description" name="link2-description" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="link2-imgurl">Link 2 Image URL</label>
+                    <input type="url" id="link2-imgurl" name="link2-imgurl" required>
+                  </div>
+                </div>
+                <!-- Add similarly for Links 3, 4, and 5 -->
+              </div>
+          
+              <!-- Feature Links -->
+              <div class="feature-links">
+                <h3>Feature Links</h3>
+                <!-- Feature Link 1 -->
+                <div class="feature-link-group">
+                  <div class="form-group">
+                    <label for="feature1-url">Feature Link 1 URL</label>
+                    <input type="url" id="feature1-url" name="feature1-url" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="feature1-title">Feature Link 1 Title</label>
+                    <input type="text" id="feature1-title" name="feature1-title" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="feature1-description">Feature Link 1 Description</label>
+                    <input type="text" id="feature1-description" name="feature1-description" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="feature1-imgurl">Feature Link 1 Image URL</label>
+                    <input type="url" id="feature1-imgurl" name="feature1-imgurl" required>
+                  </div>
+                </div>
+                <!-- Repeat for Feature Link 2 and 3 -->
+              </div>
+          
+              <!-- Connections -->
+              <div class="form-group">
+                <label for="connections">Connections</label>
+                <input type="text" id="connections" name="connections" placeholder="Comma-separated connections" required>
+              </div>
+          
+              <!-- Practice -->
+              <div class="form-group">
+                <label for="practice">Practice</label>
+                <select id="practice" name="practice" required>
+                  <option value="3D">3D</option>
+                  <option value="Architecture">Architecture</option>
+                  <option value="Community Engagement">Community Engagement</option>
+                  <option value="Computing">Computing</option>
+                  <option value="Graphic Design">Graphic Design</option>
+                  <option value="Fashion">Fashion</option>
+                  <option value="Film">Film</option>
+                  <option value="Fine Art">Fine Art</option>
+                  <option value="Image">Image</option>
+                  <option value="Jewelry">Jewelry</option>
+                  <option value="Music">Music</option>
+                  <option value="Performance Arts">Performance Arts</option>
+                  <option value="Printing">Printing</option>
+                  <option value="Product Design">Product Design</option>
+                  <option value="Publication">Publication</option>
+                  <option value="Set Design">Set Design</option>
+                </select>
+              </div>
+          
+              <!-- Submit Button -->
+              <button class="formsubmit" type="submit">Submit Profile</button>
+            </form>
+          </div>
+          
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="successModal">
+        <p>Your submission will be live on the site soon!</p>
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <script>
+        // Collapsible Sections Logic
+        document.querySelectorAll('.collapsible').forEach(button => {
+            button.addEventListener('click', function () {
+                this.classList.toggle('active');
+                const content = this.nextElementSibling;
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        // Modal Logic
+        const form = document.getElementById("profileForm");
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const modal = document.getElementById("successModal");
+            modal.classList.add("active");
+            setTimeout(() => modal.classList.remove("active"), 3000);
+        });
+
+        function closeModal() {
+            document.getElementById("successModal").classList.remove("active");
+        }
+    </script>
+</body>
+
+</html>
