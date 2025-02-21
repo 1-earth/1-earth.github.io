@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flatmate Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Helvetica, sans-serif; }
+        .container { max-width: 600px; margin: auto; }
+        .bar-container { width: 100%; height: 200px; }
+        .input-section { margin: 20px 0; }
+        .input-section label { display: block; margin-bottom: 5px; }
+        .input-section input, .input-section select, .input-section button {
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+        .owe { color: red; }
+        .owed { color: green; }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .list-item {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/KANGRECORDS/img/KRICON.png" alt="krlogo">
+        <h2>Flatmate Expense Tracker</h2>
+        <h3>Money Spent</h3>
+        <ul id="expense-list"></ul>
+        <h3>Who Owes Who</h3>
+        <ul id="debt-list"></ul>
+        <h3>Payment Instructions</h3>
+        <ul id="payment-instructions"></ul>
+        
+        <div class="bar-container">
+            <canvas id="spendingChart"></canvas>
+        </div>
+        
+        <div class="input-section">
+            <h3>I HAVE SPENT MONEY FOR THE FLAT</h3>
+            <label for="spender">Who are you?</label>
+            <select id="spender">
+                <option value="A">George</option>
+                <option value="B">Marcel</option>
+                <option value="C">Junior</option>
+                <option value="D">Sam</option>
+            </select>
+            <label for="amountSpent">Amount</label>
+            <input type="number" id="amountSpent" placeholder="Amount" min="0" step="0.01">
+            <button onclick="addExpense()">Submit</button>
+        </div>
+        
+        <div class="input-section">
+            <h3>I HAVE SENT SOMEONE MONEY</h3>
+            <label for="receiver">Who are you?</label>
+            <select id="receiver">
+                <option value="A">George</option>
+                <option value="B">Marcel</option>
+                <option value="C">Junior</option>
+                <option value="D">Sam</option>
+            </select>
+
+            <label for="payer">Who have you sent money to?</label>
+            <select id="payer">
+                <option value="A">George</option>
+                <option value="B">Marcel</option>
+                <option value="C">Junior</option>
+                <option value="D">Sam</option>
+            </select>
+
+            <label for="amountSent">Amount</label>
+            <input type="number" id="amountSent" placeholder="Amount" min="0" step="0.01">
+            <button onclick="sendMoney()">Submit</button>
+        </div>
+
+        <!-- Backup, Restore, and Reset buttons -->
+        <div class="input-section">
+            <button onclick="downloadBackup()">Download Backup</button>
+            <input type="file" id="uploadFile" accept=".json" onchange="restoreData(event)" style="display:none;">
+            <button onclick="document.getElementById('uploadFile').click()">Restore Backup</button>
+            <button onclick="resetExpenses()">Reset Expenses</button>
+        </div>
+    </div>
+    
+    <script>
+        let flatmates = { A: "George", B: "Marcel", C: "Junior", D: "Sam" };
+        let balances = { A: 0, B: 0, C: 0, D: 0 };
+        let chart;
+
+        function loadData() {
+            // Load balances from localStorage, or use default if no data is available
+            const savedBalances = localStorage.getItem('balances');
+            if (savedBalances) {
+                balances = JSON.parse(savedBalances);  // Parse the JSON data
+            }
+        }
+
+        function saveData() {
+            // Save the balances object to localStorage
+            localStorage.setItem('balances', JSON.stringify(balances));  // Convert object to JSON
+        }
+
+        function updateUI() {
+            let expenseList = document.getElementById("expense-list");
+            let debtList = document.getElementById("debt-list");
+            let paymentInstructions = document.getElementById("payment-instructions");
+            
+            expenseList.innerHTML = "";
+            debtList.innerHTML = "";
+            paymentInstructions.innerHTML = "";
+            
+            // Render expenses
+            for (let key in balances) {
+                let li = document.createElement("li");
+                li.textContent = `${flatmates[key]} has spent £${balances[key].toFixed(2)}`;
+                expenseList.appendChild(li);
+            }
+            
+            let totalSpent = Object.values(balances).reduce((a, b) => a + b, 0);
+            let fairShare = totalSpent / 4;
+            let debts = {};
+            
+            for (let key in balances) {
+                debts[key] = balances[key] - fairShare;
+            }
+            
+            let owes = [];
+            let owed = [];
+            
+            for (let key in debts) {
+                let li = document.createElement("li");
+                if (debts[key] < 0) {
+                    li.textContent = `${flatmates[key]} owes £${Math.abs(debts[key]).toFixed(2)}`;
+                    li.classList.add("owe");
+                    owes.push({ name: flatmates[key], amount: Math.abs(debts[key]), key: key });
+                } else if (debts[key] > 0) {
+                    li.textContent = `${flatmates[key]} is owed £${debts[key].toFixed(2)}`;
+                    li.classList.add("owed");
+                    owed.push({ name: flatmates[key], amount: debts[key], key: key });
+                } else {
+                    li.textContent = `${flatmates[key]} is settled`;
+                }
+                debtList.appendChild(li);
+            }
+            
+            owes.sort((a, b) => b.amount - a.amount);
+            owed.sort((a, b) => b.amount - a.amount);
+            
+            // Payment instructions
+            while (owes.length > 0 && owed.length > 0) {
+                let payer = owes.pop();
+                let receiver = owed.pop();
+                let paymentAmount = Math.min(payer.amount, receiver.amount);
+                
+                let li = document.createElement("li");
+                li.textContent = `${payer.name} should send £${paymentAmount.toFixed(2)} to ${receiver.name}`;
+                paymentInstructions.appendChild(li);
+                
+                payer.amount -= paymentAmount;
+                receiver.amount -= paymentAmount;
+                
+                if (payer.amount > 0) owes.push(payer);
+                if (receiver.amount > 0) owed.push(receiver);
+            }
+            
+            updateChart();
+        }
+
+        function addExpense() {
+            let spender = document.getElementById("spender").value;
+            let amount = parseFloat(document.getElementById("amountSpent").value);
+            if (!amount || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+            balances[spender] += amount;
+            document.getElementById("amountSpent").value = ""; // Clear input field
+            saveData();  // Save data after change
+            updateUI();
+        }
+
+        function sendMoney() {
+            let payer = document.getElementById("payer").value;
+            let receiver = document.getElementById("receiver").value;
+            let amount = parseFloat(document.getElementById("amountSent").value);
+            if (!amount || amount <= 0 || payer === receiver) {
+                alert("Please enter a valid amount and ensure you're not sending money to yourself.");
+                return;
+            }
+            balances[payer] -= amount;
+            balances[receiver] += amount;
+            document.getElementById("amountSent").value = ""; // Clear input field
+            saveData();  // Save data after change
+            updateUI();
+        }
+
+        function updateChart() {
+            let ctx = document.getElementById("spendingChart").getContext("2d");
+            let labels = Object.values(flatmates);
+            let data = Object.values(balances).map(value => value.toFixed(2)); // Ensure 2 decimal places
+            
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Money Spent',
+                        data: data,
+                        backgroundColor: ['red', 'blue', 'green', 'orange']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // Download backup
+        function downloadBackup() {
+            const dataStr = JSON.stringify(balances, null, 2); // Pretty-print JSON
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "expense-backup.json";
+            a.click();
+            URL.revokeObjectURL(url); // Clean up URL
+        }
+
+        // Restore data from file
+        function restoreData(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = e.target.result;
+                    try {
+                        const parsedData = JSON.parse(data);
+                        if (parsedData && typeof parsedData === "object") {
+                            balances = parsedData;
+                            saveData();  // Save the restored data
+                            updateUI();
+                        } else {
+                            alert("Invalid data.");
+                        }
+                    } catch (err) {
+                        alert("Error reading the file.");
+                    }
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // Reset expenses to default
+        function resetExpenses() {
+            balances = { A: 0, B: 0, C: 0, D: 0 };  // Reset balances to initial values
+            localStorage.removeItem('balances');  // Clear data from localStorage
+            updateUI();
+        }
+
+        // Load data on page load
+        loadData();
+        updateUI();
+    </script>
+</body>
+</html>
