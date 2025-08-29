@@ -682,6 +682,10 @@ async function loadPortfolio() {
             // Setup click handlers for cards
             setupCardClickHandlers();
             
+            // Ensure card videos autoplay on mobile
+            setupCardVideoAutoplayObserver();
+            findAndPrepareCardVideos(portfolioElement);
+            
         } else {
             portfolioElement.innerHTML = '<div class="loading">No portfolio items found.</div>';
         }
@@ -970,6 +974,9 @@ async function loadRelatedWork(currentWork, currentId, maxItems = 8) {
 
         // 4) Click handlers
         setupCardClickHandlers();
+
+        // 5) Ensure related card videos autoplay on mobile
+        findAndPrepareCardVideos(grid);
 
         // Lightweight reveal for related cards using IntersectionObserver with horizontal root
         (function() {
@@ -1368,6 +1375,68 @@ function setupExpandToggles() {
             // Brief highlight pulse
             section.classList.add('highlight-pulse');
             setTimeout(() => section.classList.remove('highlight-pulse'), 1300);
+        }
+    });
+}
+
+// --- Mobile autoplay enforcement for card videos ---
+let cardVideoObserver = null;
+
+function setupCardVideoAutoplayObserver() {
+    if (cardVideoObserver || !('IntersectionObserver' in window)) return;
+    cardVideoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = entry.target;
+            if (!(video instanceof HTMLVideoElement)) return;
+            if (entry.isIntersecting) {
+                // Ensure attributes each time before playing
+                try {
+                    video.muted = true;
+                    video.loop = true;
+                    video.autoplay = true;
+                    video.playsInline = true;
+                    video.setAttribute('muted', '');
+                    video.setAttribute('playsinline', '');
+                    video.setAttribute('webkit-playsinline', '');
+                    video.removeAttribute('controls');
+                    video.preload = 'auto';
+                    const playPromise = video.play();
+                    if (playPromise && typeof playPromise.then === 'function') {
+                        playPromise.catch(() => {/* ignore autoplay rejections */});
+                    }
+                } catch (_e) {}
+            } else {
+                try { video.pause(); } catch (_e) {}
+            }
+        });
+    }, { threshold: 0.25 });
+}
+
+function findAndPrepareCardVideos(root = document) {
+    if (!root) return;
+    const selector = '.portfolio-card video.card-image, .related-work-card video.card-image';
+    const videos = Array.from(root.querySelectorAll(selector));
+    if (videos.length === 0) return;
+
+    videos.forEach(video => {
+        try {
+            // Set critical attributes/properties early
+            video.muted = true;
+            video.loop = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.setAttribute('muted', '');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('webkit-playsinline', '');
+            video.removeAttribute('controls');
+            video.preload = 'auto';
+        } catch (_e) {}
+
+        if (cardVideoObserver) {
+            cardVideoObserver.observe(video);
+        } else {
+            // Fallback: attempt immediate play
+            try { video.play(); } catch (_e) {}
         }
     });
 }
