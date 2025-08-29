@@ -1,0 +1,64 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const API_KEY = 'AIzaSyB5b_wv4yQMDoHTCDDZydcbYxLZ5ISrGbQ';
+    const SPREADSHEET_ID = '1Cy2EdQwPH-GErwqtC3tD6QvX40kcyCmhuRg5G7wIw_g';
+    const RANGE = 'Sheet1';
+
+    async function fetchData() {
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`);
+        const data = await response.json();
+        return data.values;
+    }
+
+    async function displayData() {
+        const data = await fetchData();
+        data.slice(1).forEach(row => {
+            const name = row[0];
+            const author = row[1];
+            const description = row[2];
+            const category = row[3];
+            const url = row[4];
+            const userName = row[5];
+            let imageUrl = row[9]; // Primary image URL
+
+            // Check if the primary image URL is empty or not a valid URL
+            if (!imageUrl || !isValidUrl(imageUrl)) {
+                imageUrl = row[10]; // Fallback to secondary image URL
+            }
+
+            const htmlContent = `
+                <h2><a href="${url}">${name}</a></h2>
+                <p class='authortext'>Author/Creator: ${author}</p>
+                <p class='descriptiontext'> ${description}</p>
+                <div class="resourceimagesection">
+                    <img src="${imageUrl}" alt="Image of ${name}" class="rounded resourceimage">
+                </div>
+                <p class='addedbytext'>Added by: ${userName}</p>
+                <hr>
+            `;
+
+            switch (category) {
+                case 'Research & Inspiration':
+                    document.getElementById('research-inspiration').innerHTML += htmlContent;
+                    break;
+                case 'Opportunities & Funding':
+                    document.getElementById('opportunities-funding').innerHTML += htmlContent;
+                    break;
+                case 'Other Community Hubs':
+                    document.getElementById('other-community-hubs').innerHTML += htmlContent;
+                    break;
+            }
+        });
+    }
+
+    // Helper function to validate URL
+    function isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    displayData();
+});

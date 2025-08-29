@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDKs -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <div class="container centered-container">
+        <div class="login-box">
+            <img src="static/img/1ELOGOblack.png" alt="ONE EARTH LOGO" class="landinglogo">
+            <h1>ONE EARTH CONTENT MANAGEMENT SYSTEM</h1>
+            <P>v1.0 🌐 Designed & Coded by ONE EARTH PRODUCTIONS</P>
+            <p>Your all in one terminal to effortlessly manage your website, update media, blog posts, calendar, store, and keep your website fresh</p>
+            <button id="loginButton" class="btn btn-primary">Login with Google</button>
+            <p id="loginError" class="error-message" style="display:none;"></p>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Firebase if not already done in firebase-config.js
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+
+            const auth = firebase.auth();
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
+
+            // Redirect if already logged in
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    window.location.href = 'edit.html';
+                }
+            });
+
+            if (loginButton) {
+                loginButton.addEventListener('click', () => {
+                    loginError.style.display = 'none';
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    auth.signInWithPopup(provider)
+                        .then((result) => {
+                            // User signed in. Redirect handled by onAuthStateChanged
+                            console.log("Sign-in successful", result.user);
+                        }).catch((error) => {
+                            console.error("Google Sign-In Error:", error);
+                            loginError.textContent = "Login failed: " + error.message;
+                            loginError.style.display = 'block';
+                        });
+                });
+            } else {
+                console.error("Login button not found");
+            }
+        });
+    </script>
+</body>
+</html>

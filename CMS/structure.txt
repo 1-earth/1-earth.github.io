@@ -1,0 +1,13 @@
+ONE EARTH CMS/
+├── login.html
+├── edit.html
+├── styles.css
+├── loading.gif
+├── firebase-config.js  // Your Firebase app configuration
+└── js/
+    ├── main.js             // Main orchestrator for edit.html
+    ├── auth.js             // Firebase authentication logic
+    ├── firestoreService.js // Firestore database interactions
+    ├── storageService.js   // Firebase Storage interactions
+    ├── uiService.js        // Functions to render UI components/dashboards
+    └── utils.js            // Utility functions (e.g., debounce, popups - optional)

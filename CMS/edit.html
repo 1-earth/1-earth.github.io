@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Content - CMS</title>
+    <link rel="icon" type="image/png" href="static/img/1ELOGOblack.png">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDKs -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+    <!-- Quill.js (RTE) -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+    <!-- PDF.js for PDF previews in admin -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <img src="static/img/loading.gif" alt="Loading...">
+    </div>
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-content">
+            <p id="popupMessage"></p>
+            <div id="popupActions" class="popup-actions">
+                <!-- Buttons like Yes/No for confirmation will be added here -->
+            </div>
+            <button id="popupClose" class="btn popup-close-btn">Close</button>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="header-left-content">
+                <img src="static/img/1ELOGOblack.png" alt="ONE EARTH PRODUCTIONS" class="logo">
+                <span id="welcomeMessage">Welcome!</span>
+            </div>
+            <button id="logoutButton" class="btn">Logout</button>
+        </div>
+    </header>
+
+    <div class="cms-container">
+        <!-- Column 1: Data Types -->
+        <nav class="column data-types-column" id="dataTypesNav">
+            <h2>Data Types</h2>
+            <button class="btn data-type-btn" data-type="text">Text</button>
+            <button class="btn data-type-btn" data-type="media">Media</button>
+            <button class="btn data-type-btn" data-type="blog">Blog</button>
+            <button class="btn data-type-btn" data-type="calendar">Calendar</button>
+        </nav>
+        
+        <!-- Resize Handle 1 -->
+        <div class="column-resize-handle" data-resize-target="dataTypesNav"></div>
+
+        <!-- Column 2: Items List -->
+        <section class="column items-list-column" id="itemsListSection">
+            <div class="items-list-header">
+                <h2 id="itemsListTitle">Select Data Type</h2>
+                
+            </div>
+            <ul id="itemsList" class="items-list">
+                <!-- Populated by JS -->
+                <li class="placeholder-text">Select a data type to see items.</li>
+            </ul>
+            <button id="createNewItemBtn" class="btn btn-primary" style="display: none;">
+                + Create New <span id="newItemTypeLabel"></span>
+            </button>
+        </section>
+        
+        <!-- Resize Handle 2 -->
+        <div class="column-resize-handle" data-resize-target="itemsListSection"></div>
+
+        <!-- Column 3: Dashboard -->
+        <main class="column dashboard-column" id="dashboardSection">
+            <h2 id="dashboardTitle">Dashboard</h2>
+            <div id="dashboardContent">
+                <p class="placeholder-text">Select an item or create a new one.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
