@@ -1293,11 +1293,19 @@ function goToSlide(slideshowId, slideIndex) {
         indicators[slideIndex].classList.add('active');
     }
     
-    // Ensure active indicator is visible by scrolling indicators container
+    // Ensure active indicator is visible only within indicators container without scrolling the page
     const indicatorsContainer = slideshow.querySelector('.slideshow-indicators');
     const activeIndicator = indicatorsContainer ? indicatorsContainer.querySelector('.indicator.active') : null;
-    if (indicatorsContainer && activeIndicator && typeof activeIndicator.scrollIntoView === 'function') {
-        activeIndicator.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    if (indicatorsContainer && activeIndicator) {
+        try {
+            const cRect = indicatorsContainer.getBoundingClientRect();
+            const iRect = activeIndicator.getBoundingClientRect();
+            const overflowX = iRect.left < cRect.left || iRect.right > cRect.right;
+            if (overflowX) {
+                const delta = iRect.left < cRect.left ? (iRect.left - cRect.left) : (iRect.right - cRect.right);
+                indicatorsContainer.scrollLeft += delta;
+            }
+        } catch (_) {}
     }
 
     // Tag neighbor slides for peek effect (wrap-around)

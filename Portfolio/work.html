@@ -114,6 +114,13 @@
     <!-- Custom JS -->
     <script src="1eCMSconnect.js"></script>
     <script>
+        // Ensure page always starts at the top and disable browser scroll restoration
+        (function(){
+            try { if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; } } catch(_) {}
+            window.addEventListener('load', function(){ window.scrollTo(0, 0); }, { once: true });
+        })();
+    </script>
+    <script>
         // Show toast if arriving via lucky button
         (function(){
             const params = new URLSearchParams(window.location.search);
