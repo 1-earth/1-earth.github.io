@@ -1984,7 +1984,7 @@ a {
 @media (max-width: 900px) {
     .about-me-3d-container{
         width: 60vw;
-        right: 10px;
+        right: -50px;
         top: -100px;
     }
 }
