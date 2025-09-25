@@ -1366,7 +1366,7 @@ video.card-image {
     }
     
     .portfolio-container {
-        padding-top: 111px; /* More space for mobile header */
+        padding-top: 101px; /* More space for mobile header */
     }
 
     .filter-section {
@@ -1741,7 +1741,7 @@ a {
 .about-me-text p{
     font-size: 0.9rem;
     margin: 0px;
-    max-width: 70vw;
+    max-width: 67vw;
 }
 
 .about-me-section {
