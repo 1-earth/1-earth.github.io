@@ -21,18 +21,28 @@
             <p>Have a look around and see my work!<br><br>
             My creative practice & skillset are diverse, but can be categorised by:</p>
             <ul class="modal-list">
-                <li><a href="#design" class="modal-link">➢ Design</a></li>
-                <li><a href="#photography" class="modal-link">➢ Photography</a></li>
-                <li><a href="#videography" class="modal-link">➢ Videography</a></li>
-                <li><a href="#computation" class="modal-link">➢ Computation</a></li>
-                <li><a href="#research" class="modal-link">➢ Research &amp; Forward Thinking</a></li>
+                <li><a href="#design" class="modal-link">+ Design</a></li>
+                <li><a href="#photography" class="modal-link">+ Photography</a></li>
+                <li><a href="#videography" class="modal-link">+ Videography</a></li>
+                <li><a href="#computation" class="modal-link">+ Coding & Computation</a></li>
+                <li><a href="#research" class="modal-link">+ Research &amp; Forward Thinking</a></li>
             </ul>
-            <p>Contact:<br>
-            <a href="mailto:symonds.george@gmail.com">symonds.george@gmail.com</a></p>
+            <p>My Socials:</p>
+            <!-- <p>Contact:<br>
+            <a href="mailto:symonds.george@gmail.com">symonds.george@gmail.com</a></p> -->
             <div class="modal-socials">
-                <a class="modal-social-btn" href="https://instagram.com/" target="_blank" aria-label="Instagram"></a>
-                <a class="modal-social-btn" href="https://linkedin.com/" target="_blank" aria-label="LinkedIn"></a>
-                <a class="modal-social-btn" href="https://youtube.com/" target="_blank" aria-label="YouTube"></a>
+                <a class="modal-social-btn use-image-icon" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
+                    <img src="Portfolio/static/img/instagram.svg" alt="Instagram">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://www.tiktok.com/@gsymonds_/" target="_blank" rel="noopener" aria-label="Tiktok">
+                    <img src="Portfolio/static/img/tiktok.svg" alt="TikTok">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://www.youtube.com/@georgesymonds007/" target="_blank" rel="noopener" aria-label="YouTube">
+                    <img src="Portfolio/static/img/youtube.svg" alt="YouTube">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://kr-net.github.io/?profile=1" target="_blank" rel="noopener" aria-label="KR">
+                    <img src="Portfolio/static/img/KRICON.png" alt="KR">
+                </a>
             </div>
             <div class="modal-credit">WEBSITE DESIGNED &amp; CODED BY GEORGE SYMONDS</div>
         </div>
@@ -42,7 +52,7 @@
     <!-- Header -->
     <header class="portfolio-header">
         <div class="header-left">
-            <h1><a href="index.html" class="site-title-link" aria-label="Home">GEORGE SYMONDS</a></h1>
+            <h1><a href="me.html" class="site-title-link" aria-label="Home">GEORGE SYMONDS</a></h1>
             <div class="filter-section">
                 <span class="filter-label">FILTER BY:</span>
                 <select id="keywordsFilter" class="filter-dropdown">
@@ -461,14 +471,14 @@
             };
         }
 
-        function scrollToSectionWhenReady(targetId, maxWait = 1000) {
+        function scrollToSectionWhenReady(targetId, maxWait = 2000) {
             const start = Date.now();
             function tryScroll() {
                 const target = document.getElementById(targetId);
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else if (Date.now() - start < maxWait) {
-                    setTimeout(tryScroll, 50);
+                    setTimeout(tryScroll, 100);
                 }
             }
             tryScroll();
@@ -497,7 +507,9 @@
             } else if (dvdColor.startsWith('rgba(')) {
                 dvdColor = dvdColor.replace(/,\s*([\d.]+)\)$/, ',0.55)');
             }
-            modalBg.style.background = dvdColor;
+            modalBg.style.background = 'rgba(10,10,10,0.55)';
+            // modalBg.style.background = dvdColor;
+
             modalBg.style.backdropFilter = 'blur(12px)';
             modalBg.style.webkitBackdropFilter = 'blur(12px)';
             modal.style.display = 'block';

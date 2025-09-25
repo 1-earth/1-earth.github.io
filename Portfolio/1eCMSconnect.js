@@ -785,12 +785,45 @@ function groupPostsByCategory(posts) {
     return grouped;
 }
 
+// Return the display name used for section headers
+function getPortfolioCategoryDisplayName(category) {
+    const key = String(category || '').toLowerCase();
+    switch (key) {
+        case 'computation':
+            return 'Coding & Computation';
+        case 'design portfolio':
+            return 'Design Portfolio';
+        case 'research & forward thinking':
+            return 'Research & Forward Thinking';
+        default:
+            return category;
+    }
+}
+
+// Map portfolio categories to anchor IDs used by modal links
+function categoryToAnchorId(category) {
+    if (!category) return '';
+    const map = {
+        'design portfolio': 'design',
+        'photography': 'photography',
+        'videography': 'videography',
+        'computation': 'computation',
+        'coding & computation': 'computation',
+        'research & forward thinking': 'research',
+        'research and forward thinking': 'research'
+    };
+    const key = String(category).toLowerCase().trim();
+    if (map[key]) return map[key];
+    // Fallback: sanitize to a slug
+    return key.replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 function renderPortfolioSection(category, posts) {
     if (posts.length === 0) {
         return `
-            <section class="portfolio-section" data-category="${category}">
+            <section class="portfolio-section" id="${categoryToAnchorId(category)}" data-category="${category}">
                 <div class="section-header">
-                    <h2 class="section-title">${category}</h2>
+                    <h2 class="section-title">${getPortfolioCategoryDisplayName(category)}</h2>
                     <button class="expand-btn">+</button>
                 </div>
                 <div class="coming-soon">Work coming soon</div>
@@ -801,9 +834,9 @@ function renderPortfolioSection(category, posts) {
     const cardsHtml = posts.map(post => renderPortfolioCard(post)).join('');
     
     return `
-        <section class="portfolio-section" data-category="${category}">
+        <section class="portfolio-section" id="${categoryToAnchorId(category)}" data-category="${category}">
             <div class="section-header">
-                <h2 class="section-title">${category}</h2>
+                <h2 class="section-title">${getPortfolioCategoryDisplayName(category)}</h2>
                 <button class="expand-btn">+</button>
             </div>
             <div class="cards-container">
@@ -884,7 +917,7 @@ function setupCardClickHandlers() {
     document.querySelectorAll('.portfolio-card').forEach(card => {
         card.addEventListener('click', () => {
             const postId = card.dataset.postId;
-            window.location.href = `Portfolio/work.html?id=${postId}`;
+            window.location.href = `/Portfolio/work.html?id=${postId}`;
         });
     });
 }
