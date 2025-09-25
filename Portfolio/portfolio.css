@@ -239,9 +239,7 @@ img {
     padding-bottom: 40px;
 }
 
-.portfolio-section {
-    /* margin-bottom: 50px; */
-}
+
 
 .section-header {
     display: flex;
@@ -1015,10 +1013,7 @@ video.card-image {
     font-style: italic;
 }
 
-/* Embed Styles (from work.html) */
-.blog-embed-frontend {
-    /* margin: 25px 0; */
-}
+
 
 .blog-embed-frontend iframe {
     width: 100%;
@@ -1951,13 +1946,6 @@ a {
     margin-top: 10px;
 }
 
-/* Desktop alignment: start form where the contact paragraph starts */
-@media (min-width: 769px) {
-    .contact-form-container {
-        /* h2 height (~2.3rem) + its bottom spacing (40px) */
-        
-    }
-}
 
 .contact-form-container {
     margin-top: 5px;
