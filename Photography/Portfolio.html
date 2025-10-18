@@ -327,7 +327,8 @@
       const photoUrls = [];
 
       for (let i = 1; i <= 74; i++) {
-        photoUrls.push(`images/p${i}.JPG`);
+        // Store base path without extension; we'll try .JPG then fallback to .jpg when loading
+        photoUrls.push(`images/p${i}`);
       }
 
       console.log(photoUrls);
@@ -390,13 +391,22 @@
         return url;
       }
 
-      // Create and return a photo element with lazy loading
-      function createPhotoElement(url) {
+      // Create and return a photo element with lazy loading and .JPG/.jpg fallback
+      function createPhotoElement(urlBase) {
         const photo = document.createElement("img");
         photo.className = "photo";
-        photo.src = url;
         photo.loading = "lazy"; // Lazy loading enabled
-        photo.addEventListener("click", () => openModal(url));
+        const uppercase = urlBase + ".JPG";
+        const lowercase = urlBase + ".jpg";
+        photo.src = uppercase;
+        photo.onerror = function () {
+          if (photo.src.endsWith(".JPG")) {
+            // Try lowercase once; avoid loops if lowercase also fails
+            photo.onerror = null;
+            photo.src = lowercase;
+          }
+        };
+        photo.addEventListener("click", () => openModal(photo.src));
         return photo;
       }
 
