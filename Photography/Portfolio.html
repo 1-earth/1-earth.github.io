@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>George Symonds Photography</title>
+    <link rel="icon" type="image/png" href="../Portfolio/static/img/GSICON.png">
     <style>
       body,
       html {
@@ -22,7 +23,7 @@
         height: 100%;
         overflow-x: scroll;
         overflow-y: hidden;
-        scroll-behavior: smooth;
+        scroll-behavior: auto;
       }
 
       .photo-grid {
@@ -118,6 +119,12 @@
         gap: 34px;
       }
 
+      @media (max-width: 768px) {
+        .GSstamp {
+          width: 80vw;
+        }
+      }
+
       .GSlogo {
         width: 50px;
       }
@@ -135,27 +142,87 @@
       a{
         color: #ffffff;
       }
+      
+      /* Hide GSstamp during flash */
+      .GSstamp { transition: opacity 0.3s ease; }
+      .flash-active .GSstamp { opacity: 0; pointer-events: none; }
+      
+      /* Flash overlay and star animation */
+      .flash-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: grid;
+        place-items: center;
+        z-index: 1000;
+      }
+      .flash-star {
+        position: relative;
+        width: 14vmin;
+        height: 14vmin;
+        filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.9));
+        animation: flashBurst 0.7s ease-out forwards;
+      }
+      .flash-logo {
+        width: 18vmin;
+        height: 18vmin;
+        filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.9));
+        animation: flashBurst 0.7s ease-out forwards;
+      }
+      .flash-star::before,
+      .flash-star::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, #ffffff 0%, #ffffff 60%, rgba(255, 255, 255, 0) 61%);
+        clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
+        opacity: 0.98;
+      }
+      .flash-star::after {
+        transform: rotate(45deg);
+      }
+      @keyframes flashBurst {
+        0% { transform: scale(0.8); opacity: 0.0; }
+        12% { opacity: 1; }
+        40% { transform: scale(1.25); }
+        100% { transform: scale(3); opacity: 0; }
+      }
+      
+      /* Subtle fade-in of grid after flash */
+      .container { transition: opacity 0.4s ease; }
+      .is-hidden { opacity: 0; }
+      
+      /* Respect reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .flash-star { animation: none; opacity: 0; }
+        .flash-logo { animation: none; opacity: 0; }
+        .flash-overlay { display: none; }
+        .container.is-hidden { opacity: 1; }
+      }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   </head>
 
   <body>
-    <div class="container">
+    <div id="flashOverlay" class="flash-overlay" aria-hidden="true">
+      <img class="flash-logo" src="static/GS_CROP.gif" alt="GS logo" />
+    </div>
+    <div class="container is-hidden">
       <div class="photo-grid" id="photoGrid"></div>
     </div>
     
     <div class="GSstamp">
-      <a href="/link.html" target="_blank">
+      <a href="https://kr-net.github.io/?link=georgesymonds" target="_blank">
         <div class="GSlogo">
           <img src="static/GS_CROP.gif" />
         </div>
       </a>
       <div class="GStext">
         <p>
-          Photography & Website Designed by George Symonds<br />
-          <a href="https://www.instagram.com/georgesymonds__/" target="_blank">@georgesymonds__</a><br />
-          symonds.george@gmail.com<br />
+          Photography & Website Designed by 🌐 <a href="https://1-earth.world/me.html" target="_blank">George Symonds</a><br />
+          <a href="https://www.instagram.com/georgesymonds__/" target="_blank">Instagram</a><br />
+          <a href="mailto:symonds.george@gmail.com" target="_blank">symonds.george@gmail.com</a><br />
           Dm or get in touch for bookings/Inquiries
         </p>
       </div>
@@ -169,9 +236,97 @@
     </div>
 
     <script>
+      // Flash lifecycle and subtle grid reveal + shutter sound
+      (function() {
+        try {
+          var overlay = document.getElementById('flashOverlay');
+          if (!overlay) return;
+          var star = overlay.querySelector('.flash-logo');
+          var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          if (reduceMotion) {
+            // Skip flash entirely when reduced motion is preferred
+            var c0 = document.querySelector('.container');
+            if (c0) c0.classList.remove('is-hidden');
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            return;
+          }
+
+          // Mark body as flashing to hide GSstamp
+          document.body.classList.add('flash-active');
+
+          function revealGridAndRemove() {
+            var containerEl = document.querySelector('.container');
+            if (containerEl) {
+              containerEl.classList.remove('is-hidden');
+            }
+            if (overlay && overlay.parentNode) {
+              overlay.parentNode.removeChild(overlay);
+            }
+            document.body.classList.remove('flash-active');
+          }
+
+          function playShutter() {
+            var AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            var ctx = new AudioContext();
+            var master = ctx.createGain();
+            master.gain.value = 0.15; // subtle
+            master.connect(ctx.destination);
+
+            // Short percussive click + brief noise burst
+            var clickOsc = ctx.createOscillator();
+            var clickGain = ctx.createGain();
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(600, ctx.currentTime);
+            clickGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            clickGain.gain.exponentialRampToValueAtTime(0.6, ctx.currentTime + 0.005);
+            clickGain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+            clickOsc.connect(clickGain).connect(master);
+            clickOsc.start();
+            clickOsc.stop(ctx.currentTime + 0.09);
+
+            // Tiny noise burst for shutter texture
+            var bufferSize = 0.05; // seconds
+            var sampleRate = ctx.sampleRate;
+            var frameCount = Math.floor(sampleRate * bufferSize);
+            var noiseBuffer = ctx.createBuffer(1, frameCount, sampleRate);
+            var data = noiseBuffer.getChannelData(0);
+            for (var i = 0; i < frameCount; i++) {
+              data[i] = (Math.random() * 2 - 1) * Math.exp(-30 * (i / frameCount));
+            }
+            var noise = ctx.createBufferSource();
+            noise.buffer = noiseBuffer;
+            var noiseGain = ctx.createGain();
+            noiseGain.gain.value = 0.12;
+            noise.connect(noiseGain).connect(master);
+            noise.start();
+            noise.stop(ctx.currentTime + bufferSize);
+          }
+
+          // Try to play sound (may be blocked on some browsers; safe to ignore)
+          try { playShutter(); } catch (e) {}
+
+          if (star) {
+            star.addEventListener('animationend', revealGridAndRemove, { once: true });
+          }
+          // Safety cleanup
+          setTimeout(revealGridAndRemove, 2000);
+        } catch (e) {
+          var fallbackOverlay = document.getElementById('flashOverlay');
+          if (fallbackOverlay && fallbackOverlay.parentNode) {
+            fallbackOverlay.parentNode.removeChild(fallbackOverlay);
+          }
+          var c = document.querySelector('.container');
+          if (c) c.classList.remove('is-hidden');
+          document.body.classList.remove('flash-active');
+        }
+      })();
+
+      console.log("Code written by George Symonds ❤️ 🌐 https://1-earth.world/me.html ");
       const photoUrls = [];
 
-      for (let i = 1; i <= 65; i++) {
+      for (let i = 1; i <= 74; i++) {
         photoUrls.push(`images/p${i}.JPG`);
       }
 
@@ -182,10 +337,58 @@
       const modalImg = document.getElementById("modalImg");
       const closeBtn = document.getElementsByClassName("close")[0];
 
-      let autoScrollInterval;
-      let userScrollTimeout;
+      let rafId = null;
+      let isAutoScrolling = false;
       let isUserScrolling = false;
+      let resumeAutoScrollTimeout = null; // separate timer to resume auto-scroll
+      let scrollDebounceTimeout = null;   // separate timer for debouncing infinite-load checks
       const autoScrollDelay = 3000;
+
+      // Grid placement tracking and non-adjacent randomness
+      const gridColumns = 30; // must match CSS grid-template-columns repeat count
+      const assignedUrls = [];
+
+      let deck = [];
+      let deckIndex = 0;
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function refillDeck(prevLast) {
+        deck = photoUrls.slice();
+        shuffle(deck);
+        // Avoid same as previous placed at deck boundary
+        if (prevLast && deck[0] === prevLast) {
+          for (let k = 1; k < deck.length; k++) {
+            if (deck[k] !== prevLast) {
+              [deck[0], deck[k]] = [deck[k], deck[0]];
+              break;
+            }
+          }
+        }
+        deckIndex = 0;
+      }
+
+      function getNextFromDeck(prevLast) {
+        if (deckIndex >= deck.length) refillDeck(prevLast);
+        return deck[deckIndex++];
+      }
+
+      function getNextUniqueUrl(leftUrl, aboveUrl) {
+        const prevLast = assignedUrls.length ? assignedUrls[assignedUrls.length - 1] : null;
+        let attempts = 0;
+        let url = getNextFromDeck(prevLast);
+        while ((url === leftUrl || url === aboveUrl) && attempts < deck.length + 5) {
+          // rotate pick to reduce adjacency collisions
+          url = getNextFromDeck(prevLast);
+          attempts++;
+        }
+        return url;
+      }
 
       // Create and return a photo element with lazy loading
       function createPhotoElement(url) {
@@ -206,13 +409,17 @@
       // Populate the grid with random photos
       function populateGrid() {
         const totalRows = 5;
-        const photosPerRow = 30;
+        const photosPerRow = gridColumns;
 
         for (let row = 0; row < totalRows; row++) {
           for (let i = 0; i < photosPerRow; i++) {
-            const randomUrl = getRandomPhotoUrl();
-            const photo = createPhotoElement(randomUrl);
+            const index = assignedUrls.length;
+            const leftUrl = index % gridColumns !== 0 ? assignedUrls[index - 1] : null;
+            const aboveUrl = index >= gridColumns ? assignedUrls[index - gridColumns] : null;
+            const nextUrl = getNextUniqueUrl(leftUrl, aboveUrl);
+            const photo = createPhotoElement(nextUrl);
             photoGrid.appendChild(photo);
+            assignedUrls.push(nextUrl);
           }
         }
       }
@@ -240,49 +447,89 @@
       let scrollPosition = 0;
       const container = document.querySelector(".container");
 
-      container.addEventListener("scroll", () => {
-        if (userScrollTimeout) clearTimeout(userScrollTimeout);
-        userScrollTimeout = setTimeout(() => {
+      function onScroll() {
+        clearTimeout(scrollDebounceTimeout);
+        scrollDebounceTimeout = setTimeout(() => {
           handleScrollEvent();
-        }, 200); // Debounce the scroll event
+        }, 150);
+      }
+
+      container.addEventListener("scroll", onScroll, { passive: true });
+      container.addEventListener("pointerdown", markUserScrolling);
+      container.addEventListener("wheel", markUserScrolling, { passive: true });
+      container.addEventListener("touchstart", markUserScrolling, { passive: true });
+
+      document.addEventListener("keydown", (e) => {
+        const keys = [
+          "ArrowLeft",
+          "ArrowRight",
+          "PageUp",
+          "PageDown",
+          "Home",
+          "End",
+          " "
+        ];
+        if (keys.includes(e.key)) {
+          markUserScrolling();
+        }
       });
 
       function handleScrollEvent() {
         const maxScroll = photoGrid.scrollWidth - container.clientWidth;
         scrollPosition = container.scrollLeft;
 
-        if (scrollPosition >= maxScroll * 0.9) {
+        if (scrollPosition >= maxScroll * 0.9 && !isUserScrolling) {
           for (let row = 0; row < 5; row++) {
             for (let i = 0; i < 10; i++) {
-              const randomUrl = getRandomPhotoUrl();
-              const photo = createPhotoElement(randomUrl);
+              const index = assignedUrls.length;
+              const leftUrl = index % gridColumns !== 0 ? assignedUrls[index - 1] : null;
+              const aboveUrl = index >= gridColumns ? assignedUrls[index - gridColumns] : null;
+              const nextUrl = getNextUniqueUrl(leftUrl, aboveUrl);
+              const photo = createPhotoElement(nextUrl);
               photoGrid.appendChild(photo);
+              assignedUrls.push(nextUrl);
             }
           }
         }
+      }
 
-        stopAutoScroll(); // Stop auto-scroll on user interaction
-        userScrollTimeout = setTimeout(() => {
+      // Auto-scroll start
+      function startAutoScroll() {
+        if (isAutoScrolling || isUserScrolling) return;
+        isAutoScrolling = true;
+
+        const step = () => {
+          if (isUserScrolling) {
+            stopAutoScroll();
+            return;
+          }
+          container.scrollLeft += 0.3; // adjust speed to taste
+          rafId = requestAnimationFrame(step);
+        };
+
+        rafId = requestAnimationFrame(step);
+      }
+
+      // Auto-scroll stop
+      function stopAutoScroll() {
+        isAutoScrolling = false;
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      }
+
+      function markUserScrolling() {
+        isUserScrolling = true;
+        stopAutoScroll();
+        clearTimeout(resumeAutoScrollTimeout);
+        resumeAutoScrollTimeout = setTimeout(() => {
           isUserScrolling = false;
           startAutoScroll();
         }, autoScrollDelay);
       }
 
-      // Auto-scroll start
-      function startAutoScroll() {
-        autoScrollInterval = setInterval(() => {
-          if (!isUserScrolling) {
-            container.scrollLeft += 1;
-          }
-        }, 10); // Slow down the auto-scroll for smoother performance
-      }
-
-      // Auto-scroll stop
-      function stopAutoScroll() {
-        clearInterval(autoScrollInterval);
-      }
-
-      userScrollTimeout = setTimeout(() => {
+      setTimeout(() => {
         startAutoScroll();
       }, autoScrollDelay);
     </script>
