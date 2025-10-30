@@ -12,6 +12,10 @@ let currentItemDataCache = null; // Cache of the currently open item's data
 let mediaFilesToUpload = []; // For media dashboard: array of File objects
 let existingMediaFiles = []; // For media dashboard: array of {url, caption, filename, storagePath}
 let mediaUploadsInProgress = []; // [{file, progress, uploadTask, uploadedUrl, storagePath, error, isCompressed, isDone}]
+let isAdmin = false; // From custom claim
+let effectiveUserId = null; // Admin-selected user being edited
+let effectiveUserEmail = null;
+let userDirectoryList = [];
 
 // --- DOM Elements ---
 const dataTypesNav = document.getElementById('dataTypesNav');
@@ -20,6 +24,8 @@ const itemsListUl = document.getElementById('itemsList');
 const dashboardContentEl = document.getElementById('dashboardContent'); // uiService also uses this
 const logoutButton = document.getElementById('logoutButton');
 const welcomeMessageEl = document.getElementById('welcomeMessage');
+const adminControlsEl = document.getElementById('adminControls');
+const adminUserSelectEl = document.getElementById('adminUserSelect');
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,10 +34,70 @@ document.addEventListener('DOMContentLoaded', () => {
     initColumnResizing();
 });
 
-function handleUserSignedIn(user) {
+async function handleUserSignedIn(user) {
     currentUser = user;
+    try { console.log(`[AdminCheck] Signed-in user: email=${user && user.email}, uid=${user && user.uid}`); } catch (e) {}
     if (welcomeMessageEl) welcomeMessageEl.textContent = `Welcome, ${user.displayName || user.email}!`;
     if (logoutButton) logoutButton.style.display = 'inline-block';
+    // Default effective user is self
+    effectiveUserId = user.uid;
+    effectiveUserEmail = user.email || '';
+    window.CMS_EFFECTIVE_USER_ID = effectiveUserId;
+    try { console.log(`Editing as: ${effectiveUserEmail || effectiveUserId}`); } catch (e) {}
+
+    // Ensure user appears in directory
+    try {
+        await fsService.upsertUserDirectory({ uid: user.uid, email: user.email || '', displayName: user.displayName || '' });
+    } catch (e) {
+        console.warn('upsertUserDirectory failed:', e);
+    }
+
+    // Read custom claims for admin
+    try {
+        const tokenResult = await firebase.auth().currentUser.getIdTokenResult(true);
+        try { console.log('[AdminCheck] tokenResult.claims =', tokenResult && tokenResult.claims); } catch (e) {}
+        isAdmin = !!(tokenResult && tokenResult.claims && tokenResult.claims.admin);
+        try { console.log(`[AdminCheck] admin claim present? ${isAdmin}`); } catch (e) {}
+        // Temporary fallback: treat your email as admin until custom claim is set
+        if (!isAdmin && (user.email || '').toLowerCase() === 'symonds.george@gmail.com') {
+            isAdmin = true;
+            console.warn('[AdminCheck] Using email fallback for admin until custom claim is set.');
+        }
+    } catch (e) {
+        isAdmin = false;
+        console.warn('[AdminCheck] Failed to read custom claims:', e);
+    }
+
+    // Admin UI setup
+    try { console.log(`[AdminUI] adminControlsEl exists: ${!!adminControlsEl}, adminUserSelectEl exists: ${!!adminUserSelectEl}`); } catch (e) {}
+    if (isAdmin && adminControlsEl && adminUserSelectEl) {
+        adminControlsEl.style.display = 'flex';
+        try { console.log('[AdminUI] Showing admin controls'); } catch (e) {}
+        await populateAdminUserDropdown();
+        if (!adminUserSelectEl.dataset.bound) {
+            adminUserSelectEl.addEventListener('change', () => {
+                const selectedUid = adminUserSelectEl.value || currentUser.uid;
+                const selected = userDirectoryList.find(u => u.uid === selectedUid);
+                effectiveUserId = selectedUid;
+                effectiveUserEmail = selected ? selected.email : (currentUser.email || '');
+                window.CMS_EFFECTIVE_USER_ID = effectiveUserId;
+                try { console.log(`Editing as: ${effectiveUserEmail || effectiveUserId}`); } catch (e) {}
+                currentOpenItemDataID = null;
+                currentItemDataCache = null;
+                if (selectedDataType) {
+                    loadItemsForType(selectedDataType);
+                }
+            });
+            adminUserSelectEl.dataset.bound = '1';
+        }
+    } else if (adminControlsEl) {
+        adminControlsEl.style.display = 'none';
+        if (!isAdmin) {
+            console.warn('[AdminUI] Admin controls hidden because no admin claim found. Set custom claim {admin: true} on this user.');
+        } else {
+            console.warn('[AdminUI] Admin controls hidden because elements were not found in the DOM.');
+        }
+    }
     ui.showLoading(false); // Hide loading if it was shown during auth check
     // If a data type was previously selected, load its items, or prompt user
     if (selectedDataType) {
@@ -46,6 +112,10 @@ function handleUserSignedIn(user) {
 
 function handleUserSignedOut() {
     currentUser = null;
+    isAdmin = false;
+    effectiveUserId = null;
+    effectiveUserEmail = null;
+    window.CMS_EFFECTIVE_USER_ID = null;
     // Redirect to login page
     if (!window.location.pathname.endsWith('login.html')) {
         window.location.href = 'login.html';
@@ -95,6 +165,41 @@ function setupEventListeners() {
     }
 }
 
+function getTargetUserId() {
+    if (effectiveUserId) return effectiveUserId;
+    return currentUser ? currentUser.uid : null;
+}
+
+async function populateAdminUserDropdown() {
+    try { console.log('[AdminUI] populateAdminUserDropdown()'); } catch (e) {}
+    if (!adminUserSelectEl) { console.warn('[AdminUI] adminUserSelectEl not found'); return; }
+    try {
+        const snapshot = await fsService.listUserDirectory();
+        userDirectoryList = [];
+        snapshot.forEach(doc => {
+            const data = doc.data() || {};
+            userDirectoryList.push({ uid: doc.id, email: data.email || '', displayName: data.displayName || '' });
+        });
+        try { console.log(`[AdminUI] userDirectory entries: ${userDirectoryList.length}`); } catch (e) {}
+        userDirectoryList.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+        adminUserSelectEl.innerHTML = '';
+        const meOption = document.createElement('option');
+        meOption.value = currentUser.uid;
+        meOption.textContent = `Me: ${currentUser.email || currentUser.displayName || currentUser.uid}`;
+        adminUserSelectEl.appendChild(meOption);
+        userDirectoryList.forEach(u => {
+            if (u.uid === currentUser.uid) return;
+            const opt = document.createElement('option');
+            opt.value = u.uid;
+            opt.textContent = u.email || u.displayName || u.uid;
+            adminUserSelectEl.appendChild(opt);
+        });
+        adminUserSelectEl.value = effectiveUserId || currentUser.uid;
+    } catch (e) {
+        console.error('populateAdminUserDropdown error:', e);
+    }
+}
+
 // --- Dashboard Change Events (for form elements) ---
 function handleDashboardChanges(e) {
     if (!currentUser || !currentOpenItemDataID) {
@@ -117,7 +222,8 @@ async function loadItemsForType(dataType) {
     if (!currentUser || !dataType) return;
     ui.showLoading(true);
     try {
-        const querySnapshot = await fsService.getItemsByType(currentUser.uid, dataType);
+        const targetUid = getTargetUserId();
+        const querySnapshot = await fsService.getItemsByType(targetUid, dataType);
         const items = [];
         querySnapshot.forEach(doc => {
             items.push({ dataID: doc.id, ...doc.data() });
@@ -140,7 +246,8 @@ async function handleItemSelected(dataID) {
     existingMediaFiles = []; // Reset for media
 
     try {
-        const docSnap = await fsService.getItemById(currentUser.uid, dataID);
+        const targetUid = getTargetUserId();
+        const docSnap = await fsService.getItemById(targetUid, dataID);
         if (docSnap.exists) {
             currentItemDataCache = { dataID: docSnap.id, ...docSnap.data() };
             const item = currentItemDataCache;
@@ -150,7 +257,7 @@ async function handleItemSelected(dataID) {
                 ui.renderTextDashboard(item.dataID, item);
             } else if (item.type === 'media') {
                 existingMediaFiles = item.files ? [...item.files] : [];
-                ui.renderMediaDashboard(item.dataID, item, currentUser.uid);
+                ui.renderMediaDashboard(item.dataID, item, targetUid);
                 setupMediaDashboardControls(item.dataID, item);
             } else if (item.type === 'blog') {
                 ui.renderBlogDashboard(item.dataID, item);
@@ -183,7 +290,8 @@ async function handleCreateNewItem() {
     existingMediaFiles = [];
 
     try {
-        const newId = await fsService.generateNewDataID(currentUser.uid, selectedDataType);
+        const targetUid = getTargetUserId();
+        const newId = await fsService.generateNewDataID(targetUid, selectedDataType);
         currentOpenItemDataID = newId; // Set for saving
         const typeLabel = selectedDataType.charAt(0).toUpperCase() + selectedDataType.slice(1);
         ui.updateDashboardTitle(`New ${typeLabel}`);
@@ -192,7 +300,7 @@ async function handleCreateNewItem() {
         if (selectedDataType === 'text') {
             ui.renderTextDashboard(newId, null);
         } else if (selectedDataType === 'media') {
-            ui.renderMediaDashboard(newId, null, currentUser.uid);
+            ui.renderMediaDashboard(newId, null, targetUid);
             setupMediaDashboardControls(newId, null);
         } else if (selectedDataType === 'blog') {
             ui.renderBlogDashboard(newId, null);
@@ -662,7 +770,8 @@ async function handleSelectMediaForBlock(target) {
                 mediaContainer.dataset.mediaId = selectedMedia.dataID;
                 
                 // Load the actual media content
-                await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, currentUser.uid);
+                const targetUid = getTargetUserId();
+                await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, targetUid);
             }
         });
     } catch (error) {
@@ -861,8 +970,8 @@ function handleEmbedRetry(target) {
 
 async function getAvailableMediaItems() {
     if (!currentUser) return [];
-    
-    const querySnapshot = await fsService.getItemsByType(currentUser.uid, 'media');
+    const targetUid = getTargetUserId();
+    const querySnapshot = await fsService.getItemsByType(targetUid, 'media');
     const mediaItems = [];
     querySnapshot.forEach(doc => {
         mediaItems.push({ dataID: doc.id, ...doc.data() });
@@ -1057,7 +1166,8 @@ async function _saveItemToFirestore(itemData) {
     }
     ui.showLoading(true);
     try {
-        await fsService.saveItem(currentUser.uid, currentOpenItemDataID, itemData);
+        const targetUid = getTargetUserId();
+        await fsService.saveItem(targetUid, currentOpenItemDataID, itemData);
         ui.showPopup(`${itemData.type.charAt(0).toUpperCase() + itemData.type.slice(1)} saved successfully!`, 'alert', () => {
             loadItemsForType(selectedDataType); // Refresh list in column 2
              // Update dashboard title if it was a new item or title changed
@@ -1086,10 +1196,11 @@ async function handleDeleteItem(itemType) {
         async () => { // onConfirm
             ui.showLoading(true);
             try {
+                const targetUid = getTargetUserId();
                 // Specific cleanup for media files in Storage
                 if (itemType === 'media' && currentItemDataCache && currentItemDataCache.files) {
                     // Option 1: Delete folder (simpler if all files are in one dataID folder)
-                    const folderPath = `users/${currentUser.uid}/media/${currentOpenItemDataID}`;
+                    const folderPath = `users/${targetUid}/media/${currentOpenItemDataID}`;
                     await storageService.deleteFolderContents(folderPath);
 
                     // Option 2: Delete individual files (if paths are stored and more granular)
@@ -1099,8 +1210,7 @@ async function handleDeleteItem(itemType) {
                     // });
                     // await Promise.all(deletePromises);
                 }
-
-                await fsService.deleteItem(currentUser.uid, currentOpenItemDataID);
+                await fsService.deleteItem(targetUid, currentOpenItemDataID);
                 ui.showPopup(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} deleted successfully!`, 'alert', () => {
                     currentOpenItemDataID = null;
                     currentItemDataCache = null;
@@ -1180,7 +1290,7 @@ function handleMediaFileSelection(event) {
         if (file.type.startsWith('video/')) {
             // Start upload immediately
             const index = mediaFilesToUpload.length - 1;
-            const userID = currentUser && currentUser.uid ? currentUser.uid : 'anonymous';
+            const userID = getTargetUserId() || 'anonymous';
             const itemDataID = currentOpenItemDataID || 'temp';
             const extension = file.name.split('.').pop();
             const fileNameInStorage = `${itemDataID}_${Date.now()}.${extension}`;
@@ -2133,7 +2243,7 @@ async function handleSaveMedia() {
 
     const mediaType = document.getElementById('mediaTypeSelect').value;
     const itemDataID = currentOpenItemDataID; // This is the ID for the media item itself
-    const userID = currentUser.uid;
+    const userID = getTargetUserId();
 
     ui.showLoading(true);
     const uploadProgressContainer = document.getElementById('uploadProgressContainer');

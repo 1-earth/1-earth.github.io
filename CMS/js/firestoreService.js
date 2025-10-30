@@ -90,3 +90,27 @@ export async function deleteItem(userId, dataID) {
     const db = getDbInstance();
     return db.collection('users').doc(userId).collection('items').doc(dataID).delete();
 }
+
+// --- User Directory Helpers (for admin user selection) ---
+export async function upsertUserDirectory(userInfo) {
+    if (!userInfo || !userInfo.uid) return;
+    const db = getDbInstance();
+    const ref = db.collection('userDirectory').doc(userInfo.uid);
+    const now = firebase.firestore.FieldValue.serverTimestamp();
+    const payload = {
+        email: userInfo.email || '',
+        displayName: userInfo.displayName || '',
+        updatedAt: now
+    };
+    // Create if missing with createdAt
+    const snap = await ref.get();
+    if (!snap.exists) {
+        payload.createdAt = now;
+    }
+    return ref.set(payload, { merge: true });
+}
+
+export async function listUserDirectory() {
+    const db = getDbInstance();
+    return db.collection('userDirectory').get();
+}

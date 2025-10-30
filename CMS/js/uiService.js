@@ -592,10 +592,14 @@ export function renderBlogDashboard(dataID, existingData = null) {
                         } else if (block.type === 'media' && block.mediaId) {
                             // Load media content for media blocks
                             setTimeout(async () => {
-                                const { getCurrentUser } = await import('./auth.js');
-                                const currentUser = getCurrentUser();
-                                if (currentUser) {
-                                    await loadMediaIntoBlock(block.id, block.mediaId, currentUser.uid);
+                                let uid = window.CMS_EFFECTIVE_USER_ID;
+                                if (!uid) {
+                                    const { getCurrentUser } = await import('./auth.js');
+                                    const cu = getCurrentUser();
+                                    uid = cu ? cu.uid : null;
+                                }
+                                if (uid) {
+                                    await loadMediaIntoBlock(block.id, block.mediaId, uid);
                                 }
                             }, 50);
                         }
@@ -626,10 +630,14 @@ export function renderBlogDashboard(dataID, existingData = null) {
                     } else if (item.blockType === 'media' && item.mediaId) {
                         // Load media content for media blocks
                         setTimeout(async () => {
-                            const { getCurrentUser } = await import('./auth.js');
-                            const currentUser = getCurrentUser();
-                            if (currentUser) {
-                                await loadMediaIntoBlock(item.id, item.mediaId, currentUser.uid);
+                            let uid = window.CMS_EFFECTIVE_USER_ID;
+                            if (!uid) {
+                                const { getCurrentUser } = await import('./auth.js');
+                                const cu = getCurrentUser();
+                                uid = cu ? cu.uid : null;
+                            }
+                            if (uid) {
+                                await loadMediaIntoBlock(item.id, item.mediaId, uid);
                             }
                         }, 50);
                     }
@@ -716,10 +724,14 @@ export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = 
     if (blockType === 'media' && mediaId) {
         // Use setTimeout to ensure the DOM is updated before trying to load media
         setTimeout(async () => {
-            const { getCurrentUser } = await import('./auth.js');
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                await loadMediaIntoBlock(blockId, mediaId, currentUser.uid);
+            let uid = window.CMS_EFFECTIVE_USER_ID;
+            if (!uid) {
+                const { getCurrentUser } = await import('./auth.js');
+                const cu = getCurrentUser();
+                uid = cu ? cu.uid : null;
+            }
+            if (uid) {
+                await loadMediaIntoBlock(blockId, mediaId, uid);
             }
         }, 10);
     }

@@ -78,6 +78,7 @@
 
       .modal-content {
         margin: auto;
+        margin-top: 100px;
         display: block;
         width: 80%;
         max-width: 700px;
@@ -86,13 +87,19 @@
         object-fit: contain;
       }
 
+      @media (max-width: 768px) {
+        .modal-content {
+          width: 90%;
+        }
+      }
+
       .close {
         position: absolute;
         top: 15px;
-        right: 35px;
+        right: 28px;
         color: #f1f1f1;
-        font-size: 40px;
-        font-weight: bold;
+        font-size: 45px;
+        font-weight: normal;
         transition: 0.3s;
       }
 
@@ -116,12 +123,24 @@
         /* grid-template-columns: 1fr 1fr; */
         column-gap: 5px;
         padding: 20px;
-        gap: 34px;
+        gap: 23px;
       }
 
       @media (max-width: 768px) {
         .GSstamp {
+          width: 70vw;
+        }
+      }
+
+      @media (max-width: 570px) {
+        .GSstamp {
           width: 80vw;
+        }
+      }
+
+      @media (max-width: 500px) {
+        .GSstamp {
+          width: 91vw;
         }
       }
 
@@ -437,6 +456,24 @@
       // Open the modal with the clicked image
       function openModal(url) {
         modal.style.display = "block";
+        // Reset inline margin first; default CSS is 100px for landscape
+        modalImg.style.marginTop = "";
+        // Set source and then adjust margin based on orientation when loaded
+        modalImg.onload = function () {
+          try {
+            var w = modalImg.naturalWidth;
+            var h = modalImg.naturalHeight;
+            if (w && h) {
+              if (h > w) {
+                // Portrait
+                modalImg.style.marginTop = "40px";
+              } else {
+                // Landscape or square
+                modalImg.style.marginTop = "100px";
+              }
+            }
+          } catch (e) {}
+        };
         modalImg.src = url;
       }
 
