@@ -1,3 +1,43 @@
+/* Orientation Overlay (mobile portrait) */
+.orientation-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none; /* toggled via JS */
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+}
+
+.orientation-content {
+    max-width: 520px;
+    width: calc(100% - 40px);
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 24px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.orientation-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    color: #111827;
+}
+
+.orientation-content p {
+    margin: 0;
+    color: #374151;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .orientation-content {
+        max-width: 420px;
+        padding: 20px 16px;
+    }
+}
 /* ONE EARTH CMS Styles */ 
 * {
     box-sizing: border-box;
@@ -948,12 +988,12 @@ body {
 /* Media queries for responsive layout */
 @media (max-width: 992px) {
     .cms-container {
-        flex-direction: column;
+        /* flex-direction: column; */
     }
     
     .data-types-column {
         flex: 0 0 auto;
-        display: flex;
+        /* display: flex; */
         flex-wrap: wrap;
         overflow-y: visible;
         height: auto;
@@ -970,7 +1010,7 @@ body {
     }
     
     .items-list-column {
-        flex: 0 0 auto;
+        /* flex: 0 0 auto; */
         width: 100%;
         height: auto;
         max-height: 300px;
@@ -979,7 +1019,16 @@ body {
     }
     
     .dashboard-column {
-        height: auto;
+        /* height: auto; */
+    }
+
+    .app-header {
+        padding-bottom: 0px;
+        padding-top: 10px;
+    }
+
+    .login-box {
+        padding: 50px;
     }
 }
 

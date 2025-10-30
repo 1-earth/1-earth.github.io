@@ -93,7 +93,36 @@
         </main>
     </div>
 
+    <div id="orientationOverlay" class="orientation-overlay" style="display: none;">
+        <div class="orientation-content">
+            <h2>Rotate your device</h2>
+            <p>Please rotate your phone to landscape for the best editing experience.</p>
+        </div>
+    </div>
+
     <script src="firebase-config.js"></script>
     <script type="module" src="js/main.js"></script>
+    <script>
+        (function() {
+            function isMobile() {
+                return /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            }
+            function updateOrientationOverlay() {
+                var overlay = document.getElementById('orientationOverlay');
+                if (!overlay) return;
+                var isPortrait = window.matchMedia('(orientation: portrait)').matches;
+                if (isMobile() && isPortrait) {
+                    overlay.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    overlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+            window.addEventListener('DOMContentLoaded', updateOrientationOverlay);
+            window.addEventListener('resize', updateOrientationOverlay);
+            window.addEventListener('orientationchange', updateOrientationOverlay);
+        })();
+    </script>
 </body>
 </html>
