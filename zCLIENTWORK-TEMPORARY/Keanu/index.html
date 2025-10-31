@@ -17,6 +17,10 @@
         overflow: hidden;
       }
       .work-section-description .inline-read-toggle{ display:inline-block; white-space:nowrap; vertical-align: baseline; margin-left: 0.35em; }
+      /* Mobile-only: hide top controls when scrolled beyond threshold */
+      @media (max-width: 768px){
+        .top-controls.mobile-hidden{ display: none !important; }
+      }
     </style>
 </head>
 
@@ -81,7 +85,7 @@
 
         <div class="work-section-container down-gradient-black-background">
             <div class="work-section no-margin-side">
-                <div class="work-section-title-container less-margin-bottom ">
+                <div class="work-section-title-container less-margin-bottom left-margin">
                     <h1 class="work-section-title">Clients</h1>
                 </div>
                 
@@ -465,6 +469,26 @@
       }
 
       updateOpacity();
+    })();
+    </script>
+
+    <script>
+    // Mobile-only: hide .top-controls after scrolling past 85% viewport height
+    (function(){
+      function isMobile(){ return window.matchMedia('(max-width: 768px)').matches; }
+      function updateTopControls(){
+        var el = document.querySelector('.top-controls');
+        if (!el) return;
+        if (isMobile() && window.scrollY >= window.innerHeight * 0.75){
+          el.classList.add('mobile-hidden');
+        } else {
+          el.classList.remove('mobile-hidden');
+        }
+      }
+      window.addEventListener('scroll', updateTopControls, { passive: true });
+      window.addEventListener('resize', updateTopControls);
+      window.addEventListener('load', updateTopControls);
+      updateTopControls();
     })();
     </script>
 
@@ -1223,7 +1247,7 @@
 
             <div class="footer-contact-container">
                 <div class="footer-contact-item">
-                    <h1 class="footer-contact-item-title">KEANULLMGMT@GMAIL.COM</h1>
+                    <h1 class="footer-contact-item-title"><a href="mailto:KEANULLMGMT@GMAIL.COM">KEANULLMGMT@GMAIL.COM</a></h1>
                 </div>
                 <div class="footer-contact-item">
                     <div class="icon-buttons" aria-label="Social links">
