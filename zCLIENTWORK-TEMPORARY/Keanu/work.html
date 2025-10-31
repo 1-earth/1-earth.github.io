@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keanu Portfolio</title>
+    <link rel="stylesheet" href="static/styles/mainstyle.css">
+    <style>
+       
+    </style>
+</head>
+
+<body>
+
+
+    <!-- fixed background media -->
+    <!-- <div class="sticky-background-media">
+        <video autoplay muted loop playsinline class="background-video">
+            <source src="static/video/background.mp4" type="video/mp4" >
+        </video>
+    </div> -->
+
+    <script src="static/scripts/sticky-logo.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+
+    <div class="up-gradient-black-background">
+
+        <div class="landing-logo" aria-label="Logo placeholder">
+            <a href="index.html"><img class="logo-img-small" src="static/img/LogoNewLarge.png" alt="Keanu logo"></a>
+        </div>
+
+
+        <!-- Top navigation / hamburger -->
+        <div class="landing-top-row">
+        <div class="top-controls" aria-label="Media controls">
+            <button class="control-btn control-icon-btn" aria-label="Mute or unmute">
+                <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
+                    <path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"></path>
+                    <path d="M16 9.5l4 4m0-4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+            </button>
+            <button class="control-btn control-pager-btn" aria-label="Skip backward or forward">
+                <svg viewBox="0 0 64 24" width="60" height="23" aria-hidden="true">
+                    <!-- left triangle -->
+                    <polygon points="12,12 22,6 22,18" fill="currentColor"></polygon>
+                    <!-- center dot -->
+                    <!-- <circle cx="32" cy="12" r="2" fill="currentColor"></circle> -->
+                    <!-- right triangle -->
+                    <polygon points="52,12 42,6 42,18" fill="currentColor"></polygon>
+                </svg>
+            </button>
+            <button class="control-btn cta-live-btn" aria-label="Live at Boiler Room">
+                <span class="cta-text">LIVE AT BOILER ROOM</span>
+                <span class="cta-arrow" aria-hidden="true">↗</span>
+            </button>
+        </div>
+        <button class="hamburger" aria-label="Open menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        </div>
+        <!-- Bottom-aligned content bar -->
+        <!-- <div class="landing-bottom-row">
+            <div class="landing-logo" aria-label="Logo placeholder">
+                <img class="logo-img" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+            </div>
+            <div class="landing-copy">
+                <h2>Multi-disciplinary creative and DJ who bridges music, art, and culture — known for delivering versatile, high-energy sets across diverse audiences.</h2>
+            </div>
+        </div> -->
+    </div>
+
+    <!-- work container -->
+    <div class="work-container">
+
+
+        <div class="work-section-container no-border">
+            <div class="work-page-section">
+                <div id="work-content" class="loading">Loading…</div>
+            </div>
+                    <div class="work-section work-section-title-container">
+                        <h1 class="work-section-title ">Related Work:</h1>
+                        
+                    </div>
+                    
+
+                </div>
+
+                <div class="work-body-container">
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 1 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 1 Live at Title Place</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 1">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 2 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 2 2 2 2 2 222</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 2">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 3 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 3</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 3">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+
+                <!-- <h1>DJ</h1> -->
+                <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
+            </div>
+        </div>
+       
+        
+    </div>
+    
+    <script>
+    // Match pill border width to visually stretched titles (supports multiples)
+    (function(){
+      function sizeTitlePills(){
+        var containers = document.querySelectorAll('.work-section-title-container');
+        if (!containers.length) return;
+        containers.forEach(function(container){
+          var title = container.querySelector('.work-section-title');
+          if (!title) return;
+          var rect = title.getBoundingClientRect();
+          var cs = window.getComputedStyle(container);
+          container.style.width = rect.width + 'px';
+        });
+      }
+      window.addEventListener('load', sizeTitlePills);
+      window.addEventListener('resize', sizeTitlePills);
+      sizeTitlePills();
+    })();
+    </script>
+    
+    <script>
+    // Stretch pill button text while preserving pill borders
+    (function(){
+      function ensureWrapped(btn){
+        if (btn.querySelector('.btn-text-stretch')) return;
+        var txt = btn.textContent;
+        btn.textContent = '';
+        var span = document.createElement('span');
+        span.className = 'btn-text-stretch';
+        span.textContent = txt;
+        btn.appendChild(span);
+      }
+
+      function sizeButtons(){
+        var buttons = document.querySelectorAll('.pill-btn');
+        if (!buttons.length) return;
+        buttons.forEach(function(btn){
+          ensureWrapped(btn);
+          var span = btn.querySelector('.btn-text-stretch');
+          // Reset to natural width before measuring
+          btn.style.width = 'auto';
+          var rect = span.getBoundingClientRect();
+          var cs = window.getComputedStyle(btn);
+          var padL = parseFloat(cs.paddingLeft) || 10;
+          var padR = parseFloat(cs.paddingRight) || 10;
+          var borderL = parseFloat(cs.borderLeftWidth) || 0;
+          var borderR = parseFloat(cs.borderRightWidth) || 0;
+          btn.style.width = Math.ceil(rect.width + padL + padR + borderL + borderR) + 'px';
+        });
+      }
+
+      window.addEventListener('load', sizeButtons);
+      window.addEventListener('resize', sizeButtons);
+      sizeButtons();
+    })();
+    </script>
+    
+    <!-- Firebase SDK for loading posts dynamically -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+    // Dynamic Work Loader for Keanu
+    (function(){
+      var TARGET_USER_UID = 'X7JH9jPOMPdzYK36cvUiiHW3fDG3';
+
+      var firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
+
+      function safeInitFirebase(){
+        try {
+          if (!window.firebase) return false;
+          if (!firebase.apps || !firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+          return true;
+        } catch(_) { return !!window.firebase; }
+      }
+
+      function setMeta(selector, attr, value){
+        var el = document.querySelector(selector);
+        if (!el){
+          el = document.createElement('meta');
+          if (selector.indexOf('property=') !== -1){
+            var m = selector.match(/property=\"([^\"]+)\"/); if (m) el.setAttribute('property', m[1]);
+          } else if (selector.indexOf('name=') !== -1){
+            var n = selector.match(/name=\"([^\"]+)\"/); if (n) el.setAttribute('name', n[1]);
+          }
+          document.head.appendChild(el);
+        }
+        el.setAttribute(attr, value);
+      }
+
+      function updateSocialMeta(work, postId){
+        var title = (work && work.title) ? work.title : 'Work';
+        var desc = '';
+        try {
+          if (work && work.summary) desc = String(work.summary);
+          else if (work && work.subtitle) desc = String(work.subtitle);
+          else if (work && work.excerpt) desc = String(work.excerpt);
+        } catch(_){}
+        if (!desc) desc = 'Selected work';
+
+        var url = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(postId || '');
+
+        // Pick an image from featuredMedia or first media section
+        var image = '';
+        if (work && work.featuredMedia && work.featuredMedia.url){ image = work.featuredMedia.url; }
+        if (!image && work && work.sections){
+          try {
+            for (var i=0;i<work.sections.length;i++){
+              var s = work.sections[i];
+              var items = (s.items || s.blocks || []);
+              for (var j=0;j<items.length;j++){
+                var it = items[j];
+                if ((it.type === 'media' || it.blockType === 'media') && it.cachedMediaUrl){ image = it.cachedMediaUrl; break; }
+              }
+              if (image) break;
+            }
+          } catch(_){}
+        }
+
+        setMeta('meta[property="og:title"]', 'content', title);
+        setMeta('meta[property="og:description"]', 'content', desc);
+        setMeta('meta[property="og:url"]', 'content', url);
+        if (image) setMeta('meta[property="og:image"]', 'content', image);
+        setMeta('meta[name="twitter:title"]', 'content', title);
+        setMeta('meta[name="twitter:description"]', 'content', desc);
+        if (image) setMeta('meta[name="twitter:image"]', 'content', image);
+
+        var link = document.querySelector('link[rel="canonical"]');
+        if (!link){ link = document.createElement('link'); link.setAttribute('rel','canonical'); document.head.appendChild(link); }
+        link.setAttribute('href', url);
+        document.title = title + ' — Keanu';
+      }
+
+      function isVideoUrl(u){ return /\.(mp4|webm|ogg|mov|avi)(?:$|[?#])/i.test((u||'').split('?')[0]); }
+
+      function renderMediaFromUrl(url, caption, poster){
+        if (!url) return '';
+        if (isVideoUrl(url)){
+          var posterAttr = poster ? ' poster="'+poster+'"' : '';
+          return '<div class="blog-media-frontend"><video class="blog-media-video" src="'+url+'"'+posterAttr+' controls></video>' + (caption?'<p class="blog-media-caption">'+caption+'</p>':'') + '</div>';
+        }
+        return '<div class="blog-media-frontend"><img class="blog-media-img" src="'+url+'" alt="'+(caption||'Media')+'">' + (caption?'<p class="blog-media-caption">'+caption+'</p>':'') + '</div>';
+      }
+
+      function renderEmbed(block){
+        // Basic YouTube/SoundCloud/Spotify support; expects block.content as JSON or direct HTML
+        var c = block && block.content; if (!c) return '';
+        var data = null;
+        try { data = (typeof c === 'string') ? JSON.parse(c) : c; } catch(_) { return String(c); }
+        if (!data || !data.platform) return '';
+        var widthStyle = (data.width && data.width < 100) ? ' style="width:'+data.width+'%; margin:0 auto;"' : '';
+        if (data.platform === 'youtube'){
+          return '<div class="blog-embed-frontend youtube-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://www.youtube.com/embed/'+data.embedId+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+        }
+        if (data.platform === 'spotify'){
+          var h = (data.viewType === 'compact') ? '80' : '152';
+          return '<div class="blog-embed-frontend spotify-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://open.spotify.com/embed/'+data.embedId+'?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media" style="height:'+h+'px;"></iframe></div></div>';
+        }
+        if (data.platform === 'soundcloud'){
+          return '<div class="blog-embed-frontend soundcloud-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://w.soundcloud.com/player/?url='+encodeURIComponent('https://soundcloud.com/'+data.embedId)+'" frameborder="0" allow="autoplay"></iframe></div></div>';
+        }
+        return '';
+      }
+
+      async function renderModularBlogContent(db, work){
+        if (!work || !work.sections || !work.sections.length) return work && work.content ? work.content : '';
+        var html = '';
+        var sections = work.sections.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+        for (var si=0; si<sections.length; si++){
+          var sec = sections[si];
+          var items = (sec.items || sec.blocks || []);
+          if (!items.length) continue;
+          html += '<div class="blog-section-frontend">';
+          var sorted = items.slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+          for (var ii=0; ii<sorted.length; ii++){
+            var it = sorted[ii];
+            var type = it.blockType || it.type;
+            if (type === 'subtitle'){ html += '<div class="blog-subtitle-frontend">'+(it.content||'')+'</div>'; continue; }
+            if (type === 'body'){ html += '<div class="blog-body-frontend">'+(it.content||'')+'</div>'; continue; }
+            if (type === 'embed'){ html += renderEmbed(it); continue; }
+            if (type === 'media'){
+              // Prefer cached url, else fetch by mediaId
+              if (it.cachedMediaUrl){ html += renderMediaFromUrl(it.cachedMediaUrl, it.caption, it.poster); continue; }
+              if (it.mediaId){
+                try {
+                  var doc = await db.collection('users').doc(TARGET_USER_UID).collection('items').doc(it.mediaId).get();
+                  if (doc.exists){
+                    var media = doc.data();
+                    if (media && media.files && media.files.length){
+                      var f = media.files[0];
+                      html += renderMediaFromUrl(f.url, f.caption, f.poster);
+                    }
+                  }
+                } catch(_){}
+              }
+            }
+          }
+          html += '</div>';
+        }
+        return html;
+      }
+
+      function mountVideoAutoplay(root){
+        var container = root || document.querySelector('.work-page-section');
+        if (!container) return;
+        var vids = container.querySelectorAll('video');
+        if (!('IntersectionObserver' in window)){
+          vids.forEach(function(v){ try { v.muted=true; v.setAttribute('playsinline',''); v.play(); } catch(_){ } });
+          return;
+        }
+        var obs = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            var v = entry.target;
+            var inView = entry.isIntersecting;
+            try {
+              v.muted = true; v.setAttribute('playsinline','');
+              if (inView) { v.play().catch(function(){}); } else { if (!v.paused) v.pause(); }
+            } catch(_){ }
+          });
+        }, { threshold: 0.5 });
+        vids.forEach(function(v){ obs.observe(v); });
+      }
+
+      function showLoadingOverlay(){
+        var overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = '<div class="loading-overlay-content"><div class="loading-overlay-text"><span class="loading-label">Loading</span><span class="dots">.</span></div></div>';
+        var style = document.createElement('style');
+        style.textContent = '.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;color:#fff} .loading-overlay.hidden{opacity:0;transition:opacity .3s} .loading-overlay-text{font-size:18px;letter-spacing:.5px}';
+        document.head.appendChild(style);
+        document.body.appendChild(overlay);
+        var dots = overlay.querySelector('.dots'); var dotState = 1; var timer = setInterval(function(){ dotState = dotState % 3 + 1; dots.textContent='.'.repeat(dotState); }, 300);
+        return function hide(){ overlay.classList.add('hidden'); setTimeout(function(){ clearInterval(timer); overlay.remove(); }, 320); };
+      }
+
+      async function run(){
+        var content = document.getElementById('work-content');
+        if (!content) return;
+        var hideOverlay = showLoadingOverlay();
+
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get('id');
+        if (!id){ content.innerHTML = '<div class="error">No work item specified</div>'; hideOverlay(); return; }
+
+        if (!safeInitFirebase() || !window.firebase){ content.innerHTML = '<div class="error">Unable to load content</div>'; hideOverlay(); return; }
+        var db = firebase.firestore();
+
+        try {
+          var snap = await db.collection('users').doc(TARGET_USER_UID).collection('items').doc(id).get();
+          if (!snap.exists){ content.innerHTML = '<div class="error">Work item not found</div>'; hideOverlay(); return; }
+          var work = snap.data();
+
+          // Build header (title, date, tags)
+          var date = work.datePosted && work.datePosted.seconds ? new Date(work.datePosted.seconds*1000) : null;
+          var tagsHtml = '';
+          if (work.tags){
+            try { tagsHtml = work.tags.split(',').map(function(t){ return t.trim(); }).filter(Boolean).map(function(t){ return '<span class="work-tag">'+t+'</span>'; }).join(''); } catch(_){ tagsHtml=''; }
+          }
+
+          var headerHtml = '<div class="work-meta">'+
+            '<div class="work-meta-info">'+
+              '<div class="work-info-row">'+
+                (date ? ('<span class="work-date">'+date.getFullYear()+'</span>') : '')+
+                (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '')+
+              '</div>'+
+            '</div>'+
+            '<h1 class="work-title">'+ (work.category ? ('<span class="work-category">'+work.category+'/</span>') : '') + (work.title || 'Untitled') +'</h1>'+
+          '</div>';
+
+          // Featured media if available
+          var mediaHtml = '';
+          if (work.featuredMedia && work.featuredMedia.url){ mediaHtml = renderMediaFromUrl(work.featuredMedia.url, work.featuredMedia.caption, work.featuredMedia.poster); }
+
+          var bodyHtml = await renderModularBlogContent(db, work);
+          content.innerHTML = headerHtml + '<div class="work-content">' + (mediaHtml || '') + bodyHtml + '</div>';
+
+          // Update meta
+          updateSocialMeta(work, id);
+
+          // Autoplay videos in view
+          mountVideoAutoplay(content);
+        } catch(e){
+          content.innerHTML = '<div class="error">Error loading work item</div>';
+        } finally {
+          content.classList.remove('loading');
+          hideOverlay();
+        }
+      }
+
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', run);
+      } else { run(); }
+    })();
+    </script>
+    
+</body>
+
+<footer>
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="work-section-title-container">
+                    <h1 class="work-section-title">Contact</h1>
+            </div>
+
+            <div class="footer-contact-container">
+                <div class="footer-contact-item">
+                    <h1 class="footer-contact-item-title">KEANULLMGMT@GMAIL.COM</h1>
+                </div>
+                <div class="footer-contact-item">
+                    <div class="icon-buttons" aria-label="Social links">
+                        <a class="icon-btn" href="#" aria-label="Instagram">
+                            <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                        </a>
+                        <a class="icon-btn" href="#" aria-label="Spotify">
+                            <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                        </a>
+                        <a class="icon-btn" href="#" aria-label="Youtube">
+                            <img src="static/img/icon-youtube-white.svg" alt="Youtube">
+                        </a>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="footer-info-container">
+                <p class="footer-info-item-title">Keanu Laurence Luca © 2025 | Website Designed & Developed by 🌐 <a href="https://kr-net.work/?link=oneearth" target="_blank">1 Earth Productions</a></p>
+            </div>
+
+            
+        </div>
+    </div>
+    
+</footer>
+
+
+
+</html>

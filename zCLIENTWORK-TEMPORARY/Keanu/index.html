@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keanu Portfolio</title>
+    <link rel="stylesheet" href="static/styles/mainstyle.css">
+    <style>
+      /* Clamp and inline toggle for section descriptions */
+      .work-section-description{ position: relative; }
+      .work-section-description p{ margin: 0; }
+      .work-section-description .clamp-4{
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        overflow: hidden;
+      }
+      .work-section-description .inline-read-toggle{ display:inline-block; white-space:nowrap; vertical-align: baseline; margin-left: 0.35em; }
+    </style>
+</head>
+
+<body>
+
+
+    <!-- fixed background media -->
+    <div class="sticky-background-media">
+        <video autoplay muted loop playsinline class="background-video">
+            <source src="static/video/background.mp4" type="video/mp4" >
+        </video>
+    </div>
+
+    <script src="static/scripts/sticky-logo.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+
+    <div class="landing-container up-gradient-black-background">
+        <!-- Top navigation / hamburger -->
+        <div class="landing-top-row">
+        <div class="top-controls" aria-label="Media controls">
+            <button class="control-btn control-icon-btn" aria-label="Mute or unmute">
+                <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
+                    <path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"></path>
+                    <path d="M16 9.5l4 4m0-4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+            </button>
+            <button class="control-btn control-pager-btn" aria-label="Skip backward or forward">
+                <svg viewBox="0 0 64 24" width="60" height="23" aria-hidden="true">
+                    <!-- left triangle -->
+                    <polygon points="12,12 22,6 22,18" fill="currentColor"></polygon>
+                    <!-- center dot -->
+                    <!-- <circle cx="32" cy="12" r="2" fill="currentColor"></circle> -->
+                    <!-- right triangle -->
+                    <polygon points="52,12 42,6 42,18" fill="currentColor"></polygon>
+                </svg>
+            </button>
+            <button class="control-btn cta-live-btn" aria-label="Live at Boiler Room">
+                <span class="cta-text">LIVE AT BOILER ROOM</span>
+                <span class="cta-arrow" aria-hidden="true">↗</span>
+            </button>
+        </div>
+        <button class="hamburger" aria-label="Open menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        </div>
+        <!-- Bottom-aligned content bar -->
+        <div class="landing-bottom-row">
+            <div class="landing-logo" aria-label="Logo placeholder">
+                <img class="logo-img" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+            </div>
+            <div class="landing-copy">
+                <h2>Multi-disciplinary creative and DJ who bridges music, art, and culture — known for delivering versatile, high-energy sets across diverse audiences.</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- work container -->
+    <div class="work-container">
+
+
+        <div class="work-section-container down-gradient-black-background">
+            <div class="work-section no-margin-side">
+                <div class="work-section-title-container less-margin-bottom ">
+                    <h1 class="work-section-title">Clients</h1>
+                </div>
+                
+                <div class="clients-carousel">
+                    <div class="demoWrapper">
+                      <!-- Card One -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/nike_white.png" alt="Nike">
+                      </div>
+
+                      <!-- Card Two -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/puma_white.png" alt="Puma">
+                      </div>
+
+                      <!-- Card Three -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/redbull_white.png" alt="Red Bull">
+                      </div>
+
+                      <!-- Card Four  -->
+                      <div class="card box creative-pro ">
+                        <img class="card-img-top" src="static/img/client_logos/sohohouse_white.png" alt="Soho House">
+                      </div>
+
+                      <!-- Card Five -->
+                      <div class="card box creative-pro rounded-3x overflow-hidden w-md-50 w-lg-25">
+                        <img class="card-img-top" src="static/img/client_logos/koko_white.png" alt="KOKO">
+                      </div>
+
+                      <!-- Card Six -->
+                      <div class="card box creative-pro rounded-3x overflow-hidden w-md-50 w-lg-25">
+                        <img class="card-img-top" src="static/img/client_logos/boilerroom_white.png" alt="Boiler Room">
+                      </div>
+                      
+                      <!-- Card Seven -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/havanaclub_white.png" alt="Havana Club">
+                      </div>
+
+                      <!-- Card Eight -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/laylow_white.png" alt="Laylow">
+                      </div>
+
+                      <!-- Card Nine -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/rb_white.png" alt="RB">
+                      </div>
+
+                      <!-- Card Ten -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/sketch_white.png" alt="Sketch">
+                      </div>
+
+                      <!-- Card Eleven -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/tallyweijl_white.png" alt="Tally Weijl">
+                      </div>
+
+                      <!-- Card Twelve -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/thescotch_white.png" alt="The Scotch">
+                      </div>
+
+                      <!-- Card Thirteen -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/thestandard_white.png" alt="The Standard">
+                      </div>
+
+                      <!-- Card Fourteen -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/thetwentytwo_white.png" alt="The Twenty Two">
+                      </div>
+
+                      <!-- Card Fifteen -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/truereligon_white.png" alt="True Religion">
+                      </div>
+
+                      <!-- Card Sixteen -->
+                      <div class="card box creative-pro" style="max-width: 18rem;">
+                        <img class="card-img-top" src="static/img/client_logos/wraynephew_white.png" alt="Wray & Nephew">
+                      </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="work-section-container black-background sticky-header-scroll">
+            <div class="work-section ">
+
+                <!-- <div class="work-section-title-container">
+                    <h1 class="work-section-title">Portfolio</h1>
+                </div> -->
+
+
+                <h1>PORTFOLIO:</h1>
+                <div class="pill-buttons">
+                    <button class="pill-btn">DJ</button>
+                    <button class="pill-btn">Producer</button>
+                    <button class="pill-btn">Creative Director</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="work-section-container down-gradient-black-background">
+            <div class="work-section">
+
+                <div class="work-section-header ">
+                    <div class="work-section-title-container">
+                        
+                        <h1 class="work-section-title">DJ</h1>
+                        <svg class="work-title-arrow" viewBox="0 0 120 90" aria-hidden="true">
+                            <!-- vertical then right arrow with rounded corner -->
+                            <path d="M12 4 V58 Q12 66 20 66 H92" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M92 66 L80 54 M92 66 L80 78" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="work-section-description">
+                    <p>Keanu is a London-based DJ known for his refined, versatile sound and ability to curate the perfect atmosphere anywhere — from fashion runways to nightlife institutions. Moving effortlessly across house, afro-electronic, and global rhythmic influences, his sets are defined by elegance, energy, and precision. He has performed for some of the world’s leading brands and cultural institutions, including Boiler Room, Nike, New Balance, SIZE?, the NFL, and Selfridges, as well as at London and Paris Fashion Week, where his sound has complemented runway shows, afterparties, and exclusive brand events. In addition to his brand collaborations, Keanu has supported major artists across both the American and London music scenes, showcasing his adaptability and wide-reaching appeal. <br>
+                        With ongoing residencies at The Standard, The Twenty Two, KOKO, and Soho House, Keanu continues to bring a sophisticated edge to every performance — merging music, culture, and style into one seamless experience.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="work-body-container">
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 1 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 1 Live at Title Place</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 1">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 2 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 2 2 2 2 2 222</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 2">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 3 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 3</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 3">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+
+                <!-- <h1>DJ</h1> -->
+                <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
+            </div>
+        </div>
+        <div class="work-section-container down-gradient-black-background">
+            <div class="work-section">
+                <div class="work-section-header">
+                    <div class="work-section-title-container">
+                        <h1 class="work-section-title">Producer</h1>
+                        <svg class="work-title-arrow" viewBox="0 0 120 90" aria-hidden="true">
+                            <!-- vertical then right arrow with rounded corner -->
+                            <path d="M12 4 V58 Q12 66 20 66 H92" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M92 66 L80 54 M92 66 L80 78" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="work-section-description">
+                    <p>Keanu is a forward-thinking music producer whose sound bridges global rhythm and contemporary electronic culture. Drawing inspiration from anything that feels raw — from street energy to global percussion and underground movements — his productions merge authenticity with refined, modern sound design, balancing emotion and precision.<br>
+                        He has released his debut single and produced music for brands such as Porto FC, with his work also featured on BBC Radio 1Xtra and platforms like Genius, showcasing his growing influence across both the music and cultural landscape.<br>
+                        Recently, he released a remix with London legend Wookie — a pioneer of UK house and garage music — further establishing himself among the new wave of UK producers pushing sound forward.</p>
+                    </div>
+
+                </div>
+
+                <div class="work-body-container">
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 1 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 1</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 1">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 2 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 2</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 2">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 3 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 3</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 3">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+
+                <!-- <h1>Producer</h1> -->
+                <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
+            </div>
+        </div>
+        <div class="work-section-container down-gradient-black-background">
+            <div class="work-section">
+                <div class="work-section-header">
+                    <div class="work-section-title-container">
+                        <h1 class="work-section-title">Creative Director</h1>
+                        <svg class="work-title-arrow" viewBox="0 0 120 90" aria-hidden="true">
+                            <!-- vertical then right arrow with rounded corner -->
+                            <path d="M12 4 V58 Q12 66 20 66 H92" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M92 66 L80 54 M92 66 L80 78" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <div class="work-section-description">
+                    <p>Keanu is a multidisciplinary creative director shaping culture through sound, visual identity, and experience. With a background deeply rooted in music and design, his work explores the intersection between art direction, storytelling, and community — creating worlds that feel both elevated and authentic. As the founder of Transparent, Keanu has curated immersive events, visual campaigns, and brand collaborations that merge underground energy with refined creative direction. He has also creatively directed a range of photoshoots and visual projects of his own, developing a distinct visual language that reflects his artistic vision and cultural influences. <br>
+                        Whether developing concepts for global brands or crafting intimate cultural experiences, Keanu’s creative direction is defined by clarity, intention, and a deep sense of identity.</p>
+                    </div>
+                </div>
+
+                <div class="work-body-container">
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 1 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 1</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 1">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 2 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 2</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 2">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                    <div class="work-body-item">
+                        <div class="work-media">
+                            <img src="static/img/placeholder.png" alt="Work 3 image">
+                            <div class="work-tags">
+                                <span class="work-tag">Live Set</span>
+                                <span class="work-tag">Consultancy</span>
+                            </div>
+                        </div>
+                        <h1 class="work-body-item-title">Work 3</h1>
+                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
+                        <a class="view-more-btn" href="#" aria-label="View more about Work 3">View More... <span class="arrow" aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+
+                <!-- <h1>Creative Director</h1> -->
+                <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+    // 3D logo carousel logic (scoped to Clients section)
+    ;(function(){
+      if (!window.gsap || !window.Draggable) return;
+      gsap.registerPlugin(Draggable);
+
+      var cards = gsap.utils.toArray('.clients-carousel .creative-pro'),
+          dragDistancePerRotation = 3000,
+          radius = 830,
+          proxy = document.createElement('div'),
+          progressWrap = gsap.utils.wrap(0, 1),
+          spin = gsap.fromTo(cards, {
+            rotationY: function(i){ return i * 360 / cards.length; }
+          }, {
+            rotationY: '-=360',
+            duration: 30,
+            ease: 'none',
+            repeat: -1,
+            transformOrigin: '50% 50% ' + (-radius) + 'px',
+            onUpdate: updateOpacity
+          }),
+          startProgress,
+          momentumTween;
+
+      function calcRadius(){
+        var wrapper = document.querySelector('.clients-carousel .demoWrapper');
+        var w = wrapper ? wrapper.clientWidth : window.innerWidth || 1200;
+        // Clamp radius between 260 and 830, scale with width
+        return Math.round(Math.min(830, Math.max(260, w * 0.75)));
+      }
+
+      function applyRadius(){
+        radius = calcRadius();
+        gsap.set(cards, { transformOrigin: '50% 50% ' + (-radius) + 'px' });
+      }
+
+      // Initial responsive radius
+      applyRadius();
+      // Keep responsive on resize
+      window.addEventListener('resize', applyRadius);
+
+      Draggable.create(proxy, {
+        trigger: '.clients-carousel .demoWrapper',
+        type: 'x',
+        allowNativeTouchScrolling: true,
+        onPress: function(){
+          if (momentumTween) momentumTween.kill();
+          gsap.killTweensOf(spin);
+          spin.timeScale(0);
+          startProgress = spin.progress();
+        },
+        onDrag: updateRotation,
+        onRelease: function(){
+          var vx = (this.getVelocity && this.getVelocity('x')) || 0;
+          var speed = Math.abs(vx);
+          if (speed < 100) { gsap.to(spin, { timeScale: 1, duration: 1 }); return; }
+          var decel = 3000;
+          var travelPx = (vx * vx) / (2 * decel) * Math.sign(vx);
+          var deltaProgress = (-travelPx) / dragDistancePerRotation;
+          var duration = Math.min(1.2, Math.max(0.25, speed / decel));
+          var state = { p: spin.progress() };
+          momentumTween = gsap.to(state, {
+            p: state.p + deltaProgress,
+            duration: duration,
+            ease: 'power2.out',
+            onUpdate: function(){ spin.progress(progressWrap(state.p)); },
+            onComplete: function(){ gsap.to(spin, { timeScale: 1, duration: 1 }); }
+          });
+        }
+      });
+
+      function updateRotation(){
+        var p = startProgress + (this.startX - this.x) / dragDistancePerRotation;
+        spin.progress(progressWrap(p));
+      }
+
+      function updateOpacity(){
+        for (var i = 0; i < cards.length; i++){
+          var angle = gsap.getProperty(cards[i], 'rotationY');
+          var rad = ((angle % 360) * Math.PI) / 180;
+          var c = Math.cos(rad);
+          var minOpacity = 0.08;
+          var opacity = ((c + 1) / 2) * (1 - minOpacity) + minOpacity;
+          cards[i].style.opacity = opacity;
+        }
+      }
+
+      updateOpacity();
+    })();
+    </script>
+    
+    <script>
+    // Match pill border width to visually stretched titles (supports multiples)
+    (function(){
+      function sizeTitlePills(){
+        var containers = document.querySelectorAll('.work-section-title-container');
+        if (!containers.length) return;
+        containers.forEach(function(container){
+          var title = container.querySelector('.work-section-title');
+          if (!title) return;
+          var rect = title.getBoundingClientRect();
+          var cs = window.getComputedStyle(container);
+          container.style.width = rect.width + 'px';
+        });
+      }
+      window.addEventListener('load', sizeTitlePills);
+      window.addEventListener('resize', sizeTitlePills);
+      sizeTitlePills();
+    })();
+    </script>
+    
+    <script>
+    // Stretch pill button text while preserving pill borders
+    (function(){
+      function ensureWrapped(btn){
+        if (btn.querySelector('.btn-text-stretch')) return;
+        var txt = btn.textContent;
+        btn.textContent = '';
+        var span = document.createElement('span');
+        span.className = 'btn-text-stretch';
+        span.textContent = txt;
+        btn.appendChild(span);
+      }
+
+      function sizeButtons(){
+        var buttons = document.querySelectorAll('.pill-btn');
+        if (!buttons.length) return;
+        buttons.forEach(function(btn){
+          ensureWrapped(btn);
+          var span = btn.querySelector('.btn-text-stretch');
+          // Reset to natural width before measuring
+          btn.style.width = 'auto';
+          var rect = span.getBoundingClientRect();
+          var cs = window.getComputedStyle(btn);
+          var padL = parseFloat(cs.paddingLeft) || 10;
+          var padR = parseFloat(cs.paddingRight) || 10;
+          var borderL = parseFloat(cs.borderLeftWidth) || 0;
+          var borderR = parseFloat(cs.borderRightWidth) || 0;
+          btn.style.width = Math.ceil(rect.width + padL + padR + borderL + borderR) + 'px';
+        });
+      }
+
+      window.addEventListener('load', sizeButtons);
+      window.addEventListener('resize', sizeButtons);
+      sizeButtons();
+    })();
+    </script>
+    
+    <script>
+    // Inline 4-line clamp with true inline View More/Less at end of line
+    (function(){
+      function debounce(fn, wait){ var t; return function(){ clearTimeout(t); var args = arguments, ctx = this; t = setTimeout(function(){ fn.apply(ctx, args); }, wait); }; }
+
+      function htmlToPlain(html){ var div = document.createElement('div'); div.innerHTML = html; return (div.textContent || div.innerText || '').trim().replace(/\s+/g,' '); }
+
+      function truncateToFourLines(p, fullHTML, toggle){
+        // Reset to full for measurement
+        p.innerHTML = fullHTML;
+        if (toggle.parentNode) toggle.parentNode.removeChild(toggle);
+
+        var cs = window.getComputedStyle(p);
+        var lineHeight = parseFloat(cs.lineHeight);
+        if (!lineHeight || isNaN(lineHeight)) { lineHeight = 24; }
+        var maxH = lineHeight * 4;
+
+        // Build a measurer with same width/styles
+        var meas = document.createElement('div');
+        meas.style.position = 'absolute';
+        meas.style.visibility = 'hidden';
+        meas.style.pointerEvents = 'none';
+        meas.style.whiteSpace = 'normal';
+        meas.style.boxSizing = cs.boxSizing;
+        meas.style.width = p.getBoundingClientRect().width + 'px';
+        meas.style.font = cs.font;
+        meas.style.letterSpacing = cs.letterSpacing;
+        meas.style.lineHeight = cs.lineHeight;
+        meas.style.wordBreak = cs.wordBreak;
+        meas.style.wordSpacing = cs.wordSpacing;
+        meas.style.padding = cs.padding;
+        meas.style.border = '0';
+        meas.style.margin = '0';
+        p.parentNode.appendChild(meas);
+
+        var plain = htmlToPlain(fullHTML);
+        var lo = 0, hi = plain.length, best = 0;
+
+        // Measure anchor width using same classes
+        var anchorSample = document.createElement('span');
+        anchorSample.className = 'view-more-btn inline-read-toggle';
+        anchorSample.innerHTML = 'View More <span class="arrow" aria-hidden="true">↗</span>';
+
+        var textSpan = document.createElement('span');
+        meas.appendChild(textSpan);
+        meas.appendChild(document.createTextNode(' '));
+        meas.appendChild(anchorSample);
+
+        // Binary search maximum text that fits within 4 lines together with anchor
+        while (lo <= hi){
+          var mid = Math.floor((lo + hi) / 2);
+          textSpan.textContent = plain.slice(0, mid) + '…';
+          if (meas.offsetHeight <= maxH){
+            best = mid; lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
+        }
+
+        var finalText = plain.slice(0, best) + '…';
+        p.textContent = finalText + ' ';
+        p.appendChild(toggle);
+
+        meas.parentNode.removeChild(meas);
+      }
+
+      function setup(){
+        var blocks = document.querySelectorAll('.work-section-description');
+        blocks.forEach(function(desc){
+          if (desc._inlineClampInit) return;
+          var p = desc.querySelector('p');
+          if (!p) return;
+          desc._inlineClampInit = true;
+
+          var fullHTML = p.innerHTML;
+          var btn = document.createElement('a');
+          btn.href = '#';
+          btn.className = 'view-more-btn inline-read-toggle';
+          btn.setAttribute('aria-expanded', 'false');
+          btn.innerHTML = 'View More <span class="arrow" aria-hidden="true">↗</span>';
+
+          function collapse(){
+            btn.setAttribute('aria-expanded','false');
+            btn.setAttribute('data-state','collapsed');
+            btn.innerHTML = 'View More <span class="arrow" aria-hidden="true">↗</span>';
+            truncateToFourLines(p, fullHTML, btn);
+          }
+
+          function expand(){
+            btn.setAttribute('aria-expanded','true');
+            btn.setAttribute('data-state','expanded');
+            btn.innerHTML = 'View Less <span class="arrow" aria-hidden="true">↗</span>';
+            p.innerHTML = fullHTML + ' ';
+            p.appendChild(btn);
+          }
+
+          btn.addEventListener('click', function(e){
+            e.preventDefault();
+            var expanded = btn.getAttribute('data-state') === 'expanded';
+            if (expanded) { collapse(); } else { expand(); }
+          });
+
+          // Initial state
+          collapse();
+
+          // Recalculate on resize if collapsed
+          window.addEventListener('resize', debounce(function(){
+            if (btn.getAttribute('data-state') !== 'expanded') collapse();
+          }, 150));
+        });
+      }
+
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', setup);
+      } else {
+        setup();
+      }
+    })();
+    </script>
+
+    <script>
+    // Slide-in top-row background after scrolling past first viewport
+    (function(){
+      function updateTopRowBg(){
+        var el = document.querySelector('.landing-top-row');
+        if (!el) return;
+        if (window.scrollY >= window.innerHeight * 0.9) {
+          el.classList.add('bg-visible');
+        } else {
+          el.classList.remove('bg-visible');
+        }
+      }
+      window.addEventListener('scroll', updateTopRowBg, { passive: true });
+      window.addEventListener('load', updateTopRowBg);
+      updateTopRowBg();
+    })();
+    </script>
+
+    <script>
+    // Toggle .is-stuck on .sticky-header-scroll using an IntersectionObserver
+    (function(){
+      function initStickyObserver(){
+        var sticky = document.querySelector('.sticky-header-scroll');
+        if (!sticky || sticky._hasStickyObserver) return;
+        sticky._hasStickyObserver = true;
+
+        // Read header height from CSS variable (fallback 60)
+        var csRoot = window.getComputedStyle(document.documentElement);
+        var headerVar = csRoot.getPropertyValue('--header-h') || '60px';
+        var headerPx = parseFloat(headerVar) || 60;
+
+        // Create a sentinel just before the sticky element
+        var sentinel = document.createElement('div');
+        sentinel.setAttribute('aria-hidden', 'true');
+        sentinel.style.position = 'relative';
+        sentinel.style.height = '1px';
+        sticky.parentNode.insertBefore(sentinel, sticky);
+
+        var obs = new IntersectionObserver(function(entries){
+          var e = entries[0];
+          // When sentinel is no longer intersecting the top area (offset by header height), the bar is stuck
+          if (e && e.isIntersecting === false){
+            sticky.classList.add('is-stuck');
+          } else {
+            sticky.classList.remove('is-stuck');
+          }
+        }, {
+          root: null,
+          threshold: 0,
+          rootMargin: '-' + headerPx + 'px 0px 0px 0px'
+        });
+
+        obs.observe(sentinel);
+      }
+
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', initStickyObserver);
+      } else {
+        initStickyObserver();
+      }
+    })();
+    </script>
+
+    <!-- Firebase SDK for loading posts dynamically -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script>
+    // Dynamically populate the three sections (DJ, Producer, Creative Director) from Firestore
+    (function(){
+      // Make UID easy to change
+      const TARGET_USER_UID = 'X7JH9jPOMPdzYK36cvUiiHW3fDG3';
+      const CATEGORIES = ['DJ','Producer','Creative Director'];
+
+      // Use same config as portfolio loader to avoid mismatches
+      const firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
+
+      try {
+        if (!window.firebase) return; // SDK not loaded
+        if (!firebase.apps || !firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+      } catch (e) {
+        // ignore duplicate init
+      }
+
+      if (!window.firebase) return;
+      const db = firebase.firestore();
+
+      function isImageUrl(url){
+        if (!url || typeof url !== 'string') return false;
+        return /\.(png|jpe?g|webp|gif|avif)$/i.test(url.split('?')[0]);
+      }
+
+      function parseCsv(csv){
+        if (!csv) return [];
+        return csv.split(',').map(t => t.trim()).filter(Boolean);
+      }
+
+      // Try to pick an image-only thumbnail per requirements
+      function pickThumbnail(post){
+        // Prefer featuredMedia.url if image
+        if (post.featuredMedia && post.featuredMedia.url && isImageUrl(post.featuredMedia.url)) {
+          return post.featuredMedia.url;
+        }
+        // If featuredMedia is video, use its poster image
+        if (post.featuredMedia && post.featuredMedia.poster && isImageUrl(post.featuredMedia.poster)) {
+          return post.featuredMedia.poster;
+        }
+        // Backwards compatibility
+        if (post.featuredImage && isImageUrl(post.featuredImage)) {
+          return post.featuredImage;
+        }
+        // Fallback: look for cached image in first few sections/items
+        if (post.sections && post.sections.length) {
+          const firstSections = post.sections.slice(0, 3);
+          for (var i=0; i<firstSections.length; i++){
+            var sec = firstSections[i];
+            var items = (sec.items || sec.blocks || []);
+            for (var j=0; j<items.length; j++){
+              var it = items[j];
+              if ((it.type === 'media' || it.blockType === 'media') && it.cachedMediaUrl && isImageUrl(it.cachedMediaUrl)) {
+                return it.cachedMediaUrl;
+              }
+            }
+          }
+        }
+        return '';
+      }
+
+      function generateExcerpt(post){
+        var text = '';
+        if (post.sections && post.sections.length){
+          for (var i=0; i<post.sections.length; i++){
+            var sec = post.sections[i];
+            var items = (sec.items || sec.blocks || []);
+            for (var j=0; j<items.length; j++){
+              var it = items[j];
+              var type = it.blockType || it.type;
+              if (type === 'body' && it.content){
+                var div = document.createElement('div');
+                div.innerHTML = it.content;
+                text += (div.textContent || div.innerText || '');
+                if (text.length > 120) break;
+              }
+            }
+            if (text.length > 120) break;
+          }
+        }
+        return text || (post.content || '');
+      }
+
+      function buildCardHtml(post){
+        var thumb = pickThumbnail(post);
+        var tagsCsv = post.keywords || post.tags || '';
+        var tags = parseCsv(tagsCsv);
+        var tagsHtml = tags.map(function(t){ return '<span class="work-tag">'+t+'</span>'; }).join('');
+        var desc = generateExcerpt(post);
+        var safeTitle = post.title || 'Untitled';
+        var safeAlt = safeTitle + ' thumbnail';
+        var imgHtml = thumb ? ('<img loading="lazy" src="'+thumb+'" alt="'+safeAlt+'">') : '';
+
+        return (
+          '<div class="work-body-item">' +
+            '<div class="work-media">' +
+              imgHtml +
+              (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '') +
+            '</div>' +
+            '<h1 class="work-body-item-title">'+ safeTitle +'</h1>' +
+            '<p class="work-body-item-description">'+ (desc || '') +'</p>' +
+            '<a class="view-more-btn" href="work.html?id='+ post.id +'" aria-label="View more about '+ safeTitle +'">View More... <span class="arrow" aria-hidden="true">↗</span></a>' +
+          '</div>'
+        );
+      }
+
+      function getCategoryContainer(category){
+        var sections = document.querySelectorAll('.work-section');
+        for (var i=0; i<sections.length; i++){
+          var s = sections[i];
+          var titleEl = s.querySelector('.work-section-title');
+          if (titleEl && titleEl.textContent.trim().toLowerCase() === String(category).toLowerCase()){
+            return s.querySelector('.work-body-container');
+          }
+        }
+        return null;
+      }
+
+      function renderCategory(category, posts){
+        var container = getCategoryContainer(category);
+        if (!container) return;
+        if (!posts || posts.length === 0){
+          container.innerHTML = '<div class="coming-soon">Coming soon</div>';
+          return;
+        }
+        var html = posts.map(buildCardHtml).join('');
+        container.innerHTML = html;
+      }
+
+      async function loadAndRender(){
+        try {
+          var snap = await db.collection('users').doc(TARGET_USER_UID)
+            .collection('items')
+            .where('type', '==', 'blog')
+            .orderBy('datePosted', 'desc')
+            .get();
+
+          var all = [];
+          snap.forEach(function(doc){ all.push(Object.assign({ id: doc.id }, doc.data())); });
+
+          // Normalize featuredMedia from featuredImage
+          all.forEach(function(p){
+            if (!p.featuredMedia && p.featuredImage){ p.featuredMedia = { url: p.featuredImage }; }
+          });
+
+          // Group by the three categories
+          CATEGORIES.forEach(function(cat){
+            var posts = all.filter(function(p){ return (p.category || '').toLowerCase() === cat.toLowerCase(); });
+            renderCategory(cat, posts);
+          });
+        } catch (e) {
+          // On error, show coming soon to avoid breaking layout
+          CATEGORIES.forEach(function(cat){ renderCategory(cat, []); });
+          // Optional: console.error('Error loading posts:', e);
+        }
+      }
+
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', loadAndRender);
+      } else {
+        loadAndRender();
+      }
+    })();
+    </script>
+    
+</body>
+
+<footer>
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="work-section-title-container footer-margin">
+                    <h1 class="work-section-title">Contact</h1>
+            </div>
+
+            <div class="footer-contact-container">
+                <div class="footer-contact-item">
+                    <h1 class="footer-contact-item-title">KEANULLMGMT@GMAIL.COM</h1>
+                </div>
+                <div class="footer-contact-item">
+                    <div class="icon-buttons" aria-label="Social links">
+                        <a class="icon-btn" href="#" aria-label="Instagram">
+                            <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                        </a>
+                        <a class="icon-btn" href="#" aria-label="Spotify">
+                            <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                        </a>
+                        <a class="icon-btn" href="#" aria-label="Youtube">
+                            <img src="static/img/icon-youtube-white.svg" alt="Youtube">
+                        </a>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <div class="footer-info-container">
+                <p class="footer-info-item-title">Keanu Laurence Luca © 2025 | Website Designed & Developed by 🌐 <a href="https://kr-net.work/?link=oneearth" target="_blank">1 Earth Productions</a></p>
+            </div>
+
+            
+        </div>
+    </div>
+    
+</footer>
+
+
+
+</html>
