@@ -493,8 +493,8 @@ export function renderBlogDashboard(dataID, existingData = null) {
                             <button class="btn btn-sm btn-primary select-featured-media-btn">Select Featured Media</button>
                         `}
                     </div>
-                    <div class="poster-image-container" id="posterImageContainer" style="${isVideoUrl(featuredMedia.url) ? '' : 'display: none;'}">
-                        <label for="blogPosterImage">Video Poster Image:</label>
+                    <div class="poster-image-container" id="posterImageContainer">
+                        <label for="blogPosterImage">Poster Image:</label>
                         ${featuredMedia.poster ? `
                             <div class="poster-image-preview">
                                 <img src="${escapeHTML(featuredMedia.poster)}" alt="Poster Image" style="max-width: 200px; max-height: 100px; object-fit: cover;">

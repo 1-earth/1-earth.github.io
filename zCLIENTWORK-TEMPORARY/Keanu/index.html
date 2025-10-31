@@ -48,11 +48,9 @@
             <button class="control-btn control-pager-btn" aria-label="Skip backward or forward">
                 <svg viewBox="0 0 64 24" width="60" height="23" aria-hidden="true">
                     <!-- left triangle -->
-                    <polygon points="12,12 22,6 22,18" fill="currentColor"></polygon>
-                    <!-- center dot -->
-                    <!-- <circle cx="32" cy="12" r="2" fill="currentColor"></circle> -->
+                    <polygon data-dir="prev" points="12,12 22,6 22,18" fill="currentColor"></polygon>
                     <!-- right triangle -->
-                    <polygon points="52,12 42,6 42,18" fill="currentColor"></polygon>
+                    <polygon data-dir="next" points="52,12 42,6 42,18" fill="currentColor"></polygon>
                 </svg>
             </button>
             <button class="control-btn cta-live-btn" aria-label="Live at Boiler Room">
@@ -469,6 +467,284 @@
       updateOpacity();
     })();
     </script>
+
+    <script>
+    // Background media player: auto/manual/scroll with crossfade
+    (function(){
+      var AUTO_INTERVAL_MS = 5000;
+      var FADE_MS = 350;
+      var AUTO_RESUME_MS = 15000;
+
+      var container = document.querySelector('.sticky-background-media');
+      if (!container) return;
+
+      // Hide legacy background video if present
+      var legacyVideo = container.querySelector('.background-video');
+      if (legacyVideo) { legacyVideo.style.display = 'none'; }
+
+      // Stage with two layers for crossfade
+      var stage = document.createElement('div');
+      stage.className = 'background-stage';
+      var layerA = document.createElement('div');
+      var layerB = document.createElement('div');
+      layerA.className = 'media-layer';
+      layerB.className = 'media-layer';
+      stage.appendChild(layerA);
+      stage.appendChild(layerB);
+      container.appendChild(stage);
+
+      var layers = [layerA, layerB];
+      var activeIndex = 0; // which layer is visible
+
+      var items = [];
+      var current = 0;
+      var mode = 'auto'; // 'auto' | 'manual' | 'scroll'
+      var autoTimer = null;
+      var autoResumeTimer = null;
+      var isMuted = false; // try audio on initially
+      var scrollRaf = null;
+      var lastActiveIdx = -1;
+
+      function selectEl(root, sel){ return root ? root.querySelector(sel) : null; }
+
+      function collectItems(){
+        items = Array.prototype.slice.call(document.querySelectorAll('.work-body-item')).map(function(el){
+          var type = (el.getAttribute('data-media-type') || '').toLowerCase();
+          var src = el.getAttribute('data-media-src') || '';
+          var poster = el.getAttribute('data-media-poster') || '';
+          if (!type || !src){
+            // Fallback to first media inside card
+            var img = selectEl(el, '.work-media img');
+            if (img && img.src){ type = 'image'; src = img.src; }
+          }
+          var titleEl = selectEl(el, '.work-body-item-title');
+          var linkEl = selectEl(el, '.view-more-btn');
+          var title = titleEl ? (titleEl.textContent || '').trim() : '';
+          var href = linkEl && linkEl.href ? linkEl.href : '';
+          return { el: el, type: type || 'image', src: src, poster: poster || '', title: title, href: href };
+        }).filter(function(it){ return !!it.src; });
+      }
+      function updateCtaForCurrent(){
+        var btn = document.querySelector('.cta-live-btn');
+        var textEl = btn ? btn.querySelector('.cta-text') : null;
+        var item = items[current];
+        if (!btn || !textEl || !item) return;
+        var title = item.title || 'View project';
+        textEl.textContent = title;
+        try { textEl.setAttribute('data-text', title); } catch(_){ }
+        btn.setAttribute('data-href', item.href || '');
+        btn.disabled = !item.href;
+      }
+
+      function clearLayer(layer){
+        while (layer.firstChild) layer.removeChild(layer.firstChild);
+      }
+
+      function createMediaElement(item){
+        if (item.type === 'video'){
+          var v = document.createElement('video');
+          v.playsInline = true; // iOS
+          v.autoplay = true;
+          v.loop = true;
+          v.preload = 'metadata';
+          v.muted = !!isMuted;
+          if (item.poster) v.setAttribute('poster', item.poster);
+          var srcEl = document.createElement('source');
+          srcEl.src = item.src;
+          // basic type hint
+          var ext = (item.src.split('?')[0].split('.').pop() || '').toLowerCase();
+          var mime = (ext === 'mp4') ? 'video/mp4' : (ext === 'webm' ? 'video/webm' : '');
+          if (mime) srcEl.type = mime;
+          v.appendChild(srcEl);
+          // try to play with current mute state
+          setTimeout(function(){
+            var p = v.play();
+            if (p && typeof p.then === 'function'){
+              p.catch(function(){
+                // Autoplay with audio failed; fallback to muted
+                v.muted = true;
+                isMuted = true;
+                try { updateMuteButton(); } catch(_){ }
+                v.play().catch(function(){ /* ignore */ });
+              });
+            }
+          }, 0);
+          return v;
+        } else {
+          var img = document.createElement('img');
+          img.src = item.src;
+          img.alt = '';
+          return img;
+        }
+      }
+
+      function swapTo(index){
+        if (!items.length) return;
+        if (index < 0) index = items.length - 1;
+        if (index >= items.length) index = 0;
+        var oldActive = activeIndex;
+        current = index;
+        var nextLayer = layers[oldActive ^ 1];
+        // Immediately pause audio from the outgoing layer to avoid overlaps
+        var oldVid = layers[oldActive].querySelector('video');
+        if (oldVid){ try { oldVid.pause(); } catch(_){} }
+        clearLayer(nextLayer);
+        var mediaEl = createMediaElement(items[current]);
+        nextLayer.appendChild(mediaEl);
+        // Crossfade
+        nextLayer.classList.add('is-active');
+        layers[oldActive].classList.remove('is-active');
+        activeIndex = oldActive ^ 1;
+        // After fade completes, clear the inactive layer completely
+        setTimeout(function(){ clearLayer(layers[oldActive]); }, FADE_MS + 60);
+        updateCtaForCurrent();
+      }
+
+      function updateActiveItem(idx){
+        if (idx === lastActiveIdx) return;
+        if (lastActiveIdx >= 0 && items[lastActiveIdx] && items[lastActiveIdx].el){
+          items[lastActiveIdx].el.classList.remove('active');
+        }
+        if (idx >= 0 && items[idx] && items[idx].el){
+          items[idx].el.classList.add('active');
+        }
+        lastActiveIdx = idx;
+      }
+
+      function startAuto(){
+        stopAuto();
+        mode = 'auto';
+        autoTimer = setInterval(function(){
+          if (mode !== 'auto') return;
+          swapTo(current + 1);
+        }, AUTO_INTERVAL_MS);
+      }
+
+      function stopAuto(){
+        if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+      }
+
+      function resetAutoResume(){
+        if (autoResumeTimer){ clearTimeout(autoResumeTimer); autoResumeTimer = null; }
+        autoResumeTimer = setTimeout(function(){
+          if (mode !== 'auto'){ startAuto(); }
+        }, AUTO_RESUME_MS);
+      }
+
+      function handlePrev(){ mode = 'manual'; stopAuto(); swapTo(current - 1); resetAutoResume(); }
+      function handleNext(){ mode = 'manual'; stopAuto(); swapTo(current + 1); resetAutoResume(); }
+
+      function updateMuteButton(){
+        var btn = document.querySelector('.control-icon-btn');
+        if (!btn) return;
+        btn.setAttribute('aria-pressed', String(!isMuted));
+        if (isMuted){ btn.classList.add('is-muted'); } else { btn.classList.remove('is-muted'); }
+      }
+
+      function bindControls(){
+        var pagerBtn = document.querySelector('.control-pager-btn');
+        var muteBtn = document.querySelector('.control-icon-btn');
+        var ctaBtn = document.querySelector('.cta-live-btn');
+        if (pagerBtn){
+          // Clickable polygons
+          var leftPoly = pagerBtn.querySelector('polygon[data-dir="prev"]');
+          var rightPoly = pagerBtn.querySelector('polygon[data-dir="next"]');
+          if (leftPoly) leftPoly.addEventListener('click', function(e){ e.stopPropagation(); handlePrev(); });
+          if (rightPoly) rightPoly.addEventListener('click', function(e){ e.stopPropagation(); handleNext(); });
+          // Fallback: click position left/right within button
+          pagerBtn.addEventListener('click', function(e){
+            var rect = pagerBtn.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            if (x < rect.width / 2) handlePrev(); else handleNext();
+          });
+        }
+        if (muteBtn) muteBtn.addEventListener('click', function(){
+          isMuted = !isMuted;
+          updateMuteButton();
+          // apply to current video if present
+          var activeVideo = layers[activeIndex].querySelector('video');
+          if (activeVideo){
+            activeVideo.muted = !!isMuted;
+            if (!isMuted){ activeVideo.volume = 1; }
+          }
+        });
+        if (ctaBtn) ctaBtn.addEventListener('click', function(){
+          var href = ctaBtn.getAttribute('data-href') || '';
+          if (href){ window.location.href = href; }
+        });
+        // Keyboard
+        document.addEventListener('keydown', function(e){
+          var key = e.key || e.code;
+          if (key === 'ArrowLeft'){ e.preventDefault(); handlePrev(); }
+          else if (key === 'ArrowRight'){ e.preventDefault(); handleNext(); }
+        });
+      }
+
+      function closestItemToViewportCenter(){
+        var vhMid = window.innerHeight / 2;
+        var bestIdx = -1;
+        var bestDist = Infinity;
+        for (var i=0; i<items.length; i++){
+          var r = items[i].el.getBoundingClientRect();
+          var mid = r.top + (r.height / 2);
+          var d = Math.abs(mid - vhMid);
+          if (d < bestDist){ bestDist = d; bestIdx = i; }
+        }
+        return bestIdx;
+      }
+
+      function onScroll(){
+        if (scrollRaf) return;
+        scrollRaf = requestAnimationFrame(function(){
+          scrollRaf = null;
+          if (!items.length) return;
+          var idx = closestItemToViewportCenter();
+          if (idx >= 0 && idx !== current){
+            mode = 'scroll';
+            stopAuto();
+            swapTo(idx);
+            updateActiveItem(idx);
+            resetAutoResume();
+          } else {
+            updateActiveItem(idx);
+            resetAutoResume();
+          }
+        });
+      }
+
+      function init(){
+        collectItems();
+        if (!items.length) return;
+        // initial render
+        swapTo(0);
+        bindControls();
+        startAuto();
+        resetAutoResume();
+        updateMuteButton();
+        updateCtaForCurrent();
+        // Scroll override
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+        // Ensure active state reflects current viewport on load
+        onScroll();
+      }
+
+      function ready(fn){
+        if (document.readyState === 'loading'){
+          document.addEventListener('DOMContentLoaded', fn);
+        } else { fn(); }
+      }
+
+      // Initialize after dynamic work is rendered
+      ready(function(){
+        var started = false;
+        function startOnce(){ if (!started){ started = true; init(); } }
+        document.addEventListener('work:rendered', startOnce, { once: true });
+        // In case content is already present (static), attempt after a tick
+        setTimeout(function(){ if (!started){ collectItems(); if (items.length){ startOnce(); } } }, 600);
+      });
+    })();
+    </script>
     
     <script>
     // Match pill border width to visually stretched titles (supports multiples)
@@ -653,7 +929,7 @@
       function updateTopRowBg(){
         var el = document.querySelector('.landing-top-row');
         if (!el) return;
-        if (window.scrollY >= window.innerHeight * 0.9) {
+        if (window.scrollY >= window.innerHeight * 0.85) {
           el.classList.add('bg-visible');
         } else {
           el.classList.remove('bg-visible');
@@ -717,7 +993,7 @@
     // Dynamically populate the three sections (DJ, Producer, Creative Director) from Firestore
     (function(){
       // Make UID easy to change
-      const TARGET_USER_UID = 'X7JH9jPOMPdzYK36cvUiiHW3fDG3';
+      const TARGET_USER_UID = 'iPzFRI8JYMSA1NyBDQu9dNpeZ0y1';
       const CATEGORIES = ['DJ','Producer','Creative Director'];
 
       // Use same config as portfolio loader to avoid mismatches
@@ -745,6 +1021,11 @@
       function isImageUrl(url){
         if (!url || typeof url !== 'string') return false;
         return /\.(png|jpe?g|webp|gif|avif)$/i.test(url.split('?')[0]);
+      }
+
+      function isVideoUrl(url){
+        if (!url || typeof url !== 'string') return false;
+        return /\.(mp4|webm|ogg|mov|m4v)$/i.test(url.split('?')[0]);
       }
 
       function parseCsv(csv){
@@ -796,13 +1077,22 @@
                 var div = document.createElement('div');
                 div.innerHTML = it.content;
                 text += (div.textContent || div.innerText || '');
-                if (text.length > 120) break;
+                if (text.length >= 150) break;
               }
             }
-            if (text.length > 120) break;
+            if (text.length >= 150) break;
           }
         }
-        return text || (post.content || '');
+        if (!text && post.content){
+          var div2 = document.createElement('div');
+          div2.innerHTML = post.content;
+          text = (div2.textContent || div2.innerText || '');
+        }
+        text = (text || '').replace(/\s+/g, ' ').trim();
+        if (text.length > 150){
+          text = text.slice(0, 150).trimEnd() + '…';
+        }
+        return text;
       }
 
       function buildCardHtml(post){
@@ -813,10 +1103,24 @@
         var desc = generateExcerpt(post);
         var safeTitle = post.title || 'Untitled';
         var safeAlt = safeTitle + ' thumbnail';
-        var imgHtml = thumb ? ('<img loading="lazy" src="'+thumb+'" alt="'+safeAlt+'">') : '';
+
+        // Determine featured media for background player (prefer post.featuredMedia)
+        var fm = post.featuredMedia || {};
+        var mediaUrl = fm.url || post.featuredImage || '';
+        var mediaType = fm.type || (isVideoUrl(mediaUrl) ? 'video' : 'image');
+        if (!mediaUrl && thumb){ mediaUrl = thumb; mediaType = 'image'; }
+        var poster = fm.poster || (mediaType === 'image' ? mediaUrl : (fm.thumbnail || '')) || '';
+
+        // Prefer poster image for the card thumbnail if available; fallback to computed thumb
+        var displayImg = (poster && isImageUrl(poster)) ? poster : thumb;
+        var imgHtml = displayImg ? ('<img loading="lazy" src="'+displayImg+'" alt="'+safeAlt+'">') : '';
 
         return (
-          '<div class="work-body-item">' +
+          '<div class="work-body-item"'+
+            ' data-media-type="'+ (mediaType || '') +'"'+
+            ' data-media-src="'+ (mediaUrl || '') +'"'+
+            ' data-media-poster="'+ (poster || '') +'"' +
+          '>' +
             '<div class="work-media">' +
               imgHtml +
               (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '') +
@@ -849,6 +1153,25 @@
         }
         var html = posts.map(buildCardHtml).join('');
         container.innerHTML = html;
+
+        // Make the entire card clickable to the same destination as the CTA
+        var items = container.querySelectorAll('.work-body-item');
+        items.forEach(function(item){
+          var link = item.querySelector('.view-more-btn');
+          if (!link || !link.href) return;
+          item.setAttribute('role', 'link');
+          item.setAttribute('tabindex', '0');
+          item.addEventListener('click', function(e){
+            if (e.target && e.target.closest && e.target.closest('a')) return; // allow native link clicks
+            window.location.href = link.href;
+          });
+          item.addEventListener('keydown', function(e){
+            var key = e.key || e.code;
+            if (key === 'Enter' || key === 'NumpadEnter' || e.keyCode === 13){
+              window.location.href = link.href;
+            }
+          });
+        });
       }
 
       async function loadAndRender(){
@@ -872,10 +1195,12 @@
             var posts = all.filter(function(p){ return (p.category || '').toLowerCase() === cat.toLowerCase(); });
             renderCategory(cat, posts);
           });
+          try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){}
         } catch (e) {
           // On error, show coming soon to avoid breaking layout
           CATEGORIES.forEach(function(cat){ renderCategory(cat, []); });
           // Optional: console.error('Error loading posts:', e);
+          try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){}
         }
       }
 
@@ -929,4 +1254,5 @@
 
 
 
+</html>
 </html>

@@ -67,6 +67,32 @@ h2 {
     object-fit: cover;
 }
 
+/* Dynamic background stage for slideshow */
+.sticky-background-media .background-stage{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+.sticky-background-media .media-layer{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 350ms ease;
+}
+.sticky-background-media .media-layer.is-active{ opacity: 1; }
+.sticky-background-media .media-layer img,
+.sticky-background-media .media-layer video{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
 .landing-container {
     position: relative;
     z-index: 1;
@@ -389,6 +415,7 @@ h2 {
         flex: 1 1 auto;
         width: 100%;
         max-width: 100%;
+        gap: 0px;
         overflow: hidden;
         margin: 0;
         padding: 0;
@@ -417,6 +444,13 @@ h2 {
     align-items: start;
     padding-top: 24px;
     padding-bottom: 24px;
+    transition: transform 200ms ease, box-shadow 200ms ease, padding 500ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    cursor: pointer;
+}
+
+.work-body-item:hover{
+    transform: translateY(-6px);
+    /* box-shadow: 0 8px 24px rgba(53, 234, 7, 0.25), 0 0 0 1px var(--secondary-color) inset; */
 }
 
 .work-media{
@@ -426,6 +460,16 @@ h2 {
     /* border-radius: 10px; */
     overflow: hidden;
     background: #000;
+}
+
+/* Smoothly scale media when the row is active */
+.work-media{ transition: transform 450ms cubic-bezier(0.4, 0.0, 0.2, 1); }
+.work-body-item.active{ padding-top: 44px; padding-bottom: 44px; }
+.work-body-item.active .work-media{ transform: scale(1.04); }
+
+@media (max-width: 860px){
+    .work-body-item.active{ padding-top: 40px; padding-bottom: 40px; }
+    .work-body-item.active .work-media{ transform: scale(1.02); }
 }
 
 .work-media img{
@@ -460,6 +504,12 @@ h2 {
     font-size: 34px;
     font-weight: 800;
     line-height: 1.05;
+}
+
+@media (max-width: 968px){
+    .work-body-item-title{
+        font-size: 24px;
+    }
 }
 
 .work-body-item-right{
@@ -510,7 +560,7 @@ h2 {
 /* Responsive adjustments */
 @media (max-width: 1100px){
     .work-body-item{ grid-template-columns: 300px 1fr 1fr auto; }
-    .work-body-item-title{ font-size: 44px; }
+    /* .work-body-item-title{ font-size: 44px; } */
 }
 
 @media (max-width: 860px){
@@ -521,8 +571,11 @@ h2 {
 .work-section-description{
     /* margin-top: 20px; */
     flex: 1 1 auto;
+    margin-bottom: 20px;
     min-width: 0; /* allow wrapping instead of shrinking the title */
 }
+
+
 
 
 .pill-btn:hover {
@@ -635,10 +688,18 @@ h2 {
     display: block;
 }
 
+/* Make pager polygons obviously clickable */
+.control-pager-btn polygon{ cursor: pointer; }
+
 .control-icon-btn {
     width: 36px;
     padding: 0;
 }
+
+/* Visual mute state indicator: show the X path only when muted */
+.control-icon-btn svg path:nth-of-type(2){ opacity: 0; transition: opacity 200ms ease; }
+.control-icon-btn.is-muted svg path:nth-of-type(2){ opacity: 1; }
+.control-icon-btn.is-muted{ border-color: var(--senary-color); color: var(--senary-color); }
 
 .control-pager-btn {
     min-width: 72px;
@@ -651,18 +712,47 @@ h2 {
     padding: 6px 12px;
     font-weight: normal;
     letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+    width: 260px; /* fixed width for marquee */
+    padding-right: 40px; /* reserve space for arrow */
 }
 
 .cta-live-btn .cta-text {
-    /* transform: scaleX(1.35); */
     transform-origin: left;
     line-height: 1;
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    padding-left: 40px; /* small lead-in */
+    animation: cta-marquee 12s linear infinite;
+    text-transform: uppercase;
+}
+.cta-live-btn .cta-text::after{
+    content: '  •  ' attr(data-text);
+    padding-left: 40px; /* gap between copies */
 }
 
 .cta-live-btn .cta-arrow {
     font-size: 16px;
     line-height: 1;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
 }
+
+@keyframes cta-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+@media (max-width: 768px){
+    .cta-live-btn{ width: 200px; }
+}
+
+/* Pause marquee on hover for readability */
+.cta-live-btn:hover .cta-text{ animation-play-state: paused; }
 
 /* Decorative arrow under the work section title */
 .work-section-title-container .work-title-arrow{

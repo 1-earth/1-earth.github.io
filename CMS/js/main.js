@@ -833,16 +833,9 @@ async function handleSelectFeaturedMedia(target) {
                     <button class="btn btn-sm btn-secondary select-featured-media-btn">Change Featured Media</button>
                 `;
                 
-                // Show/hide poster image selection based on whether it's a video
+                // Always show poster image selection (allow poster for images and videos)
                 if (posterImageContainer) {
-                    if (isVideo) {
-                        posterImageContainer.style.display = 'block';
-                    } else {
-                        posterImageContainer.style.display = 'none';
-                        // Clear poster image if switching from video to image
-                        const posterInput = document.getElementById('blogFeaturedMediaPoster');
-                        if (posterInput) posterInput.value = '';
-                    }
+                    posterImageContainer.style.display = 'block';
                 }
             }
         });
