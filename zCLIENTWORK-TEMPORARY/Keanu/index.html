@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keanu Portfolio</title>
     <link rel="stylesheet" href="static/styles/mainstyle.css">
+    <link rel="icon" type="image/png" href="static/img/icon.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="static/img/icon.png" sizes="16x16">
     <style>
       /* Clamp and inline toggle for section descriptions */
       .work-section-description{ position: relative; }
@@ -25,6 +27,17 @@
 </head>
 
 <body>
+
+    <script>(function(){ try{ document.documentElement.classList.add('is-loading'); }catch(_){ } })();</script>
+    <div class="loading-overlay" role="status" aria-live="polite">
+        <a class="loading-logo" href="index.html" aria-label="Home">
+            <img class="logo-img-small" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+        </a>
+        <div class="loading-center">
+            <img class="loading-spinner" src="static/img/loading.gif" loading="eager" decoding="async" alt="" aria-hidden="true">
+            <div class="loading-text">Loading.</div>
+        </div>
+    </div>
 
 
     <!-- fixed background media -->
@@ -71,7 +84,9 @@
         <!-- Bottom-aligned content bar -->
         <div class="landing-bottom-row">
             <div class="landing-logo" aria-label="Logo placeholder">
-                <img class="logo-img" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+					<a href="index.html" aria-label="Refresh home">
+						<img class="logo-img" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+					</a>
             </div>
             <div class="landing-copy">
                 <h2>Multi-disciplinary creative and DJ who bridges music, art, and culture — known for delivering versatile, high-energy sets across diverse audiences.</h2>
@@ -84,7 +99,7 @@
 
 
         <div class="work-section-container down-gradient-black-background">
-            <div class="work-section no-margin-side">
+            <div class="work-section no-margin-side no-padding-bottom">
                 <div class="work-section-title-container less-margin-bottom left-margin">
                     <h1 class="work-section-title">Clients</h1>
                 </div>
@@ -185,14 +200,14 @@
 
                 <h1>PORTFOLIO:</h1>
                 <div class="pill-buttons">
-                    <button class="pill-btn">DJ</button>
-                    <button class="pill-btn">Producer</button>
-                    <button class="pill-btn">Creative Director</button>
+                    <button class="pill-btn" data-target="dj">DJ</button>
+                    <button class="pill-btn" data-target="producer">Producer</button>
+                    <button class="pill-btn" data-target="creative-director">Creative Director</button>
                 </div>
             </div>
         </div>
 
-        <div class="work-section-container down-gradient-black-background">
+        <div class="work-section-container down-gradient-black-background" data-section="dj" id="dj">
             <div class="work-section">
 
                 <div class="work-section-header ">
@@ -256,7 +271,7 @@
                 <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
             </div>
         </div>
-        <div class="work-section-container down-gradient-black-background">
+        <div class="work-section-container down-gradient-black-background" data-section="producer" id="producer">
             <div class="work-section">
                 <div class="work-section-header">
                     <div class="work-section-title-container">
@@ -318,7 +333,7 @@
                 <!-- <p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br><p>Work</p> <br><br><br> -->
             </div>
         </div>
-        <div class="work-section-container down-gradient-black-background">
+        <div class="work-section-container down-gradient-black-background" data-section="creative-director" id="creative-director">
             <div class="work-section">
                 <div class="work-section-header">
                     <div class="work-section-title-container">
@@ -471,6 +486,85 @@
       updateOpacity();
     })();
     </script>
+    <script>
+    // Minimal loading overlay controller with slow-network early reveal
+    (function(){
+      function qs(sel){ return document.querySelector(sel); }
+      function isSlow(){
+        try {
+          var nc = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!nc) return false;
+          return !!nc.saveData || /^(slow-2g|2g|3g)$/i.test(nc.effectiveType || '');
+        } catch(_){ return false; }
+      }
+      function firstActiveMedia(){
+        var active = qs('.sticky-background-media .media-layer.is-active');
+        if (!active) return null;
+        var v = active.querySelector('video'); if (v) return v;
+        var img = active.querySelector('img'); if (img) return img;
+        return null;
+      }
+      function waitMediaReady(el, capMs){
+        return new Promise(function(resolve){
+          if (!el){ resolve(); return; }
+          var to = setTimeout(done, Math.max(600, capMs || 2000));
+          function cleanup(){ try{ el.removeEventListener('canplay', onCanPlay); el.removeEventListener('loadeddata', onCanPlay); el.removeEventListener('load', onLoad); el.removeEventListener('error', onLoad); }catch(_){ } clearTimeout(to); }
+          function done(){ cleanup(); resolve(); }
+          function onCanPlay(){ done(); }
+          function onLoad(){ done(); }
+          if (el.tagName === 'VIDEO'){
+            if (el.readyState >= 2){ done(); return; }
+            el.addEventListener('canplay', onCanPlay);
+            el.addEventListener('loadeddata', onCanPlay);
+          } else {
+            if (el.complete){ done(); return; }
+            el.addEventListener('load', onLoad);
+            el.addEventListener('error', onLoad);
+          }
+        });
+      }
+      function animateText(el){
+        var n = 1; return setInterval(function(){ n = (n % 3) + 1; if (el){ el.textContent = 'Loading' + '.'.repeat(n); } }, 400);
+      }
+      function reveal(overlay){
+        try { document.documentElement.classList.remove('is-loading'); } catch(_){ }
+        if (!overlay) return;
+        overlay.classList.add('fade-out');
+        setTimeout(function(){ if (overlay && overlay.parentNode){ overlay.parentNode.removeChild(overlay); } }, 380);
+      }
+      function kick(){
+        var overlay = qs('.loading-overlay'); if (!overlay) return;
+        // Ensure GIF spinner always animates (force restart to avoid cached first-frame stall)
+        try {
+          var sp = overlay.querySelector('.loading-spinner');
+          if (sp && sp.tagName === 'IMG' && sp.src){
+            var base = sp.src;
+            // Strip any existing r= cachebuster
+            base = base.replace(/([?&])r=\d+(&)?/, function(_, a, b){ return b ? a : ''; }).replace(/[?&]$/, '');
+            sp.src = base + (base.indexOf('?')>-1 ? '&' : '?') + 'r=' + Date.now();
+          }
+        } catch(_){ }
+        var textEl = overlay.querySelector('.loading-text');
+        var timer = animateText(textEl);
+        var started = false;
+        function startOnce(){ if (started) return; started = true; run(); }
+        function run(){
+          var el = firstActiveMedia();
+          if (!el){ setTimeout(run, 60); return; }
+          var fast = !isSlow();
+          waitMediaReady(el, fast ? 1400 : 900).then(function(){
+            clearInterval(timer);
+            reveal(overlay);
+          });
+        }
+        // Prefer waiting for work content, then evaluate readiness
+        document.addEventListener('work:rendered', startOnce, { once: true });
+        // Fallback start in case event doesn't fire quickly
+        setTimeout(startOnce, 700);
+      }
+      if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', kick); } else { kick(); }
+    })();
+    </script>
 
     <script>
     // Mobile-only: hide .top-controls after scrolling past 85% viewport height
@@ -500,11 +594,11 @@
       var AUTO_RESUME_MS = 15000;
 
       var container = document.querySelector('.sticky-background-media');
-      if (!container) return;
+      if (!container) { console.log('[BG] no container, abort'); return; }
 
       // Hide legacy background video if present
       var legacyVideo = container.querySelector('.background-video');
-      if (legacyVideo) { legacyVideo.style.display = 'none'; }
+      if (legacyVideo) { legacyVideo.style.display = 'none'; console.log('[BG] legacy video hidden at init'); }
 
       // Stage with two layers for crossfade
       var stage = document.createElement('div');
@@ -516,6 +610,17 @@
       stage.appendChild(layerA);
       stage.appendChild(layerB);
       container.appendChild(stage);
+      // Hidden bin for preloading upcoming media
+      var preloadBin = document.createElement('div');
+      preloadBin.className = 'background-preload-bin';
+      preloadBin.style.position = 'absolute';
+      preloadBin.style.width = '0';
+      preloadBin.style.height = '0';
+      preloadBin.style.overflow = 'hidden';
+      preloadBin.style.opacity = '0';
+      preloadBin.style.pointerEvents = 'none';
+      container.appendChild(preloadBin);
+      console.log('[BG] stage initialized');
 
       var layers = [layerA, layerB];
       var activeIndex = 0; // which layer is visible
@@ -528,6 +633,16 @@
       var isMuted = false; // try audio on initially
       var scrollRaf = null;
       var lastActiveIdx = -1;
+      // Predictive preload + cache controls
+      var mediaCache = new Map(); // src -> { el, type: 'video', lastUsed }
+      var MAX_CACHE = 6;
+      var lastDirection = 1; // 1 = forward, -1 = backward
+      var saveData = false, effectiveType = '4g';
+      try {
+        var nc = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        if (nc){ saveData = !!nc.saveData; effectiveType = nc.effectiveType || effectiveType; }
+      } catch(_){ }
+      var slowNetwork = saveData || /^(slow-2g|2g|3g)$/i.test(effectiveType || '');
 
       function selectEl(root, sel){ return root ? root.querySelector(sel) : null; }
 
@@ -547,39 +662,106 @@
           var href = linkEl && linkEl.href ? linkEl.href : '';
           return { el: el, type: type || 'image', src: src, poster: poster || '', title: title, href: href };
         }).filter(function(it){ return !!it.src; });
+        console.log('[BG] collectItems:', items.length, items.map(function(it, i){ return { i:i, type: it.type, hasPoster: !!it.poster, hasHref: !!it.href, title: it.title }; }));
       }
       function updateCtaForCurrent(){
         var btn = document.querySelector('.cta-live-btn');
         var textEl = btn ? btn.querySelector('.cta-text') : null;
         var item = items[current];
-        if (!btn || !textEl || !item) return;
+        if (!btn || !textEl || !item) { console.log('[BG] updateCta skipped', { hasBtn: !!btn, hasText: !!textEl, idx: current }); return; }
         var title = item.title || 'View project';
         textEl.textContent = title;
         try { textEl.setAttribute('data-text', title); } catch(_){ }
         btn.setAttribute('data-href', item.href || '');
         btn.disabled = !item.href;
+        console.log('[BG] CTA updated', { idx: current, title: title, href: item.href });
       }
 
       function clearLayer(layer){
         while (layer.firstChild) layer.removeChild(layer.firstChild);
       }
 
+      function ensureMediaVisible(){
+        var aHas = !!layers[0].firstChild;
+        var bHas = !!layers[1].firstChild;
+        if (!aHas && !bHas){
+          console.log('[BG] ensureMediaVisible: both layers empty, re-swapping to', current);
+          // Attempt to re-show current item or fallback to first
+          var idx = (typeof current === 'number' && current >= 0) ? current : 0;
+          swapTo(idx);
+        }
+      }
+
+      function cacheGet(src){
+        if (!src) return null;
+        var entry = mediaCache.get(src);
+        if (entry){ entry.lastUsed = Date.now(); }
+        return entry || null;
+      }
+
+      function getActiveSrcs(){
+        var set = new Set();
+        for (var li=0; li<layers.length; li++){
+          var v = layers[li].querySelector('video');
+          if (v){ var s = v.querySelector('source'); if (s && s.src) set.add(s.src); }
+        }
+        return set;
+      }
+
+      function evictIfNeeded(){
+        if (mediaCache.size <= MAX_CACHE) return;
+        var protect = getActiveSrcs();
+        try { var ni = Math.min(items.length - 1, Math.max(0, current + 1)); var nsrc = items[ni] && items[ni].src; if (nsrc) protect.add(nsrc); } catch(_){ }
+        var oldestKey = null; var oldest = Infinity;
+        mediaCache.forEach(function(v, k){ if (!protect.has(k) && v.lastUsed < oldest){ oldest = v.lastUsed; oldestKey = k; } });
+        if (oldestKey){
+          var entry = mediaCache.get(oldestKey);
+          try { if (entry && entry.el && entry.el.parentNode === preloadBin){ preloadBin.removeChild(entry.el); } } catch(_){ }
+          mediaCache.delete(oldestKey);
+        }
+      }
+
+      function cachePut(src, el, type){
+        if (!src || !el) return;
+        mediaCache.set(src, { el: el, type: type || 'video', lastUsed: Date.now() });
+        evictIfNeeded();
+      }
+
       function createMediaElement(item){
         if (item.type === 'video'){
-          var v = document.createElement('video');
+          // Prefer cache reuse
+          var cached = cacheGet(item.src);
+          var v = cached && cached.el && cached.el.tagName === 'VIDEO' ? cached.el : null;
+          if (!v){
+            // Try to reuse a preloaded video element for instant start
+            v = (function(){
+              var vids = preloadBin.querySelectorAll('video[data-preload-src]');
+              for (var i=0;i<vids.length;i++){
+                if (vids[i].getAttribute('data-preload-src') === item.src){
+                  vids[i].removeAttribute('data-preload-src');
+                  return vids[i];
+                }
+              }
+              return null;
+            })();
+          }
+          if (!v){ v = document.createElement('video'); }
           v.playsInline = true; // iOS
           v.autoplay = true;
           v.loop = true;
-          v.preload = 'metadata';
+          v.preload = 'auto';
           v.muted = !!isMuted;
           if (item.poster) v.setAttribute('poster', item.poster);
-          var srcEl = document.createElement('source');
-          srcEl.src = item.src;
-          // basic type hint
-          var ext = (item.src.split('?')[0].split('.').pop() || '').toLowerCase();
-          var mime = (ext === 'mp4') ? 'video/mp4' : (ext === 'webm' ? 'video/webm' : '');
-          if (mime) srcEl.type = mime;
-          v.appendChild(srcEl);
+          // If the video had no source (fresh element), attach one
+          if (!v.querySelector('source')){
+            var srcEl = document.createElement('source');
+            srcEl.src = item.src;
+            var ext = (item.src.split('?')[0].split('.').pop() || '').toLowerCase();
+            var mime = (ext === 'mp4') ? 'video/mp4' : (ext === 'webm' ? 'video/webm' : '');
+            if (mime) srcEl.type = mime;
+            v.appendChild(srcEl);
+          }
+          try { cachePut(item.src, v, 'video'); } catch(_){ }
           // try to play with current mute state
           setTimeout(function(){
             var p = v.play();
@@ -590,16 +772,85 @@
                 isMuted = true;
                 try { updateMuteButton(); } catch(_){ }
                 v.play().catch(function(){ /* ignore */ });
+                console.log('[BG] video autoplay blocked; forcing muted', { src: item.src });
               });
             }
           }, 0);
+          v.addEventListener('loadedmetadata', function(){ console.log('[BG] video loadedmetadata', { src: item.src, duration: v.duration }); });
+          v.addEventListener('play', function(){ console.log('[BG] video play', { src: item.src, muted: v.muted }); });
+          v.addEventListener('pause', function(){ console.log('[BG] video pause', { src: item.src }); });
+          v.addEventListener('error', function(e){ console.log('[BG] video error', { src: item.src, error: (v.error && v.error.message) }); });
           return v;
         } else {
           var img = document.createElement('img');
           img.src = item.src;
           img.alt = '';
+          img.addEventListener('load', function(){ console.log('[BG] image loaded', { src: item.src }); });
+          img.addEventListener('error', function(){ console.log('[BG] image error', { src: item.src }); });
           return img;
         }
+      }
+
+      function ensureVideoPreloaded(src, poster){
+        if (!src) return;
+        if (mediaCache.has(src)) { cacheGet(src); return; }
+        for (var li=0; li<layers.length; li++){
+          var activeVid = layers[li].querySelector('video');
+          if (activeVid){ var s = activeVid.querySelector('source'); if (s && s.src === src) return; }
+        }
+        var v = document.createElement('video');
+        v.setAttribute('data-preload-src', src);
+        v.playsInline = true;
+        v.muted = true;
+        v.loop = true;
+        v.preload = 'auto';
+        if (poster) v.setAttribute('poster', poster);
+        var sEl = document.createElement('source');
+        sEl.src = src;
+        var ext = (src.split('?')[0].split('.').pop() || '').toLowerCase();
+        var mime = (ext === 'mp4') ? 'video/mp4' : (ext === 'webm' ? 'video/webm' : '');
+        if (mime) sEl.type = mime;
+        v.appendChild(sEl);
+        preloadBin.appendChild(v);
+        try { v.load(); } catch(_){ }
+        cachePut(src, v, 'video');
+      }
+
+      function addLinkPreload(src, asType){
+        if (!src) return;
+        try {
+          var olds = document.querySelectorAll('link[rel="preload"][data-dyn-preload="1"]');
+          olds.forEach(function(n){ if (n && n.parentNode) n.parentNode.removeChild(n); });
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = asType || 'video';
+          link.href = src;
+          link.setAttribute('data-dyn-preload','1');
+          document.head.appendChild(link);
+        } catch(_){ }
+      }
+
+      function schedulePreloading(centerIdx){
+        if (!items.length) return;
+        var seen = new Set();
+        var offsets = slowNetwork ? [1] : (lastDirection >= 0 ? [1,2,3,-1] : [-1,1,2,-2]);
+        var nextIdx = centerIdx + (lastDirection >= 0 ? 1 : -1);
+        if (nextIdx < 0) nextIdx = 0; if (nextIdx >= items.length) nextIdx = items.length - 1;
+        var nextItem = items[nextIdx];
+        if (nextItem && nextItem.type === 'video' && nextItem.src){ addLinkPreload(nextItem.src, 'video'); }
+        for (var k=0;k<offsets.length;k++){
+          var t = centerIdx + offsets[k];
+          if (t < 0 || t >= items.length) continue;
+          if (seen.has(t)) continue;
+          seen.add(t);
+          var it = items[t];
+          if (!it || !it.src) continue;
+          if (it.type === 'video'){ ensureVideoPreloaded(it.src, it.poster); }
+          else if (it.type === 'image'){
+            var img = new Image(); img.decoding = 'async'; img.loading = 'eager'; img.src = it.src;
+          }
+        }
+        evictIfNeeded();
       }
 
       function swapTo(index){
@@ -608,10 +859,11 @@
         if (index >= items.length) index = 0;
         var oldActive = activeIndex;
         current = index;
+        console.log('[BG] swapTo', { index: index, oldActive: oldActive, newActive: (oldActive ^ 1), item: items[index] && { type: items[index].type, hasPoster: !!items[index].poster, title: items[index].title } });
         var nextLayer = layers[oldActive ^ 1];
         // Immediately pause audio from the outgoing layer to avoid overlaps
         var oldVid = layers[oldActive].querySelector('video');
-        if (oldVid){ try { oldVid.pause(); } catch(_){} }
+        if (oldVid){ try { oldVid.pause(); console.log('[BG] paused old video'); } catch(_){ console.log('[BG] pause old video failed'); } }
         clearLayer(nextLayer);
         var mediaEl = createMediaElement(items[current]);
         nextLayer.appendChild(mediaEl);
@@ -619,8 +871,34 @@
         nextLayer.classList.add('is-active');
         layers[oldActive].classList.remove('is-active');
         activeIndex = oldActive ^ 1;
-        // After fade completes, clear the inactive layer completely
-        setTimeout(function(){ clearLayer(layers[oldActive]); }, FADE_MS + 60);
+        // Warm up neighbors for faster subsequent swaps
+        try { schedulePreloading(current); } catch(_){ }
+        // After fade completes, clear the inactive layer completely (guard against racing clears)
+        setTimeout(function(){
+          var layer = layers[oldActive];
+          var isActiveNow = layer.classList.contains('is-active');
+          if (!isActiveNow){
+            // Move video to cache for reuse before clearing
+            var old = layer.querySelector('video');
+            if (old){
+              try {
+                old.pause();
+                var s = old.querySelector('source');
+                var src = s && s.src;
+                if (src){
+                  old.setAttribute('data-preload-src', src);
+                  cachePut(src, old, 'video');
+                  preloadBin.appendChild(old);
+                }
+              } catch(_){ }
+            }
+            clearLayer(layer);
+            console.log('[BG] cleared inactive layer', oldActive);
+            ensureMediaVisible();
+          } else {
+            console.log('[BG] skip clear; layer became active again', oldActive);
+          }
+        }, FADE_MS + 60);
         updateCtaForCurrent();
       }
 
@@ -642,10 +920,12 @@
           if (mode !== 'auto') return;
           swapTo(current + 1);
         }, AUTO_INTERVAL_MS);
+        console.log('[BG] startAuto');
       }
 
       function stopAuto(){
         if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+        console.log('[BG] stopAuto');
       }
 
       function resetAutoResume(){
@@ -653,16 +933,18 @@
         autoResumeTimer = setTimeout(function(){
           if (mode !== 'auto'){ startAuto(); }
         }, AUTO_RESUME_MS);
+        console.log('[BG] resetAutoResume');
       }
 
-      function handlePrev(){ mode = 'manual'; stopAuto(); swapTo(current - 1); resetAutoResume(); }
-      function handleNext(){ mode = 'manual'; stopAuto(); swapTo(current + 1); resetAutoResume(); }
+      function handlePrev(){ mode = 'manual'; lastDirection = -1; console.log('[BG] prev click'); stopAuto(); swapTo(current - 1); resetAutoResume(); }
+      function handleNext(){ mode = 'manual'; lastDirection = 1; console.log('[BG] next click'); stopAuto(); swapTo(current + 1); resetAutoResume(); }
 
       function updateMuteButton(){
         var btn = document.querySelector('.control-icon-btn');
         if (!btn) return;
         btn.setAttribute('aria-pressed', String(!isMuted));
         if (isMuted){ btn.classList.add('is-muted'); } else { btn.classList.remove('is-muted'); }
+        console.log('[BG] mute state', { muted: isMuted });
       }
 
       function bindControls(){
@@ -691,6 +973,7 @@
             activeVideo.muted = !!isMuted;
             if (!isMuted){ activeVideo.volume = 1; }
           }
+          console.log('[BG] mute button toggled');
         });
         if (ctaBtn) ctaBtn.addEventListener('click', function(){
           var href = ctaBtn.getAttribute('data-href') || '';
@@ -714,6 +997,8 @@
           var d = Math.abs(mid - vhMid);
           if (d < bestDist){ bestDist = d; bestIdx = i; }
         }
+        // Clamp to first index when at or above top
+        if (bestIdx < 0 && items.length){ return 0; }
         return bestIdx;
       }
 
@@ -723,7 +1008,9 @@
           scrollRaf = null;
           if (!items.length) return;
           var idx = closestItemToViewportCenter();
+          console.log('[BG] onScroll', { idx: idx, current: current, mode: mode, scrollY: window.scrollY });
           if (idx >= 0 && idx !== current){
+            lastDirection = (idx > current) ? 1 : -1;
             mode = 'scroll';
             stopAuto();
             swapTo(idx);
@@ -733,12 +1020,13 @@
             updateActiveItem(idx);
             resetAutoResume();
           }
+          ensureMediaVisible();
         });
       }
 
       function init(){
         collectItems();
-        if (!items.length) return;
+        if (!items.length) { console.log('[BG] init: no items found'); return; }
         // initial render
         swapTo(0);
         bindControls();
@@ -746,11 +1034,14 @@
         resetAutoResume();
         updateMuteButton();
         updateCtaForCurrent();
+        try { schedulePreloading(current); } catch(_){ }
         // Scroll override
         window.addEventListener('scroll', onScroll, { passive: true });
         window.addEventListener('resize', onScroll);
         // Ensure active state reflects current viewport on load
         onScroll();
+        ensureMediaVisible();
+        console.log('[BG] init complete');
       }
 
       function ready(fn){
@@ -762,10 +1053,10 @@
       // Initialize after dynamic work is rendered
       ready(function(){
         var started = false;
-        function startOnce(){ if (!started){ started = true; init(); } }
+        function startOnce(){ if (!started){ started = true; console.log('[BG] starting after work:rendered'); init(); } }
         document.addEventListener('work:rendered', startOnce, { once: true });
         // In case content is already present (static), attempt after a tick
-        setTimeout(function(){ if (!started){ collectItems(); if (items.length){ startOnce(); } } }, 600);
+        setTimeout(function(){ if (!started){ collectItems(); if (items.length){ startOnce(); } else { console.log('[BG] delayed start: still no items'); } } }, 600);
       });
     })();
     </script>
@@ -1233,6 +1524,158 @@
       } else {
         loadAndRender();
       }
+    })();
+    </script>
+    
+    <script>
+    // Pill navigation: smooth scroll + active state sync with URL hash
+    (function(){
+      function getOffset(){
+        try {
+          var csRoot = window.getComputedStyle(document.documentElement);
+          var val = (csRoot.getPropertyValue('--section-offset') || '').trim();
+          var n = parseFloat(val);
+          if (!isNaN(n)) return n;
+        } catch(_){ }
+        return 185; // fallback desktop
+      }
+      var prefersReduced = false;
+      try { prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(_){ }
+
+      function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+
+      function init(){
+        var pills = $all('.pill-btn[data-target]');
+        var sections = $all('.work-section-container[data-section]');
+        if (!pills.length || !sections.length) return;
+
+        var sticky = document.querySelector('.sticky-header-scroll');
+        function isStuck(){ return !!(sticky && sticky.classList && sticky.classList.contains('is-stuck')); }
+
+        var nameToSection = {};
+        sections.forEach(function(sec){ var n = (sec.getAttribute('data-section')||'').toLowerCase(); if (n) nameToSection[n] = sec; });
+
+        var nameToPill = {};
+        pills.forEach(function(btn){ var n = (btn.getAttribute('data-target')||'').toLowerCase(); if (n) nameToPill[n] = btn; });
+
+        var activeName = '';
+        function clearActive(){
+          Object.keys(nameToPill).forEach(function(k){ var b = nameToPill[k]; if (b){ b.classList.remove('active'); }});
+          activeName = '';
+        }
+        function setActive(name, updateHash){
+          if (!name || name === activeName) return;
+          Object.keys(nameToPill).forEach(function(k){ var b = nameToPill[k]; if (b){ b.classList.toggle('active', k === name); }});
+          activeName = name;
+          if (updateHash){ try { history.replaceState(null, '', '#' + name); } catch(_){ } }
+        }
+
+        function easeInOutQuad(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+        function animatedScrollTo(targetY, duration){
+          if (prefersReduced || duration <= 0){ window.scrollTo(0, targetY); return; }
+          var startY = window.scrollY || window.pageYOffset;
+          var delta = targetY - startY;
+          var startTime = null;
+          function step(ts){
+            if (!startTime) startTime = ts;
+            var t = Math.min(1, (ts - startTime) / duration);
+            var eased = easeInOutQuad(t);
+            window.scrollTo(0, Math.round(startY + delta * eased));
+            if (t < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        }
+
+        function scrollToSection(name){
+          var el = nameToSection[name];
+          if (!el) return;
+          // Use native smooth scroll + CSS scroll-margin-top to avoid double-click offset issues
+          try {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } catch(_){
+            // Fallback if smooth not supported
+            var rect = el.getBoundingClientRect();
+            var absoluteY = (window.scrollY || window.pageYOffset) + rect.top;
+            var targetY = Math.max(0, absoluteY - getOffset());
+            animatedScrollTo(targetY, 600);
+          }
+          // Wait for scroll to settle (mobile URL bar collapse, active-row padding), then one smooth fine-tune
+          (function(){
+            var start = Date.now();
+            var lastY = window.scrollY || window.pageYOffset;
+            var stable = 0;
+            var neededStableFrames = 6; // ~100ms
+            var maxMs = 1400; // hard cap
+            function tick(){
+              var y = window.scrollY || window.pageYOffset;
+              if (Math.abs(y - lastY) < 1){ stable++; } else { stable = 0; }
+              lastY = y;
+              if (stable >= neededStableFrames || (Date.now() - start) > maxMs){
+                var r = el.getBoundingClientRect();
+                var gap = Math.round(r.top - getOffset());
+                if (Math.abs(gap) > 2){
+                  try { window.scrollBy({ top: gap, behavior: 'smooth' }); }
+                  catch(_){ window.scrollTo(0, (window.scrollY || window.pageYOffset) + gap); }
+                }
+              } else {
+                requestAnimationFrame(tick);
+              }
+            }
+            requestAnimationFrame(tick);
+          })();
+          setActive(name, true);
+        }
+
+        pills.forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var n = (btn.getAttribute('data-target')||'').toLowerCase();
+            if (!n) return;
+            scrollToSection(n);
+          });
+        });
+
+        var rafId = null;
+        function onScroll(){
+          if (rafId) return;
+          rafId = requestAnimationFrame(function(){
+            rafId = null;
+            if (!isStuck()){ clearActive(); return; }
+            var topRef = getOffset() + 1;
+            var best = { name: activeName, dist: Infinity };
+            sections.forEach(function(sec){
+              var name = (sec.getAttribute('data-section')||'').toLowerCase();
+              var r = sec.getBoundingClientRect();
+              var d = Math.abs(r.top - topRef) * (r.top < topRef ? 0.9 : 1.0);
+              if (d < best.dist){ best.name = name; best.dist = d; }
+            });
+            if (best.name && best.name !== activeName){ setActive(best.name, false); }
+          });
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll);
+
+        // Also react immediately to sticky state changes
+        if (sticky && window.MutationObserver){
+          try {
+            var mo = new MutationObserver(function(){ if (!isStuck()) { clearActive(); } else { onScroll(); } });
+            mo.observe(sticky, { attributes: true, attributeFilter: ['class'] });
+          } catch(_){ }
+        }
+
+        function initFromHash(){
+          var h = (location.hash || '').replace('#','').toLowerCase();
+          if (h && nameToSection[h]){ setTimeout(function(){ scrollToSection(h); }, 50); }
+          else { clearActive(); onScroll(); }
+        }
+
+        clearActive();
+        initFromHash();
+        document.addEventListener('work:rendered', function(){ initFromHash(); onScroll(); });
+      }
+
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', init);
+      } else { init(); }
     })();
     </script>
     

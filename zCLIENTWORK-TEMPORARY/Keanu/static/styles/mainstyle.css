@@ -16,6 +16,11 @@ body {
     --quaternary-color: #1a1a1a;
     --quinary-color: #333333;
     --senary-color: #4d4d4d;
+    --section-offset: 185px; /* default desktop offset for section alignment */
+}
+
+@media (max-width: 768px){
+    :root{ --section-offset: 220px; }
 }
 
 .work-page-section {
@@ -50,6 +55,58 @@ h2 {
     position: fixed;
     z-index: 4;
     cursor: pointer;
+}
+
+/* Loading overlay */
+html.is-loading {
+    overflow: hidden;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 9999;
+    pointer-events: all;
+}
+
+.loading-overlay.fade-out {
+    opacity: 0;
+    transition: opacity 320ms ease;
+    pointer-events: none;
+}
+
+.loading-overlay .loading-logo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    text-decoration: none;
+}
+
+.loading-overlay .loading-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-color);
+}
+
+.loading-overlay .loading-spinner {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.loading-overlay .loading-text {
+    font-size: 16px;
+    letter-spacing: 0.4px;
 }
 
 .sticky-background-media {
@@ -257,12 +314,17 @@ h2 {
 }
 
 .down-gradient-black-background {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.998), rgba(0,0,0,0));
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.900), rgba(0,0,0,0));
     
 }
 
 .work-section-container {
     border-top: 1px solid var(--primary-color);
+}
+
+/* Offset targets so headings don't hide under sticky header when scrolling */
+.work-section-container[data-section]{
+    scroll-margin-top: var(--section-offset, 185px); /* keep CSS+JS in sync */
 }
 
 .no-border {
@@ -458,7 +520,7 @@ h2 {
     grid-template-columns: 360px 1fr 1fr auto; /* media | title | description | cta */
     gap: 24px;
     align-items: start;
-    padding-top: 24px;
+    padding-top: 12px;
     padding-bottom: 24px;
     transition: transform 200ms ease, box-shadow 200ms ease, padding 500ms cubic-bezier(0.4, 0.0, 0.2, 1);
     cursor: pointer;
@@ -480,11 +542,11 @@ h2 {
 
 /* Smoothly scale media when the row is active */
 .work-media{ transition: transform 450ms cubic-bezier(0.4, 0.0, 0.2, 1); }
-.work-body-item.active{ padding-top: 44px; padding-bottom: 44px; }
+.work-body-item.active{ padding-top: 44px; padding-bottom: 90px; }
 .work-body-item.active .work-media{ transform: scale(1.04); }
 
 @media (max-width: 860px){
-    .work-body-item.active{ padding-top: 40px; padding-bottom: 40px; }
+    .work-body-item.active{ padding-top: 60px; padding-bottom: 80px; }
     .work-body-item.active .work-media{ transform: scale(1.02); }
 }
 
@@ -605,7 +667,17 @@ h2 {
 
 
 .pill-btn:hover {
-    background: var(--secondary-color);
+    /* background: var(--secondary-color); */
+    border-color: var(--secondary-color);
+    color: var(--secondary-color);
+}
+
+/* Active pill state mirrors hover styling for consistent brand feel */
+.pill-btn.active{
+    /* background: var(--secondary-color); */
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    /* border-color: var(--primary-color); */
 }
 
  /* Clients carousel (scoped to avoid global overrides) */
@@ -668,7 +740,15 @@ h2 {
 }
 
 .less-margin-bottom {
-    margin-bottom: 20px !important;
+    margin-bottom: 10px !important;
+}
+
+.no-padding-bottom {
+    padding-bottom: 0px !important;
+}
+
+.no-margin-bottom {
+    margin-bottom: 0px !important;
 }
 
 .work-section-title{
@@ -749,6 +829,8 @@ h2 {
     overflow: hidden;
     width: 260px; /* fixed width for marquee */
     padding-right: 40px; /* reserve space for arrow */
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    will-change: transform, box-shadow;
 }
 
 
@@ -784,6 +866,12 @@ h2 {
 
 @media (max-width: 768px){
     .cta-live-btn{ width: 180px; }
+}
+
+/* Hover interaction: subtle lift and green glow */
+.cta-live-btn:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.35), 0 0 14px rgba(0, 255, 0, 0.6);
 }
 
 /* Pause marquee on hover for readability */
