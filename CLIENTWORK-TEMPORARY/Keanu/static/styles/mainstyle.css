@@ -472,8 +472,9 @@ html.is-loading {
     text-align: center;
 }
 
-.footer-contact-item-title {
+.footer-contact-item-title, .footer-contact-item-title a {
     font-size: 16px;
+    text-decoration: none;
     font-weight: bold;
     color: var(--primary-color);
 }
