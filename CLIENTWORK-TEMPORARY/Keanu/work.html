@@ -10,6 +10,20 @@
     <style>
        
     </style>
+
+    <style>
+      .control-icon-btn, .cta-live-btn{
+        color: #000;
+        border-color: #000;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      @media (max-width: 768px) {
+        .cta-live-btn{
+          display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,7 +49,7 @@
 
 
         <!-- Top navigation / hamburger -->
-        <div class="landing-top-row">
+        <div class="landing-top-row down-gradient-black-background">
         <div class="top-controls" aria-label="Media controls">
             <button class="control-btn control-icon-btn" aria-label="Mute or unmute">
                 <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
@@ -46,11 +60,11 @@
             <button class="control-btn control-pager-btn" aria-label="Skip backward or forward">
                 <svg viewBox="0 0 64 24" width="60" height="23" aria-hidden="true">
                     <!-- left triangle -->
-                    <polygon points="12,12 22,6 22,18" fill="currentColor"></polygon>
+                    <polygon data-dir="prev" points="12,12 22,6 22,18" fill="currentColor"><title>Previous</title></polygon>
                     <!-- center dot -->
                     <!-- <circle cx="32" cy="12" r="2" fill="currentColor"></circle> -->
                     <!-- right triangle -->
-                    <polygon points="52,12 42,6 42,18" fill="currentColor"></polygon>
+                    <polygon data-dir="next" points="52,12 42,6 42,18" fill="currentColor"><title>Next</title></polygon>
                 </svg>
             </button>
             <button class="control-btn cta-live-btn" aria-label="Live at Boiler Room">
@@ -91,43 +105,10 @@
 
                 </div>
 
-                <div class="work-body-container">
-                    <div class="work-body-item">
-                        <div class="work-media">
-                            <img src="static/img/placeholder.png" alt="Work 1 image">
-                            <div class="work-tags">
-                                <span class="work-tag">Live Set</span>
-                                <span class="work-tag">Consultancy</span>
-                            </div>
-                        </div>
-                        <h1 class="work-body-item-title">Work 1 Live at Title Place</h1>
-                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
-                        <a class="view-more-btn" href="#" aria-label="View more about Work 1">View More... <span class="arrow" aria-hidden="true">↗</span></a>
-                    </div>
-                    <div class="work-body-item">
-                        <div class="work-media">
-                            <img src="static/img/placeholder.png" alt="Work 2 image">
-                            <div class="work-tags">
-                                <span class="work-tag">Live Set</span>
-                                <span class="work-tag">Consultancy</span>
-                            </div>
-                        </div>
-                        <h1 class="work-body-item-title">Work 2 2 2 2 2 222</h1>
-                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
-                        <a class="view-more-btn" href="#" aria-label="View more about Work 2">View More... <span class="arrow" aria-hidden="true">↗</span></a>
-                    </div>
-                    <div class="work-body-item">
-                        <div class="work-media">
-                            <img src="static/img/placeholder.png" alt="Work 3 image">
-                            <div class="work-tags">
-                                <span class="work-tag">Live Set</span>
-                                <span class="work-tag">Consultancy</span>
-                            </div>
-                        </div>
-                        <h1 class="work-body-item-title">Work 3</h1>
-                        <p class="work-body-item-description">Description about the work goes here. Short but not too short.</p>
-                        <a class="view-more-btn" href="#" aria-label="View more about Work 3">View More... <span class="arrow" aria-hidden="true">↗</span></a>
-                    </div>
+                <div class="work-body-container work-section" id="related-work-container">
+                    
+                    
+                    
                 </div>
 
                 <!-- <h1>DJ</h1> -->
@@ -278,6 +259,7 @@
       }
 
       function isVideoUrl(u){ return /\.(mp4|webm|ogg|mov|avi)(?:$|[?#])/i.test((u||'').split('?')[0]); }
+      function isImageUrl(u){ return /\.(png|jpe?g|webp|gif|avif)(?:$|[?#])/i.test((u||'').split('?')[0]); }
 
       function renderMediaFromUrl(url, caption, poster){
         if (!url) return '';
@@ -285,7 +267,7 @@
           var posterAttr = poster ? ' poster="'+poster+'"' : '';
           return '<div class="blog-media-frontend"><video class="blog-media-video" src="'+url+'"'+posterAttr+' controls></video>' + (caption?'<p class="blog-media-caption">'+caption+'</p>':'') + '</div>';
         }
-        return '<div class="blog-media-frontend"><img class="blog-media-img" src="'+url+'" alt="'+(caption||'Media')+'">' + (caption?'<p class="blog-media-caption">'+caption+'</p>':'') + '</div>';
+        return '<div class="blog-media-frontend"><img class="blog-media-img" loading="lazy" src="'+url+'" alt="'+(caption||'Media')+'">' + (caption?'<p class="blog-media-caption">'+caption+'</p>':'') + '</div>';
       }
 
       function renderEmbed(block){
@@ -308,6 +290,55 @@
         return '';
       }
 
+      // Render a single block (supports media/subtitle/body/embed)
+      async function renderBlockAsync(db, block, TARGET_USER_UID){
+        if (!block) return '';
+        var type = block.blockType || block.type;
+        if (type === 'subtitle'){ return '<div class="blog-subtitle-frontend">'+(block.content||'')+'</div>'; }
+        if (type === 'body'){ return '<div class="blog-body-frontend">'+(block.content||'')+'</div>'; }
+        if (type === 'embed'){ return renderEmbed(block); }
+        if (type === 'media'){
+          if (block.cachedMediaUrl){ return renderMediaFromUrl(block.cachedMediaUrl, block.caption, block.poster); }
+          if (block.mediaId){
+            try {
+              var doc = await db.collection('users').doc(TARGET_USER_UID).collection('items').doc(block.mediaId).get();
+              if (doc.exists){
+                var media = doc.data();
+                if (media && media.files && media.files.length){
+                  var f = media.files[0];
+                  return renderMediaFromUrl(f.url, f.caption, f.poster);
+                }
+              }
+            } catch(_){}
+          }
+        }
+        return '';
+      }
+
+      // Render a two-column group
+      async function renderColumnGroup(db, columnGroup, TARGET_USER_UID){
+        if (!columnGroup) return '';
+        var left = (columnGroup.leftColumn || []).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+        var right = (columnGroup.rightColumn || []).slice().sort(function(a,b){ return (a.order||0)-(b.order||0); });
+        var ratio = columnGroup.columnRatio || { left: 50, right: 50 };
+        var leftW = (typeof ratio.left === 'number' ? ratio.left : 50);
+        var rightW = (typeof ratio.right === 'number' ? ratio.right : (100-leftW));
+
+        var html = '<div class="blog-column-group-frontend">';
+        html += '<div class="blog-column-frontend blog-column-left" style="width: calc('+leftW+'% - 5px);">';
+        for (var i=0;i<left.length;i++){
+          html += '<div class="blog-block-frontend blog-block-column">' + (await renderBlockAsync(db, left[i], TARGET_USER_UID)) + '</div>';
+        }
+        html += '</div>';
+        html += '<div class="blog-column-frontend blog-column-right" style="width: calc('+rightW+'% - 5px);">';
+        for (var j=0;j<right.length;j++){
+          html += '<div class="blog-block-frontend blog-block-column">' + (await renderBlockAsync(db, right[j], TARGET_USER_UID)) + '</div>';
+        }
+        html += '</div>';
+        html += '</div>';
+        return html;
+      }
+
       async function renderModularBlogContent(db, work){
         if (!work || !work.sections || !work.sections.length) return work && work.content ? work.content : '';
         var html = '';
@@ -321,6 +352,7 @@
           for (var ii=0; ii<sorted.length; ii++){
             var it = sorted[ii];
             var type = it.blockType || it.type;
+            if (type === 'column-group'){ html += await renderColumnGroup(db, it, TARGET_USER_UID); continue; }
             if (type === 'subtitle'){ html += '<div class="blog-subtitle-frontend">'+(it.content||'')+'</div>'; continue; }
             if (type === 'body'){ html += '<div class="blog-body-frontend">'+(it.content||'')+'</div>'; continue; }
             if (type === 'embed'){ html += renderEmbed(it); continue; }
@@ -346,6 +378,124 @@
         return html;
       }
 
+      function pickThumbnailFromWork(work){
+        try {
+          if (work && work.featuredMedia){
+            var fm = work.featuredMedia;
+            if (fm.poster && isImageUrl(fm.poster)) return fm.poster;
+            if (fm.url && isImageUrl(fm.url)) return fm.url;
+          }
+          if (work && work.featuredImage && isImageUrl(work.featuredImage)) return work.featuredImage;
+          if (work && work.sections){
+            for (var i=0;i<Math.min(3, work.sections.length);i++){
+              var s = work.sections[i];
+              var items = (s.items || s.blocks || []);
+              for (var j=0;j<items.length;j++){
+                var it = items[j];
+                var url = it.cachedMediaUrl || (it.url || '');
+                if (url && isImageUrl(url)) return url;
+              }
+            }
+          }
+        } catch(_){ }
+        return '';
+      }
+
+      function simpleExcerpt(work){
+        try {
+          if (work && work.sections){
+            for (var i=0;i<work.sections.length;i++){
+              var s = work.sections[i];
+              var items = (s.items || s.blocks || []);
+              for (var j=0;j<items.length;j++){
+                var it = items[j];
+                var type = it.blockType || it.type;
+                if (type === 'body' && it.content){
+                  var div = document.createElement('div');
+                  div.innerHTML = it.content;
+                  var txt = (div.textContent || div.innerText || '').trim().replace(/\s+/g,' ');
+                  if (txt) return txt.length > 140 ? (txt.slice(0,140).trimEnd() + '…') : txt;
+                }
+              }
+            }
+          }
+        } catch(_){ }
+        return work && work.excerpt ? String(work.excerpt) : '';
+      }
+
+      function buildRelatedCardHtml(post){
+        var thumb = pickThumbnailFromWork(post);
+        var safeTitle = post.title || 'Untitled';
+        var desc = simpleExcerpt(post) || '';
+        var tagsCsv = post.keywords || post.tags || '';
+        var tags = [];
+        try { tags = tagsCsv.split(',').map(function(t){ return t.trim(); }).filter(Boolean); } catch(_){ tags=[]; }
+        var tagsHtml = tags.slice(0,3).map(function(t){ return '<span class="work-tag">'+t+'</span>'; }).join('');
+        var imgHtml = thumb ? '<img loading="lazy" src="'+thumb+'" alt="'+safeTitle+' thumbnail">' : '';
+        return ''+
+          '<div class="work-body-item">'+
+            '<div class="work-media">'+ imgHtml + (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '') + '</div>'+
+            '<h1 class="work-body-item-title">'+ safeTitle +'</h1>'+
+            '<p class="work-body-item-description">'+ (desc || '') +'</p>'+
+            '<a class="view-more-btn" href="work.html?id='+ post.id +'" aria-label="View more about '+ safeTitle +'">View More... <span class="arrow" aria-hidden="true">↗</span></a>'+
+          '</div>';
+      }
+
+      async function renderRelatedWork(db, currentId){
+        var container = document.getElementById('related-work-container') || document.querySelector('.work-body-container');
+        if (!container) return;
+        try {
+          var snap = await db.collection('users').doc(TARGET_USER_UID)
+            .collection('items').where('type','==','blog').get();
+          var posts = [];
+          snap.forEach(function(doc){ if (doc.id !== currentId) posts.push(Object.assign({ id: doc.id }, doc.data())); });
+          if (!posts.length){ container.style.display = 'none'; return; }
+          // shuffle
+          for (var i=posts.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=posts[i]; posts[i]=posts[j]; posts[j]=t; }
+          var chosen = posts.slice(0,3);
+          container.innerHTML = chosen.map(buildRelatedCardHtml).join('');
+        } catch(_){ container.style.display = 'none'; }
+      }
+
+      async function bindPostPager(db, currentId){
+        try {
+          var pagerBtn = document.querySelector('.control-pager-btn');
+          if (!pagerBtn) return;
+          var leftPoly = pagerBtn.querySelector('polygon[data-dir="prev"]');
+          var rightPoly = pagerBtn.querySelector('polygon[data-dir="next"]');
+
+          var snap;
+          try {
+            snap = await db.collection('users').doc(TARGET_USER_UID)
+              .collection('items').where('type','==','blog').orderBy('datePosted','desc').get();
+          } catch(_){
+            snap = await db.collection('users').doc(TARGET_USER_UID)
+              .collection('items').where('type','==','blog').get();
+          }
+          var ids = [];
+          snap.forEach(function(doc){ ids.push(doc.id); });
+          if (ids.length < 2) return;
+          var idx = Math.max(0, ids.indexOf(currentId));
+          var prevId = ids[(idx - 1 + ids.length) % ids.length];
+          var nextId = ids[(idx + 1) % ids.length];
+
+          function goTo(id){ if (!id) return; window.location.href = 'work.html?id=' + encodeURIComponent(id); }
+
+          if (leftPoly) leftPoly.addEventListener('click', function(e){ e.stopPropagation(); goTo(prevId); });
+          if (rightPoly) rightPoly.addEventListener('click', function(e){ e.stopPropagation(); goTo(nextId); });
+          pagerBtn.addEventListener('click', function(e){
+            var rect = pagerBtn.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            if (x < rect.width / 2) goTo(prevId); else goTo(nextId);
+          });
+          document.addEventListener('keydown', function(e){
+            var k = e.key || e.code;
+            if (k === 'ArrowLeft'){ e.preventDefault(); goTo(prevId); }
+            else if (k === 'ArrowRight'){ e.preventDefault(); goTo(nextId); }
+          });
+        } catch(_){ }
+      }
+
       function mountVideoAutoplay(root){
         var container = root || document.querySelector('.work-page-section');
         if (!container) return;
@@ -365,6 +515,130 @@
           });
         }, { threshold: 0.5 });
         vids.forEach(function(v){ obs.observe(v); });
+      }
+
+      // Desktop-only custom controls for blog-media videos (keeps native on mobile/iOS)
+      function mountCustomVideoUI(root){
+        var container = root || document;
+        if (!container) return;
+        var isSmall = false;
+        try { isSmall = window.matchMedia && window.matchMedia('(max-width: 768px)').matches; } catch(_){ }
+        var ua = (navigator.userAgent || '').toLowerCase();
+        var isIOS = /iphone|ipad|ipod/.test(ua) || (/macintosh/.test(ua) && 'ontouchend' in document);
+        if (isSmall || isIOS) return; // keep reliable native controls on mobile/iOS
+
+        var videos = container.querySelectorAll('.blog-media-frontend .blog-media-video');
+        videos.forEach(function(video){
+          if (!video || video._hasCustomUI) return;
+          video._hasCustomUI = true;
+
+          // Remove native controls on desktop
+          try { video.removeAttribute('controls'); } catch(_){ }
+
+          // Wrap
+          var wrapper = document.createElement('div');
+          wrapper.className = 'video-player';
+          var parent = video.parentNode;
+          parent.insertBefore(wrapper, video);
+          wrapper.appendChild(video);
+
+          // Controls bar
+          var controls = document.createElement('div');
+          controls.className = 'video-controls';
+          controls.innerHTML = ''+
+            '<button class="vp-btn vp-play" aria-label="Play/Pause" title="Play/Pause"><span class="vp-icon">►</span></button>'+
+            '<div class="vp-progress" aria-label="Seek" role="slider" tabindex="0"><div class="vp-progress-filled"></div></div>'+
+            '<div class="vp-time" aria-live="off">0:00 / 0:00</div>'+
+            '<button class="vp-btn vp-mute" aria-label="Mute/Unmute" title="Mute/Unmute"><span class="vp-icon">🔊</span></button>'+
+            '<input class="vp-volume" aria-label="Volume" title="Volume" type="range" min="0" max="1" step="0.05" value="1">'+
+            '<button class="vp-btn vp-full" aria-label="Fullscreen" title="Fullscreen"><span class="vp-icon">⤢</span></button>';
+          wrapper.appendChild(controls);
+
+          var btnPlay = controls.querySelector('.vp-play');
+          var btnMute = controls.querySelector('.vp-mute');
+          var btnFull = controls.querySelector('.vp-full');
+          var prog = controls.querySelector('.vp-progress');
+          var progFill = controls.querySelector('.vp-progress-filled');
+          var timeEl = controls.querySelector('.vp-time');
+          var vol = controls.querySelector('.vp-volume');
+
+          function fmt(t){
+            t = Math.max(0, t||0);
+            var m = Math.floor(t/60); var s = Math.floor(t%60); return m+':' + String(s).padStart(2,'0');
+          }
+
+          function refresh(){
+            try {
+              // play/pause icon
+              btnPlay.querySelector('.vp-icon').textContent = video.paused ? '►' : '❚❚';
+              // mute icon
+              btnMute.querySelector('.vp-icon').textContent = (video.muted || video.volume === 0) ? '🔊' : '🔇';
+              // time
+              var d = isFinite(video.duration) ? video.duration : 0;
+              var ct = isFinite(video.currentTime) ? video.currentTime : 0;
+              timeEl.textContent = fmt(ct) + ' / ' + fmt(d);
+              // progress
+              var pct = d ? (ct / d) * 100 : 0;
+              progFill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+              // volume slider
+              if (!video.muted) { vol.value = (typeof video.volume === 'number' ? String(video.volume) : '1'); }
+              // show slider only when unmuted and volume > 0
+              var showVol = !video.muted && (video.volume || 0) > 0;
+              vol.style.display = showVol ? '' : 'none';
+              // controls visibility when paused
+              if (video.paused) { wrapper.classList.add('is-paused'); } else { wrapper.classList.remove('is-paused'); }
+            } catch(_){ }
+          }
+
+          // Event handlers
+          btnPlay.addEventListener('click', function(){ if (video.paused) { video.play().catch(function(){}); } else { video.pause(); } refresh(); });
+          btnMute.addEventListener('click', function(){ video.muted = !video.muted; refresh(); });
+          vol.addEventListener('input', function(){ var v = parseFloat(vol.value); if (!isNaN(v)){ video.volume = v; if (v > 0){ video.muted = false; } refresh(); } });
+
+          function seekTo(clientX){
+            var rect = prog.getBoundingClientRect();
+            var x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+            var ratio = rect.width ? (x / rect.width) : 0;
+            if (isFinite(video.duration)) video.currentTime = ratio * video.duration;
+          }
+          prog.addEventListener('click', function(e){ seekTo(e.clientX); });
+          // keyboard on progress
+          prog.addEventListener('keydown', function(e){
+            var k = e.key || e.code; var step = 5; // seconds
+            if (k === 'ArrowLeft'){ e.preventDefault(); try { video.currentTime = Math.max(0, video.currentTime - step); } catch(_){ } }
+            if (k === 'ArrowRight'){ e.preventDefault(); try { video.currentTime = Math.min(video.duration||0, video.currentTime + step); } catch(_){ } }
+            refresh();
+          });
+
+          btnFull.addEventListener('click', function(){
+            var el = wrapper;
+            var d = document;
+            var fsEl = d.fullscreenElement || d.webkitFullscreenElement || d.mozFullScreenElement || d.msFullscreenElement;
+            function req(el){ (el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen).call(el); }
+            function exit(){ (d.exitFullscreen||d.webkitExitFullscreen||d.mozCancelFullScreen||d.msExitFullscreen).call(d); }
+            try { if (fsEl){ exit(); } else { req(el); } } catch(_){ }
+          });
+
+          // keyboard shortcuts for wrapper
+          wrapper.addEventListener('keydown', function(e){
+            var k = e.key || e.code;
+            if (k === ' ' || k === 'Enter'){ e.preventDefault(); btnPlay.click(); }
+            if (k === 'm' || k === 'M'){ e.preventDefault(); btnMute.click(); }
+            if (k === 'f' || k === 'F'){ e.preventDefault(); btnFull.click(); }
+            if (k === 'ArrowLeft'){ e.preventDefault(); try { video.currentTime = Math.max(0, video.currentTime - 5); } catch(_){ } }
+            if (k === 'ArrowRight'){ e.preventDefault(); try { video.currentTime = Math.min(video.duration||0, video.currentTime + 5); } catch(_){ } }
+          });
+
+          // Sync UI with media events
+          video.addEventListener('play', refresh);
+          video.addEventListener('pause', refresh);
+          video.addEventListener('volumechange', refresh);
+          video.addEventListener('timeupdate', refresh);
+          video.addEventListener('loadedmetadata', refresh);
+
+          // Initial state
+          refresh();
+        });
       }
 
       function showLoadingOverlay(){
@@ -396,26 +670,30 @@
           if (!snap.exists){ content.innerHTML = '<div class="error">Work item not found</div>'; hideOverlay(); return; }
           var work = snap.data();
 
-          // Build header (title, date, tags)
+          // Build header (category badge, title, tags/date, divider)
           var date = work.datePosted && work.datePosted.seconds ? new Date(work.datePosted.seconds*1000) : null;
+          var dateStr = date ? date.toLocaleDateString('en-GB') : '';
           var tagsHtml = '';
           if (work.tags){
             try { tagsHtml = work.tags.split(',').map(function(t){ return t.trim(); }).filter(Boolean).map(function(t){ return '<span class="work-tag">'+t+'</span>'; }).join(''); } catch(_){ tagsHtml=''; }
           }
 
-          var headerHtml = '<div class="work-meta">'+
-            '<div class="work-meta-info">'+
-              '<div class="work-info-row">'+
-                (date ? ('<span class="work-date">'+date.getFullYear()+'</span>') : '')+
-                (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '')+
+          var headerHtml = ''+
+            '<header class="work-header">'+
+              '<div class="work-title-row">'+
+                (work.category ? ('<span class="work-category-badge">'+work.category+'</span>') : '')+
+                '<h1 class="work-title">'+ (work.title || 'Untitled') +'</h1>'+
               '</div>'+
-            '</div>'+
-            '<h1 class="work-title">'+ (work.category ? ('<span class="work-category">'+work.category+'/</span>') : '') + (work.title || 'Untitled') +'</h1>'+
-          '</div>';
+              '<div class="work-meta-row">'+
+                '<div class="work-tags-inline">'+ (tagsHtml || '') +'</div>'+
+                (dateStr ? ('<time class="work-date" datetime="'+ (date ? date.toISOString().slice(0,10) : '') +'">'+dateStr+'</time>') : '<span></span>')+
+              '</div>'+
+              
+            '</header>';
 
           // Featured media if available
           var mediaHtml = '';
-          if (work.featuredMedia && work.featuredMedia.url){ mediaHtml = renderMediaFromUrl(work.featuredMedia.url, work.featuredMedia.caption, work.featuredMedia.poster); }
+        //   if (work.featuredMedia && work.featuredMedia.url){ mediaHtml = renderMediaFromUrl(work.featuredMedia.url, work.featuredMedia.caption, work.featuredMedia.poster); }
 
           var bodyHtml = await renderModularBlogContent(db, work);
           content.innerHTML = headerHtml + '<div class="work-content">' + (mediaHtml || '') + bodyHtml + '</div>';
@@ -425,6 +703,12 @@
 
           // Autoplay videos in view
           mountVideoAutoplay(content);
+          // Desktop-only custom controls for blog videos
+          mountCustomVideoUI(content);
+          // Render related work (3 random)
+          renderRelatedWork(db, id);
+          // Bind post pager navigation
+          bindPostPager(db, id);
         } catch(e){
           content.innerHTML = '<div class="error">Error loading work item</div>';
         } finally {

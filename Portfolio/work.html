@@ -384,6 +384,8 @@
                                 </div>
                             </div>
 
+                            
+
                             <h1 class="work-title">
                                 ${work.category ? `<span class="work-category">${getCategoryDisplayName(work.category)}/</span>` : ''}${work.title || 'Untitled'}
                             </h1>
@@ -391,6 +393,7 @@
                         <div class="work-content">
                             ${blogContent}
                         </div>
+                        
                     `;
                     // Initialize any PDF viewers now that content is in the DOM
                     if (typeof initializePdfViewers === 'function') {
