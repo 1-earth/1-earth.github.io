@@ -282,6 +282,7 @@ html.menu-open .hamburger span { z-index: 4001; }
     gap: 24px;
     align-items: end;
     padding: 0 30px;
+    margin-bottom: 10px;
 }
 
 /* Fullscreen overlay menu */

@@ -29,6 +29,34 @@
 
 <body>
 
+    <!-- Fullscreen hamburger overlay menu (same as index, links route back to index sections) -->
+    <div class="menu-overlay" aria-hidden="true" role="dialog" aria-label="Site menu">
+        <div class="overlay-center">
+            <div class="overlay-logo">
+                <img src="static/img/LogoNewLarge.png" alt="Keanu logo" class="overlay-logo-img">
+            </div>
+            <nav class="overlay-nav" aria-label="Main">
+                <ul class="menu-list">
+                    <li class="menu-item"><a href="index.html#dj" class="menu-link" data-target="dj">DJ</a></li>
+                    <li class="menu-item"><a href="index.html#producer" class="menu-link" data-target="producer">PRODUCER</a></li>
+                    <li class="menu-item"><a href="index.html#creative-director" class="menu-link" data-target="creative-director">CREATIVE DIRECTOR</a></li>
+                    <li class="menu-item"><a href="index.html#contact" class="menu-link" data-target="contact">CONTACT</a></li>
+                </ul>
+                <div class="menu-social">
+                    <a class="icon-btn" target="_blank" rel="noopener" href="https://www.instagram.com/keanulaurenceluca/" aria-label="Instagram">
+                        <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                    </a>
+                    <a class="icon-btn" target="_blank"  rel="noopener" href="https://open.spotify.com/artist/2DLHZ28eAcr6zDVYqlujDq?si=7Ceg13E0QzuzoEqwZhU6Sg" aria-label="Spotify">
+                        <img src="static/img/spotifyicon.png" width="15" height="15" alt="Spotify">
+                    </a>
+                    <a class="icon-btn" target="_blank" rel="noopener" href="#" aria-label="Youtube">
+                        <img src="static/img/icon-youtube-white.svg" alt="Youtube">
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
 
     <!-- fixed background media -->
     <!-- <div class="sticky-background-media">
@@ -120,6 +148,45 @@
         
     </div>
     
+    <script>
+    // Hamburger overlay toggle for work page (navigates to index sections)
+    (function(){
+      function qs(sel, root){ return (root||document).querySelector(sel); }
+      function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+      var html = document.documentElement;
+      var hamburger = qs('.hamburger');
+      var overlay = qs('.menu-overlay');
+      if (!hamburger || !overlay) return;
+
+      function openMenu(){
+        overlay.classList.add('is-open');
+        hamburger.classList.add('is-active');
+        hamburger.setAttribute('aria-expanded','true');
+        overlay.setAttribute('aria-hidden','false');
+        html.classList.add('menu-open');
+      }
+      function closeMenu(){
+        overlay.classList.remove('is-open');
+        hamburger.classList.remove('is-active');
+        hamburger.setAttribute('aria-expanded','false');
+        overlay.setAttribute('aria-hidden','true');
+        html.classList.remove('menu-open');
+      }
+      function toggleMenu(){ if (overlay.classList.contains('is-open')) closeMenu(); else openMenu(); }
+
+      hamburger.addEventListener('click', function(e){ e.preventDefault(); toggleMenu(); });
+      overlay.addEventListener('click', function(e){ if (e.target === overlay) closeMenu(); });
+      document.addEventListener('keydown', function(e){ var k = e.key || e.code; if (k === 'Escape') closeMenu(); });
+
+      // Links route to index sections
+      $all('.menu-overlay .menu-link').forEach(function(a){
+        a.addEventListener('click', function(e){
+          // let normal navigation proceed
+          closeMenu();
+        });
+      });
+    })();
+    </script>
     <script>
     // Match pill border width to visually stretched titles (supports multiples)
     (function(){
@@ -739,10 +806,10 @@
                 </div>
                 <div class="footer-contact-item">
                     <div class="icon-buttons" aria-label="Social links">
-                        <a class="icon-btn" href="#" aria-label="Instagram">
+                        <a class="icon-btn" href="https://www.instagram.com/keanulaurenceluca/  " target="_blank" rel="noopener" aria-label="Instagram">
                             <img src="static/img/icon-instagram-white.svg" alt="Instagram">
                         </a>
-                        <a class="icon-btn" href="#" aria-label="Spotify">
+                        <a class="icon-btn" href="https://open.spotify.com/artist/2DLHZ28eAcr6zDVYqlujDq?si=7Ceg13E0QzuzoEqwZhU6Sg" target="_blank" rel="noopener" aria-label="Spotify">
                             <img src="static/img/spotifyicon.png" width="15" height="15" alt="Spotify">
                         </a>
                         <a class="icon-btn" href="#" aria-label="Youtube">
