@@ -1154,7 +1154,7 @@ html.menu-open, html.menu-open body { overflow: hidden; }
 /* Hover interaction: subtle lift and green glow */
 .cta-live-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.35), 0 0 14px rgba(0, 255, 0, 0.6);
+    box-shadow: 0 1px 0 2px rgba(0, 255, 0, 0.35), 0 0 3px rgba(0, 255, 0, 0.4);
 }
 
 /* Pause marquee on hover for readability */
@@ -1227,8 +1227,8 @@ html.menu-open, html.menu-open body { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 56px;
+    height: 56px;
     border: 1px solid var(--primary-color);
     border-radius: 50%;
     color: var(--primary-color);
@@ -1251,7 +1251,7 @@ html.menu-open, html.menu-open body { overflow: hidden; }
     /* tags | date */
     align-items: center;
     gap: 10px;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 .work-tags-inline {

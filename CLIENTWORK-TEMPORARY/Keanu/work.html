@@ -29,6 +29,17 @@
 
 <body>
 
+    <script>(function(){ try{ document.documentElement.classList.add('is-loading'); }catch(_){ } })();</script>
+    <div class="loading-overlay" role="status" aria-live="polite">
+        <a class="loading-logo" href="index.html" aria-label="Home">
+            <img class="logo-img-small" src="static/img/LogoNewLarge.png" alt="Keanu logo">
+        </a>
+        <div class="loading-center">
+            <img class="loading-spinner" src="static/img/loading.gif" loading="eager" decoding="async" alt="" aria-hidden="true">
+            <div class="loading-text">Loading.</div>
+        </div>
+    </div>
+
     <!-- Fullscreen hamburger overlay menu (same as index, links route back to index sections) -->
     <div class="menu-overlay" aria-hidden="true" role="dialog" aria-label="Site menu">
         <div class="overlay-center">
@@ -68,6 +79,81 @@
     <script src="static/scripts/sticky-logo.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+
+    <script>
+    // Minimal loading overlay controller for work page (locks scroll, reveals on content readiness)
+    (function(){
+      function qs(sel){ return document.querySelector(sel); }
+      function isSlow(){
+        try {
+          var nc = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!nc) return false;
+          return !!nc.saveData || /^(slow-2g|2g|3g)$/i.test(nc.effectiveType || '');
+        } catch(_){ return false; }
+      }
+      function firstHeroMedia(){
+        var root = document.querySelector('.work-content') || document.getElementById('work-content') || document;
+        if (!root) return null;
+        var v = root.querySelector('video'); if (v) return v;
+        var img = root.querySelector('img'); if (img) return img;
+        return null;
+      }
+      function waitMediaReady(el, capMs){
+        return new Promise(function(resolve){
+          if (!el){ resolve(); return; }
+          var to = setTimeout(done, Math.max(600, capMs || 2000));
+          function cleanup(){ try{ el.removeEventListener('canplay', onCanPlay); el.removeEventListener('loadeddata', onCanPlay); el.removeEventListener('load', onLoad); el.removeEventListener('error', onLoad); }catch(_){ } clearTimeout(to); }
+          function done(){ cleanup(); resolve(); }
+          function onCanPlay(){ done(); }
+          function onLoad(){ done(); }
+          if (el.tagName === 'VIDEO'){
+            if (el.readyState >= 2){ done(); return; }
+            el.addEventListener('canplay', onCanPlay);
+            el.addEventListener('loadeddata', onCanPlay);
+          } else {
+            if (el.complete){ done(); return; }
+            el.addEventListener('load', onLoad);
+            el.addEventListener('error', onLoad);
+          }
+        });
+      }
+      function animateText(el){ var n = 1; return setInterval(function(){ n = (n % 3) + 1; if (el){ el.textContent = 'Loading' + '.'.repeat(n); } }, 400); }
+      function reveal(overlay){
+        try { document.documentElement.classList.remove('is-loading'); } catch(_){ }
+        if (!overlay) return;
+        overlay.classList.add('fade-out');
+        setTimeout(function(){ if (overlay && overlay.parentNode){ overlay.parentNode.removeChild(overlay); } }, 380);
+      }
+      function kick(){
+        var overlay = qs('.loading-overlay'); if (!overlay) return;
+        // Ensure GIF spinner always animates
+        try {
+          var sp = overlay.querySelector('.loading-spinner');
+          if (sp && sp.tagName === 'IMG' && sp.src){
+            var base = sp.src;
+            base = base.replace(/([?&])r=\d+(&)?/, function(_, a, b){ return b ? a : ''; }).replace(/[?&]$/, '');
+            sp.src = base + (base.indexOf('?')>-1 ? '&' : '?') + 'r=' + Date.now();
+          }
+        } catch(_){ }
+        var textEl = overlay.querySelector('.loading-text');
+        var timer = animateText(textEl);
+        var started = false;
+        function startOnce(){ if (started) return; started = true; run(); }
+        function run(){
+          var el = firstHeroMedia();
+          if (!el){ setTimeout(run, 60); return; }
+          var fast = !isSlow();
+          waitMediaReady(el, fast ? 1400 : 900).then(function(){
+            clearInterval(timer);
+            reveal(overlay);
+          });
+        }
+        document.addEventListener('work:rendered', startOnce, { once: true });
+        setTimeout(startOnce, 700);
+      }
+      if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', kick); } else { kick(); }
+    })();
+    </script>
 
 
     <div class="up-gradient-black-background">
@@ -709,34 +795,47 @@
         });
       }
 
-      function showLoadingOverlay(){
-        var overlay = document.createElement('div');
-        overlay.className = 'loading-overlay';
-        overlay.innerHTML = '<div class="loading-overlay-content"><div class="loading-overlay-text"><span class="loading-label">Loading</span><span class="dots">.</span></div></div>';
-        var style = document.createElement('style');
-        style.textContent = '.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:center;justify-content:center;color:#fff} .loading-overlay.hidden{opacity:0;transition:opacity .3s} .loading-overlay-text{font-size:18px;letter-spacing:.5px}';
-        document.head.appendChild(style);
-        document.body.appendChild(overlay);
-        var dots = overlay.querySelector('.dots'); var dotState = 1; var timer = setInterval(function(){ dotState = dotState % 3 + 1; dots.textContent='.'.repeat(dotState); }, 300);
-        return function hide(){ overlay.classList.add('hidden'); setTimeout(function(){ clearInterval(timer); overlay.remove(); }, 320); };
+      function addLinkPreload(src, asType){
+        if (!src) return;
+        try {
+          var olds = document.querySelectorAll('link[rel="preload"][data-dyn-preload="1"]');
+          olds.forEach(function(n){ if (n && n.parentNode) n.parentNode.removeChild(n); });
+          var link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = asType || 'image';
+          link.href = src;
+          link.setAttribute('data-dyn-preload','1');
+          document.head.appendChild(link);
+        } catch(_){ }
       }
 
       async function run(){
         var content = document.getElementById('work-content');
         if (!content) return;
-        var hideOverlay = showLoadingOverlay();
 
         var params = new URLSearchParams(window.location.search);
         var id = params.get('id');
-        if (!id){ content.innerHTML = '<div class="error">No work item specified</div>'; hideOverlay(); return; }
+        if (!id){ content.innerHTML = '<div class="error">No work item specified</div>'; try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){ } return; }
 
-        if (!safeInitFirebase() || !window.firebase){ content.innerHTML = '<div class="error">Unable to load content</div>'; hideOverlay(); return; }
+        if (!safeInitFirebase() || !window.firebase){ content.innerHTML = '<div class="error">Unable to load content</div>'; try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){ } return; }
         var db = firebase.firestore();
 
         try {
           var snap = await db.collection('users').doc(TARGET_USER_UID).collection('items').doc(id).get();
-          if (!snap.exists){ content.innerHTML = '<div class="error">Work item not found</div>'; hideOverlay(); return; }
+          if (!snap.exists){ content.innerHTML = '<div class="error">Work item not found</div>'; try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){ } return; }
           var work = snap.data();
+
+          // Preload hero media (poster/image preferred)
+          try {
+            var heroUrl = '';
+            var asType = 'image';
+            if (work && work.featuredMedia && work.featuredMedia.url){
+              heroUrl = work.featuredMedia.url;
+              asType = isVideoUrl(heroUrl) ? 'video' : 'image';
+            }
+            if (!heroUrl){ heroUrl = pickThumbnailFromWork(work); asType = 'image'; }
+            if (heroUrl) addLinkPreload(heroUrl, asType);
+          } catch(_){ }
 
           // Build header (category badge, title, tags/date, divider)
           var date = work.datePosted && work.datePosted.seconds ? new Date(work.datePosted.seconds*1000) : null;
@@ -781,7 +880,7 @@
           content.innerHTML = '<div class="error">Error loading work item</div>';
         } finally {
           content.classList.remove('loading');
-          hideOverlay();
+          try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch(_){ }
         }
       }
 

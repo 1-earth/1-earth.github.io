@@ -671,6 +671,7 @@
     (function(){
       var AUTO_INTERVAL_MS = 5000;
       var FADE_MS = 350;
+      var AUDIO_FADE_MS = 900;
       var AUTO_RESUME_MS = 15000;
 
       var container = document.querySelector('.sticky-background-media');
@@ -772,6 +773,75 @@
         }
       }
 
+      // Linear volume fade helper
+      function fadeVolume(video, from, to, durationMs, onDone){
+        if (!video){ if (onDone) onDone(); return function(){}; }
+        var start = null;
+        var cancelled = false;
+        var delta = (to - from);
+        try { video.volume = Math.max(0, Math.min(1, from)); } catch(_){ }
+        function step(ts){
+          if (cancelled) return;
+          if (!start) start = ts;
+          var t = Math.min(1, (ts - start) / Math.max(1, durationMs || 0));
+          var v = from + delta * t;
+          try { video.volume = Math.max(0, Math.min(1, v)); } catch(_){ }
+          if (t < 1){ requestAnimationFrame(step); } else { if (onDone) onDone(); }
+        }
+        requestAnimationFrame(step);
+        return function cancel(){ cancelled = true; };
+      }
+
+      function finishOldVideoCleanup(oldVid){
+        if (!oldVid) return;
+        try { oldVid.pause(); } catch(_){ }
+        try {
+          var s = oldVid.querySelector('source');
+          var src = s && s.src;
+          if (src){
+            oldVid.setAttribute('data-preload-src', src);
+            cachePut(src, oldVid, 'video');
+            preloadBin.appendChild(oldVid);
+          }
+        } catch(_){ }
+        try {
+          var parent = oldVid.parentNode;
+          if (parent && parent.classList && parent.classList.contains('media-layer') && !parent.classList.contains('is-active')){
+            clearLayer(parent);
+            console.log('[BG] cleared inactive layer after audio fade');
+            ensureMediaVisible();
+          }
+        } catch(_){ }
+      }
+
+      function crossfadeAudio(oldVid, newVid, durationMs){
+        // Fade out the old video's audio
+        if (oldVid){
+          try { oldVid.setAttribute('data-defer-clear','1'); } catch(_){ }
+          if (!oldVid.muted){
+            var from = (typeof oldVid.volume === 'number') ? oldVid.volume : 1;
+            fadeVolume(oldVid, from, 0, durationMs || AUDIO_FADE_MS, function(){
+              try { oldVid.removeAttribute('data-defer-clear'); } catch(_){ }
+              finishOldVideoCleanup(oldVid);
+            });
+          } else {
+            try { oldVid.removeAttribute('data-defer-clear'); } catch(_){ }
+            finishOldVideoCleanup(oldVid);
+          }
+        }
+        // Fade in the new video's audio
+        if (newVid){
+          if (isMuted){
+            try { newVid.muted = true; newVid.volume = 0; } catch(_){ }
+            return;
+          }
+          try { newVid.muted = false; newVid.volume = 0; } catch(_){ }
+          var startFadeIn = function(){ if (!newVid.muted){ fadeVolume(newVid, 0, 1, durationMs || AUDIO_FADE_MS); } };
+          if (newVid.readyState >= 2 && !newVid.paused){ startFadeIn(); }
+          else { newVid.addEventListener('play', startFadeIn, { once: true }); }
+        }
+      }
+
       function cacheGet(src){
         if (!src) return null;
         var entry = mediaCache.get(src);
@@ -831,6 +901,8 @@
           v.loop = true;
           v.preload = 'auto';
           v.muted = !!isMuted;
+          // Start at 0 to allow smooth fade-in
+          try { v.volume = 0; } catch(_){ }
           if (item.poster) v.setAttribute('poster', item.poster);
           // If the video had no source (fresh element), attach one
           if (!v.querySelector('source')){
@@ -941,12 +1013,12 @@
         current = index;
         console.log('[BG] swapTo', { index: index, oldActive: oldActive, newActive: (oldActive ^ 1), item: items[index] && { type: items[index].type, hasPoster: !!items[index].poster, title: items[index].title } });
         var nextLayer = layers[oldActive ^ 1];
-        // Immediately pause audio from the outgoing layer to avoid overlaps
         var oldVid = layers[oldActive].querySelector('video');
-        if (oldVid){ try { oldVid.pause(); console.log('[BG] paused old video'); } catch(_){ console.log('[BG] pause old video failed'); } }
         clearLayer(nextLayer);
         var mediaEl = createMediaElement(items[current]);
         nextLayer.appendChild(mediaEl);
+        var newVid = (mediaEl && mediaEl.tagName === 'VIDEO') ? mediaEl : null;
+        try { crossfadeAudio(oldVid, newVid, AUDIO_FADE_MS); } catch(_){ }
         // Crossfade
         nextLayer.classList.add('is-active');
         layers[oldActive].classList.remove('is-active');
@@ -958,8 +1030,12 @@
           var layer = layers[oldActive];
           var isActiveNow = layer.classList.contains('is-active');
           if (!isActiveNow){
-            // Move video to cache for reuse before clearing
             var old = layer.querySelector('video');
+            // If we're in the middle of an audio fade, let the fade handler clean up later
+            if (old && old.getAttribute('data-defer-clear') === '1'){
+              console.log('[BG] defer clear awaiting audio fade', oldActive);
+              return;
+            }
             if (old){
               try {
                 old.pause();
