@@ -472,7 +472,8 @@ html.is-loading {
     text-align: center;
 }
 
-.footer-contact-item-title, .footer-contact-item-title a {
+.footer-contact-item-title,
+.footer-contact-item-title a {
     font-size: 16px;
     text-decoration: none;
     font-weight: bold;
@@ -847,9 +848,9 @@ html.is-loading {
 }
 
 .control-btn {
-    color: var(--primary-color);
+    color: var(--senary-color);
     background: transparent;
-    border: 1px solid var(--primary-color);
+    border: 1px solid var(--senary-color);
     border-radius: 9999px;
     height: 28px;
     padding: 4px 10px;
@@ -864,12 +865,45 @@ html.is-loading {
     display: block;
 }
 
+
+
+
+/* Section View-All toggle */
+.work-body-item[data-collapsed="true"] {
+    display: none;
+}
+
+.section-toggle-row {
+    display: flex;
+    justify-content: center;
+   padding-top: 18px;
+    border-top: 1px solid var(--primary-color);
+}
+
+.section-toggle-btn {
+    background: transparent;
+    color: var(--secondary-color);
+    border: 1px solid var(--secondary-color);
+    border-radius: 9999px;
+    padding: 6px 10px;
+    /* font-weight: 700; */
+    font-size: 18px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.section-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(115, 255, 123, 0.35);
+}
+
 /* Make pager polygons obviously clickable */
 .control-pager-btn polygon {
     cursor: pointer;
     transition: fill 180ms ease;
 }
-.control-pager-btn polygon:hover { 
+
+.control-pager-btn polygon:hover {
     fill: var(--secondary-color);
     transition: fill 180ms ease;
     transform: scale(1.05);
@@ -878,13 +912,15 @@ html.is-loading {
 }
 
 .control-icon-btn.is-muted {
-    border-color: var(--senary-color);
-    color: var(--senary-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .control-pager-btn {
     min-width: 52px;
     padding: 6px 2px;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
 }
 
 .cta-live-btn {

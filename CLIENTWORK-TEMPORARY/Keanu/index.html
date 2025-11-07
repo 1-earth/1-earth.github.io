@@ -23,6 +23,7 @@
       @media (max-width: 768px){
         .top-controls.mobile-hidden{ display: none !important; }
       }
+     
     </style>
 </head>
 
@@ -58,8 +59,8 @@
         <div class="top-controls" aria-label="Media controls">
             <button class="control-btn control-icon-btn" aria-label="Mute or unmute">
                 <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
-                    <path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"></path>
-                    <path d="M16 9.5l4 4m0-4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                    <path d="M 7 9 v 6 h 4 l 5 4 V 5 L 11 9 H 7 z" fill="currentColor"></path>
+                    <!-- <path d="M16 9.5l4 4m0-4l-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> -->
                 </svg>
             </button>
             <button class="control-btn control-pager-btn" aria-label="Skip backward or forward">
@@ -423,8 +424,10 @@
       function calcRadius(){
         var wrapper = document.querySelector('.clients-carousel .demoWrapper');
         var w = wrapper ? wrapper.clientWidth : window.innerWidth || 1200;
-        // Clamp radius between 260 and 830, scale with width
-        return Math.round(Math.min(830, Math.max(260, w * 0.75)));
+        var base = Math.round(Math.min(830, Math.max(20, w * 0.75)));
+        // On mobile, reduce the radius for a tighter ring; keep desktop unchanged
+        var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        return isMobile ? Math.max(12, Math.round(base * 0.6)) : base;
       }
 
       function applyRadius(){
@@ -647,7 +650,7 @@
       function selectEl(root, sel){ return root ? root.querySelector(sel) : null; }
 
       function collectItems(){
-        items = Array.prototype.slice.call(document.querySelectorAll('.work-body-item')).map(function(el){
+        items = Array.prototype.slice.call(document.querySelectorAll('.work-body-item:not([data-collapsed="true"])')).map(function(el){
           var type = (el.getAttribute('data-media-type') || '').toLowerCase();
           var src = el.getAttribute('data-media-src') || '';
           var poster = el.getAttribute('data-media-poster') || '';
@@ -1055,6 +1058,16 @@
         var started = false;
         function startOnce(){ if (!started){ started = true; console.log('[BG] starting after work:rendered'); init(); } }
         document.addEventListener('work:rendered', startOnce, { once: true });
+        // Re-collect items and resync when sections expand/collapse
+        document.addEventListener('work:updated', function(){
+          collectItems();
+          if (!items.length) return;
+          if (current >= items.length) { current = Math.max(0, items.length - 1); }
+          try { schedulePreloading(current); } catch(_){}
+          updateCtaForCurrent();
+          onScroll();
+          ensureMediaVisible();
+        });
         // In case content is already present (static), attempt after a tick
         setTimeout(function(){ if (!started){ collectItems(); if (items.length){ startOnce(); } else { console.log('[BG] delayed start: still no items'); } } }, 600);
       });
@@ -1459,6 +1472,37 @@
         return null;
       }
 
+      function setupSectionToggle(container){
+        if (!container) return;
+        var items = container.querySelectorAll('.work-body-item');
+        var existingToggle = container.querySelector('.section-toggle-row');
+        if (existingToggle && existingToggle.parentNode){ existingToggle.parentNode.removeChild(existingToggle); }
+        if (items.length <= 3) return;
+        for (var i=3; i<items.length; i++){ items[i].setAttribute('data-collapsed','true'); }
+        var row = document.createElement('div');
+        row.className = 'section-toggle-row';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'section-toggle-btn';
+        btn.setAttribute('aria-expanded','false');
+        btn.textContent = 'VIEW ALL';
+        row.appendChild(btn);
+        container.appendChild(row);
+        btn.addEventListener('click', function(){
+          var expanded = btn.getAttribute('aria-expanded') === 'true';
+          if (expanded){
+            for (var j=3; j<items.length; j++){ items[j].setAttribute('data-collapsed','true'); }
+            btn.setAttribute('aria-expanded','false');
+            btn.textContent = 'VIEW ALL';
+          } else {
+            for (var k=3; k<items.length; k++){ items[k].removeAttribute('data-collapsed'); }
+            btn.setAttribute('aria-expanded','true');
+            btn.textContent = 'VIEW LESS';
+          }
+          try { document.dispatchEvent(new CustomEvent('work:updated')); } catch(_){}
+        });
+      }
+
       function renderCategory(category, posts){
         var container = getCategoryContainer(category);
         if (!container) return;
@@ -1487,6 +1531,9 @@
             }
           });
         });
+
+        // Apply section-level View All/Less toggle
+        setupSectionToggle(container);
       }
 
       async function loadAndRender(){
