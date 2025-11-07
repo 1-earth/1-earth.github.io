@@ -175,7 +175,7 @@ html.is-loading {
 
 .landing-container {
     position: relative;
-    z-index: 1;
+    z-index: auto;
     margin: 0;
     height: 100vh;
     width: 100%;
@@ -190,6 +190,22 @@ html.is-loading {
     height: var(--header-h);
     z-index: 2;
 }
+
+/* Ensure hamburger (morphed X) stays above the overlay while menu is open */
+html.menu-open .landing-top-row {
+    z-index: 3001;
+}
+html.menu-open .top-controls {
+    visibility: hidden;
+    pointer-events: none;
+}
+/* Lift hamburger/X above everything and keep it clickable while menu is open */
+html.menu-open .hamburger {
+    position: fixed;
+    z-index: 4000;
+    pointer-events: auto;
+}
+html.menu-open .hamburger span { z-index: 4001; }
 
 .landing-top-row::before {
     content: "";
@@ -243,13 +259,17 @@ html.is-loading {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    cursor: pointer;
+    z-index: 3000;
 }
 
 .hamburger span {
+    z-index: 3000;
     display: block;
     width: 32px;
     height: 4px;
     background: var(--primary-color);
+    transition: transform 250ms ease, opacity 250ms ease, background-color 200ms ease;
 }
 
 .landing-bottom-row {
@@ -262,6 +282,141 @@ html.is-loading {
     gap: 24px;
     align-items: end;
     padding: 0 30px;
+}
+
+/* Fullscreen overlay menu */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 260ms ease, visibility 0s linear 260ms;
+}
+
+.menu-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 260ms ease;
+}
+
+.overlay-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(980px, 92vw);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.overlay-logo-img {
+    max-width: 380px;
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 2px 14px rgba(0,0,0,0.45));
+}
+
+/* Right-align the logo within its column */
+.overlay-logo {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.overlay-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+
+
+.menu-link {
+    position: relative;
+    display: inline-block;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 44px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    /* padding-left: 28px; */
+    transition: color 160ms ease, transform 180ms ease;
+}
+
+.menu-link::before {
+    content: "→";
+    position: absolute;
+    left: -48px;
+    top: 50%;
+    transform: translateY(-50%) translateX(-8px);
+    color: var(--secondary-color);
+    opacity: 0;
+    transition: opacity 160ms ease, transform 180ms ease;
+}
+
+.menu-link:hover,
+.menu-link:focus {
+    color: var(--secondary-color);
+    transform: translateX(47px);
+}
+
+.menu-link:hover::before,
+.menu-link:focus::before {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+
+.menu-social {
+    display: flex;
+    gap: 7px;
+    margin-top: 0px;
+}
+
+@media (max-width: 768px) {
+    .overlay-center {
+        width: 92vw;
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    .overlay-logo { display: none; }
+    .menu-link { font-size: 36px; }
+}
+
+/* Lock scroll when menu is open */
+html.menu-open, html.menu-open body { overflow: hidden; }
+
+/* Hamburger morph to X when active */
+.hamburger.is-active span:nth-child(1) {
+    transform: translateY(10px) rotate(45deg);
+    /* background: var(--secondary-color); */
+}
+
+.hamburger.is-active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.is-active span:nth-child(3) {
+    transform: translateY(-10px) rotate(-45deg);
+    /* background: var(--secondary-color); */
 }
 
 @media (max-width: 768px) {
@@ -487,8 +642,8 @@ html.is-loading {
 }
 
 .icon-btn {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border: 1px solid var(--primary-color);
     border-radius: 50%;
     display: inline-flex;
@@ -976,6 +1131,7 @@ html.is-loading {
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 3;
 }
 
 @keyframes cta-marquee {
@@ -1003,6 +1159,24 @@ html.is-loading {
 /* Pause marquee on hover for readability */
 .cta-live-btn:hover .cta-text {
     animation-play-state: paused;
+}
+
+/* Prevent marquee text from rendering beneath the arrow by masking the right side */
+.cta-live-btn .cta-text {
+    position: relative;
+    z-index: 1;
+}
+
+.cta-live-btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 60px; /* matches padding-right reserved space */
+    background: linear-gradient(to left, rgba(148, 126, 0, 0.8), rgba(0, 0, 0, 0));
+    pointer-events: none;
+    z-index: 2;
 }
 
 /* Decorative arrow under the work section title */

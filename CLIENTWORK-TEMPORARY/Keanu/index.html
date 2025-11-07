@@ -30,6 +30,33 @@
 <body>
 
     <script>(function(){ try{ document.documentElement.classList.add('is-loading'); }catch(_){ } })();</script>
+    <!-- Fullscreen hamburger overlay menu -->
+    <div class="menu-overlay" aria-hidden="true" role="dialog" aria-label="Site menu">
+        <div class="overlay-center">
+            <div class="overlay-logo">
+                <img src="static/img/LogoNewLarge.png" alt="Keanu logo" class="overlay-logo-img">
+            </div>
+            <nav class="overlay-nav" aria-label="Main">
+                <ul class="menu-list">
+                    <li class="menu-item"><a href="#dj" class="menu-link" data-target="dj">DJ</a></li>
+                    <li class="menu-item"><a href="#producer" class="menu-link" data-target="producer">PRODUCER</a></li>
+                    <li class="menu-item"><a href="#creative-director" class="menu-link" data-target="creative-director">CREATIVE DIRECTOR</a></li>
+                    <li class="menu-item"><a href="#contact" class="menu-link" data-target="contact">CONTACT</a></li>
+                </ul>
+                <div class="menu-social">
+                    <a class="icon-btn" href="#" aria-label="Instagram">
+                        <img src="static/img/icon-instagram-white.svg" alt="Instagram">
+                    </a>
+                    <a class="icon-btn" href="#" aria-label="Spotify">
+                        <img src="static/img/spotifyicon.png" width="15" height="15" alt="Spotify">
+                    </a>
+                    <a class="icon-btn" href="#" aria-label="Youtube">
+                        <img src="static/img/icon-youtube-white.svg" alt="Youtube">
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </div>
     <div class="loading-overlay" role="status" aria-live="polite">
         <a class="loading-logo" href="index.html" aria-label="Home">
             <img class="logo-img-small" src="static/img/LogoNewLarge.png" alt="Keanu logo">
@@ -398,6 +425,56 @@
     </div>
     
     <script>
+    // Hamburger overlay toggle and smooth link navigation
+    (function(){
+      function qs(sel, root){ return (root||document).querySelector(sel); }
+      function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+      var html = document.documentElement;
+      var hamburger = qs('.hamburger');
+      var overlay = qs('.menu-overlay');
+      if (!hamburger || !overlay) return;
+
+      function openMenu(){
+        overlay.classList.add('is-open');
+        hamburger.classList.add('is-active');
+        hamburger.setAttribute('aria-expanded','true');
+        overlay.setAttribute('aria-hidden','false');
+        html.classList.add('menu-open');
+      }
+
+      function closeMenu(){
+        overlay.classList.remove('is-open');
+        hamburger.classList.remove('is-active');
+        hamburger.setAttribute('aria-expanded','false');
+        overlay.setAttribute('aria-hidden','true');
+        html.classList.remove('menu-open');
+      }
+
+      function toggleMenu(){
+        if (overlay.classList.contains('is-open')) closeMenu(); else openMenu();
+      }
+
+      hamburger.addEventListener('click', function(e){ e.preventDefault(); toggleMenu(); });
+      overlay.addEventListener('click', function(e){ if (e.target === overlay) closeMenu(); });
+      document.addEventListener('keydown', function(e){ var k = e.key || e.code; if (k === 'Escape') closeMenu(); });
+
+      // Smooth scroll to sections and close
+      $all('.menu-overlay [data-target]').forEach(function(a){
+        a.addEventListener('click', function(e){
+          e.preventDefault();
+          var target = (a.getAttribute('data-target')||'').toLowerCase();
+          var el = null;
+          if (target === 'contact'){ el = document.querySelector('footer'); }
+          else { el = document.querySelector('.work-section-container[data-section="'+target+'"]') || document.getElementById(target); }
+          if (el){
+            try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            catch(_){ var r = el.getBoundingClientRect(); window.scrollTo(0, (window.scrollY||window.pageYOffset||0) + r.top); }
+          }
+          closeMenu();
+        });
+      });
+    })();
+    
     // 3D logo carousel logic (scoped to Clients section)
     ;(function(){
       if (!window.gsap || !window.Draggable) return;
@@ -427,7 +504,7 @@
         var base = Math.round(Math.min(830, Math.max(20, w * 0.75)));
         // On mobile, reduce the radius for a tighter ring; keep desktop unchanged
         var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-        return isMobile ? Math.max(12, Math.round(base * 0.6)) : base;
+        return isMobile ? Math.max(12, Math.round(base * 0.5)) : base;
       }
 
       function applyRadius(){
