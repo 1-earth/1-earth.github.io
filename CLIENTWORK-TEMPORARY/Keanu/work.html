@@ -119,6 +119,8 @@
       }
       function animateText(el){ var n = 1; return setInterval(function(){ n = (n % 3) + 1; if (el){ el.textContent = 'Loading' + '.'.repeat(n); } }, 400); }
       function reveal(overlay){
+        if (reveal._done) return;
+        reveal._done = true;
         try { document.documentElement.classList.remove('is-loading'); } catch(_){ }
         if (!overlay) return;
         overlay.classList.add('fade-out');
@@ -139,12 +141,17 @@
         var timer = animateText(textEl);
         var started = false;
         function startOnce(){ if (started) return; started = true; run(); }
+        // Hard cap: ensure overlay hides after max wait (e.g., network stalls)
+        var hardTimer = setTimeout(function(){
+          if (!reveal._done){ clearInterval(timer); reveal(overlay); }
+        }, 3000);
         function run(){
           var el = firstHeroMedia();
           if (!el){ setTimeout(run, 60); return; }
           var fast = !isSlow();
           waitMediaReady(el, fast ? 1400 : 900).then(function(){
             clearInterval(timer);
+            clearTimeout(hardTimer);
             reveal(overlay);
           });
         }
@@ -184,7 +191,7 @@
             </button>
             <button class="control-btn cta-live-btn" aria-label="Live at Boiler Room">
                 <span class="cta-text">LIVE AT BOILER ROOM</span>
-                <span class="cta-arrow" aria-hidden="true">↗</span>
+                <span class="cta-arrow" aria-hidden="true">↗︎</span>
             </button>
         </div>
         <button class="hamburger" aria-label="Open menu" aria-expanded="false">
@@ -436,7 +443,7 @@
         }
         if (data.platform === 'spotify'){
           var h = (data.viewType === 'compact') ? '80' : '152';
-          return '<div class="blog-embed-frontend spotify-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://open.spotify.com/embed/'+data.embedId+'?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media" style="height:'+h+'px;"></iframe></div></div>';
+          return '<div class="blog-embed-frontend spotify-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://open.spotify.com/embed/'+data.embedId+'?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media" style="height:'+h+'px; width: 100%;"></iframe></div></div>';
         }
         if (data.platform === 'soundcloud'){
           return '<div class="blog-embed-frontend soundcloud-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://w.soundcloud.com/player/?url='+encodeURIComponent('https://soundcloud.com/'+data.embedId)+'" frameborder="0" allow="autoplay"></iframe></div></div>';
@@ -591,7 +598,7 @@
             '<div class="work-media">'+ imgHtml + (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '') + '</div>'+
             '<h1 class="work-body-item-title">'+ safeTitle +'</h1>'+
             '<p class="work-body-item-description">'+ (desc || '') +'</p>'+
-            '<a class="view-more-btn" href="work.html?id='+ post.id +'" aria-label="View more about '+ safeTitle +'">View More... <span class="arrow" aria-hidden="true">↗</span></a>'+
+            '<a class="view-more-btn" href="work.html?id='+ post.id +'" aria-label="View more about '+ safeTitle +'">View More... <span class="arrow" aria-hidden="true">↗︎</span></a>'+
           '</div>';
       }
 

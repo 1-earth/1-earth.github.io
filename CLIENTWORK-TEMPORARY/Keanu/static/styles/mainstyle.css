@@ -901,7 +901,7 @@ html.menu-open, html.menu-open body { overflow: hidden; }
 
 .clients-carousel .demoWrapper {
     width: 270px;
-    height: 200px;
+    height: 180px;
     -webkit-font-smoothing: antialiased;
     margin: 0px auto;
     perspective: 1100px;
@@ -1115,12 +1115,12 @@ html.menu-open, html.menu-open body { overflow: hidden; }
     will-change: transform;
     padding-left: 40px;
     /* small lead-in */
-    animation: cta-marquee 12s linear infinite;
+    animation: cta-marquee 53s linear infinite;
     text-transform: uppercase;
 }
 
 .cta-live-btn .cta-text::after {
-    content: '  •  ' attr(data-text);
+    content: attr(data-text);
     padding-left: 40px;
     /* gap between copies */
 }
