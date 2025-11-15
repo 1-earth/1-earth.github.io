@@ -101,19 +101,25 @@
       function waitMediaReady(el, capMs){
         return new Promise(function(resolve){
           if (!el){ resolve(); return; }
-          var to = setTimeout(done, Math.max(600, capMs || 2000));
+          // Shorter timeout - if media isn't ready quickly, just proceed
+          var to = setTimeout(done, Math.max(300, capMs || 800));
           function cleanup(){ try{ el.removeEventListener('canplay', onCanPlay); el.removeEventListener('loadeddata', onCanPlay); el.removeEventListener('load', onLoad); el.removeEventListener('error', onLoad); }catch(_){ } clearTimeout(to); }
           function done(){ cleanup(); resolve(); }
           function onCanPlay(){ done(); }
           function onLoad(){ done(); }
           if (el.tagName === 'VIDEO'){
+            // Check if already ready
             if (el.readyState >= 2){ done(); return; }
-            el.addEventListener('canplay', onCanPlay);
-            el.addEventListener('loadeddata', onCanPlay);
+            // Also check if already loaded enough
+            if (el.readyState >= 1){ done(); return; }
+            el.addEventListener('canplay', onCanPlay, { once: true });
+            el.addEventListener('loadeddata', onCanPlay, { once: true });
+            el.addEventListener('error', done, { once: true });
           } else {
+            // Check if already complete
             if (el.complete){ done(); return; }
-            el.addEventListener('load', onLoad);
-            el.addEventListener('error', onLoad);
+            el.addEventListener('load', onLoad, { once: true });
+            el.addEventListener('error', onLoad, { once: true });
           }
         });
       }
@@ -144,19 +150,38 @@
         // Hard cap: ensure overlay hides after max wait (e.g., network stalls)
         var hardTimer = setTimeout(function(){
           if (!reveal._done){ clearInterval(timer); reveal(overlay); }
-        }, 3000);
+        }, 2000);
+        var mediaSearchTimeout = null;
         function run(){
           var el = firstHeroMedia();
-          if (!el){ setTimeout(run, 60); return; }
+          if (!el){
+            // If no media found after 500ms, just reveal (content is rendered)
+            if (!mediaSearchTimeout){
+              mediaSearchTimeout = setTimeout(function(){
+                if (!reveal._done){
+                  clearInterval(timer);
+                  clearTimeout(hardTimer);
+                  reveal(overlay);
+                }
+              }, 500);
+            }
+            setTimeout(run, 60);
+            return;
+          }
+          // Clear the search timeout since we found media
+          if (mediaSearchTimeout){ clearTimeout(mediaSearchTimeout); mediaSearchTimeout = null; }
           var fast = !isSlow();
-          waitMediaReady(el, fast ? 1400 : 900).then(function(){
+          // Much shorter wait times - if media isn't ready quickly, proceed anyway
+          waitMediaReady(el, fast ? 600 : 400).then(function(){
             clearInterval(timer);
             clearTimeout(hardTimer);
+            if (mediaSearchTimeout) clearTimeout(mediaSearchTimeout);
             reveal(overlay);
           });
         }
         document.addEventListener('work:rendered', startOnce, { once: true });
-        setTimeout(startOnce, 700);
+        // Start checking immediately, don't wait 700ms
+        setTimeout(startOnce, 100);
       }
       if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', kick); } else { kick(); }
     })();
@@ -443,7 +468,7 @@
         }
         if (data.platform === 'spotify'){
           var h = (data.viewType === 'compact') ? '80' : '152';
-          return '<div class="blog-embed-frontend spotify-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://open.spotify.com/embed/'+data.embedId+'?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media" style="height:'+h+'px; width: 100%;"></iframe></div></div>';
+          return '<div class="blog-embed-frontend spotify-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://open.spotify.com/embed/'+data.embedId+'?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media" style="height:'+h+'px; width: 100%; margin-bottom: 20px;"></iframe></div></div>';
         }
         if (data.platform === 'soundcloud'){
           return '<div class="blog-embed-frontend soundcloud-embed-frontend"'+widthStyle+'><div class="embed-container"><iframe src="https://w.soundcloud.com/player/?url='+encodeURIComponent('https://soundcloud.com/'+data.embedId)+'" frameborder="0" allow="autoplay"></iframe></div></div>';
@@ -594,12 +619,12 @@
         var tagsHtml = tags.slice(0,3).map(function(t){ return '<span class="work-tag">'+t+'</span>'; }).join('');
         var imgHtml = thumb ? '<img loading="lazy" src="'+thumb+'" alt="'+safeTitle+' thumbnail">' : '';
         return ''+
-          '<div class="work-body-item">'+
+          '<a href="work.html?id='+ post.id +'" class="work-body-item" aria-label="View more about '+ safeTitle +'">'+
             '<div class="work-media">'+ imgHtml + (tagsHtml ? ('<div class="work-tags">'+tagsHtml+'</div>') : '') + '</div>'+
             '<h1 class="work-body-item-title">'+ safeTitle +'</h1>'+
             '<p class="work-body-item-description">'+ (desc || '') +'</p>'+
-            '<a class="view-more-btn" href="work.html?id='+ post.id +'" aria-label="View more about '+ safeTitle +'">View More... <span class="arrow" aria-hidden="true">↗︎</span></a>'+
-          '</div>';
+            '<span class="view-more-btn">View More... <span class="arrow" aria-hidden="true">↗︎</span></span>'+
+          '</a>';
       }
 
       async function renderRelatedWork(db, currentId){
@@ -802,6 +827,27 @@
         });
       }
 
+  // Ensure all <video> elements loop inside the given root (with a fallback)
+  function enableLoopingVideos(root){
+    var container = root || document;
+    var vids = container.querySelectorAll('video');
+    vids.forEach(function(v){
+      try {
+        v.loop = true;
+        v.setAttribute('loop','');
+        if (!v._loopHandlerAttached){
+          v.addEventListener('ended', function(){
+            try {
+              v.currentTime = 0;
+              v.play().catch(function(){});
+            } catch(_){ }
+          });
+          v._loopHandlerAttached = true;
+        }
+      } catch(_){ }
+    });
+  }
+  
       function addLinkPreload(src, asType){
         if (!src) return;
         try {
@@ -875,6 +921,9 @@
           // Update meta
           updateSocialMeta(work, id);
 
+          // Loop all videos inside the rendered content
+          enableLoopingVideos(content);
+          
           // Autoplay videos in view
           mountVideoAutoplay(content);
           // Desktop-only custom controls for blog videos
