@@ -682,12 +682,26 @@
         } catch(_){ }
       }
 
+      function forceUnmute(video){
+        if (!video) return;
+        try {
+          video.muted = false;
+          video.removeAttribute('muted');
+        } catch(_){}
+      }
+
       function mountVideoAutoplay(root){
         var container = root || document.querySelector('.work-page-section');
         if (!container) return;
         var vids = container.querySelectorAll('video');
         if (!('IntersectionObserver' in window)){
-          vids.forEach(function(v){ try { v.muted=true; v.setAttribute('playsinline',''); v.play(); } catch(_){ } });
+          vids.forEach(function(v){
+            try {
+              forceUnmute(v);
+              v.setAttribute('playsinline','');
+              v.play();
+            } catch(_){ }
+          });
           return;
         }
         var obs = new IntersectionObserver(function(entries){
@@ -695,7 +709,8 @@
             var v = entry.target;
             var inView = entry.isIntersecting;
             try {
-              v.muted = true; v.setAttribute('playsinline','');
+              forceUnmute(v);
+              v.setAttribute('playsinline','');
               if (inView) { v.play().catch(function(){}); } else { if (!v.paused) v.pause(); }
             } catch(_){ }
           });
