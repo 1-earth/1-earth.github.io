@@ -5,6 +5,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Keanu Portfolio</title>
+  <meta name="description"
+    content="Keanu Laurence Luca is a multi-disciplinary creative, DJ, producer, and creative director bridging music, art, and culture.">
+  <link rel="canonical" href="https://1-earth.github.io/CLIENTWORK-TEMPORARY/Keanu/">
+  <meta property="og:site_name" content="Keanu Laurence Luca">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Keanu Laurence Luca — DJ, Producer & Creative Director">
+  <meta property="og:description"
+    content="Discover sets, productions, and creative direction work that bridge music, art, and culture.">
+  <meta property="og:url" content="https://1-earth.github.io/CLIENTWORK-TEMPORARY/Keanu/">
+  <meta property="og:image" content="https://1-earth.github.io/CLIENTWORK-TEMPORARY/Keanu/static/img/LogoNewLarge.png">
+  <meta property="og:image:alt" content="Keanu Laurence Luca wordmark">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Keanu Laurence Luca — DJ, Producer & Creative Director">
+  <meta name="twitter:description"
+    content="Multi-disciplinary creative and DJ delivering high-energy sets for brands and audiences worldwide.">
+  <meta name="twitter:image" content="https://1-earth.github.io/CLIENTWORK-TEMPORARY/Keanu/static/img/LogoNewLarge.png">
+  <script>
+    (function () {
+      var msg = "Coded by 'George Symonds (link: https://www.instagram.com/georgesymonds_/ )' through '🌐 1 Earth Productions 2025 (link: https://www.1-earth.world/ )'";
+      try { console.log(msg); } catch (_) { }
+    })();
+  </script>
   <link rel="stylesheet" href="static/styles/mainstyle.css">
   <link rel="icon" type="image/png" href="static/img/icon.png" sizes="32x32">
   <link rel="icon" type="image/png" href="static/img/icon.png" sizes="16x16">
@@ -728,11 +753,11 @@
       var AUTO_RESUME_MS = 15000;
 
       var container = document.querySelector('.sticky-background-media');
-      if (!container) { console.log('[BG] no container, abort'); return; }
+      if (!container) { return; }
 
       // Hide legacy background video if present
       var legacyVideo = container.querySelector('.background-video');
-      if (legacyVideo) { legacyVideo.style.display = 'none'; console.log('[BG] legacy video hidden at init'); }
+      if (legacyVideo) { legacyVideo.style.display = 'none'; }
 
       // Stage with two layers for crossfade
       var stage = document.createElement('div');
@@ -754,7 +779,6 @@
       preloadBin.style.opacity = '0';
       preloadBin.style.pointerEvents = 'none';
       container.appendChild(preloadBin);
-      console.log('[BG] stage initialized');
 
       var layers = [layerA, layerB];
       var activeIndex = 0; // which layer is visible
@@ -796,19 +820,17 @@
           var href = linkEl && linkEl.href ? linkEl.href : '';
           return { el: el, type: type || 'image', src: src, poster: poster || '', title: title, href: href };
         }).filter(function (it) { return !!it.src; });
-        console.log('[BG] collectItems:', items.length, items.map(function (it, i) { return { i: i, type: it.type, hasPoster: !!it.poster, hasHref: !!it.href, title: it.title }; }));
       }
       function updateCtaForCurrent() {
         var btn = document.querySelector('.cta-live-btn');
         var textEl = btn ? btn.querySelector('.cta-text') : null;
         var item = items[current];
-        if (!btn || !textEl || !item) { console.log('[BG] updateCta skipped', { hasBtn: !!btn, hasText: !!textEl, idx: current }); return; }
+        if (!btn || !textEl || !item) { return; }
         var title = item.title || 'View project';
         textEl.textContent = title;
         try { textEl.setAttribute('data-text', title); textEl.setAttribute('data-base-text', title); } catch (_) { }
         btn.setAttribute('data-href', item.href || '');
         btn.disabled = !item.href;
-        console.log('[BG] CTA updated', { idx: current, title: title, href: item.href });
         try { if (typeof ensureCtaFilled === 'function') { setTimeout(ensureCtaFilled, 0); } } catch (_) { }
       }
 
@@ -872,7 +894,6 @@
         var aHas = !!layers[0].firstChild;
         var bHas = !!layers[1].firstChild;
         if (!aHas && !bHas) {
-          console.log('[BG] ensureMediaVisible: both layers empty, re-swapping to', current);
           // Attempt to re-show current item or fallback to first
           var idx = (typeof current === 'number' && current >= 0) ? current : 0;
           swapTo(idx);
@@ -914,7 +935,6 @@
           var parent = oldVid.parentNode;
           if (parent && parent.classList && parent.classList.contains('media-layer') && !parent.classList.contains('is-active')) {
             clearLayer(parent);
-            console.log('[BG] cleared inactive layer after audio fade');
             ensureMediaVisible();
           }
         } catch (_) { }
@@ -1030,21 +1050,14 @@
                 isMuted = true;
                 try { updateMuteButton(); } catch (_) { }
                 v.play().catch(function () { /* ignore */ });
-                console.log('[BG] video autoplay blocked; forcing muted', { src: item.src });
               });
             }
           }, 0);
-          v.addEventListener('loadedmetadata', function () { console.log('[BG] video loadedmetadata', { src: item.src, duration: v.duration }); });
-          v.addEventListener('play', function () { console.log('[BG] video play', { src: item.src, muted: v.muted }); });
-          v.addEventListener('pause', function () { console.log('[BG] video pause', { src: item.src }); });
-          v.addEventListener('error', function (e) { console.log('[BG] video error', { src: item.src, error: (v.error && v.error.message) }); });
           return v;
         } else {
           var img = document.createElement('img');
           img.src = item.src;
           img.alt = '';
-          img.addEventListener('load', function () { console.log('[BG] image loaded', { src: item.src }); });
-          img.addEventListener('error', function () { console.log('[BG] image error', { src: item.src }); });
           return img;
         }
       }
@@ -1117,7 +1130,6 @@
         if (index >= items.length) index = 0;
         var oldActive = activeIndex;
         current = index;
-        console.log('[BG] swapTo', { index: index, oldActive: oldActive, newActive: (oldActive ^ 1), item: items[index] && { type: items[index].type, hasPoster: !!items[index].poster, title: items[index].title } });
         var nextLayer = layers[oldActive ^ 1];
         var oldVid = layers[oldActive].querySelector('video');
         clearLayer(nextLayer);
@@ -1139,7 +1151,6 @@
             var old = layer.querySelector('video');
             // If we're in the middle of an audio fade, let the fade handler clean up later
             if (old && old.getAttribute('data-defer-clear') === '1') {
-              console.log('[BG] defer clear awaiting audio fade', oldActive);
               return;
             }
             if (old) {
@@ -1155,10 +1166,7 @@
               } catch (_) { }
             }
             clearLayer(layer);
-            console.log('[BG] cleared inactive layer', oldActive);
             ensureMediaVisible();
-          } else {
-            console.log('[BG] skip clear; layer became active again', oldActive);
           }
         }, FADE_MS + 60);
         updateCtaForCurrent();
@@ -1182,12 +1190,10 @@
           if (mode !== 'auto') return;
           swapTo(current + 1);
         }, AUTO_INTERVAL_MS);
-        console.log('[BG] startAuto');
       }
 
       function stopAuto() {
         if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
-        console.log('[BG] stopAuto');
       }
 
       function resetAutoResume() {
@@ -1195,18 +1201,16 @@
         autoResumeTimer = setTimeout(function () {
           if (mode !== 'auto') { startAuto(); }
         }, AUTO_RESUME_MS);
-        console.log('[BG] resetAutoResume');
       }
 
-      function handlePrev() { mode = 'manual'; lastDirection = -1; console.log('[BG] prev click'); stopAuto(); swapTo(current - 1); resetAutoResume(); }
-      function handleNext() { mode = 'manual'; lastDirection = 1; console.log('[BG] next click'); stopAuto(); swapTo(current + 1); resetAutoResume(); }
+      function handlePrev() { mode = 'manual'; lastDirection = -1; stopAuto(); swapTo(current - 1); resetAutoResume(); }
+      function handleNext() { mode = 'manual'; lastDirection = 1; stopAuto(); swapTo(current + 1); resetAutoResume(); }
 
       function updateMuteButton() {
         var btn = document.querySelector('.control-icon-btn');
         if (!btn) return;
         btn.setAttribute('aria-pressed', String(!isMuted));
         if (isMuted) { btn.classList.add('is-muted'); } else { btn.classList.remove('is-muted'); }
-        console.log('[BG] mute state', { muted: isMuted });
       }
 
       function bindControls() {
@@ -1235,7 +1239,6 @@
             activeVideo.muted = !!isMuted;
             if (!isMuted) { activeVideo.volume = 1; }
           }
-          console.log('[BG] mute button toggled');
         });
         if (ctaBtn) ctaBtn.addEventListener('click', function () {
           var href = ctaBtn.getAttribute('data-href') || '';
@@ -1270,7 +1273,6 @@
           scrollRaf = null;
           if (!items.length) return;
           var idx = closestItemToViewportCenter();
-          console.log('[BG] onScroll', { idx: idx, current: current, mode: mode, scrollY: window.scrollY });
           if (idx >= 0 && idx !== current) {
             lastDirection = (idx > current) ? 1 : -1;
             mode = 'scroll';
@@ -1287,23 +1289,44 @@
       }
 
       function init() {
-        collectItems();
-        if (!items.length) { console.log('[BG] init: no items found'); return; }
-        // initial render
-        swapTo(0);
-        bindControls();
-        startAuto();
-        resetAutoResume();
-        updateMuteButton();
-        updateCtaForCurrent();
-        try { schedulePreloading(current); } catch (_) { }
-        // Scroll override
-        window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll);
-        // Ensure active state reflects current viewport on load
-        onScroll();
-        ensureMediaVisible();
-        console.log('[BG] init complete');
+        // Retry logic to wait for DOM to be fully rendered
+        var retryCount = 0;
+        var maxRetries = 20; // ~2 seconds max wait (20 * 100ms)
+        function tryInit() {
+          collectItems();
+          if (items.length > 0) {
+            // Items found, proceed with initialization
+            swapTo(0);
+            bindControls();
+            startAuto();
+            resetAutoResume();
+            updateMuteButton();
+            updateCtaForCurrent();
+            try { schedulePreloading(current); } catch (_) { }
+            // Scroll override
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onScroll);
+            // Ensure active state reflects current viewport on load
+            onScroll();
+            ensureMediaVisible();
+          } else if (retryCount < maxRetries) {
+            // Items not ready yet, retry after a short delay
+            retryCount++;
+            // Use requestAnimationFrame to wait for next paint, then setTimeout for additional delay
+            requestAnimationFrame(function() {
+              setTimeout(tryInit, 100);
+            });
+          } else {
+            // Max retries reached, update CTA with fallback message
+            var btn = document.querySelector('.cta-live-btn');
+            var textEl = btn ? btn.querySelector('.cta-text') : null;
+            if (textEl) {
+              textEl.textContent = 'No content available';
+              try { textEl.setAttribute('data-text', 'No content available'); textEl.setAttribute('data-base-text', 'No content available'); } catch (_) { }
+            }
+          }
+        }
+        tryInit();
       }
 
       function ready(fn) {
@@ -1315,8 +1338,13 @@
       // Initialize after dynamic work is rendered
       ready(function () {
         var started = false;
-        function startOnce() { if (!started) { started = true; console.log('[BG] starting after work:rendered'); init(); } }
-        document.addEventListener('work:rendered', startOnce, { once: true });
+        function startOnce() { if (!started) { started = true; init(); } }
+        document.addEventListener('work:rendered', function() {
+          // Use requestAnimationFrame to ensure DOM is rendered before initializing
+          requestAnimationFrame(function() {
+            setTimeout(startOnce, 50); // Small delay to ensure DOM is fully updated
+          });
+        }, { once: true });
         // Re-collect items and resync when sections expand/collapse
         document.addEventListener('work:updated', function () {
           collectItems();
@@ -1327,8 +1355,18 @@
           onScroll();
           ensureMediaVisible();
         });
-        // In case content is already present (static), attempt after a tick
-        setTimeout(function () { if (!started) { collectItems(); if (items.length) { startOnce(); } else { console.log('[BG] delayed start: still no items'); } } }, 600);
+        // In case content is already present (static) or event doesn't fire, attempt with retry
+        setTimeout(function () { 
+          if (!started) { 
+            collectItems(); 
+            if (items.length) { 
+              startOnce(); 
+            } else {
+              // If no items found, still try init (it has retry logic)
+              startOnce();
+            }
+          } 
+        }, 800);
       });
     })();
   </script>
@@ -1816,12 +1854,22 @@
             var posts = all.filter(function (p) { return (p.category || '').toLowerCase() === cat.toLowerCase(); });
             renderCategory(cat, posts);
           });
-          try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch (_) { }
+          // Wait for DOM to be fully rendered before dispatching event
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch (_) { }
+            });
+          });
         } catch (e) {
           // On error, show coming soon to avoid breaking layout
           CATEGORIES.forEach(function (cat) { renderCategory(cat, []); });
           // Optional: console.error('Error loading posts:', e);
-          try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch (_) { }
+          // Wait for DOM to be fully rendered before dispatching event
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              try { document.dispatchEvent(new CustomEvent('work:rendered')); } catch (_) { }
+            });
+          });
         }
       }
 
@@ -2018,7 +2066,7 @@
 
       <div class="footer-info-container">
         <p class="footer-info-item-title">Keanu Laurence Luca © 2025 | Website Designed & Developed by 🌐 <a
-            href="https://kr-net.work/?link=oneearth" target="_blank">1 Earth Productions</a></p>
+            href="https://kr-net.work/?link=oneearth" target="_blank" rel="noopener">1 Earth Productions</a></p>
       </div>
 
 
