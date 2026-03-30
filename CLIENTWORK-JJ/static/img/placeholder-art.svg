@@ -1,0 +1,11 @@
+<svg width="1200" height="1500" viewBox="0 0 1200 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1500" fill="#E9DCCB"/>
+  <rect x="70" y="70" width="1060" height="1360" rx="32" fill="#F7F1E8" stroke="#C78F6E" stroke-width="4"/>
+  <circle cx="878" cy="354" r="178" fill="#B76B44" fill-opacity="0.84"/>
+  <path d="M191 1032C314 752 491 618 672 618C856 618 995 738 1056 1012V1280H191V1032Z" fill="#7E3B22"/>
+  <path d="M212 1174C353 932 531 811 683 811C840 811 948 914 1000 1075V1281H212V1174Z" fill="#1C1814"/>
+  <path d="M279 461C389 366 493 319 588 319C744 319 819 445 891 571" stroke="#7E3B22" stroke-width="24" stroke-linecap="round"/>
+  <path d="M272 423C410 218 674 145 942 248" stroke="#C78F6E" stroke-width="14" stroke-linecap="round"/>
+  <text x="120" y="1328" fill="#1C1814" font-family="Helvetica, Arial, sans-serif" font-size="58" letter-spacing="6">OTU IBE-ENWO</text>
+  <text x="120" y="1398" fill="#6F6559" font-family="Helvetica, Arial, sans-serif" font-size="30" letter-spacing="4">SELECTED WORK PLACEHOLDER</text>
+</svg>
