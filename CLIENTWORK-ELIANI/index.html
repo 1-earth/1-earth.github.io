@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eliani Studios</title>
+  <link rel="icon" type="image/png" href="static/assets/logo 2.png">
+  <link rel="apple-touch-icon" href="static/assets/logo 2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/assets/styles.css">
+</head>
+<body class="home-page">
+  <div class="page">
+    <header class="site-header">
+      <a class="site-logo" href="index.html" aria-label="Eliani home">
+        <img src="static/assets/logo 2.png" alt="Eliani logo">
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Open menu">
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+      </button>
+
+      <nav class="site-nav" id="primary-menu" aria-label="Primary">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="about.html">About</a>
+        <a href="artists.html">Artists</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <div class="menu-backdrop" aria-hidden="true"></div>
+
+    <main class="home-main">
+      <section class="home-brand reveal-on-scroll" aria-labelledby="home-title">
+        <h1 id="home-title">Eliani Studios</h1>
+      </section>
+
+      <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
+        <img src="static/assets/placeholder.jpeg" alt="Hands holding seaweed in shallow water">
+        <div class="home-hero__overlay">
+          <p>
+            We are a creative agency connecting exceptional, untapped local
+            talent from around the world with leading global clients, redefining
+            accessibility to global production for both.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <section class="welcome-work" aria-labelledby="welcome-work-title">
+      <h2 class="welcome-work__title reveal-on-scroll" id="welcome-work-title">Selected Works</h2>
+
+      <div class="welcome-work__grid">
+        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder.jpeg" alt="Selected work for Rody Oliveira">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Rody Oliveira for Airbnb</h3>
+            <p>Rio de Janeiro, Brazil</p>
+          </div>
+        </a>
+
+        <a class="welcome-work__item welcome-work__item--landscape reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder2.png" alt="Selected work for Mohcine Harrise">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Mohcine Harrise for Daily Paper</h3>
+            <p>Marrakech, Morocco</p>
+          </div>
+        </a>
+
+        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder.jpeg" alt="Selected work for Vincent Zhou">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Vincent Zhou for Zara</h3>
+            <p>Nanjing, China</p>
+          </div>
+        </a>
+
+        <a class="welcome-work__item welcome-work__item--landscape reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder2.png" alt="Selected work for Matthew Maete">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Matthew Maete for Muyishime</h3>
+            <p>Nairobi, Kenya</p>
+          </div>
+        </a>
+
+        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder.jpeg" alt="Selected work for Sackitey Tesa">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Sackitey Tesa for Atmos</h3>
+            <p>Accra, Ghana</p>
+          </div>
+        </a>
+
+        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+            <figure class="welcome-work__image">
+              <img src="static/assets/placeholder.jpeg" alt="Selected work for Sackitey Tesa">
+            </figure>
+            <div class="welcome-work__copy">
+              <h3>Root by Wasim Malik</h3>
+              <p>Ladakh, India</p>
+            </div>
+          </a>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-block">
+        <h3>Follow Us</h3>
+        <a href="https://www.instagram.com/elianistudios/" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+      </div>
+
+      <div class="footer-block footer-contact">
+        <h3>Contact Us</h3>
+        <a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a>
+        <p>182 high street north, London, e6 2ja, UK</p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const menuButton = document.querySelector(".menu-toggle");
+    const siteNav = document.querySelector(".site-nav");
+    const menuBackdrop = document.querySelector(".menu-backdrop");
+    const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+
+    function setMenuState(isOpen) {
+      document.body.classList.toggle("menu-open", isOpen);
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+    }
+
+    menuButton.addEventListener("click", function () {
+      const isOpen = menuButton.getAttribute("aria-expanded") !== "true";
+      setMenuState(isOpen);
+    });
+
+    menuBackdrop.addEventListener("click", function () {
+      setMenuState(false);
+    });
+
+    siteNav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (mobileBreakpoint.matches) {
+          setMenuState(false);
+        }
+      });
+    });
+
+    mobileBreakpoint.addEventListener("change", function (event) {
+      if (!event.matches) {
+        setMenuState(false);
+      }
+    });
+
+    const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const revealElements = document.querySelectorAll(".reveal-on-scroll");
+
+    revealElements.forEach(function (element, index) {
+      element.style.setProperty("--reveal-delay", index * 120 + "ms");
+    });
+
+    if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
+      revealElements.forEach(function (element) {
+        element.classList.add("is-visible");
+      });
+    } else {
+      const revealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.14,
+        rootMargin: "0px 0px -8% 0px"
+      });
+
+      revealElements.forEach(function (element) {
+        revealObserver.observe(element);
+      });
+    }
+
+    const homeTitle = document.getElementById("home-title");
+    const homeHeader = document.querySelector(".site-header");
+
+    if ((homeTitle || homeHeader) && !revealMotionPreference.matches) {
+      let ticking = false;
+
+      function updateHomeParallax() {
+        const pastHeroThreshold = window.scrollY > window.innerHeight;
+        const titleScrollOffset = Math.min(window.scrollY * 0.28, 90);
+        const headerScrollOffset = Math.min(window.scrollY * 0.3, 80);
+
+        if (homeTitle) {
+          homeTitle.style.transform = "translate3d(0, " + titleScrollOffset + "px, 0)";
+        }
+
+        if (homeHeader) {
+          if (pastHeroThreshold) {
+            document.body.classList.add("home-header-resting");
+            homeHeader.style.transform = "translate3d(0, 0, 0)";
+          } else {
+            document.body.classList.remove("home-header-resting");
+            homeHeader.style.transform = "translate3d(0, -" + headerScrollOffset + "px, 0)";
+          }
+        }
+
+        ticking = false;
+      }
+
+      window.addEventListener("scroll", function () {
+        if (!ticking) {
+          window.requestAnimationFrame(updateHomeParallax);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      updateHomeParallax();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eliani Contact</title>
+  <link rel="icon" type="image/png" href="static/assets/logo 2.png">
+  <link rel="apple-touch-icon" href="static/assets/logo 2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/assets/styles.css">
+</head>
+<body>
+  <div class="page" id="home">
+    <header class="site-header">
+      <a class="site-logo" href="index.html" aria-label="Eliani home">
+        <img src="static/assets/logo 2.png" alt="Eliani logo">
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Open menu">
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+      </button>
+
+      <nav class="site-nav" id="primary-menu" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="artists.html">Artists</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <div class="menu-backdrop" aria-hidden="true"></div>
+
+    <main class="contact-layout" id="contact">
+      <section class="contact-copy" aria-labelledby="contact-title">
+        
+
+        <div class="contact-group" id="about">
+            <h2>General Enquiries</h2>
+            <p><a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a></p>
+          </div>
+
+        <div class="contact-group" id="about">
+          <h2>Commissioning</h2>
+          <p>Anais Supuka | Founder &amp; Managing Agent</p>
+          <p><a href="mailto:anais@elianistudios.com">anais@elianistudios.com</a></p>
+          <p><a href="tel:+447747861333">+ 44 07471 861333</a></p>
+        </div>
+
+        <div class="contact-group" id="artists">
+          <h2>Partnerships</h2>
+          <p>Misseti Huth | Partnerships &amp; Managing Agent</p>
+          <p><a href="mailto:misseti@elianistudios.com">misseti@elianistudios.com</a></p>
+        </div>
+
+        <div class="contact-group">
+          <h2>Editorial Interest</h2>
+          <p>Tionne Sherri | Editorial Managing Agent</p>
+          <p><a href="mailto:tionne@elianistudios.com">tionne@elianistudios.com</a></p>
+        </div>
+      </section>
+
+      <section class="contact-image" aria-label="Featured portrait">
+        <img src="static/assets/placeholder.jpeg" alt="Eliani Studios Creative Agency Connecting Talent around the world">
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-block">
+        <h3>Follow Us</h3>
+        <a href="https://www.instagram.com/elianistudios/" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+      </div>
+
+      <div class="footer-block footer-contact">
+        <h3>Contact Us</h3>
+        <a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a>
+        <p>182 high street north, London, e6 2ja, UK</p>
+      </div>
+    </footer>
+  </div>
+  <script>
+    const menuButton = document.querySelector(".menu-toggle");
+    const siteNav = document.querySelector(".site-nav");
+    const menuBackdrop = document.querySelector(".menu-backdrop");
+    const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+
+    function setMenuState(isOpen) {
+      document.body.classList.toggle("menu-open", isOpen);
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+    }
+
+    menuButton.addEventListener("click", function () {
+      const isOpen = menuButton.getAttribute("aria-expanded") !== "true";
+      setMenuState(isOpen);
+    });
+
+    menuBackdrop.addEventListener("click", function () {
+      setMenuState(false);
+    });
+
+    siteNav.querySelectorAll("a").forEach(function (link) {
+      link.addEventListener("click", function () {
+        if (mobileBreakpoint.matches) {
+          setMenuState(false);
+        }
+      });
+    });
+
+    mobileBreakpoint.addEventListener("change", function (event) {
+      if (!event.matches) {
+        setMenuState(false);
+      }
+    });
+
+    const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const revealSelectors = [
+      [".contact-group", 110],
+      [".contact-image", 180],
+      [".site-footer .footer-block", 120]
+    ];
+
+    const revealElements = [];
+
+    revealSelectors.forEach(function ([selector, delayStep]) {
+      document.querySelectorAll(selector).forEach(function (element, index) {
+        element.classList.add("reveal-on-scroll");
+        element.style.setProperty("--reveal-delay", index * delayStep + "ms");
+        revealElements.push(element);
+      });
+    });
+
+    if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
+      revealElements.forEach(function (element) {
+        element.classList.add("is-visible");
+      });
+    } else {
+      const revealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.14,
+        rootMargin: "0px 0px -8% 0px"
+      });
+
+      revealElements.forEach(function (element) {
+        revealObserver.observe(element);
+      });
+    }
+  </script>
+</body>
+</html>
