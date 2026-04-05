@@ -303,7 +303,7 @@
     }
 
     revealElements.forEach(function (element, index) {
-      element.style.setProperty("--reveal-delay", index * 120 + "ms");
+      element.style.setProperty("--reveal-delay", index * 80 + "ms");
     });
 
     if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
