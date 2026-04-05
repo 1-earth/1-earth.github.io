@@ -268,11 +268,17 @@
       });
     });
 
-    mobileBreakpoint.addEventListener("change", function (event) {
+    function handleMobileBreakpointChange(event) {
       if (!event.matches) {
         setMenuState(false);
       }
-    });
+    }
+
+    if (typeof mobileBreakpoint.addEventListener === "function") {
+      mobileBreakpoint.addEventListener("change", handleMobileBreakpointChange);
+    } else if (typeof mobileBreakpoint.addListener === "function") {
+      mobileBreakpoint.addListener(handleMobileBreakpointChange);
+    }
 
     const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const revealElements = document.querySelectorAll(".reveal-on-scroll");

@@ -820,14 +820,15 @@ body.menu-open .mobile-menu-panel {
 }
 
 .blog-column-group-frontend {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 14px;
+  align-items: flex-start;
 }
 
 .blog-column-frontend {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .blog-embed-frontend .embed-container {
@@ -988,6 +989,15 @@ body.menu-open .mobile-menu-panel {
   .bio-grid,
   .blog-column-group-frontend {
     grid-template-columns: 1fr;
+  }
+
+  .blog-column-group-frontend {
+    flex-direction: column;
+  }
+
+  .blog-column-frontend {
+    width: 100% !important;
+    flex-basis: auto !important;
   }
 
   .card-panel,

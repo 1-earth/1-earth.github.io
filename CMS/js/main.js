@@ -16,6 +16,7 @@ let isAdmin = false; // From custom claim
 let effectiveUserId = null; // Admin-selected user being edited
 let effectiveUserEmail = null;
 let userDirectoryList = [];
+const COLUMN_GROUP_MIN_WIDTH = 10;
 
 // --- DOM Elements ---
 const dataTypesNav = document.getElementById('dataTypesNav');
@@ -210,9 +211,9 @@ function handleDashboardChanges(e) {
     if (e.target.classList.contains('block-type-select')) {
         handleBlockTypeChange(e.target);
     }
-    // Column ratio changes
-    else if (e.target.classList.contains('column-ratio-slider')) {
-        handleColumnRatioChange(e.target);
+    // Column width changes
+    else if (e.target.classList.contains('column-width-slider')) {
+        handleColumnWidthChange(e.target);
     }
 
 }
@@ -360,8 +361,10 @@ function handleDashboardActions(e) {
     
     // Column Group Management
     else if (e.target.classList.contains('ungroup-btn')) handleUngroupColumn(e.target);
-    else if (e.target.classList.contains('add-left-block-btn')) handleAddColumnBlock(e.target, 'left');
-    else if (e.target.classList.contains('add-right-block-btn')) handleAddColumnBlock(e.target, 'right');
+    else if (e.target.classList.contains('add-column-btn')) handleAddColumnToGroup(e.target);
+    else if (e.target.classList.contains('equalize-columns-btn')) handleEqualizeColumns(e.target);
+    else if (e.target.classList.contains('add-column-block-btn')) handleAddColumnBlock(e.target);
+    else if (e.target.classList.contains('remove-column-btn')) handleRemoveColumn(e.target);
 
     // Media Specific
     else if (e.target.id === 'mediaUploadDropzone' || e.target.closest('#mediaUploadDropzone')) {
@@ -492,34 +495,43 @@ function collectBlogSectionsData() {
             if (itemEl.classList.contains('column-group')) {
                 // Handle column group
                 const groupId = itemEl.dataset.groupId;
-                const columnRatio = {
-                    left: parseFloat(itemEl.dataset.leftRatio || '50'),
-                    right: parseFloat(itemEl.dataset.rightRatio || '50')
-                };
-                
-                const leftColumn = [];
-                const rightColumn = [];
-                
-                // Collect left column blocks
-                const leftBlocks = itemEl.querySelectorAll('.left-column .blog-block');
-                leftBlocks.forEach((blockEl, blockIndex) => {
-                    leftColumn.push(extractBlockData(blockEl, blockIndex));
+                const normalizedColumns = ui.refreshColumnGroupUi(itemEl);
+                const columnElements = [...itemEl.querySelectorAll('.column-layout > .column-drop-zone')];
+                const columns = normalizedColumns.map((column, columnIndex) => {
+                    const columnEl = columnElements[columnIndex];
+                    const blocks = [];
+                    if (columnEl) {
+                        const blockElements = columnEl.querySelectorAll('.column-content > .blog-block');
+                        blockElements.forEach((blockEl, blockIndex) => {
+                            blocks.push(extractBlockData(blockEl, blockIndex));
+                        });
+                    }
+
+                    return {
+                        id: column.id,
+                        width: column.width,
+                        blocks: blocks,
+                        order: columnIndex
+                    };
                 });
-                
-                // Collect right column blocks
-                const rightBlocks = itemEl.querySelectorAll('.right-column .blog-block');
-                rightBlocks.forEach((blockEl, blockIndex) => {
-                    rightColumn.push(extractBlockData(blockEl, blockIndex));
-                });
-                
-                items.push({
+
+                const columnGroupData = {
                     id: groupId,
                     type: 'column-group',
-                    columnRatio: columnRatio,
-                    leftColumn: leftColumn,
-                    rightColumn: rightColumn,
+                    columns: columns,
                     order: itemIndex
-                });
+                };
+
+                if (columns.length === 2) {
+                    columnGroupData.columnRatio = {
+                        left: columns[0].width,
+                        right: columns[1].width
+                    };
+                    columnGroupData.leftColumn = columns[0].blocks;
+                    columnGroupData.rightColumn = columns[1].blocks;
+                }
+
+                items.push(columnGroupData);
             } else {
                 // Handle single block
                 const blockData = extractBlockData(itemEl, itemIndex);
@@ -981,7 +993,7 @@ function handleAddColumnGroup(target) {
     if (!blocksContainer) return;
     
     const groupId = 'group_' + Date.now();
-    const columnGroupHtml = ui.createColumnGroupHtml(groupId, [], [], 50, 50);
+    const columnGroupHtml = ui.createColumnGroupHtml(groupId, ui.createDefaultColumnGroupColumns(2));
     blocksContainer.insertAdjacentHTML('beforeend', columnGroupHtml);
     
     // Initialize drag and drop for the new column group
@@ -991,28 +1003,148 @@ function handleAddColumnGroup(target) {
     }
 }
 
-function handleAddColumnBlock(target, columnSide) {
+function getColumnGroupColumns(columnGroup) {
+    if (!columnGroup) return [];
+    return [...columnGroup.querySelectorAll('.column-layout > .column-drop-zone')];
+}
+
+function getEqualizedColumnWidths(columnCount) {
+    if (!columnCount || columnCount < 1) return [];
+    const baseWidth = Math.floor(100 / columnCount);
+    const widths = Array.from({ length: columnCount }, () => baseWidth);
+    widths[columnCount - 1] += 100 - (baseWidth * columnCount);
+    return widths;
+}
+
+function applyColumnWidths(columnGroup, widths) {
+    const columns = getColumnGroupColumns(columnGroup);
+    columns.forEach((columnEl, index) => {
+        if (typeof widths[index] !== 'undefined') {
+            columnEl.dataset.columnWidth = String(widths[index]);
+        }
+    });
+    ui.refreshColumnGroupUi(columnGroup);
+}
+
+function rebalanceColumnWidths(columnGroup, activeColumnId, requestedWidth) {
+    const columns = getColumnGroupColumns(columnGroup);
+    if (!columns.length) return;
+
+    if (columns.length === 1) {
+        applyColumnWidths(columnGroup, [100]);
+        return;
+    }
+
+    const maxWidth = 100 - (COLUMN_GROUP_MIN_WIDTH * (columns.length - 1));
+    const nextActiveWidth = Math.max(COLUMN_GROUP_MIN_WIDTH, Math.min(maxWidth, Math.round(requestedWidth)));
+    const otherColumnIndexes = [];
+    const nextWidths = new Array(columns.length).fill(COLUMN_GROUP_MIN_WIDTH);
+
+    columns.forEach((columnEl, index) => {
+        if (columnEl.dataset.columnId === activeColumnId) {
+            nextWidths[index] = nextActiveWidth;
+        } else {
+            otherColumnIndexes.push(index);
+        }
+    });
+
+    if (!otherColumnIndexes.length) {
+        applyColumnWidths(columnGroup, [100]);
+        return;
+    }
+
+    const remainingWidth = 100 - nextActiveWidth;
+    const baseWidth = Math.floor(remainingWidth / otherColumnIndexes.length);
+    let leftoverWidth = remainingWidth - (baseWidth * otherColumnIndexes.length);
+
+    otherColumnIndexes.forEach((columnIndex) => {
+        nextWidths[columnIndex] = baseWidth + (leftoverWidth > 0 ? 1 : 0);
+        if (leftoverWidth > 0) leftoverWidth -= 1;
+    });
+
+    applyColumnWidths(columnGroup, nextWidths);
+}
+
+function handleAddColumnToGroup(target) {
+    const columnGroup = target.closest('.column-group');
+    if (!columnGroup) return;
+
+    const columns = getColumnGroupColumns(columnGroup);
+    if (columns.length >= ui.COLUMN_GROUP_MAX_COLUMNS) {
+        ui.showPopup(`Column groups can contain up to ${ui.COLUMN_GROUP_MAX_COLUMNS} columns.`);
+        return;
+    }
+
+    const columnLayout = columnGroup.querySelector('.column-layout');
+    if (!columnLayout) return;
+
+    const groupId = columnGroup.dataset.groupId;
+    const nextColumnCount = columns.length + 1;
+    const newColumnData = ui.createDefaultColumnGroupColumns(1)[0];
+    columnLayout.insertAdjacentHTML('beforeend', ui.createColumnDropZoneHtml(groupId, newColumnData, columns.length, nextColumnCount));
+    applyColumnWidths(columnGroup, getEqualizedColumnWidths(nextColumnCount));
+    ui.initializeColumnGroupDragDrop(columnGroup);
+}
+
+function handleEqualizeColumns(target) {
+    const columnGroup = target.closest('.column-group');
+    if (!columnGroup) return;
+
+    const columns = getColumnGroupColumns(columnGroup);
+    if (!columns.length) return;
+    applyColumnWidths(columnGroup, getEqualizedColumnWidths(columns.length));
+}
+
+function handleAddColumnBlock(target) {
     const columnGroup = target.closest('.column-group');
     if (!columnGroup) return;
     
-    const column = columnGroup.querySelector(`.${columnSide}-column`);
+    const column = target.closest('.column-drop-zone');
     if (!column) return;
+    const columnContent = column.querySelector('.column-content');
+    if (!columnContent) return;
     
     const blockId = 'block_' + Date.now();
     const blockHtml = ui.createBlogBlockHtml(blockId, 'body', '', null, 'full', 50);
-    column.insertAdjacentHTML('beforeend', blockHtml);
+    columnContent.insertAdjacentHTML('beforeend', blockHtml);
     
     // Make the new block draggable
-    const newBlock = column.querySelector(`[data-block-id="${blockId}"]`);
+    const newBlock = columnContent.querySelector(`[data-block-id="${blockId}"]`);
     if (newBlock) {
         makeBlockDraggable(newBlock);
     }
     
     // Initialize Quill editor for the new block
-    const editorContainer = column.querySelector(`#${blockId}_editor`);
+    const editorContainer = columnContent.querySelector(`#${blockId}_editor`);
     if (editorContainer) {
         ui.initQuillEditor(editorContainer.id, undefined, '');
     }
+}
+
+function handleRemoveColumn(target) {
+    const columnGroup = target.closest('.column-group');
+    const column = target.closest('.column-drop-zone');
+    if (!columnGroup || !column) return;
+
+    const columns = getColumnGroupColumns(columnGroup);
+    if (columns.length <= 1) return;
+
+    const destinationColumn = column.previousElementSibling || column.nextElementSibling;
+    if (!destinationColumn) return;
+
+    ui.showPopup('Remove this column? Its blocks will be moved into a neighboring column.', 'confirm', () => {
+        const destinationContent = destinationColumn.querySelector('.column-content');
+        const sourceBlocks = column.querySelectorAll('.column-content > .blog-block');
+
+        sourceBlocks.forEach(block => {
+            destinationContent.appendChild(block);
+            makeBlockDraggable(block);
+        });
+
+        column.remove();
+        ui.refreshColumnGroupUi(columnGroup);
+        ui.initializeColumnGroupDragDrop(columnGroup);
+    });
 }
 
 function handleUngroupColumn(target) {
@@ -1023,8 +1155,8 @@ function handleUngroupColumn(target) {
         const sectionBlocks = columnGroup.closest('.section-blocks');
         if (!sectionBlocks) return;
         
-        // Extract all blocks from both columns
-        const allBlocks = columnGroup.querySelectorAll('.blog-block');
+        // Extract all blocks from every column
+        const allBlocks = columnGroup.querySelectorAll('.column-content > .blog-block');
         
         // Insert each block as individual block before the column group
         allBlocks.forEach(block => {
@@ -1037,25 +1169,12 @@ function handleUngroupColumn(target) {
     });
 }
 
-function handleColumnRatioChange(target) {
+function handleColumnWidthChange(target) {
     const columnGroup = target.closest('.column-group');
-    if (!columnGroup) return;
-    
-    const leftRatio = parseFloat(target.value);
-    const rightRatio = 100 - leftRatio;
-    
-    // Update data attributes
-    columnGroup.dataset.leftRatio = leftRatio;
-    columnGroup.dataset.rightRatio = rightRatio;
-    
-    // Update visual layout
-    const leftColumn = columnGroup.querySelector('.left-column');
-    const rightColumn = columnGroup.querySelector('.right-column');
-    const ratioDisplay = columnGroup.querySelector('.ratio-display');
-    
-    if (leftColumn) leftColumn.style.width = leftRatio + '%';
-    if (rightColumn) rightColumn.style.width = rightRatio + '%';
-    if (ratioDisplay) ratioDisplay.textContent = `${leftRatio}% / ${rightRatio}%`;
+    const column = target.closest('.column-drop-zone');
+    if (!columnGroup || !column) return;
+
+    rebalanceColumnWidths(columnGroup, column.dataset.columnId, parseFloat(target.value || '0'));
 }
 
 // Note: Drag and drop functionality is now handled in uiService.js

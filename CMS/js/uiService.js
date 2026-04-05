@@ -29,6 +29,221 @@ function formatDateForInput(date) {
     return `${year}-${month}-${day}`;
 }
 
+const COLUMN_GROUP_MIN_WIDTH = 10;
+export const COLUMN_GROUP_MAX_COLUMNS = 4;
+
+function createColumnId() {
+    return `column_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function getEqualizedWidths(count) {
+    if (!count || count < 1) return [];
+    const baseWidth = Math.floor(100 / count);
+    const widths = Array.from({ length: count }, () => baseWidth);
+    widths[count - 1] += 100 - (baseWidth * count);
+    return widths;
+}
+
+function getColumnSliderBounds(columnCount) {
+    if (columnCount <= 1) {
+        return { min: 100, max: 100 };
+    }
+
+    return {
+        min: COLUMN_GROUP_MIN_WIDTH,
+        max: 100 - (COLUMN_GROUP_MIN_WIDTH * (columnCount - 1))
+    };
+}
+
+function normalizeColumnWidths(columns) {
+    if (!Array.isArray(columns) || columns.length === 0) {
+        return [];
+    }
+
+    const safeColumns = columns.map((column, index) => ({
+        id: column && column.id ? column.id : createColumnId(),
+        width: Number(column && column.width),
+        blocks: Array.isArray(column && column.blocks) ? column.blocks : [],
+        order: typeof (column && column.order) === 'number' ? column.order : index
+    }));
+
+    const widths = safeColumns.map(column => Number.isFinite(column.width) && column.width > 0 ? column.width : 0);
+    const totalWidth = widths.reduce((sum, width) => sum + width, 0);
+    const normalizedWidths = totalWidth > 0
+        ? widths.map(width => (width / totalWidth) * 100)
+        : getEqualizedWidths(safeColumns.length);
+
+    let runningTotal = 0;
+    return safeColumns.map((column, index) => {
+        let width = normalizedWidths[index];
+        if (!Number.isFinite(width) || width <= 0) {
+            width = getEqualizedWidths(safeColumns.length)[index] || 0;
+        }
+
+        let roundedWidth = index === safeColumns.length - 1
+            ? Math.max(0, 100 - runningTotal)
+            : Math.round(width);
+
+        runningTotal += roundedWidth;
+
+        return {
+            ...column,
+            width: roundedWidth
+        };
+    });
+}
+
+function getColumnSummary(columns) {
+    return columns.map(column => `${Math.round(column.width)}%`).join(' / ');
+}
+
+export function createDefaultColumnGroupColumns(columnCount = 2) {
+    return getEqualizedWidths(columnCount).map((width, index) => ({
+        id: createColumnId(),
+        width,
+        blocks: [],
+        order: index
+    }));
+}
+
+export function normalizeColumnGroupItem(item = {}) {
+    const hasNewColumns = Array.isArray(item.columns) && item.columns.length > 0;
+    let columns = [];
+
+    if (hasNewColumns) {
+        columns = item.columns.map((column, index) => ({
+            id: column && column.id ? column.id : createColumnId(),
+            width: column && typeof column.width !== 'undefined' ? column.width : undefined,
+            blocks: Array.isArray(column && column.blocks) ? column.blocks : [],
+            order: typeof (column && column.order) === 'number' ? column.order : index
+        }));
+    } else {
+        const leftRatio = item.columnRatio && typeof item.columnRatio.left === 'number'
+            ? item.columnRatio.left
+            : 50;
+        const rightRatio = item.columnRatio && typeof item.columnRatio.right === 'number'
+            ? item.columnRatio.right
+            : (100 - leftRatio);
+
+        columns = [
+            {
+                id: `${item.id || 'group'}_left`,
+                width: leftRatio,
+                blocks: Array.isArray(item.leftColumn) ? item.leftColumn : [],
+                order: 0
+            },
+            {
+                id: `${item.id || 'group'}_right`,
+                width: rightRatio,
+                blocks: Array.isArray(item.rightColumn) ? item.rightColumn : [],
+                order: 1
+            }
+        ];
+    }
+
+    return {
+        ...item,
+        columns: normalizeColumnWidths(columns)
+    };
+}
+
+export function createColumnDropZoneHtml(groupId, column, columnIndex, totalColumns) {
+    const sliderBounds = getColumnSliderBounds(totalColumns);
+    const blockList = Array.isArray(column.blocks) ? column.blocks : [];
+    const blocksHtml = blockList.map(block =>
+        createBlogBlockHtml(
+            block.id,
+            block.blockType || block.type,
+            block.content,
+            block.mediaId,
+            block.layout,
+            block.layoutRatio
+        )
+    ).join('');
+
+    return `
+        <div class="column-drop-zone" data-column-id="${column.id}" data-column-width="${column.width}" style="width: ${column.width}%;">
+            <div class="column-header">
+                <span class="column-title">Column ${columnIndex + 1}</span>
+                <div class="column-actions">
+                    <button class="btn btn-xs btn-secondary add-column-block-btn">+ Add Block</button>
+                    <button class="btn btn-xs btn-secondary remove-column-btn" ${totalColumns <= 1 ? 'disabled' : ''}>Remove Column</button>
+                </div>
+            </div>
+            <div class="column-width-control">
+                <label for="${groupId}_${column.id}_width">Width</label>
+                <input type="range"
+                       id="${groupId}_${column.id}_width"
+                       class="column-width-slider"
+                       min="${sliderBounds.min}"
+                       max="${sliderBounds.max}"
+                       value="${Math.round(column.width)}">
+                <span class="column-width-display">${Math.round(column.width)}%</span>
+            </div>
+            <div class="column-content">
+                ${blocksHtml}
+            </div>
+            <div class="column-drop-indicator">Drop blocks here</div>
+        </div>
+    `;
+}
+
+export function refreshColumnGroupUi(columnGroup) {
+    if (!columnGroup) return [];
+
+    const columnElements = [...columnGroup.querySelectorAll('.column-drop-zone')];
+    const columns = normalizeColumnWidths(columnElements.map((columnEl, index) => ({
+        id: columnEl.dataset.columnId || createColumnId(),
+        width: parseFloat(columnEl.dataset.columnWidth || '0'),
+        blocks: [],
+        order: index
+    })));
+    const sliderBounds = getColumnSliderBounds(columns.length);
+
+    columnElements.forEach((columnEl, index) => {
+        const columnData = columns[index];
+        const titleEl = columnEl.querySelector('.column-title');
+        const sliderEl = columnEl.querySelector('.column-width-slider');
+        const widthDisplayEl = columnEl.querySelector('.column-width-display');
+        const removeButton = columnEl.querySelector('.remove-column-btn');
+
+        columnEl.dataset.columnId = columnData.id;
+        columnEl.dataset.columnWidth = String(columnData.width);
+        columnEl.style.width = `${columnData.width}%`;
+
+        if (titleEl) {
+            titleEl.textContent = `Column ${index + 1}`;
+        }
+
+        if (sliderEl) {
+            sliderEl.min = String(sliderBounds.min);
+            sliderEl.max = String(sliderBounds.max);
+            sliderEl.value = String(Math.round(columnData.width));
+            sliderEl.disabled = columns.length <= 1;
+        }
+
+        if (widthDisplayEl) {
+            widthDisplayEl.textContent = `${Math.round(columnData.width)}%`;
+        }
+
+        if (removeButton) {
+            removeButton.disabled = columns.length <= 1;
+        }
+    });
+
+    const ratioDisplay = columnGroup.querySelector('.ratio-display');
+    if (ratioDisplay) {
+        ratioDisplay.textContent = getColumnSummary(columns);
+    }
+
+    const addColumnBtn = columnGroup.querySelector('.add-column-btn');
+    if (addColumnBtn) {
+        addColumnBtn.disabled = columns.length >= COLUMN_GROUP_MAX_COLUMNS;
+    }
+
+    return columns;
+}
+
 // --- Loading Indicator ---
 const loadingOverlay = document.getElementById('loadingOverlay');
 export function showLoading(show) {
@@ -566,7 +781,8 @@ export function renderBlogDashboard(dataID, existingData = null) {
                     }
                     
                     // Initialize blocks within columns
-                    const allColumnBlocks = [...(item.leftColumn || []), ...(item.rightColumn || [])];
+                    const normalizedColumnGroup = normalizeColumnGroupItem(item);
+                    const allColumnBlocks = normalizedColumnGroup.columns.flatMap(column => column.blocks || []);
                     allColumnBlocks.forEach(block => {
                         const blockElement = document.querySelector(`[data-block-id="${block.id}"]`);
                         if (blockElement) {
@@ -657,10 +873,11 @@ export function renderBlogDashboard(dataID, existingData = null) {
 export function createBlogSectionHtml(sectionId, items = [], sectionIndex = null) {
     const itemsHtml = items.map(item => {
         if (item.type === 'column-group') {
-            return createColumnGroupHtml(item.id, item.leftColumn, item.rightColumn, item.columnRatio.left, item.columnRatio.right);
+            const normalizedColumnGroup = normalizeColumnGroupItem(item);
+            return createColumnGroupHtml(item.id, normalizedColumnGroup.columns);
         } else {
             // Single block
-            return createBlogBlockHtml(item.id, item.blockType, item.content, item.mediaId, item.layout, item.layoutRatio);
+            return createBlogBlockHtml(item.id, item.blockType || item.type, item.content, item.mediaId, item.layout, item.layoutRatio);
         }
     }).join('');
 
@@ -758,49 +975,36 @@ export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = 
     return blockHtml;
 }
 
-export function createColumnGroupHtml(groupId, leftColumnBlocks = [], rightColumnBlocks = [], leftRatio = 50, rightRatio = 50) {
-    const leftBlocksHtml = leftColumnBlocks.map(block => 
-        createBlogBlockHtml(block.id, block.type, block.content, block.mediaId, block.layout, block.layoutRatio)
+export function createColumnGroupHtml(groupId, columnsOrLeftColumn = [], rightColumnBlocks = [], leftRatio = 50, rightRatio = 50) {
+    const providedColumns = Array.isArray(columnsOrLeftColumn) &&
+        (columnsOrLeftColumn.length === 0 || Object.prototype.hasOwnProperty.call(columnsOrLeftColumn[0], 'blocks'))
+        ? columnsOrLeftColumn
+        : [
+            { id: `${groupId}_left`, width: leftRatio, blocks: Array.isArray(columnsOrLeftColumn) ? columnsOrLeftColumn : [] },
+            { id: `${groupId}_right`, width: rightRatio, blocks: Array.isArray(rightColumnBlocks) ? rightColumnBlocks : [] }
+        ];
+    const normalizedColumns = normalizeColumnWidths(providedColumns.length ? providedColumns : createDefaultColumnGroupColumns(2));
+    const columnsHtml = normalizedColumns.map((column, index) =>
+        createColumnDropZoneHtml(groupId, column, index, normalizedColumns.length)
     ).join('');
-    
-    const rightBlocksHtml = rightColumnBlocks.map(block => 
-        createBlogBlockHtml(block.id, block.type, block.content, block.mediaId, block.layout, block.layoutRatio)
-    ).join('');
-    
+
     return `
-        <div class="column-group" data-group-id="${groupId}" data-left-ratio="${leftRatio}" data-right-ratio="${rightRatio}">
+        <div class="column-group" data-group-id="${groupId}">
             <div class="column-group-header">
                 <div class="column-group-controls">
-                    <div class="column-ratio-control">
-                        <label for="${groupId}_ratio">Column Ratio: </label>
-                        <input type="range" id="${groupId}_ratio" class="column-ratio-slider" 
-                               min="20" max="80" value="${leftRatio}">
-                        <span class="ratio-display">${leftRatio}% / ${rightRatio}%</span>
+                    <div class="column-group-actions">
+                        <button class="btn btn-sm btn-primary add-column-btn" ${normalizedColumns.length >= COLUMN_GROUP_MAX_COLUMNS ? 'disabled' : ''}>+ Add Column</button>
+                        <button class="btn btn-sm btn-secondary equalize-columns-btn">Equalize Widths</button>
+                        <button class="btn btn-sm btn-danger ungroup-btn">Ungroup</button>
                     </div>
-                    <button class="btn btn-sm btn-danger ungroup-btn">Ungroup</button>
+                    <div class="column-group-meta">
+                        <span class="ratio-display">${getColumnSummary(normalizedColumns)}</span>
+                        <span class="column-group-warning">Multi-column layouts currently render on the JJ work page only.</span>
+                    </div>
                 </div>
             </div>
             <div class="column-layout">
-                <div class="column-drop-zone left-column" style="width: ${leftRatio}%;">
-                    <div class="column-header">
-                        <span class="column-title">Left Column</span>
-                        <button class="btn btn-xs btn-secondary add-left-block-btn">+ Add Block</button>
-                    </div>
-                    <div class="column-content">
-                        ${leftBlocksHtml}
-                    </div>
-                    <div class="column-drop-indicator">Drop blocks here</div>
-                </div>
-                <div class="column-drop-zone right-column" style="width: ${rightRatio}%;">
-                    <div class="column-header">
-                        <span class="column-title">Right Column</span>
-                        <button class="btn btn-xs btn-secondary add-right-block-btn">+ Add Block</button>
-                    </div>
-                    <div class="column-content">
-                        ${rightBlocksHtml}
-                    </div>
-                    <div class="column-drop-indicator">Drop blocks here</div>
-                </div>
+                ${columnsHtml}
             </div>
         </div>
     `;
@@ -1126,11 +1330,14 @@ function initializeBlogDragAndDrop() {
 }
 
 export function initializeColumnGroupDragDrop(columnGroup) {
-    const leftColumn = columnGroup.querySelector('.left-column');
-    const rightColumn = columnGroup.querySelector('.right-column');
-    
-    // Set up drag and drop for both columns
-    [leftColumn, rightColumn].forEach(column => {
+    const columns = columnGroup ? [...columnGroup.querySelectorAll('.column-drop-zone')] : [];
+
+    columns.forEach(column => {
+        if (column.dataset.dragDropInitialized === 'true') {
+            return;
+        }
+
+        column.dataset.dragDropInitialized = 'true';
         column.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -1178,6 +1385,8 @@ export function initializeColumnGroupDragDrop(columnGroup) {
             }
         });
     });
+
+    refreshColumnGroupUi(columnGroup);
 }
 
 function getDragAfterElement(container, y) {

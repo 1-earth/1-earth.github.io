@@ -310,20 +310,86 @@
         return "";
       }
 
+      function getColumnGroupColumns(block) {
+        if (block && Array.isArray(block.columns) && block.columns.length) {
+          var mappedColumns = block.columns.slice().sort(function (a, b) {
+            return (a.order || 0) - (b.order || 0);
+          }).map(function (column, index) {
+            return {
+              id: column.id || ("column-" + index),
+              width: Number(column.width) || 0,
+              blocks: Array.isArray(column.blocks) ? column.blocks.slice().sort(function (a, b) {
+                return (a.order || 0) - (b.order || 0);
+              }) : []
+            };
+          });
+
+          var totalWidth = mappedColumns.reduce(function (sum, column) {
+            return sum + (column.width || 0);
+          }, 0);
+
+          if (totalWidth > 0) {
+            var runningWidth = 0;
+            mappedColumns = mappedColumns.map(function (column, index) {
+              var normalizedWidth = index === mappedColumns.length - 1
+                ? Math.max(0, 100 - runningWidth)
+                : Math.round((column.width / totalWidth) * 100);
+              runningWidth += normalizedWidth;
+              return {
+                id: column.id,
+                width: normalizedWidth,
+                blocks: column.blocks
+              };
+            });
+          } else {
+            var evenWidth = Math.floor(100 / mappedColumns.length);
+            mappedColumns = mappedColumns.map(function (column, index) {
+              return {
+                id: column.id,
+                width: index === mappedColumns.length - 1 ? 100 - (evenWidth * (mappedColumns.length - 1)) : evenWidth,
+                blocks: column.blocks
+              };
+            });
+          }
+
+          return mappedColumns;
+        }
+
+        var leftRatio = block && block.columnRatio && typeof block.columnRatio.left === "number" ? block.columnRatio.left : 50;
+        var rightRatio = block && block.columnRatio && typeof block.columnRatio.right === "number" ? block.columnRatio.right : (100 - leftRatio);
+        return [
+          {
+            id: "left",
+            width: leftRatio,
+            blocks: (block && block.leftColumn ? block.leftColumn : []).slice().sort(function (a, b) {
+              return (a.order || 0) - (b.order || 0);
+            })
+          },
+          {
+            id: "right",
+            width: rightRatio,
+            blocks: (block && block.rightColumn ? block.rightColumn : []).slice().sort(function (a, b) {
+              return (a.order || 0) - (b.order || 0);
+            })
+          }
+        ];
+      }
+
       async function renderColumnGroup(db, block) {
         if (!block) return "";
-        var left = (block.leftColumn || []).slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-        var right = (block.rightColumn || []).slice().sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+        var columns = getColumnGroupColumns(block);
+        if (!columns.length) return "";
         var html = '<div class="blog-column-group-frontend">';
-        html += '<div class="blog-column-frontend">';
-        for (var i = 0; i < left.length; i++) {
-          html += '<div class="blog-block-frontend">' + await renderBlockAsync(db, left[i]) + '</div>';
+        for (var i = 0; i < columns.length; i++) {
+          var column = columns[i];
+          var width = Number(column.width) || 0;
+          html += '<div class="blog-column-frontend" style="flex: 0 1 ' + width + '%; width:' + width + '%;">';
+          for (var j = 0; j < column.blocks.length; j++) {
+            html += '<div class="blog-block-frontend">' + await renderBlockAsync(db, column.blocks[j]) + '</div>';
+          }
+          html += '</div>';
         }
-        html += '</div><div class="blog-column-frontend">';
-        for (var j = 0; j < right.length; j++) {
-          html += '<div class="blog-block-frontend">' + await renderBlockAsync(db, right[j]) + '</div>';
-        }
-        html += '</div></div>';
+        html += '</div>';
         return html;
       }
 
