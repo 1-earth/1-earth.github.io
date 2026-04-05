@@ -10,8 +10,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="static/assets/styles.css">
+  <noscript>
+    <style>
+      .home-intro {
+        display: none;
+      }
+    </style>
+  </noscript>
 </head>
-<body class="home-page">
+<body class="home-page home-intro-active">
+  <div class="home-intro" aria-hidden="true">
+    <img class="home-intro__logo" src="static/assets/logo.png" alt="">
+  </div>
   <div class="page">
     <header class="site-header">
       <a class="site-logo" href="index.html" aria-label="Eliani home">
@@ -117,6 +127,102 @@
       </div>
     </section>
 
+    <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
+        <img src="static/assets/placeholder.jpeg" alt="Hands holding seaweed in shallow water">
+        <div class="home-hero__overlay">
+            <h2 class="overlay-title">
+                create local
+                impact global
+            </h2>
+          <p>
+            We tap into a World Wide Network of Directors, 
+            Photographers, Film-Makers,  Models & Crew to 
+            bring your vision to life.
+          </p>
+        </div>
+      </section>
+
+      <section class="interactive-globe-iframe">
+        <iframe src="https://eliani-globe.github.io/" title="description" class="interactive-globe-iframe"></iframe>
+      </section>
+
+      <section class="home-production-values" aria-labelledby="home-production-values-title">
+        <div class="home-production-values__intro reveal-on-scroll">
+          <p class="home-production-values__eyebrow">Eliani Studios</p>
+          <h2 id="home-production-values-title">The Future of Global Production</h2>
+        </div>
+
+        <div class="home-production-values__grid">
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Social impact placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Social Impact</h3>
+              <p>Empowers underrepresented creatives and strengthens local economies.</p>
+            </div>
+          </article>
+
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Sustainability placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Sustainability</h3>
+              <p>By working with local teams, we reduce international travel, naturally creating a lower carbon footprint for global productions.</p>
+            </div>
+          </article>
+
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Global access placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Global Access</h3>
+              <p>A flexible model that enables productions to scale across multiple locations worldwide.</p>
+            </div>
+          </article>
+
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Cost efficiency placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Cost Efficiency</h3>
+              <p>Savings redirected from travel to production quality and artist support.</p>
+            </div>
+          </article>
+
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Authenticity placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Authenticity</h3>
+              <p>Artists work within their own communities with deeper cultural insight.</p>
+            </div>
+          </article>
+
+          <article class="home-production-card reveal-on-scroll">
+            <figure class="home-production-card__image">
+              <img src="static/assets/placeholder.jpeg" alt="Creative access placeholder image">
+            </figure>
+            <div class="home-production-card__copy">
+              <h3>Creative Access</h3>
+              <p>Brands gain access to talent and locations that are otherwise overlooked.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="home-impact-banner reveal-on-scroll" aria-labelledby="home-impact-banner-title">
+        <img src="static/assets/placeholder2.png" alt="Create local impact global placeholder image">
+        <div class="home-impact-banner__overlay">
+          <h2 id="home-impact-banner-title">Create Local<br>Impact Global</h2>
+          <button class="home-impact-banner__cta" type="button">Sign Up to The Newsletter</button>
+        </div>
+      </section>
+
     <footer class="site-footer">
       <div class="footer-block">
         <h3>Follow Us</h3>
@@ -137,6 +243,7 @@
     const siteNav = document.querySelector(".site-nav");
     const menuBackdrop = document.querySelector(".menu-backdrop");
     const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+    const introOverlay = document.querySelector(".home-intro");
 
     function setMenuState(isOpen) {
       document.body.classList.toggle("menu-open", isOpen);
@@ -170,6 +277,31 @@
     const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const revealElements = document.querySelectorAll(".reveal-on-scroll");
 
+    if (introOverlay) {
+      let introHasFinished = false;
+
+      function finishIntro() {
+        if (introHasFinished) {
+          return;
+        }
+
+        introHasFinished = true;
+        document.body.classList.remove("home-intro-active");
+      }
+
+      if (revealMotionPreference.matches) {
+        window.requestAnimationFrame(finishIntro);
+      } else {
+        window.setTimeout(finishIntro, 1700);
+
+        introOverlay.addEventListener("animationend", function (event) {
+          if (event.animationName === "home-intro-overlay-exit") {
+            finishIntro();
+          }
+        }, { once: true });
+      }
+    }
+
     revealElements.forEach(function (element, index) {
       element.style.setProperty("--reveal-delay", index * 120 + "ms");
     });
@@ -187,8 +319,8 @@
           }
         });
       }, {
-        threshold: 0.14,
-        rootMargin: "0px 0px -8% 0px"
+        threshold: 0.01,
+        rootMargin: "0px 0px 24% 0px"
       });
 
       revealElements.forEach(function (element) {
@@ -199,7 +331,7 @@
     const homeTitle = document.getElementById("home-title");
     const homeHeader = document.querySelector(".site-header");
 
-    if ((homeTitle || homeHeader) && !revealMotionPreference.matches) {
+    if ((homeTitle || homeHeader) && !revealMotionPreference.matches && !mobileBreakpoint.matches) {
       let ticking = false;
 
       function updateHomeParallax() {

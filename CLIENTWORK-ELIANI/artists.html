@@ -43,7 +43,7 @@
       </section>
 
       <section class="artists-grid-section" aria-label="Artists roster">
-        <div class="artists-grid">
+        <div class="artists-grid" data-artists-grid>
           <article class="artist-card">
             <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Amina Hart">
             <div class="artist-card__copy">
@@ -107,26 +107,21 @@
             </div>
           </article>
 
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Tayo Mercer">
-            <div class="artist-card__copy">
-              <h2>Tayo Mercer</h2>
-              <p>Photographer</p>
-              <p>Sao Paulo, Brazil</p>
-            </div>
-          </article>
+          
         </div>
-      </section>
+        <div class="artists-bookings-anchor" data-artists-bookings-anchor aria-hidden="true"></div>
 
-      <section class="artists-bookings" aria-label="Bookings">
-        <img src="static/assets/placeholder.jpeg" alt="Bookings banner placeholder">
-        <div class="artists-bookings__overlay">
-          <h2>For Bookings</h2>
-          <p><a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a></p>
-        </div>
+        <section class="artists-bookings artists-bookings--below" aria-label="Bookings" data-artists-bookings>
+          <img src="static/assets/placeholder.jpeg" alt="Bookings banner placeholder">
+          <div class="artists-bookings__overlay">
+            <h2>For Bookings</h2>
+            <p><a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a></p>
+          </div>
+        </section>
       </section>
     </main>
 
+    <div class="spacer" style="height: 50px;"></div>
     <footer class="site-footer">
       <div class="footer-block">
         <h3>Follow Us</h3>
@@ -147,6 +142,52 @@
     const siteNav = document.querySelector(".site-nav");
     const menuBackdrop = document.querySelector(".menu-backdrop");
     const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+    const artistsGrid = document.querySelector("[data-artists-grid]");
+    const artistsBookings = document.querySelector("[data-artists-bookings]");
+    const artistsBookingsAnchor = document.querySelector("[data-artists-bookings-anchor]");
+
+    function getGridColumnCount(gridElement) {
+      const gridTemplate = window.getComputedStyle(gridElement).gridTemplateColumns;
+
+      if (!gridTemplate || gridTemplate === "none") {
+        return 0;
+      }
+
+      return gridTemplate.split(" ").length;
+    }
+
+    function updateBookingsPlacement() {
+      if (!artistsGrid || !artistsBookings || !artistsBookingsAnchor) {
+        return;
+      }
+
+      const artistCount = artistsGrid.querySelectorAll(".artist-card").length;
+      const columnCount = getGridColumnCount(artistsGrid);
+      const firstArtistImage = artistsGrid.querySelector(".artist-card img");
+      const remainder = columnCount > 0 ? artistCount % columnCount : 0;
+      const emptySlots = remainder === 0 ? 0 : columnCount - remainder;
+      const shouldInline = !mobileBreakpoint.matches && emptySlots === 2;
+
+      artistsBookings.classList.toggle("artists-bookings--inline", shouldInline);
+      artistsBookings.classList.toggle("artists-bookings--below", !shouldInline);
+
+      if (shouldInline) {
+        if (firstArtistImage && firstArtistImage.clientHeight > 0) {
+          artistsBookings.style.height = firstArtistImage.clientHeight + "px";
+        }
+
+        if (artistsBookings.parentElement !== artistsGrid) {
+          artistsGrid.appendChild(artistsBookings);
+        }
+        return;
+      }
+
+      artistsBookings.style.height = "";
+
+      if (artistsBookings.parentElement !== artistsBookingsAnchor.parentElement || artistsBookings.previousElementSibling !== artistsBookingsAnchor) {
+        artistsBookingsAnchor.insertAdjacentElement("afterend", artistsBookings);
+      }
+    }
 
     function setMenuState(isOpen) {
       document.body.classList.toggle("menu-open", isOpen);
@@ -175,6 +216,8 @@
       if (!event.matches) {
         setMenuState(false);
       }
+
+      updateBookingsPlacement();
     });
 
     const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -216,6 +259,10 @@
         revealObserver.observe(element);
       });
     }
+
+    window.addEventListener("resize", updateBookingsPlacement);
+    window.addEventListener("load", updateBookingsPlacement);
+    updateBookingsPlacement();
   </script>
 </body>
 </html>

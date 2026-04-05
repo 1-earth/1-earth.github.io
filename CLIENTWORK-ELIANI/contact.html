@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="static/assets/styles.css">
 </head>
-<body>
+<body class="header-parallax-page">
   <div class="page" id="home">
     <header class="site-header">
       <a class="site-logo" href="index.html" aria-label="Eliani home">
@@ -154,6 +154,44 @@
       revealElements.forEach(function (element) {
         revealObserver.observe(element);
       });
+    }
+
+    const homeTitle = document.getElementById("home-title");
+    const homeHeader = document.querySelector(".site-header");
+
+    if ((homeTitle || homeHeader) && !revealMotionPreference.matches && !mobileBreakpoint.matches) {
+      let ticking = false;
+
+      function updateHomeParallax() {
+        const pastHeroThreshold = window.scrollY > window.innerHeight;
+        const titleScrollOffset = Math.min(window.scrollY * 0.28, 90);
+        const headerScrollOffset = Math.min(window.scrollY * 0.3, 80);
+
+        if (homeTitle) {
+          homeTitle.style.transform = "translate3d(0, " + titleScrollOffset + "px, 0)";
+        }
+
+        if (homeHeader) {
+          if (pastHeroThreshold) {
+            document.body.classList.add("home-header-resting");
+            homeHeader.style.transform = "translate3d(0, 0, 0)";
+          } else {
+            document.body.classList.remove("home-header-resting");
+            homeHeader.style.transform = "translate3d(0, -" + headerScrollOffset + "px, 0)";
+          }
+        }
+
+        ticking = false;
+      }
+
+      window.addEventListener("scroll", function () {
+        if (!ticking) {
+          window.requestAnimationFrame(updateHomeParallax);
+          ticking = true;
+        }
+      }, { passive: true });
+
+      updateHomeParallax();
     }
   </script>
 </body>
