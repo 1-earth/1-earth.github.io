@@ -297,9 +297,9 @@
                             return;
                         }
                         const randomCard = cards[Math.floor(Math.random() * cards.length)];
-                        const postId = randomCard && (randomCard.dataset.postId || randomCard.getAttribute('data-post-id'));
-                        if (postId) {
-                            window.location.href = `Portfolio/work.html?id=${postId}&lucky=1`;
+                        const postSlug = randomCard && (randomCard.dataset.postSlug || randomCard.getAttribute('data-post-slug'));
+                        if (postSlug && typeof window.buildPortfolioWorkHref === 'function') {
+                            window.location.href = window.buildPortfolioWorkHref(postSlug, { lucky: true });
                         }
                     };
                     chooseRandom();

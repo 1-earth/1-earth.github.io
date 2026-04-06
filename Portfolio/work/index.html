@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work - GEORGE SYMONDS</title>
+    <link rel="stylesheet" href="../portfolio.css">
+    <script src="../scrollreveal.js"></script>
+    <link rel="icon" type="image/png" href="../static/img/GSICON.png">
+    <link rel="canonical" href="https://www.1-earth.world/Portfolio/work/">
+    <meta name="description" content="Selected work by George Symonds — case studies, process, and outcomes.">
+    <meta name="author" content="George Symonds">
+
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="George Symonds Portfolio">
+    <meta property="og:title" content="Work — George Symonds">
+    <meta property="og:description" content="Selected work by George Symonds.">
+    <meta property="og:url" content="https://www.1-earth.world/Portfolio/work/">
+    <meta property="og:image" content="https://www.1-earth.world/static/images/og-default.png">
+    <meta property="og:image:alt" content="George Symonds portfolio">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Work — George Symonds">
+    <meta name="twitter:description" content="Selected work by George Symonds.">
+    <meta name="twitter:image" content="https://www.1-earth.world/static/images/og-default.png">
+</head>
+
+<body>
+    <header class="work-header">
+        <div class="header-left">
+            <h1><a href="/me.html" class="site-title-link" aria-label="Home">GEORGE SYMONDS</a></h1>
+            <a href="/me.html" class="back-btn">← Back to Portfolio</a>
+        </div>
+        <button class="get-in-touch-btn">GET IN TOUCH</button>
+    </header>
+
+    <main class="work-container">
+        <div id="work-content" class="loading">Loading work...</div>
+    </main>
+
+    <div id="lucky-toast" style="display:none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,255,0.35); color: #fff; padding: 10px 14px; border-radius: 8px; z-index: 100000; font-size: 0.95rem; opacity: 0;">
+        Well aren't you lucky... You've been taken to a random piece of work.
+    </div>
+
+    <div class="related-work-container">
+        <div class="section-header">
+            <h2 class="section-title">Related Work</h2>
+        </div>
+        <div class="cards-container related-work-container">
+            <div class="cards-grid" id="related-work-grid"></div>
+        </div>
+    </div>
+
+<h1 class="by-george-symonds">GEORGE SYMONDS</h1>
+    <footer class="portfolio-footer work-footer">
+        <div class="contact-me-title">
+            <h2>Contact Me</h2>
+        </div>
+    <div class="contact-me-section" id="contact">
+        <div class="contact-text">
+            <p class="contact-text-p">I'm always open to work, collaborations, talks, and new ideas. Tell me a bit about what you’re working on and how I can help, and I’ll get back to you soon.</p>
+            <div class="contact-socials">
+                <a class="contact-social-btn contact-social-kr" href="https://kr-net.github.io/?profile=1" target="_blank" rel="noopener" aria-label="KR">
+                    <img src="../static/img/KRICON.png" alt="KR">
+                </a>
+                <a class="contact-social-btn contact-social-ig" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
+                    <img src="../static/img/icon-instagram-white.svg" alt="Instagram">
+                </a>
+                <a class="contact-social-btn contact-social-yt" href="https://www.youtube.com/@georgesymonds007" target="_blank" rel="noopener" aria-label="YouTube">
+                    <img src="../static/img/icon-youtube-white.svg" alt="YouTube">
+                </a>
+            </div>
+        </div>
+        <div class="contact-form-container">
+            <form id="contact-form" action="https://formspree.io/f/xwpnpgwg" method="POST" novalidate>
+                <input type="text" id="contact-name" name="name" placeholder="Name" required>
+                <input type="email" id="contact-email" name="email" placeholder="Email" required>
+                <select id="contact-reason" name="reason" required>
+                    <option value="" disabled selected>Reason for inquiry</option>
+                    <option value="Collaboration">Collaboration</option>
+                    <option value="Speaking/Workshop">Speaking/Workshop</option>
+                    <option value="Press">Press</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="contact-message" name="message" placeholder="Your message" rows="6" required></textarea>
+                <input type="text" id="contact-gotcha" name="_gotcha" class="contact-honeypot" tabindex="-1" autocomplete="nope" aria-hidden="true" hidden>
+                <button type="submit" id="contact-submit">Send</button>
+                <div id="contact-status" class="contact-status" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+    </div>
+        <div class="footer-text">
+            <p>Website Designed & Developed by George Symonds 🌐 <a href="https://1-earth.world" target="_blank">ONE EARTH PRODUCTIONS</a></p>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="../1eCMSconnect.js"></script>
+    <script>
+        (function(){
+            try { if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; } } catch(_) {}
+            window.addEventListener('load', function(){ window.scrollTo(0, 0); }, { once: true });
+        })();
+    </script>
+    <script>
+        (function(){
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('lucky') === '1' || window.location.hash === '#lucky') {
+                const toast = document.getElementById('lucky-toast');
+                if (toast) {
+                    toast.style.display = 'block';
+                    setTimeout(() => {
+                        toast.style.opacity = '1';
+                        toast.style.transition = 'opacity 0.3s';
+                    }, 10);
+                    setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => { toast.style.display = 'none'; }, 300);
+                    }, 2600);
+                }
+            }
+        })();
+    </script>
+    <script>
+        (function(){
+            console.log('[byline] init script loaded');
+            function isInView(el) {
+                const r = el.getBoundingClientRect();
+                const vh = window.innerHeight || document.documentElement.clientHeight;
+                const inView = r.top < vh * 0.95 && r.bottom > 0;
+                console.log('[byline] isInView?', inView, { top: r.top, bottom: r.bottom, vh });
+                return inView;
+            }
+
+            function activate(el) {
+                if (!el || el.classList.contains('slide-in-active')) return;
+                console.log('[byline] activating animation');
+                el.classList.add('slide-in-active');
+                try {
+                    const cs = window.getComputedStyle(el);
+                    console.log('[byline] after activate styles', { transform: cs.transform, opacity: cs.opacity, animationName: cs.animationName, animationDuration: cs.animationDuration });
+                } catch (_) {}
+            }
+
+            function run() {
+                const el = document.querySelector('.by-george-symonds');
+                if (!el) { console.warn('[byline] heading not found'); return; }
+                el.classList.add('slide-init');
+                try {
+                    const cs0 = window.getComputedStyle(el);
+                    console.log('[byline] added slide-init', { classList: el.className, transform: cs0.transform, opacity: cs0.opacity });
+                } catch (_) {}
+
+                el.addEventListener('animationstart', () => console.log('[byline] animationstart'));
+                el.addEventListener('animationend', () => console.log('[byline] animationend'));
+
+                const check = () => {
+                    console.log('[byline] check fired');
+                    if (isInView(el)) {
+                        activate(el);
+                        window.removeEventListener('scroll', check, true);
+                        window.removeEventListener('resize', check, true);
+                    } else {
+                        console.log('[byline] not in view yet');
+                    }
+                };
+
+                let activated = false;
+                const startChecks = () => {
+                    if (activated) return;
+                    activated = true;
+                    console.log('[byline] starting checks after overlay/timeout');
+                    requestAnimationFrame(() => {
+                        console.log('[byline] rAF initial check');
+                        check();
+                    });
+                    window.addEventListener('scroll', check, true);
+                    window.addEventListener('resize', check, true);
+                    console.log('[byline] listeners attached');
+                };
+
+                const t = setTimeout(startChecks, 2000);
+                window.addEventListener('work-loading-overlay-hidden', () => {
+                    console.log('[byline] overlay hidden event');
+                    clearTimeout(t);
+                    startChecks();
+                }, { once: true });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log('[byline] DOMContentLoaded');
+                    run();
+                });
+            } else {
+                console.log('[byline] document already ready');
+                run();
+            }
+        })();
+    </script>
+    <script>
+        (function(){
+            class WorkHeaderController {
+                constructor() {
+                    this.header = document.querySelector('.work-header');
+                    if (!this.header) return;
+                    this.lastScrollY = window.scrollY;
+                    this.scrollThreshold = 5;
+                    this.onScroll = this.handleScroll.bind(this);
+                    window.addEventListener('scroll', this.onScroll);
+                }
+                handleScroll() {
+                    const currentScrollY = window.scrollY;
+                    const diff = currentScrollY - this.lastScrollY;
+                    if (Math.abs(diff) < this.scrollThreshold) return;
+                    if (diff > 0 && currentScrollY > 100) {
+                        this.header.classList.add('header-hidden');
+                    } else if (diff < 0) {
+                        this.header.classList.remove('header-hidden');
+                    }
+                    this.lastScrollY = currentScrollY;
+                }
+            }
+            document.addEventListener('DOMContentLoaded', function(){ new WorkHeaderController(); });
+        })();
+    </script>
+    <button class="get-in-touch-fab" id="get-in-touch-fab-work" type="button">GET IN TOUCH</button>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.get-in-touch-btn');
+            const fabBtn = document.getElementById('get-in-touch-fab-work');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.getElementById('contact');
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            if (fabBtn) {
+                fabBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.getElementById('contact');
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        (function(){
+            const form = document.getElementById('contact-form');
+            if (!form) return;
+            const status = document.getElementById('contact-status');
+            const submitBtn = document.getElementById('contact-submit');
+            const honeypot = document.getElementById('contact-gotcha');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                status.textContent = '';
+                if (honeypot && honeypot.value) {
+                    status.textContent = 'Thanks! I\'ll get back to you soon.';
+                    form.reset();
+                    return;
+                }
+                if (!form.reportValidity()) {
+                    return;
+                }
+                submitBtn.disabled = true;
+                const original = submitBtn.textContent;
+                submitBtn.textContent = 'Sending...';
+                try {
+                    const formData = new FormData(form);
+                    const res = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        status.textContent = 'Thanks - I\'ll be in touch soon.';
+                        form.reset();
+                    } else {
+                        let message = 'Sorry, there was a problem submitting your form.';
+                        try {
+                            const data = await res.json();
+                            if (data && data.errors) {
+                                message = data.errors.map(e => e.message).join(', ');
+                            }
+                        } catch (_) {}
+                        status.textContent = message;
+                    }
+                } catch (err) {
+                    status.textContent = 'Network error. Please try again.';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = original;
+                }
+            });
+        })();
+    </script>
+    <script>
+        function getCategoryDisplayName(category) {
+            switch (category) {
+                case 'Design Portfolio':
+                    return 'Design';
+                default:
+                    return category;
+            }
+        }
+
+        function getWorkSlugFromLocation() {
+            const search = window.location.search || '';
+            const raw = search.charAt(0) === '?' ? search.slice(1) : search;
+            if (!raw) return '';
+            try {
+                const params = new URLSearchParams(raw);
+                const legacy = params.get('title') || params.get('id');
+                if (legacy) return legacy;
+            } catch (_) {}
+            if (raw.indexOf('=') === -1 && raw.indexOf('&') === -1) {
+                try {
+                    return decodeURIComponent(raw);
+                } catch (_) {
+                    return raw;
+                }
+            }
+            return '';
+        }
+
+        function normalizeWorkSlug(value) {
+            if (typeof window.slugifyPortfolioTitle === 'function') {
+                return window.slugifyPortfolioTitle(value).toLowerCase();
+            }
+            return String(value || '').trim().replace(/\s+/g, '-').replace(/[^A-Za-z0-9-]/g, '').replace(/-+/g, '-').toLowerCase();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const workSlug = getWorkSlugFromLocation();
+
+            if (workSlug) {
+                loadWork(workSlug);
+            } else {
+                document.getElementById('work-content').innerHTML = '<div class="error">No work item specified</div>';
+                document.getElementById('work-content').classList.remove('loading');
+            }
+        });
+
+        async function findWorkBySlug(workSlug) {
+            const normalizedSlug = normalizeWorkSlug(workSlug);
+            const snap = await db.collection('users').doc(USER_ID)
+                .collection('items')
+                .where('type', '==', 'blog')
+                .get();
+
+            let matched = null;
+            snap.forEach(doc => {
+                if (matched) return;
+                const data = doc.data();
+                if (normalizeWorkSlug(data && data.title) === normalizedSlug) {
+                    matched = { id: doc.id, data: data };
+                }
+            });
+
+            if (matched) return matched;
+
+            const legacyDoc = await db.collection('users').doc(USER_ID)
+                .collection('items').doc(workSlug).get();
+            if (legacyDoc.exists) {
+                return { id: legacyDoc.id, data: legacyDoc.data() };
+            }
+
+            return null;
+        }
+
+        async function loadWork(workSlug) {
+            const workContent = document.getElementById('work-content');
+
+            try {
+                const match = await findWorkBySlug(workSlug);
+
+                if (match) {
+                    const currentId = match.id;
+                    const work = match.data;
+
+                    if (work.type !== 'blog') {
+                        workContent.innerHTML = '<div class="error">Invalid work type</div>';
+                        return;
+                    }
+
+                    const blogContent = await renderModularBlogContent(work);
+                    const date = work.datePosted ? new Date(work.datePosted.seconds * 1000) : new Date();
+
+                    let tagsHtml = '';
+                    if (work.tags) {
+                        const tags = work.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                        tagsHtml = tags.map(tag => `<span class="work-tag">${tag}</span>`).join('');
+                    }
+
+                    workContent.innerHTML = `
+                        <div class="work-meta">
+                            <div class="work-meta-info">
+                                <div class="work-info-row">
+                                    <span class="work-date">${date.getFullYear()}</span>
+                                    <div class="work-tags">${tagsHtml}</div>
+                                </div>
+                            </div>
+
+                            <h1 class="work-title">
+                                ${work.category ? `<span class="work-category">${getCategoryDisplayName(work.category)}/</span>` : ''}${work.title || 'Untitled'}
+                            </h1>
+                        </div>
+                        <div class="work-content">
+                            ${blogContent}
+                        </div>
+                    `;
+
+                    if (typeof initializePdfViewers === 'function') {
+                        initializePdfViewers('#work-content');
+                    }
+
+                    document.title = `${work.title || 'Work'} - GEORGE SYMONDS`;
+
+                    (function updateSocialMeta(){
+                        const title = work.title || 'Work - George Symonds';
+                        const desc = (work.summary || work.subtitle || work.excerpt || '').toString().trim() || 'Selected work by George Symonds.';
+                        let image = null;
+                        try {
+                            if (work.sections && Array.isArray(work.sections)) {
+                                for (const section of work.sections) {
+                                    if (section && (section.type === 'media' || section.blockType === 'media')) {
+                                        if (section.files && section.files.length && section.files[0].url) { image = section.files[0].url; break; }
+                                        if (section.url) { image = section.url; break; }
+                                    }
+                                }
+                            }
+                        } catch(_) {}
+                        if (!image && work.coverImageUrl) image = work.coverImageUrl;
+                        if (!image) image = 'https://www.1-earth.world/static/images/og-default.png';
+                        const path = typeof window.buildPortfolioWorkHref === 'function'
+                            ? window.buildPortfolioWorkHref(work)
+                            : `/Portfolio/work/?${encodeURIComponent(work.title || '')}`;
+                        const url = `https://www.1-earth.world${path}`;
+
+                        function setTag(selector, attr, value){
+                            let el = document.querySelector(selector);
+                            if (!el) {
+                                el = document.createElement('meta');
+                                if (selector.startsWith('meta[property')) {
+                                    const prop = selector.match(/\[property=\"([^\"]+)\"\]/);
+                                    if (prop) el.setAttribute('property', prop[1]);
+                                } else if (selector.startsWith('meta[name')) {
+                                    const name = selector.match(/\[name=\"([^\"]+)\"\]/);
+                                    if (name) el.setAttribute('name', name[1]);
+                                }
+                                document.head.appendChild(el);
+                            }
+                            el.setAttribute(attr, value);
+                        }
+
+                        setTag('meta[property="og:title"]', 'content', title);
+                        setTag('meta[property="og:description"]', 'content', desc);
+                        setTag('meta[property="og:url"]', 'content', url);
+                        setTag('meta[property="og:image"]', 'content', image);
+                        setTag('meta[name="twitter:title"]', 'content', title);
+                        setTag('meta[name="twitter:description"]', 'content', desc);
+                        setTag('meta[name="twitter:image"]', 'content', image);
+                        let link = document.querySelector('link[rel="canonical"]');
+                        if (!link) { link = document.createElement('link'); link.setAttribute('rel','canonical'); document.head.appendChild(link); }
+                        link.setAttribute('href', url);
+                    })();
+
+                    await loadRelatedWork(work, currentId, 8);
+
+                    (function() {
+                        const blogSelector = '.blog-subtitle-frontend, .blog-subtitle-frontend p, .blog-body-frontend, .blog-media-frontend, .blog-media-img';
+                        const targets = Array.from(document.querySelectorAll(blogSelector));
+                        if (targets.length === 0) return;
+
+                        targets.forEach(el => el.classList.add('reveal-once'));
+
+                        if ('IntersectionObserver' in window) {
+                            const obs = new IntersectionObserver((entries, observer) => {
+                                entries.forEach(entry => {
+                                    if (entry.isIntersecting) {
+                                        entry.target.classList.add('visible');
+                                        observer.unobserve(entry.target);
+                                    }
+                                });
+                            }, { root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
+
+                            targets.forEach(el => obs.observe(el));
+                        } else {
+                            targets.forEach(el => el.classList.add('visible'));
+                        }
+                    })();
+                } else {
+                    workContent.innerHTML = '<div class="error">Work item not found</div>';
+                }
+            } catch (error) {
+                console.error('Error loading work:', error);
+                workContent.innerHTML = '<div class="error">Error loading work item</div>';
+            }
+            finally {
+                workContent.classList.remove('loading');
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const MIN_VISIBLE_MS = 400;
+            const DOT_STEP_MS = 300;
+            const STILL_LOADING_MS = 15000;
+            const target = document.getElementById('work-content');
+            if (!target) return;
+
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.setAttribute('role', 'status');
+            overlay.setAttribute('aria-live', 'polite');
+            overlay.innerHTML = `
+                <div class="loading-overlay-content">
+                    <img src="../static/img/GSSpin-loading.gif" alt="Loading">
+                    <div class="loading-overlay-text"><span class="loading-label">Loading</span><span class="dots">.</span></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            document.body.classList.add('loading-overlay-active');
+            document.body.setAttribute('aria-busy', 'true');
+
+            const labelEl = overlay.querySelector('.loading-label');
+            const dotsEl = overlay.querySelector('.dots');
+            let dotState = 1;
+            const dotTimer = setInterval(() => {
+                dotState = dotState % 3 + 1;
+                dotsEl.textContent = '.'.repeat(dotState);
+            }, DOT_STEP_MS);
+
+            const stillTimer = setTimeout(() => {
+                if (labelEl) labelEl.textContent = 'Still loading';
+            }, STILL_LOADING_MS);
+
+            const showStart = performance.now();
+
+            function hideOverlay() {
+                const elapsed = performance.now() - showStart;
+                const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    setTimeout(() => {
+                        clearInterval(dotTimer);
+                        clearTimeout(stillTimer);
+                        overlay.remove();
+                        document.body.classList.remove('loading-overlay-active');
+                        document.body.removeAttribute('aria-busy');
+                        try { window.dispatchEvent(new CustomEvent('work-loading-overlay-hidden')); } catch (_) {}
+                    }, 350);
+                }, wait);
+            }
+
+            if (!target.classList.contains('loading')) {
+                hideOverlay();
+                return;
+            }
+
+            const obs = new MutationObserver(() => {
+                if (!target.classList.contains('loading')) {
+                    obs.disconnect();
+                    hideOverlay();
+                }
+            });
+            obs.observe(target, { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('work-content');
+            if (!container) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const video = entry.target;
+                    const slide = video.closest('.slide');
+                    const inActiveSlide = !slide || slide.classList.contains('active');
+                    if (entry.isIntersecting && inActiveSlide) {
+                        video.muted = true;
+                        video.setAttribute('playsinline', '');
+                        video.play().catch(() => {});
+                    } else if (!video.paused) {
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            function trackVideo(video) {
+                if (!video || video.dataset.autoplayTracked) return;
+                video.dataset.autoplayTracked = '1';
+                video.muted = true;
+                video.setAttribute('playsinline', '');
+                video.loop = true;
+                observer.observe(video);
+            }
+
+            function scan() {
+                const vids = container.querySelectorAll('video');
+                vids.forEach(trackVideo);
+            }
+
+            scan();
+
+            const mo = new MutationObserver((mutations) => {
+                mutations.forEach(m => {
+                    m.addedNodes.forEach(node => {
+                        if (node.nodeType !== 1) return;
+                        if (node.tagName === 'VIDEO') {
+                            trackVideo(node);
+                        } else if (node.querySelectorAll) {
+                            node.querySelectorAll('video').forEach(trackVideo);
+                        }
+                    });
+                });
+            });
+            mo.observe(container, { childList: true, subtree: true });
+
+            const onSlideChange = () => {
+                const slideVideos = container.querySelectorAll('.slide video');
+                slideVideos.forEach(v => {
+                    const s = v.closest('.slide');
+                    const active = s && s.classList.contains('active');
+                    if (!active && !v.paused) v.pause();
+                });
+            };
+            document.addEventListener('click', (e) => {
+                if (e.target && e.target.classList && (e.target.classList.contains('slideshow-arrow') || e.target.classList.contains('indicator'))) {
+                    setTimeout(onSlideChange, 0);
+                }
+            }, true);
+        });
+    </script>
+
+</body>
+
+</html>

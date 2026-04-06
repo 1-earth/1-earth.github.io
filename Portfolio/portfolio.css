@@ -1380,7 +1380,7 @@ video.card-image {
     }
 
     .portfolio-card {
-        width: 240px;
+        width: 220px;
     }
 
     .card-image {
@@ -1523,7 +1523,7 @@ video.card-image {
 
 @media (max-width: 480px) {
     .portfolio-card {
-        width: 200px;
+        width: 160px;
     }
 
     .card-image {

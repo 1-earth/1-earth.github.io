@@ -374,6 +374,18 @@
         setMeta('link[rel="canonical"]', "href", CANONICAL_URL);
       }
 
+      function slugifyTitle(title) {
+        return String(title || "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .replace(/[^A-Za-z0-9-]/g, "")
+          .replace(/-+/g, "-");
+      }
+
+      function buildWorkHref(post) {
+        return "work/?" + encodeURIComponent(slugifyTitle(post && post.title));
+      }
+
       function buildSlideHtml(post, index) {
         var image = pickThumbnail(post) || PLACEHOLDER_IMAGE;
         var title = escapeHtml(post.title || "Untitled");
@@ -382,7 +394,7 @@
         var excerpt = escapeHtml(getExcerpt(post));
         return '' +
           '<article class="hero-slide' + (index === 0 ? ' is-active' : '') + '" data-slide-index="' + index + '">' +
-            '<a class="hero-slide-link" href="work.html?id=' + encodeURIComponent(post.id) + '" aria-label="Open ' + title + '"></a>' +
+            '<a class="hero-slide-link" href="' + buildWorkHref(post) + '" aria-label="Open ' + title + '"></a>' +
             '<div class="hero-slide-media"><img src="' + escapeHtml(image) + '" alt="' + title + '"></div>' +
             '<div class="hero-slide-overlay"></div>' +
             '<div class="hero-slide-copy">' +
@@ -406,7 +418,7 @@
           return '<span class="tag">' + escapeHtml(tag) + '</span>';
         }).join("");
         return '' +
-          '<a class="grid-card" href="work.html?id=' + encodeURIComponent(post.id) + '" aria-label="Open ' + title + '">' +
+          '<a class="grid-card" href="' + buildWorkHref(post) + '" aria-label="Open ' + title + '">' +
             '<div class="grid-card-media"><img loading="lazy" src="' + escapeHtml(image) + '" alt="' + title + '"></div>' +
             '<div class="grid-card-body">' +
               '<div class="meta-row">' +

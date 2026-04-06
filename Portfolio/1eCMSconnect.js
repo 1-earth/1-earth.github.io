@@ -870,6 +870,26 @@ function createCardMediaElement(featuredMedia, title) {
     }
 }
 
+function slugifyPortfolioTitle(title) {
+    return String(title || '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^A-Za-z0-9-]/g, '')
+        .replace(/-+/g, '-');
+}
+
+function buildPortfolioWorkHref(postOrTitle, options = {}) {
+    const title = typeof postOrTitle === 'string'
+        ? postOrTitle
+        : ((postOrTitle && postOrTitle.title) || '');
+    const slug = slugifyPortfolioTitle(title);
+    const hash = options && options.lucky ? '#lucky' : '';
+    return `/Portfolio/work/${slug ? `?${encodeURIComponent(slug)}` : ''}${hash}`;
+}
+
+window.slugifyPortfolioTitle = slugifyPortfolioTitle;
+window.buildPortfolioWorkHref = buildPortfolioWorkHref;
+
 function renderPortfolioCard(post) {
     const tags = post.tags ? post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
     const tagsHtml = tags.map(tag => `<span class="card-tag">${tag}</span>`).join('');
@@ -879,9 +899,10 @@ function renderPortfolioCard(post) {
     const mediaHtml = createCardMediaElement(featuredMedia, post.title);
     
     const excerpt = post.excerpt || 'No description available';
+    const postSlug = slugifyPortfolioTitle(post.title);
     
     return `
-        <div class="portfolio-card related-work-card" data-post-id="${post.id}" data-tags="${tags.join(',')}" data-category="${post.category || ''}" data-content="${excerpt}">
+        <div class="portfolio-card related-work-card" data-post-id="${post.id}" data-post-slug="${postSlug}" data-tags="${tags.join(',')}" data-category="${post.category || ''}" data-content="${excerpt}">
             <div class="card-image-container">
                 ${mediaHtml}
                 <div class="card-tags">${tagsHtml}</div>
@@ -916,8 +937,8 @@ function updateFilterDropdowns(tags, categories) {
 function setupCardClickHandlers() {
     document.querySelectorAll('.portfolio-card').forEach(card => {
         card.addEventListener('click', () => {
-            const postId = card.dataset.postId;
-            window.location.href = `/Portfolio/work.html?id=${postId}`;
+            const postSlug = card.dataset.postSlug || '';
+            window.location.href = buildPortfolioWorkHref(postSlug);
         });
     });
 }
