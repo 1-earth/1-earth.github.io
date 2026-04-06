@@ -19,9 +19,6 @@
   </noscript>
 </head>
 <body class="home-page">
-  <div class="home-intro" aria-hidden="true">
-    <img class="home-intro__logo" src="static/assets/logo.png" alt="">
-  </div>
   <div class="page">
     <header class="site-header">
       <a class="site-logo" href="index.html" aria-label="Eliani home">
@@ -243,8 +240,6 @@
     const siteNav = document.querySelector(".site-nav");
     const menuBackdrop = document.querySelector(".menu-backdrop");
     const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
-    const introOverlay = document.querySelector(".home-intro");
-
     function setMenuState(isOpen) {
       document.body.classList.toggle("menu-open", isOpen);
       menuButton.setAttribute("aria-expanded", String(isOpen));
@@ -282,38 +277,6 @@
 
     const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const revealElements = document.querySelectorAll(".reveal-on-scroll");
-
-    if (introOverlay) {
-      let introHasFinished = false;
-
-      function finishIntro() {
-        if (introHasFinished) {
-          return;
-        }
-
-        introHasFinished = true;
-        document.body.classList.remove("home-intro-active");
-        introOverlay.style.opacity = "0";
-        introOverlay.style.visibility = "hidden";
-        introOverlay.style.pointerEvents = "none";
-      }
-
-      if (!revealMotionPreference.matches) {
-        document.body.classList.add("home-intro-active");
-      }
-
-      if (revealMotionPreference.matches) {
-        window.requestAnimationFrame(finishIntro);
-      } else {
-        window.setTimeout(finishIntro, 1700);
-
-        introOverlay.addEventListener("animationend", function (event) {
-          if (event.animationName === "home-intro-overlay-exit") {
-            finishIntro();
-          }
-        }, { once: true });
-      }
-    }
 
     revealElements.forEach(function (element, index) {
       element.style.setProperty("--reveal-delay", index * 80 + "ms");
