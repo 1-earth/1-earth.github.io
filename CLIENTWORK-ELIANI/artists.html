@@ -36,7 +36,7 @@
 
     <main class="artists-main">
       <section class="artists-hero" aria-labelledby="artists-title">
-        <img src="static/assets/placeholder.jpeg" alt="Featured Eliani artists">
+        <img src="static/assets/artists.jpg" alt="Featured Eliani artists">
         <div class="artists-hero__overlay">
           <h1 id="artists-title">Artists</h1>
         </div>
@@ -44,70 +44,7 @@
 
       <section class="artists-grid-section" aria-label="Artists roster">
         <div class="artists-grid" data-artists-grid>
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Amina Hart">
-            <div class="artist-card__copy">
-              <h2>Amina Hart</h2>
-              <p>Photographer</p>
-              <p>Lagos, Nigeria</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Luca Vale">
-            <div class="artist-card__copy">
-              <h2>Luca Vale</h2>
-              <p>Photographer</p>
-              <p>Naples, Italy</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Sora Lin">
-            <div class="artist-card__copy">
-              <h2>Sora Lin</h2>
-              <p>Photographer</p>
-              <p>Taipei, Taiwan</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Mateo Sol">
-            <div class="artist-card__copy">
-              <h2>Mateo Sol</h2>
-              <p>Film Director</p>
-              <p>Bogota, Colombia</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Nora Blue">
-            <div class="artist-card__copy">
-              <h2>Nora Blue</h2>
-              <p>Photographer</p>
-              <p>Marseille, France</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Idris Hale">
-            <div class="artist-card__copy">
-              <h2>Idris Hale</h2>
-              <p>Videographer</p>
-              <p>Accra, Ghana</p>
-            </div>
-          </article>
-
-          <article class="artist-card">
-            <img src="static/assets/placeholder.jpeg" alt="Portrait placeholder for artist Esme Rowan">
-            <div class="artist-card__copy">
-              <h2>Esme Rowan</h2>
-              <p>Film-maker</p>
-              <p>London, UK</p>
-            </div>
-          </article>
-
-          
+          <p class="artists-grid-status" data-artists-status>Loading artists…</p>
         </div>
         <div class="artists-bookings-anchor" data-artists-bookings-anchor aria-hidden="true"></div>
 
@@ -137,132 +74,363 @@
     </footer>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script>
-    const menuButton = document.querySelector(".menu-toggle");
-    const siteNav = document.querySelector(".site-nav");
-    const menuBackdrop = document.querySelector(".menu-backdrop");
-    const mobileBreakpoint = window.matchMedia("(max-width: 980px)");
-    const artistsGrid = document.querySelector("[data-artists-grid]");
-    const artistsBookings = document.querySelector("[data-artists-bookings]");
-    const artistsBookingsAnchor = document.querySelector("[data-artists-bookings-anchor]");
+    (function () {
+      var TARGET_USER_UID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2";
+      var PLACEHOLDER_IMAGE = "static/assets/placeholder2.png";
+      var firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
 
-    function getGridColumnCount(gridElement) {
-      const gridTemplate = window.getComputedStyle(gridElement).gridTemplateColumns;
+      var menuButton = document.querySelector(".menu-toggle");
+      var siteNav = document.querySelector(".site-nav");
+      var menuBackdrop = document.querySelector(".menu-backdrop");
+      var mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+      var artistsGrid = document.querySelector("[data-artists-grid]");
+      var artistsBookings = document.querySelector("[data-artists-bookings]");
+      var artistsBookingsAnchor = document.querySelector("[data-artists-bookings-anchor]");
 
-      if (!gridTemplate || gridTemplate === "none") {
-        return 0;
+      function getGridColumnCount(gridElement) {
+        var gridTemplate = window.getComputedStyle(gridElement).gridTemplateColumns;
+        if (!gridTemplate || gridTemplate === "none") {
+          return 0;
+        }
+        return gridTemplate.split(" ").length;
       }
 
-      return gridTemplate.split(" ").length;
-    }
-
-    function updateBookingsPlacement() {
-      if (!artistsGrid || !artistsBookings || !artistsBookingsAnchor) {
-        return;
-      }
-
-      const artistCount = artistsGrid.querySelectorAll(".artist-card").length;
-      const columnCount = getGridColumnCount(artistsGrid);
-      const firstArtistImage = artistsGrid.querySelector(".artist-card img");
-      const remainder = columnCount > 0 ? artistCount % columnCount : 0;
-      const emptySlots = remainder === 0 ? 0 : columnCount - remainder;
-      const shouldInline = !mobileBreakpoint.matches && emptySlots === 2;
-
-      artistsBookings.classList.toggle("artists-bookings--inline", shouldInline);
-      artistsBookings.classList.toggle("artists-bookings--below", !shouldInline);
-
-      if (shouldInline) {
-        if (firstArtistImage && firstArtistImage.clientHeight > 0) {
-          artistsBookings.style.height = firstArtistImage.clientHeight + "px";
+      function updateBookingsPlacement() {
+        if (!artistsGrid || !artistsBookings || !artistsBookingsAnchor) {
+          return;
         }
 
-        if (artistsBookings.parentElement !== artistsGrid) {
-          artistsGrid.appendChild(artistsBookings);
+        var artistCount = artistsGrid.querySelectorAll(".artist-card").length;
+        var columnCount = getGridColumnCount(artistsGrid);
+        var firstArtistImage = artistsGrid.querySelector(".artist-card img");
+        var remainder = columnCount > 0 ? artistCount % columnCount : 0;
+        var emptySlots = remainder === 0 ? 0 : columnCount - remainder;
+        var shouldInline = !mobileBreakpoint.matches && emptySlots === 2;
+
+        artistsBookings.classList.toggle("artists-bookings--inline", shouldInline);
+        artistsBookings.classList.toggle("artists-bookings--below", !shouldInline);
+
+        if (shouldInline) {
+          if (firstArtistImage && firstArtistImage.clientHeight > 0) {
+            artistsBookings.style.height = firstArtistImage.clientHeight + "px";
+          }
+
+          if (artistsBookings.parentElement !== artistsGrid) {
+            artistsGrid.appendChild(artistsBookings);
+          }
+          return;
         }
-        return;
+
+        artistsBookings.style.height = "";
+
+        if (artistsBookings.parentElement !== artistsBookingsAnchor.parentElement || artistsBookings.previousElementSibling !== artistsBookingsAnchor) {
+          artistsBookingsAnchor.insertAdjacentElement("afterend", artistsBookings);
+        }
       }
 
-      artistsBookings.style.height = "";
-
-      if (artistsBookings.parentElement !== artistsBookingsAnchor.parentElement || artistsBookings.previousElementSibling !== artistsBookingsAnchor) {
-        artistsBookingsAnchor.insertAdjacentElement("afterend", artistsBookings);
+      function setMenuState(isOpen) {
+        document.body.classList.toggle("menu-open", isOpen);
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+        menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
       }
-    }
 
-    function setMenuState(isOpen) {
-      document.body.classList.toggle("menu-open", isOpen);
-      menuButton.setAttribute("aria-expanded", String(isOpen));
-      menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
-    }
+      menuButton.addEventListener("click", function () {
+        var isOpen = menuButton.getAttribute("aria-expanded") !== "true";
+        setMenuState(isOpen);
+      });
 
-    menuButton.addEventListener("click", function () {
-      const isOpen = menuButton.getAttribute("aria-expanded") !== "true";
-      setMenuState(isOpen);
-    });
+      menuBackdrop.addEventListener("click", function () {
+        setMenuState(false);
+      });
 
-    menuBackdrop.addEventListener("click", function () {
-      setMenuState(false);
-    });
+      siteNav.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          if (mobileBreakpoint.matches) {
+            setMenuState(false);
+          }
+        });
+      });
 
-    siteNav.querySelectorAll("a").forEach(function (link) {
-      link.addEventListener("click", function () {
-        if (mobileBreakpoint.matches) {
+      mobileBreakpoint.addEventListener("change", function (event) {
+        if (!event.matches) {
           setMenuState(false);
         }
+        updateBookingsPlacement();
       });
-    });
 
-    mobileBreakpoint.addEventListener("change", function (event) {
-      if (!event.matches) {
-        setMenuState(false);
+      var revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+      var revealObserver = null;
+
+      function bindRevealObserver() {
+        if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
+          return null;
+        }
+        return new IntersectionObserver(function (entries, observer) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        }, {
+          threshold: 0.14,
+          rootMargin: "0px 0px -8% 0px"
+        });
+      }
+
+      function setupRevealElements(nodes, delayStep, baseDelay) {
+        var list = Array.prototype.slice.call(nodes);
+        var base = baseDelay || 0;
+        list.forEach(function (element, index) {
+          element.classList.add("reveal-on-scroll");
+          element.style.setProperty("--reveal-delay", base + index * delayStep + "ms");
+          if (revealMotionPreference.matches || !revealObserver) {
+            element.classList.add("is-visible");
+          } else {
+            revealObserver.observe(element);
+          }
+        });
+      }
+
+      revealObserver = bindRevealObserver();
+
+      setupRevealElements(document.querySelectorAll(".artists-hero"), 0, 0);
+      var bookingsEl = document.querySelector(".artists-bookings");
+      if (bookingsEl) {
+        setupRevealElements([bookingsEl], 120, 0);
+      }
+      setupRevealElements(document.querySelectorAll(".site-footer .footer-block"), 120, 0);
+
+      window.addEventListener("resize", updateBookingsPlacement);
+      window.addEventListener("load", function () {
+        updateBookingsPlacement();
+      });
+
+      function safeInitFirebase() {
+        try {
+          if (!window.firebase) return false;
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          return true;
+        } catch (_) {
+          return !!window.firebase;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function parseCsv(csv) {
+        if (!csv) return [];
+        return String(csv).split(",").map(function (part) {
+          return part.trim();
+        }).filter(Boolean);
+      }
+
+      function getTagsArray(post) {
+        var raw = post && (post.tags != null ? post.tags : post.keywords);
+        if (raw == null) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(function (t) {
+            return String(t).trim();
+          }).filter(Boolean);
+        }
+        return parseCsv(raw);
+      }
+
+      function hasArtistTag(post) {
+        return getTagsArray(post).some(function (tag) {
+          return String(tag).trim().toLowerCase() === "artist";
+        });
+      }
+
+      function isImageUrl(url) {
+        return /\.(png|jpe?g|webp|gif|avif|svg)(?:$|[?#])/i.test((url || "").split("?")[0]);
+      }
+
+      function textFromHtml(html) {
+        if (!html) return "";
+        var div = document.createElement("div");
+        div.innerHTML = html;
+        return (div.textContent || div.innerText || "").replace(/\s+/g, " ").trim();
+      }
+
+      function normalizeWork(work) {
+        if (!work) return work;
+        if (!work.featuredMedia && work.featuredImage) {
+          work.featuredMedia = { url: work.featuredImage };
+        }
+        return work;
+      }
+
+      function pickThumbnailFromWork(work) {
+        try {
+          if (work && work.featuredMedia) {
+            if (work.featuredMedia.poster && isImageUrl(work.featuredMedia.poster)) return work.featuredMedia.poster;
+            if (work.featuredMedia.url && isImageUrl(work.featuredMedia.url)) return work.featuredMedia.url;
+          }
+          if (work && work.featuredImage && isImageUrl(work.featuredImage)) return work.featuredImage;
+          if (work && work.sections) {
+            for (var i = 0; i < work.sections.length; i++) {
+              var items = work.sections[i].items || work.sections[i].blocks || [];
+              for (var j = 0; j < items.length; j++) {
+                var item = items[j];
+                if (item.cachedMediaUrl && isImageUrl(item.cachedMediaUrl)) return item.cachedMediaUrl;
+              }
+            }
+          }
+        } catch (_) {}
+        return "";
+      }
+
+      function getCardSubtitle(work) {
+        if (work && work.excerpt) return String(work.excerpt).trim();
+        if (work && work.subtitle) return String(work.subtitle).trim();
+        if (work && work.summary) return String(work.summary).trim();
+        if (work && work.content) return textFromHtml(work.content).slice(0, 120);
+        if (work && work.sections) {
+          for (var i = 0; i < work.sections.length; i++) {
+            var items = work.sections[i].items || work.sections[i].blocks || [];
+            for (var j = 0; j < items.length; j++) {
+              var item = items[j];
+              var type = item.blockType || item.type;
+              if (type === "body" && item.content) {
+                var t = textFromHtml(item.content);
+                if (t) return t.slice(0, 120);
+              }
+            }
+          }
+        }
+        return "";
+      }
+
+      function truncate(str, max) {
+        var s = String(str || "").trim();
+        if (s.length <= max) return s;
+        return s.slice(0, max - 1).trim() + "…";
+      }
+
+      function slugifyTitle(title) {
+        return String(title || "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .replace(/[^A-Za-z0-9-]/g, "")
+          .replace(/-+/g, "-");
+      }
+
+      function queryBlogPosts(db) {
+        return db.collection("users").doc(TARGET_USER_UID)
+          .collection("items")
+          .where("type", "==", "blog")
+          .orderBy("datePosted", "desc")
+          .get()
+          .then(function (orderedSnap) {
+            var orderedPosts = [];
+            orderedSnap.forEach(function (doc) {
+              orderedPosts.push(normalizeWork(Object.assign({ id: doc.id }, doc.data())));
+            });
+            return orderedPosts;
+          })
+          .catch(function () {
+            return db.collection("users").doc(TARGET_USER_UID)
+              .collection("items")
+              .where("type", "==", "blog")
+              .get()
+              .then(function (snap) {
+                var posts = [];
+                snap.forEach(function (doc) {
+                  posts.push(normalizeWork(Object.assign({ id: doc.id }, doc.data())));
+                });
+                posts.sort(function (a, b) {
+                  var as = (a.datePosted && a.datePosted.seconds) ? a.datePosted.seconds : 0;
+                  var bs = (b.datePosted && b.datePosted.seconds) ? b.datePosted.seconds : 0;
+                  return bs - as;
+                });
+                return posts;
+              });
+          });
+      }
+
+      function renderArtistCards(posts) {
+        if (!artistsGrid) return;
+        var filtered = posts.filter(hasArtistTag);
+        if (!filtered.length) {
+          artistsGrid.innerHTML = '<p class="artists-grid-status artists-grid-status--empty">No artists to show yet.</p>';
+          setupRevealElements(artistsGrid.querySelectorAll(".artists-grid-status"), 0, 0);
+          updateBookingsPlacement();
+          return;
+        }
+
+        var html = filtered.map(function (post) {
+          var title = post.title || "Untitled";
+          var img = pickThumbnailFromWork(post) || PLACEHOLDER_IMAGE;
+          var href = "artist/?" + encodeURIComponent(slugifyTitle(title));
+          var category = (post.category && String(post.category).trim()) || "Artist";
+          var sub = truncate(getCardSubtitle(post), 120);
+          var subHtml = sub
+            ? "<p>" + escapeHtml(sub) + "</p>"
+            : "";
+          return (
+            '<a class="artist-card" href="' + escapeHtml(href) + '" aria-label="View ' + escapeHtml(title) + '">' +
+              '<img loading="lazy" src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '">' +
+              '<div class="artist-card__copy">' +
+                "<h2>" + escapeHtml(title) + "</h2>" +
+                "<p>" + escapeHtml(category) + "</p>" +
+                subHtml +
+              "</div>" +
+            "</a>"
+          );
+        }).join("");
+
+        artistsGrid.innerHTML = html;
+        setupRevealElements(artistsGrid.querySelectorAll("a.artist-card"), 130, 0);
+        updateBookingsPlacement();
+        requestAnimationFrame(function () {
+          updateBookingsPlacement();
+        });
+      }
+
+      function loadArtists() {
+        if (!artistsGrid) return;
+        if (!safeInitFirebase() || !window.firebase) {
+          artistsGrid.innerHTML = '<p class="artists-grid-status artists-grid-status--error">Artists could not be loaded. Please try again later.</p>';
+          setupRevealElements(artistsGrid.querySelectorAll(".artists-grid-status"), 0, 0);
+          updateBookingsPlacement();
+          return;
+        }
+
+        var db = firebase.firestore();
+        queryBlogPosts(db)
+          .then(function (posts) {
+            renderArtistCards(posts);
+          })
+          .catch(function () {
+            artistsGrid.innerHTML = '<p class="artists-grid-status artists-grid-status--error">Could not load artists.</p>';
+            setupRevealElements(artistsGrid.querySelectorAll(".artists-grid-status"), 0, 0);
+            updateBookingsPlacement();
+          });
       }
 
       updateBookingsPlacement();
-    });
-
-    const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const revealSelectors = [
-      [".artists-hero", 0],
-      [".artist-card", 130],
-      [".artists-bookings", 120],
-      [".site-footer .footer-block", 120]
-    ];
-
-    const revealElements = [];
-
-    revealSelectors.forEach(function ([selector, delayStep]) {
-      document.querySelectorAll(selector).forEach(function (element, index) {
-        element.classList.add("reveal-on-scroll");
-        element.style.setProperty("--reveal-delay", index * delayStep + "ms");
-        revealElements.push(element);
-      });
-    });
-
-    if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
-      revealElements.forEach(function (element) {
-        element.classList.add("is-visible");
-      });
-    } else {
-      const revealObserver = new IntersectionObserver(function (entries, observer) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      }, {
-        threshold: 0.14,
-        rootMargin: "0px 0px -8% 0px"
-      });
-
-      revealElements.forEach(function (element) {
-        revealObserver.observe(element);
-      });
-    }
-
-    window.addEventListener("resize", updateBookingsPlacement);
-    window.addEventListener("load", updateBookingsPlacement);
-    updateBookingsPlacement();
+      loadArtists();
+    })();
   </script>
 </body>
 </html>

@@ -382,10 +382,12 @@ export function updateDashboardTitle(title) {
 export function clearDashboard(message = "Select an item or create a new one.") {
     if (dashboardContentEl) dashboardContentEl.innerHTML = `<p class="placeholder-text">${escapeHTML(message)}</p>`;
     destroyAllQuillInstances();
+    document.dispatchEvent(new CustomEvent('cms-dashboard-cleared'));
 }
 
-export function displayItemsList(items, currentOpenItemID, onItemSelected) {
+export function displayItemsList(items, currentOpenItemID, onItemSelected, listOptions = {}) {
     if (!itemsListUl) return;
+    const { showBlogItemMenu, onBlogDuplicate, onBlogDelete } = listOptions;
     itemsListUl.innerHTML = '';
     if (!items || items.length === 0) {
         itemsListUl.innerHTML = '<li class="placeholder-text">No items yet.</li>';
@@ -393,22 +395,103 @@ export function displayItemsList(items, currentOpenItemID, onItemSelected) {
     }
     items.forEach(item => {
         const li = document.createElement('li');
-        // Ensure item.title and item.dataID exist before using slice
         const titleText = item.title || `Untitled (${item.dataID ? item.dataID.slice(-6) : 'New'})`;
-        li.textContent = titleText;
         if (item.dataID) li.dataset.id = item.dataID;
 
         if (item.dataID && item.dataID === currentOpenItemID) {
             li.classList.add('active');
         }
-        li.addEventListener('click', () => {
-            if (!item.dataID) {
-                 console.warn("Clicked item has no dataID, cannot select."); return;
-            }
-            document.querySelectorAll('#itemsList li.active').forEach(activeLi => activeLi.classList.remove('active'));
-            li.classList.add('active');
-            onItemSelected(item.dataID);
-        });
+
+        if (showBlogItemMenu && item.dataID) {
+            li.classList.add('items-list-item--with-menu');
+
+            const row = document.createElement('div');
+            row.className = 'items-list-item-row';
+
+            const titleBtn = document.createElement('button');
+            titleBtn.type = 'button';
+            titleBtn.className = 'items-list-item-title';
+            titleBtn.textContent = titleText;
+
+            const menuWrap = document.createElement('div');
+            menuWrap.className = 'items-list-menu-wrap';
+
+            const menuBtn = document.createElement('button');
+            menuBtn.type = 'button';
+            menuBtn.className = 'items-list-menu-trigger';
+            menuBtn.setAttribute('aria-label', 'Page options');
+            menuBtn.setAttribute('aria-haspopup', 'true');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.innerHTML = '<svg class="items-list-menu-trigger-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'items-list-dropdown';
+            dropdown.hidden = true;
+            dropdown.setAttribute('role', 'menu');
+
+            const dupBtn = document.createElement('button');
+            dupBtn.type = 'button';
+            dupBtn.className = 'items-list-dropdown-action';
+            dupBtn.textContent = 'Duplicate page';
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'items-list-dropdown-action items-list-dropdown-action--danger';
+            delBtn.textContent = 'Delete page';
+
+            dropdown.appendChild(dupBtn);
+            dropdown.appendChild(delBtn);
+            menuWrap.appendChild(menuBtn);
+            menuWrap.appendChild(dropdown);
+            row.appendChild(titleBtn);
+            row.appendChild(menuWrap);
+            li.appendChild(row);
+
+            titleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
+                itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+                if (!item.dataID) return;
+                document.querySelectorAll('#itemsList li.active').forEach(activeLi => activeLi.classList.remove('active'));
+                li.classList.add('active');
+                onItemSelected(item.dataID);
+            });
+
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const willOpen = dropdown.hidden;
+                itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
+                itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+                dropdown.hidden = !willOpen;
+                menuBtn.setAttribute('aria-expanded', String(willOpen));
+            });
+
+            dupBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.hidden = true;
+                menuBtn.setAttribute('aria-expanded', 'false');
+                if (typeof onBlogDuplicate === 'function') onBlogDuplicate(item.dataID);
+            });
+
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.hidden = true;
+                menuBtn.setAttribute('aria-expanded', 'false');
+                if (typeof onBlogDelete === 'function') onBlogDelete(item.dataID);
+            });
+        } else {
+            li.textContent = titleText;
+            li.addEventListener('click', () => {
+                if (!item.dataID) {
+                    console.warn('Clicked item has no dataID, cannot select.');
+                    return;
+                }
+                document.querySelectorAll('#itemsList li.active').forEach(activeLi => activeLi.classList.remove('active'));
+                li.classList.add('active');
+                onItemSelected(item.dataID);
+            });
+        }
+
         itemsListUl.appendChild(li);
     });
 }
@@ -462,7 +545,7 @@ function destroyAllQuillInstances() {
     quillInstances = {}; // Reset the store
 }
 
-export function initQuillEditor(editorContainerId, toolbarContainerId, initialContent = '') {
+export function initQuillEditor(editorContainerId, toolbarContainerId, initialContent = '', options = {}) {
     // Always use the default Quill toolbar (ignore toolbarContainerId)
     const editorElement = document.getElementById(editorContainerId);
     if (!editorElement) {
@@ -479,6 +562,15 @@ export function initQuillEditor(editorContainerId, toolbarContainerId, initialCo
         quill.root.innerHTML = initialContent;
     }
     quillInstances[editorContainerId] = quill; // Store the instance
+    if (options && options.trackPageDirty) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                quill.on('text-change', () => {
+                    document.dispatchEvent(new CustomEvent('cms-page-editor-dirty'));
+                });
+            });
+        });
+    }
     return quill;
 }
 
@@ -545,7 +637,8 @@ export function renderMediaDashboard(dataID, existingData = null, currentUserID)
         if (isVideo) {
             mediaElementHTML = `<video src="${escapeHTML(file.url)}" controls></video>`;
         } else if (isImage) {
-            mediaElementHTML = `<img src="${escapeHTML(file.url)}" alt="${escapeHTML(file.caption || 'media preview')}" onload="updateExistingImageInfo(this, ${index})">`;
+            const fsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+            mediaElementHTML = `<div class="media-preview-thumb-wrap"><img src="${escapeHTML(file.url)}" alt="${escapeHTML(file.caption || 'media preview')}" title="Click to view fullscreen" onload="updateExistingImageInfo(this, ${index})"><button type="button" class="media-preview-fullscreen-btn" aria-label="View fullscreen">${fsIcon}</button></div>`;
         } else if (isPdf) {
             // Canvas thumbnail container; rendered by admin PDF initializer in main.js (client-side)
             mediaElementHTML = `<canvas class="pdf-thumb-canvas" data-pdf-url="${escapeHTML(file.url)}" width="200" height="260" style="max-width:200px; max-height:260px;"></canvas>`;
@@ -636,6 +729,7 @@ export function renderMediaDashboard(dataID, existingData = null, currentUserID)
 // --- BLOG DASHBOARD ---
 export function renderBlogDashboard(dataID, existingData = null) {
     if (!dashboardContentEl) { console.error("Dashboard content element not found!"); return; }
+    document.dispatchEvent(new CustomEvent('cms-blog-dashboard-will-render'));
     const title = existingData ? existingData.title : '';
     const author = existingData ? existingData.author : '';
     const category = existingData ? existingData.category : '';
@@ -664,16 +758,25 @@ export function renderBlogDashboard(dataID, existingData = null) {
         <div class="dashboard-section blog-dashboard dashboard-with-sidebar">
             <div class="dashboard-main-content">
                 <div class="form-group">
-                    <label for="blogTitle">Blog Post Title:</label>
-                    <input type="text" id="blogTitle" value="${escapeHTML(title)}" placeholder="Enter blog title">
+                    <label for="blogTitle">Page title</label>
+                    <input type="text" id="blogTitle" value="${escapeHTML(title)}" placeholder="Title shown on your site">
                 </div>
-                <div class="form-group">
-                    <label>Data ID:</label>
-                    <div class="data-id-display">${escapeHTML(dataID)}</div>
-                </div>
+                <details class="data-id-disclosure">
+                    <summary class="data-id-disclosure-summary">
+                        <span class="data-id-disclosure-title">Advanced</span>
+                        <span class="data-id-disclosure-hint">Document ID (support &amp; integrations)</span>
+                    </summary>
+                    <div class="data-id-disclosure-body">
+                        <code class="data-id-code">${escapeHTML(dataID)}</code>
+                        <button type="button" class="btn btn-sm btn-secondary data-id-copy-btn" data-copy-text="${escapeHTML(dataID)}">Copy ID</button>
+                    </div>
+                </details>
                 <div class="blog-content-area">
                     <div class="blog-content-header">
-                        <h3>Blog Content</h3>
+                        <div class="blog-content-header-titles">
+                            <h3>Page content</h3>
+                            <span id="pageUnsavedIndicator" class="page-unsaved-badge" hidden>Unsaved changes</span>
+                        </div>
                         <button id="addBlogSectionBtn" class="btn btn-secondary">+ Add Section</button>
                     </div>
                     <div id="blogSectionsContainer" class="blog-sections-container">
@@ -682,58 +785,78 @@ export function renderBlogDashboard(dataID, existingData = null) {
                 </div>
             </div>
             <div class="dashboard-sidebar">
-                <div class="dashboard-sidebar-header">Page Settings:</div>
-                <div class="form-group">
-                    <label for="blogAuthor">Author:</label>
-                    <input type="text" id="blogAuthor" value="${escapeHTML(author)}" placeholder="Author name">
-                </div>
-                <div class="form-group">
-                    <label for="blogCategory">Category:</label>
-                    <input type="text" id="blogCategory" value="${escapeHTML(category)}" placeholder="Enter category">
-                </div>
-                <div class="form-group">
-                    <label for="blogExcerpt">Excerpt:</label>
-                    <textarea id="blogExcerpt" placeholder="Short description (optional - auto-generated if empty)">${escapeHTML(excerpt)}</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="blogFeaturedMedia">Featured Media:</label>
-                    <div class="featured-media-container" id="featuredMediaContainer">
-                        ${featuredMedia.url ? `
-                            <div class="featured-media-preview">
-                                ${createFeaturedMediaPreview(featuredMedia.url)}
-                            </div>
-                            <button class="btn btn-sm btn-secondary select-featured-media-btn">Change Featured Media</button>
-                        ` : `
-                            <div class="featured-media-placeholder">No featured media selected</div>
-                            <button class="btn btn-sm btn-primary select-featured-media-btn">Select Featured Media</button>
-                        `}
+                <div class="dashboard-sidebar-scroll">
+                    <div class="dashboard-sidebar-header">Page settings</div>
+                    <div class="dashboard-sidebar-section">
+                        <h4 class="dashboard-sidebar-section-title">Publishing</h4>
+                        <div class="form-group">
+                            <label for="blogAuthor">Author</label>
+                            <p class="form-field-hint">Displayed where your theme shows credit.</p>
+                            <input type="text" id="blogAuthor" value="${escapeHTML(author)}" placeholder="Author name">
+                        </div>
+                        <div class="form-group">
+                            <label for="blogDatePosted">Date posted</label>
+                            <p class="form-field-hint">Used for ordering and display on the site.</p>
+                            <input type="date" id="blogDatePosted" value="${datePostedValue}">
+                        </div>
                     </div>
-                    <div class="poster-image-container" id="posterImageContainer">
-                        <label for="blogPosterImage">Poster Image:</label>
-                        ${featuredMedia.poster ? `
-                            <div class="poster-image-preview">
-                                <img src="${escapeHTML(featuredMedia.poster)}" alt="Poster Image" style="max-width: 200px; max-height: 100px; object-fit: cover;">
-                            </div>
-                            <button class="btn btn-sm btn-secondary select-poster-image-btn">Change Poster Image</button>
-                        ` : `
-                            <div class="poster-image-placeholder">No poster image selected</div>
-                            <button class="btn btn-sm btn-primary select-poster-image-btn">Select Poster Image</button>
-                        `}
+                    <div class="dashboard-sidebar-section">
+                        <h4 class="dashboard-sidebar-section-title">Summary</h4>
+                        <div class="form-group">
+                            <label for="blogCategory">Category</label>
+                            <p class="form-field-hint">Helps group this page in listings and filters.</p>
+                            <input type="text" id="blogCategory" value="${escapeHTML(category)}" placeholder="e.g. Photographer">
+                        </div>
+                        <div class="form-group">
+                            <label for="blogExcerpt">Short excerpt</label>
+                            <p class="form-field-hint">Short blurb for cards and previews. You can leave this empty if your site fills it automatically.</p>
+                            <textarea id="blogExcerpt" placeholder="Optional short description">${escapeHTML(excerpt)}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="blogTags">Tags / keywords</label>
+                            <p class="form-field-hint">Comma-separated. Used for search and filtering where your site supports it.</p>
+                            <input type="text" id="blogTags" value="${escapeHTML(tags)}" placeholder="e.g. portrait, studio">
+                        </div>
                     </div>
-                    <input type="hidden" id="blogFeaturedMediaUrl" value="${escapeHTML(featuredMedia.url)}">
-                    <input type="hidden" id="blogFeaturedMediaPoster" value="${escapeHTML(featuredMedia.poster)}">
+                    <div class="dashboard-sidebar-section">
+                        <h4 class="dashboard-sidebar-section-title">Cover media</h4>
+                        <div class="form-group">
+                            <label for="blogFeaturedMedia">Featured media</label>
+                            <p class="form-field-hint">Main image or video for this page—often used on listing cards and social link previews.</p>
+                            <div class="featured-media-container" id="featuredMediaContainer">
+                                ${featuredMedia.url ? `
+                                    <div class="featured-media-preview">
+                                        ${createFeaturedMediaPreview(featuredMedia.url)}
+                                    </div>
+                                    <button class="btn btn-sm btn-secondary select-featured-media-btn">Change featured media</button>
+                                ` : `
+                                    <div class="featured-media-placeholder">No featured media selected</div>
+                                    <button class="btn btn-sm btn-primary select-featured-media-btn">Select featured media</button>
+                                `}
+                            </div>
+                            <div class="poster-image-container" id="posterImageContainer">
+                                <label for="blogPosterImage">Poster image</label>
+                                <p class="form-field-hint">Optional still shown before a video plays (thumbnail).</p>
+                                ${featuredMedia.poster ? `
+                                    <div class="poster-image-preview">
+                                        <img src="${escapeHTML(featuredMedia.poster)}" alt="Poster Image" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+                                    </div>
+                                    <button class="btn btn-sm btn-secondary select-poster-image-btn">Change poster image</button>
+                                ` : `
+                                    <div class="poster-image-placeholder">No poster image selected</div>
+                                    <button class="btn btn-sm btn-primary select-poster-image-btn">Select poster image</button>
+                                `}
+                            </div>
+                            <input type="hidden" id="blogFeaturedMediaUrl" value="${escapeHTML(featuredMedia.url)}">
+                            <input type="hidden" id="blogFeaturedMediaPoster" value="${escapeHTML(featuredMedia.poster)}">
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="blogTags">Tags/Keywords (comma-separated):</label>
-                    <input type="text" id="blogTags" value="${escapeHTML(tags)}" placeholder="e.g., tech, javascript, firebase">
-                </div>
-                <div class="form-group">
-                    <label for="blogDatePosted">Date Posted:</label>
-                    <input type="date" id="blogDatePosted" value="${datePostedValue}">
-                </div>
-                <div class="dashboard-actions">
-                    <button id="saveBlogBtn" class="btn btn-primary">Save Blog Post</button>
-                    ${!isNew ? `<button id="deleteBlogBtn" class="btn btn-danger">Delete Blog Post</button>` : ''}
+                <div class="dashboard-sidebar-sticky-footer">
+                    <div class="dashboard-actions">
+                        <button id="saveBlogBtn" class="btn btn-primary">Save page</button>
+                        ${!isNew ? `<button id="deleteBlogBtn" class="btn btn-danger">Delete page</button>` : ''}
+                    </div>
                 </div>
             </div>
         </div>
@@ -803,7 +926,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                         if (block.type === 'subtitle' || block.type === 'body') {
                             const editorContainer = document.getElementById(`${block.id}_editor`);
                             if (editorContainer) {
-                                initQuillEditor(editorContainer.id, undefined, block.content || '');
+                                initQuillEditor(editorContainer.id, undefined, block.content || '', { trackPageDirty: true });
                             }
                         } else if (block.type === 'media' && block.mediaId) {
                             // Load media content for media blocks
@@ -815,7 +938,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                                     uid = cu ? cu.uid : null;
                                 }
                                 if (uid) {
-                                    await loadMediaIntoBlock(block.id, block.mediaId, uid);
+                                    await loadMediaIntoBlock(block.id, block.mediaId, uid, block.mediaSettings || block.slideshowSettings || null);
                                 }
                             }, 50);
                         }
@@ -841,7 +964,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                     if (item.blockType === 'subtitle' || item.blockType === 'body') {
                         const editorContainer = document.getElementById(`${item.id}_editor`);
                         if (editorContainer) {
-                            initQuillEditor(editorContainer.id, undefined, item.content || '');
+                            initQuillEditor(editorContainer.id, undefined, item.content || '', { trackPageDirty: true });
                         }
                     } else if (item.blockType === 'media' && item.mediaId) {
                         // Load media content for media blocks
@@ -853,7 +976,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                                 uid = cu ? cu.uid : null;
                             }
                             if (uid) {
-                                await loadMediaIntoBlock(item.id, item.mediaId, uid);
+                                await loadMediaIntoBlock(item.id, item.mediaId, uid, item.mediaSettings || item.slideshowSettings || null);
                             }
                         }, 50);
                     }
@@ -877,7 +1000,15 @@ export function createBlogSectionHtml(sectionId, items = [], sectionIndex = null
             return createColumnGroupHtml(item.id, normalizedColumnGroup.columns);
         } else {
             // Single block
-            return createBlogBlockHtml(item.id, item.blockType || item.type, item.content, item.mediaId, item.layout, item.layoutRatio);
+            return createBlogBlockHtml(
+                item.id,
+                item.blockType || item.type,
+                item.content,
+                item.mediaId,
+                item.layout,
+                item.layoutRatio,
+                item.mediaSettings || item.slideshowSettings || null
+            );
         }
     }).join('');
 
@@ -907,8 +1038,235 @@ export function createBlogSectionHtml(sectionId, items = [], sectionIndex = null
     `;
 }
 
-export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = null, layout = 'full', layoutRatio = 50) {
-    const blockContent = createBlockContentHtml(blockId, blockType, content, mediaId);
+function sanitizeMediaBlockLinkValue(value) {
+    if (typeof value === 'string') return value.trim();
+    if (value && typeof value.url === 'string') return value.url.trim();
+    return '';
+}
+
+function isValidMediaBlockLinkValue(value) {
+    const trimmedValue = sanitizeMediaBlockLinkValue(value);
+    if (!trimmedValue) return true;
+    if (/^\s*javascript:/i.test(trimmedValue)) return false;
+
+    try {
+        const parsedUrl = new URL(trimmedValue, window.location.origin);
+        const hasExplicitProtocol = /^[a-z][a-z0-9+.-]*:/i.test(trimmedValue);
+
+        if (!hasExplicitProtocol) return true;
+
+        return ['http:', 'https:', 'mailto:', 'tel:'].includes(parsedUrl.protocol);
+    } catch (_) {
+        return false;
+    }
+}
+
+export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
+    const normalized = {
+        showCaptions: !!(settings && settings.showCaptions),
+        clickAction: settings && settings.clickAction === 'link' ? 'link' : 'preview',
+        openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
+        imageLinks: []
+    };
+
+    const rawLinks = Array.isArray(settings && settings.imageLinks) ? settings.imageLinks : [];
+    const linkCount = Math.max(Number(fileCount) || 0, rawLinks.length);
+
+    for (let i = 0; i < linkCount; i += 1) {
+        normalized.imageLinks.push(sanitizeMediaBlockLinkValue(rawLinks[i]));
+    }
+
+    if (fileCount > 0) {
+        normalized.imageLinks = normalized.imageLinks.slice(0, fileCount);
+    }
+
+    return normalized;
+}
+
+function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) {
+    const files = Array.isArray(mediaItem && mediaItem.files) ? mediaItem.files : [];
+    const isPhotoGallery = mediaItem && mediaItem.mediaType === 'photoGallery';
+    const imageFiles = files
+        .map((file, index) => ({ file, index }))
+        .filter(({ file }) => file && file.type && file.type.startsWith('image/'));
+
+    if (!isPhotoGallery || files.length <= 1 || !imageFiles.length) {
+        return '';
+    }
+
+    const normalizedSettings = normalizeMediaBlockSettings(mediaSettings, files.length);
+    const linkModeActive = normalizedSettings.clickAction === 'link';
+
+    const showCaptionsId = `${blockId}_showCaptions`;
+    const openLinksTabId = `${blockId}_openLinksNewTab`;
+    const clickActionId = `${blockId}_clickAction`;
+
+    return `
+        <div class="media-block-settings-panel" data-block-id="${blockId}">
+            <div class="media-block-settings-header">
+                <h4>Slideshow</h4>
+                <p>These options apply to this gallery on the live work page.</p>
+            </div>
+
+            <div class="media-block-settings-stack">
+                <div class="media-setting-toggle-row">
+                    <div class="media-setting-toggle-row__copy">
+                        <span class="media-setting-label" id="${showCaptionsId}_label">Caption below each image</span>
+                        <span class="media-setting-hint">Text comes from each file’s caption in Media.</span>
+                    </div>
+                    <label class="media-switch" for="${showCaptionsId}">
+                        <input
+                            type="checkbox"
+                            id="${showCaptionsId}"
+                            class="media-show-captions-toggle media-switch__input"
+                            aria-labelledby="${showCaptionsId}_label"
+                            ${normalizedSettings.showCaptions ? 'checked' : ''}
+                        >
+                        <span class="media-switch__track" aria-hidden="true"></span>
+                        <span class="media-switch__state" aria-hidden="true">
+                            <span class="media-switch__off">Off</span>
+                            <span class="media-switch__on">On</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="media-block-field media-block-field--full">
+                    <label class="media-field-label" for="${clickActionId}">When someone clicks an image</label>
+                    <select id="${clickActionId}" class="media-click-action-select">
+                        <option value="preview" ${normalizedSettings.clickAction === 'preview' ? 'selected' : ''}>Open lightbox (full-screen slideshow)</option>
+                        <option value="link" ${normalizedSettings.clickAction === 'link' ? 'selected' : ''}>Open a link (set a URL per image below)</option>
+                    </select>
+                </div>
+
+                <div class="media-setting-toggle-row media-open-links-row ${linkModeActive ? '' : 'is-hidden'}">
+                    <div class="media-setting-toggle-row__copy">
+                        <span class="media-setting-label" id="${openLinksTabId}_label">Open links in a new tab</span>
+                        <span class="media-setting-hint">Only applies when images use links.</span>
+                    </div>
+                    <label class="media-switch" for="${openLinksTabId}">
+                        <input
+                            type="checkbox"
+                            id="${openLinksTabId}"
+                            class="media-open-links-toggle media-switch__input"
+                            aria-labelledby="${openLinksTabId}_label"
+                            ${normalizedSettings.openLinksInNewTab ? 'checked' : ''}
+                        >
+                        <span class="media-switch__track" aria-hidden="true"></span>
+                        <span class="media-switch__state" aria-hidden="true">
+                            <span class="media-switch__off">Off</span>
+                            <span class="media-switch__on">On</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="media-link-settings ${linkModeActive ? '' : 'is-hidden'}">
+                <div class="media-link-settings-header">
+                    <strong>Link per image</strong>
+                    <span>Leave blank so that image stays non-clickable.</span>
+                </div>
+                <div class="media-link-list">
+                    ${imageFiles.map(({ file, index }, imageNumber) => `
+                        <label class="media-link-item">
+                            <span class="media-link-item-label">Image ${imageNumber + 1}</span>
+                            <span class="media-link-item-caption">${escapeHTML(file.caption || 'No caption set')}</span>
+                            <input
+                                type="text"
+                                class="media-link-input"
+                                data-file-index="${index}"
+                                value="${escapeHTML(normalizedSettings.imageLinks[index] || '')}"
+                                placeholder="/page-path or https://example.com/page"
+                                autocomplete="off"
+                            >
+                            <span class="media-link-validation-message"></span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+export function collectMediaBlockSettings(blockEl) {
+    if (!blockEl) return null;
+
+    const settingsContainer = blockEl.querySelector('.media-block-settings');
+    const fileCount = settingsContainer ? Number(settingsContainer.dataset.fileCount || 0) : 0;
+    if (!settingsContainer || !fileCount || !settingsContainer.querySelector('.media-block-settings-panel')) return null;
+
+    const showCaptionsToggle = settingsContainer.querySelector('.media-show-captions-toggle');
+    const clickActionSelect = settingsContainer.querySelector('.media-click-action-select');
+    const openLinksToggle = settingsContainer.querySelector('.media-open-links-toggle');
+    const linkInputs = settingsContainer.querySelectorAll('.media-link-input');
+
+    const imageLinks = new Array(fileCount).fill('');
+    linkInputs.forEach((input) => {
+        const fileIndex = Number(input.dataset.fileIndex);
+        if (Number.isNaN(fileIndex) || fileIndex < 0 || fileIndex >= fileCount) return;
+        imageLinks[fileIndex] = sanitizeMediaBlockLinkValue(input.value);
+    });
+
+    return normalizeMediaBlockSettings({
+        showCaptions: !!(showCaptionsToggle && showCaptionsToggle.checked),
+        clickAction: clickActionSelect ? clickActionSelect.value : 'preview',
+        openLinksInNewTab: !!(openLinksToggle && openLinksToggle.checked),
+        imageLinks
+    }, fileCount);
+}
+
+export function syncMediaBlockSettingsUi(blockEl) {
+    if (!blockEl) return;
+
+    const settingsContainer = blockEl.querySelector('.media-block-settings');
+    if (!settingsContainer) return;
+
+    const clickActionSelect = settingsContainer.querySelector('.media-click-action-select');
+    const openLinksRow = settingsContainer.querySelector('.media-open-links-row');
+    const linkSettings = settingsContainer.querySelector('.media-link-settings');
+    const previewItems = blockEl.querySelectorAll('.media-preview-gallery-item');
+    const linkInputs = settingsContainer.querySelectorAll('.media-link-input');
+    const linkModeActive = !!clickActionSelect && clickActionSelect.value === 'link';
+
+    if (openLinksRow) openLinksRow.classList.toggle('is-hidden', !linkModeActive);
+    if (linkSettings) linkSettings.classList.toggle('is-hidden', !linkModeActive);
+
+    linkInputs.forEach((input) => {
+        const value = sanitizeMediaBlockLinkValue(input.value);
+        const isValid = !linkModeActive || isValidMediaBlockLinkValue(value);
+        const message = input.closest('.media-link-item')?.querySelector('.media-link-validation-message');
+
+        input.value = value;
+        input.setCustomValidity(isValid ? '' : 'Enter a valid URL or page path.');
+        input.classList.toggle('is-invalid', !isValid && !!value);
+
+        if (message) {
+            message.textContent = !value || isValid ? '' : 'Enter a valid URL or page path.';
+        }
+    });
+
+    previewItems.forEach((item) => {
+        const fileIndex = Number(item.dataset.fileIndex);
+        const input = settingsContainer.querySelector('.media-link-input[data-file-index="' + fileIndex + '"]');
+        const linked = !!(linkModeActive && input && sanitizeMediaBlockLinkValue(input.value) && input.checkValidity());
+        let badge = item.querySelector('.media-preview-gallery-linked-badge');
+
+        item.classList.toggle('is-linked', linked);
+
+        if (linked) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'media-preview-gallery-badge media-preview-gallery-linked-badge';
+                badge.textContent = 'Linked';
+                item.appendChild(badge);
+            }
+        } else if (badge && badge.parentNode) {
+            badge.parentNode.removeChild(badge);
+        }
+    });
+}
+
+export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = null, layout = 'full', layoutRatio = 50, mediaSettings = null) {
+    const blockContent = createBlockContentHtml(blockId, blockType, content, mediaId, mediaSettings);
     const layoutClass = layout === 'full' ? 'block-full-width' : 'block-split-layout';
     const layoutStyle = layout !== 'full' ? `style="width: ${layoutRatio}%;"` : '';
     
@@ -948,7 +1306,7 @@ export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = 
                 uid = cu ? cu.uid : null;
             }
             if (uid) {
-                await loadMediaIntoBlock(blockId, mediaId, uid);
+                await loadMediaIntoBlock(blockId, mediaId, uid, mediaSettings);
             }
         }, 10);
     }
@@ -1010,7 +1368,7 @@ export function createColumnGroupHtml(groupId, columnsOrLeftColumn = [], rightCo
     `;
 }
 
-function createBlockContentHtml(blockId, blockType, content = '', mediaId = null) {
+function createBlockContentHtml(blockId, blockType, content = '', mediaId = null, mediaSettings = null) {
     switch (blockType) {
         case 'subtitle':
             return `
@@ -1031,6 +1389,11 @@ function createBlockContentHtml(blockId, blockType, content = '', mediaId = null
                         <div class="media-content-preview" id="media-preview-${blockId}">
                             <div class="media-placeholder">Loading media...</div>
                         </div>
+                        <div
+                            class="media-block-settings"
+                            id="media-settings-${blockId}"
+                            data-file-count="${Array.isArray(mediaSettings && mediaSettings.imageLinks) ? mediaSettings.imageLinks.length : 0}"
+                        ></div>
                         <button class="btn btn-sm btn-secondary select-media-btn">Change Media</button>
                     </div>
                 `;
@@ -1038,6 +1401,7 @@ function createBlockContentHtml(blockId, blockType, content = '', mediaId = null
                 return `
                     <div class="block-media-container">
                         <div class="media-placeholder">No media selected</div>
+                        <div class="media-block-settings" id="media-settings-${blockId}" data-file-count="0"></div>
                         <button class="btn btn-sm btn-primary select-media-btn">Select Media</button>
                     </div>
                 `;
@@ -1178,7 +1542,7 @@ function createFeaturedMediaPreview(mediaUrl) {
     }
 }
 
-export function createMediaPreviewHtml(mediaItem) {
+export function createMediaPreviewHtml(mediaItem, mediaSettings = null) {
     const files = mediaItem.files || [];
     const firstFile = files[0];
     if (!firstFile) return '<div class="media-placeholder">No media preview available</div>';
@@ -1191,24 +1555,45 @@ export function createMediaPreviewHtml(mediaItem) {
     let previewHtml = '';
     
     if (isPhotoGallery && files.length > 1) {
-        // Create a mini slideshow preview for photo galleries
-        const slideshowId = `mini-slideshow-${mediaItem.dataID}`;
+        const normalizedSettings = normalizeMediaBlockSettings(mediaSettings, files.length);
+        const linkModeActive = normalizedSettings.clickAction === 'link';
         previewHtml = `
-            <div class="media-preview-slideshow" id="${slideshowId}">
+            <div class="media-preview-gallery">
+                <div class="media-preview-gallery-meta">${files.length} items</div>
+                <div class="media-preview-gallery-grid">
                 ${files.map((file, index) => {
-                    const activeClass = index === 0 ? 'active' : '';
                     const fileIsImage = file.type && file.type.startsWith('image/');
                     const fileIsVideo = file.type && file.type.startsWith('video/');
+                    const hasLinkedUrl = !!(
+                        linkModeActive &&
+                        fileIsImage &&
+                        normalizedSettings.imageLinks[index] &&
+                        isValidMediaBlockLinkValue(normalizedSettings.imageLinks[index])
+                    );
                     
                     if (fileIsImage) {
-                        return `<img src="${file.url}" alt="${escapeHTML(file.caption || mediaItem.title)}" class="media-preview-slide ${activeClass}">`;
+                        return `
+                            <div class="media-preview-gallery-item ${hasLinkedUrl ? 'is-linked' : ''}" data-file-index="${index}">
+                                <img src="${file.url}" alt="${escapeHTML(file.caption || mediaItem.title)}" class="media-preview-gallery-image">
+                                ${hasLinkedUrl ? '<span class="media-preview-gallery-badge media-preview-gallery-linked-badge">Linked</span>' : ''}
+                            </div>
+                        `;
                     } else if (fileIsVideo) {
-                        return `<video src="${file.url}" class="media-preview-slide ${activeClass}" muted></video>`;
+                        return `
+                            <div class="media-preview-gallery-item media-preview-gallery-item-video" data-file-index="${index}">
+                                <video src="${file.url}" class="media-preview-gallery-image" muted playsinline preload="metadata"></video>
+                                <span class="media-preview-gallery-badge">Video</span>
+                            </div>
+                        `;
                     } else {
-                        return `<div class="media-preview-slide ${activeClass} media-placeholder">Unsupported file type</div>`;
+                        return `
+                            <div class="media-preview-gallery-item media-preview-gallery-item-unsupported" data-file-index="${index}">
+                                <div class="media-placeholder">Unsupported file type</div>
+                            </div>
+                        `;
                     }
                 }).join('')}
-                <div class="slideshow-counter">${files.length} items</div>
+                </div>
             </div>
         `;
     } else if (isVideo) {
@@ -1246,8 +1631,9 @@ window.updateExistingImageInfo = function(imgElement, fileIndex) {
 };
 
 // Function to load media content into a media block
-export async function loadMediaIntoBlock(blockId, mediaId, currentUserID) {
+export async function loadMediaIntoBlock(blockId, mediaId, currentUserID, mediaSettings = null) {
     const previewContainer = document.getElementById(`media-preview-${blockId}`);
+    const settingsContainer = document.getElementById(`media-settings-${blockId}`);
     if (!previewContainer) return;
     
     try {
@@ -1258,17 +1644,31 @@ export async function loadMediaIntoBlock(blockId, mediaId, currentUserID) {
         const docSnap = await getItemById(currentUserID, mediaId);
         if (docSnap.exists) {
             const mediaData = docSnap.data();
-            const mediaPreviewHtml = createMediaPreviewHtml({
+            const mediaItem = {
                 dataID: mediaId,
                 ...mediaData
-            });
+            };
+            const mediaPreviewHtml = createMediaPreviewHtml(mediaItem, mediaSettings);
             previewContainer.innerHTML = mediaPreviewHtml;
+            if (settingsContainer) {
+                settingsContainer.dataset.fileCount = Array.isArray(mediaItem.files) ? String(mediaItem.files.length) : '0';
+                settingsContainer.innerHTML = createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings);
+            }
+            syncMediaBlockSettingsUi(document.querySelector(`[data-block-id="${blockId}"]`));
         } else {
             previewContainer.innerHTML = '<div class="media-placeholder">Media not found</div>';
+            if (settingsContainer) {
+                settingsContainer.dataset.fileCount = '0';
+                settingsContainer.innerHTML = '';
+            }
         }
     } catch (error) {
         console.error('Error loading media into block:', error);
         previewContainer.innerHTML = '<div class="media-placeholder">Error loading media</div>';
+        if (settingsContainer) {
+            settingsContainer.dataset.fileCount = '0';
+            settingsContainer.innerHTML = '';
+        }
     }
 }
 
@@ -1326,6 +1726,7 @@ function initializeBlogDragAndDrop() {
         document.querySelectorAll('.dragging').forEach(el => {
             el.classList.remove('dragging');
         });
+        document.dispatchEvent(new CustomEvent('cms-page-editor-dirty'));
     });
 }
 
@@ -1383,6 +1784,7 @@ export function initializeColumnGroupDragDrop(columnGroup) {
             if (dropIndicator) {
                 dropIndicator.style.display = 'none';
             }
+            document.dispatchEvent(new CustomEvent('cms-page-editor-dirty'));
         });
     });
 

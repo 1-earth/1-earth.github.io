@@ -18,6 +18,39 @@ let effectiveUserEmail = null;
 let userDirectoryList = [];
 const COLUMN_GROUP_MIN_WIDTH = 10;
 
+function itemTypeDisplayName(itemType) {
+    if (itemType === 'blog') return 'Page';
+    if (!itemType) return 'item';
+    return itemType.charAt(0).toUpperCase() + itemType.slice(1);
+}
+
+function dataTypeListTitle(dataType) {
+    const labels = { text: 'Text', media: 'Media', blog: 'Pages', calendar: 'Calendar' };
+    const base = labels[dataType] || (dataType ? dataType.charAt(0).toUpperCase() + dataType.slice(1) : 'Items');
+    return `${base} items`;
+}
+
+function dataTypeCreateLabel(dataType) {
+    const labels = { text: 'Text', media: 'Media', blog: 'Page', calendar: 'Calendar' };
+    return labels[dataType] || (dataType ? dataType.charAt(0).toUpperCase() + dataType.slice(1) : 'Item');
+}
+
+/** True when the page editor has unsaved edits (same condition as the visible “Unsaved changes” badge). */
+let pageEditorHasUnsavedChanges = false;
+
+function clearPageDashboardDirty() {
+    pageEditorHasUnsavedChanges = false;
+    const badge = document.getElementById('pageUnsavedIndicator');
+    if (badge) badge.hidden = true;
+}
+
+function markPageDashboardDirty() {
+    if (!document.querySelector('.blog-dashboard')) return;
+    pageEditorHasUnsavedChanges = true;
+    const badge = document.getElementById('pageUnsavedIndicator');
+    if (badge) badge.hidden = false;
+}
+
 // --- DOM Elements ---
 const dataTypesNav = document.getElementById('dataTypesNav');
 const createNewItemBtn = document.getElementById('createNewItemBtn');
@@ -146,10 +179,12 @@ function setupEventListeners() {
                 currentOpenItemDataID = null; // Clear open item when changing type
                 currentItemDataCache = null;
 
-                const typeLabel = selectedDataType.charAt(0).toUpperCase() + selectedDataType.slice(1);
-                ui.updateItemsListTitle(`${typeLabel} Items`);
-                ui.setNewItemButtonText(typeLabel);
-                ui.clearDashboard(`Select a ${selectedDataType} item or create a new one.`);
+                ui.updateItemsListTitle(dataTypeListTitle(selectedDataType));
+                ui.setNewItemButtonText(dataTypeCreateLabel(selectedDataType));
+                const pickPhrase = selectedDataType === 'blog'
+                    ? 'Select a page or create a new one.'
+                    : `Select a ${selectedDataType} item or create a new one.`;
+                ui.clearDashboard(pickPhrase);
                 loadItemsForType(selectedDataType);
             }
         });
@@ -159,11 +194,58 @@ function setupEventListeners() {
         createNewItemBtn.addEventListener('click', handleCreateNewItem);
     }
 
+    document.addEventListener('click', () => {
+        if (!itemsListUl) return;
+        itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
+        itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+    });
+
+    setupMediaImageLightbox();
+
     // Event delegation for dashboard actions (save, delete, media uploads etc.)
     if (dashboardContentEl) {
         dashboardContentEl.addEventListener('click', handleDashboardActions);
         dashboardContentEl.addEventListener('change', handleDashboardChanges);
+        dashboardContentEl.addEventListener('input', (e) => {
+            if (e.target.closest('.blog-dashboard')) {
+                markPageDashboardDirty();
+            }
+        });
     }
+
+    document.addEventListener('cms-page-editor-dirty', () => {
+        if (document.querySelector('.blog-dashboard')) {
+            markPageDashboardDirty();
+        }
+    });
+
+    document.addEventListener('cms-blog-dashboard-will-render', () => {
+        clearPageDashboardDirty();
+    });
+
+    document.addEventListener('cms-dashboard-cleared', () => {
+        clearPageDashboardDirty();
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+        if (!pageEditorHasUnsavedChanges) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && itemsListUl) {
+            itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
+            itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+            const saveBlogBtn = document.getElementById('saveBlogBtn');
+            if (saveBlogBtn && document.querySelector('.blog-dashboard')) {
+                e.preventDefault();
+                saveBlogBtn.click();
+            }
+        }
+    });
 }
 
 function getTargetUserId() {
@@ -215,6 +297,21 @@ function handleDashboardChanges(e) {
     else if (e.target.classList.contains('column-width-slider')) {
         handleColumnWidthChange(e.target);
     }
+    else if (
+        e.target.classList.contains('media-click-action-select') ||
+        e.target.classList.contains('media-show-captions-toggle') ||
+        e.target.classList.contains('media-open-links-toggle') ||
+        e.target.classList.contains('media-link-input')
+    ) {
+        const blockEl = e.target.closest('.blog-block');
+        if (blockEl) {
+            ui.syncMediaBlockSettingsUi(blockEl);
+        }
+    }
+
+    if (e.target.closest('.blog-dashboard')) {
+        markPageDashboardDirty();
+    }
 
 }
 
@@ -229,7 +326,14 @@ async function loadItemsForType(dataType) {
         querySnapshot.forEach(doc => {
             items.push({ dataID: doc.id, ...doc.data() });
         });
-        ui.displayItemsList(items, currentOpenItemDataID, handleItemSelected);
+        const listOpts = selectedDataType === 'blog'
+            ? {
+                showBlogItemMenu: true,
+                onBlogDuplicate: handleDuplicateBlogItem,
+                onBlogDelete: handleDeleteBlogFromList
+            }
+            : {};
+        ui.displayItemsList(items, currentOpenItemDataID, handleItemSelected, listOpts);
     } catch (error) {
         console.error(`Error loading ${dataType} items:`, error);
         ui.showPopup(`Error loading ${dataType} items: ${error.message}`);
@@ -237,6 +341,51 @@ async function loadItemsForType(dataType) {
     } finally {
         ui.showLoading(false);
     }
+}
+
+async function handleDuplicateBlogItem(sourceDataID) {
+    if (!currentUser || !sourceDataID) return;
+    ui.showLoading(true);
+    try {
+        const targetUid = getTargetUserId();
+        const newId = await fsService.duplicateBlogFromSource(targetUid, sourceDataID);
+        await loadItemsForType(selectedDataType);
+        await handleItemSelected(newId);
+        ui.showPopup('Duplicate page created. You can edit it below.', 'alert');
+    } catch (error) {
+        console.error('handleDuplicateBlogItem:', error);
+        ui.showPopup('Could not duplicate: ' + (error.message || String(error)));
+    } finally {
+        ui.showLoading(false);
+    }
+}
+
+function handleDeleteBlogFromList(dataID) {
+    if (!currentUser || !dataID) return;
+    ui.showPopup(
+        'Are you sure you want to delete this page? This action cannot be undone.',
+        'confirm',
+        async () => {
+            ui.showLoading(true);
+            try {
+                const targetUid = getTargetUserId();
+                await fsService.deleteItem(targetUid, dataID);
+                if (currentOpenItemDataID === dataID) {
+                    currentOpenItemDataID = null;
+                    currentItemDataCache = null;
+                    ui.clearDashboard();
+                }
+                ui.showPopup('Page deleted successfully!', 'alert', () => {
+                    loadItemsForType(selectedDataType);
+                });
+            } catch (error) {
+                console.error('handleDeleteBlogFromList:', error);
+                ui.showPopup('Error deleting: ' + error.message);
+            } finally {
+                ui.showLoading(false);
+            }
+        }
+    );
 }
 
 async function handleItemSelected(dataID) {
@@ -294,7 +443,7 @@ async function handleCreateNewItem() {
         const targetUid = getTargetUserId();
         const newId = await fsService.generateNewDataID(targetUid, selectedDataType);
         currentOpenItemDataID = newId; // Set for saving
-        const typeLabel = selectedDataType.charAt(0).toUpperCase() + selectedDataType.slice(1);
+        const typeLabel = dataTypeCreateLabel(selectedDataType);
         ui.updateDashboardTitle(`New ${typeLabel}`);
         ui.setActiveItemInList(null); // Deselect any active item in list
 
@@ -317,7 +466,70 @@ async function handleCreateNewItem() {
 }
 
 // --- Dashboard Actions (Event Delegation) ---
+let mediaImageLightboxKeyHandler = null;
+
+function setupMediaImageLightbox() {
+    const root = document.getElementById('mediaImageLightbox');
+    const imgEl = document.getElementById('mediaImageLightboxImg');
+    const closeBtn = root && root.querySelector('.media-image-lightbox-close');
+    if (!root || !imgEl || !closeBtn) return;
+
+    function closeMediaImageLightbox() {
+        root.hidden = true;
+        root.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        imgEl.removeAttribute('src');
+        imgEl.alt = '';
+        if (mediaImageLightboxKeyHandler) {
+            document.removeEventListener('keydown', mediaImageLightboxKeyHandler);
+            mediaImageLightboxKeyHandler = null;
+        }
+    }
+
+    function openMediaImageLightbox(src, altText) {
+        if (!src) return;
+        imgEl.src = src;
+        imgEl.alt = altText || '';
+        root.hidden = false;
+        root.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        closeBtn.focus();
+        mediaImageLightboxKeyHandler = (ev) => {
+            if (ev.key === 'Escape') {
+                ev.preventDefault();
+                closeMediaImageLightbox();
+            }
+        };
+        document.addEventListener('keydown', mediaImageLightboxKeyHandler);
+    }
+
+    closeBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        closeMediaImageLightbox();
+    });
+
+    window.openMediaImageLightbox = openMediaImageLightbox;
+    window.closeMediaImageLightbox = closeMediaImageLightbox;
+}
+
 function handleDashboardActions(e) {
+    const copyIdBtn = e.target.closest('.data-id-copy-btn');
+    if (copyIdBtn && copyIdBtn.dataset.copyText != null) {
+        const text = String(copyIdBtn.dataset.copyText);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                const prev = copyIdBtn.textContent;
+                copyIdBtn.textContent = 'Copied!';
+                setTimeout(() => { copyIdBtn.textContent = prev; }, 1600);
+            }).catch(() => {
+                ui.showPopup('Could not copy to clipboard.');
+            });
+        } else {
+            ui.showPopup('Clipboard not available in this browser.');
+        }
+        return;
+    }
+
     if (!currentUser || !currentOpenItemDataID) {
         // Potentially show a message if trying to act without context
         // console.warn("No user or open item for dashboard action.");
@@ -366,7 +578,23 @@ function handleDashboardActions(e) {
     else if (e.target.classList.contains('add-column-block-btn')) handleAddColumnBlock(e.target);
     else if (e.target.classList.contains('remove-column-btn')) handleRemoveColumn(e.target);
 
-    // Media Specific
+    // Media Specific — fullscreen preview (thumb wrap: saved + new uploads)
+    else if (e.target.closest('.media-preview-fullscreen-btn')) {
+        const wrap = e.target.closest('.media-preview-thumb-wrap');
+        const img = wrap && wrap.querySelector('img');
+        if (img && wrap.closest('.media-preview-item') && window.openMediaImageLightbox) {
+            window.openMediaImageLightbox(img.currentSrc || img.src, img.alt || '');
+            return;
+        }
+    }
+    else if (e.target.tagName === 'IMG') {
+        const wrap = e.target.closest('.media-preview-thumb-wrap');
+        const mediaItem = e.target.closest('.media-preview-item');
+        if (mediaItem && wrap && wrap.parentElement === mediaItem && window.openMediaImageLightbox) {
+            window.openMediaImageLightbox(e.target.currentSrc || e.target.src, e.target.alt || '');
+            return;
+        }
+    }
     else if (e.target.id === 'mediaUploadDropzone' || e.target.closest('#mediaUploadDropzone')) {
         document.getElementById('mediaFileUpload').click();
     }
@@ -397,6 +625,19 @@ function handleDashboardActions(e) {
             openResizeModal(fileIndex);
         } else if (file && file.type.startsWith('video/')) {
             openVideoResizeModal(fileIndex);
+        }
+    }
+
+    const blogRoot = dashboardContentEl && dashboardContentEl.querySelector('.blog-dashboard');
+    if (blogRoot && blogRoot.contains(e.target)) {
+        if (e.target.closest('.data-id-copy-btn')) return;
+        if (e.target.closest('.ql-toolbar, .ql-picker-options')) {
+            markPageDashboardDirty();
+            return;
+        }
+        const btn = e.target.closest('button');
+        if (btn && btn.id !== 'saveBlogBtn' && btn.id !== 'deleteBlogBtn') {
+            markPageDashboardDirty();
         }
     }
 }
@@ -433,8 +674,22 @@ async function handleSaveText() {
 }
 
 async function handleSaveBlog() {
-    const title = validateField('blogTitle', 'Title');
+    const title = validateField('blogTitle', 'Page title');
     if (!title) return;
+
+    const titleInput = document.getElementById('blogTitle');
+    try {
+        const targetUid = getTargetUserId();
+        const duplicateId = await fsService.findDuplicatePageTitle(targetUid, title, currentOpenItemDataID);
+        if (duplicateId) {
+            ui.displayErrorNearElement(titleInput, 'Another page already uses this title. Choose a different name.');
+            return;
+        }
+    } catch (err) {
+        console.error('findDuplicatePageTitle:', err);
+        ui.showPopup('Could not verify the title. Check your connection and try again.');
+        return;
+    }
 
     const author = document.getElementById('blogAuthor').value.trim();
     const category = document.getElementById('blogCategory').value.trim();
@@ -460,10 +715,21 @@ async function handleSaveBlog() {
         return;
     }
 
+    dashboardContentEl.querySelectorAll('.blog-block').forEach((blockEl) => {
+        ui.syncMediaBlockSettingsUi(blockEl);
+    });
+
+    const invalidMediaLinkInput = dashboardContentEl.querySelector('.media-link-input:invalid');
+    if (invalidMediaLinkInput) {
+        invalidMediaLinkInput.reportValidity();
+        invalidMediaLinkInput.focus();
+        return;
+    }
+
     // Collect all sections and blocks data
     const sections = collectBlogSectionsData();
     if (!sections || sections.length === 0) {
-        ui.showPopup("Please add at least one section with content to your blog post.");
+        ui.showPopup("Please add at least one section with content to this page.");
         return;
     }
 
@@ -562,6 +828,7 @@ function extractBlockData(blockEl, index) {
     
     let content = '';
     let mediaId = null;
+    let mediaSettings = null;
     let embedData = null;
     
     if (blockType === 'subtitle' || blockType === 'body') {
@@ -574,6 +841,7 @@ function extractBlockData(blockEl, index) {
         if (mediaElement) {
             mediaId = mediaElement.dataset.mediaId;
         }
+        mediaSettings = ui.collectMediaBlockSettings(blockEl);
     } else if (blockType === 'embed') {
         // Get both the previewed embed data and the raw URL input
         embedData = ui.getEmbedBlockData(blockId);
@@ -604,6 +872,7 @@ function extractBlockData(blockEl, index) {
         type: blockType,
         content: content,
         mediaId: mediaId,
+        mediaSettings: mediaSettings,
         embedData: embedData,
         layout: layout,
         layoutRatio: parseFloat(layoutRatio),
@@ -677,7 +946,7 @@ function handleAddBlogBlock(target) {
     // Initialize Quill editor for the new block
     const editorContainer = blocksContainer.querySelector(`#${blockId}_editor`);
     if (editorContainer) {
-        ui.initQuillEditor(editorContainer.id, undefined, '');
+        ui.initQuillEditor(editorContainer.id, undefined, '', { trackPageDirty: true });
     }
 }
 
@@ -715,6 +984,7 @@ function handleDuplicateBlogBlock(target) {
     
     let content = '';
     let mediaId = null;
+    let mediaSettings = null;
     
     if (blockType === 'subtitle' || blockType === 'body') {
         const editorContainer = blockEl.querySelector('.block-editor-container');
@@ -726,16 +996,17 @@ function handleDuplicateBlogBlock(target) {
         if (mediaElement) {
             mediaId = mediaElement.dataset.mediaId;
         }
+        mediaSettings = ui.collectMediaBlockSettings(blockEl);
     }
     
-    const blockHtml = ui.createBlogBlockHtml(newBlockId, blockType, content, mediaId, layout, layoutRatio);
+    const blockHtml = ui.createBlogBlockHtml(newBlockId, blockType, content, mediaId, layout, layoutRatio, mediaSettings);
     blockEl.insertAdjacentHTML('afterend', blockHtml);
     
     // Initialize Quill editor for the duplicated block if needed
     if (blockType === 'subtitle' || blockType === 'body') {
         const editorContainer = document.getElementById(`${newBlockId}_editor`);
         if (editorContainer) {
-            ui.initQuillEditor(editorContainer.id, undefined, content);
+            ui.initQuillEditor(editorContainer.id, undefined, content, { trackPageDirty: true });
         }
     }
 }
@@ -757,7 +1028,7 @@ function handleBlockTypeChange(target) {
     if (newType === 'subtitle' || newType === 'body') {
         const editorContainer = document.getElementById(`${blockId}_editor`);
         if (editorContainer) {
-            ui.initQuillEditor(editorContainer.id, undefined, '');
+            ui.initQuillEditor(editorContainer.id, undefined, '', { trackPageDirty: true });
         }
     }
 }
@@ -771,19 +1042,22 @@ async function handleSelectMediaForBlock(target) {
         ui.showMediaSelector(mediaItems, async (selectedMedia) => {
             const mediaContainer = blockEl.querySelector('.block-media-container');
             if (mediaContainer) {
+                const existingMediaSettings = ui.collectMediaBlockSettings(blockEl);
                 // Update the media container structure to match the expected format
                 const blockId = blockEl.dataset.blockId;
                 mediaContainer.innerHTML = `
                     <div class="media-content-preview" id="media-preview-${blockId}">
                         <div class="media-placeholder">Loading media...</div>
                     </div>
+                    <div class="media-block-settings" id="media-settings-${blockId}" data-file-count="0"></div>
                     <button class="btn btn-sm btn-secondary select-media-btn">Change Media</button>
                 `;
                 mediaContainer.dataset.mediaId = selectedMedia.dataID;
                 
                 // Load the actual media content
                 const targetUid = getTargetUserId();
-                await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, targetUid);
+                await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, targetUid, existingMediaSettings);
+                markPageDashboardDirty();
             }
         });
     } catch (error) {
@@ -849,6 +1123,7 @@ async function handleSelectFeaturedMedia(target) {
                 if (posterImageContainer) {
                     posterImageContainer.style.display = 'block';
                 }
+                markPageDashboardDirty();
             }
         });
     } catch (error) {
@@ -897,6 +1172,7 @@ async function handleSelectPosterImage(target) {
                     posterImageContainer.appendChild(existingLabel);
                 }
                 posterImageContainer.insertAdjacentHTML('beforeend', posterPreviewHtml);
+                markPageDashboardDirty();
             }
         });
     } catch (error) {
@@ -1117,7 +1393,7 @@ function handleAddColumnBlock(target) {
     // Initialize Quill editor for the new block
     const editorContainer = columnContent.querySelector(`#${blockId}_editor`);
     if (editorContainer) {
-        ui.initQuillEditor(editorContainer.id, undefined, '');
+        ui.initQuillEditor(editorContainer.id, undefined, '', { trackPageDirty: true });
     }
 }
 
@@ -1280,7 +1556,7 @@ async function _saveItemToFirestore(itemData) {
     try {
         const targetUid = getTargetUserId();
         await fsService.saveItem(targetUid, currentOpenItemDataID, itemData);
-        ui.showPopup(`${itemData.type.charAt(0).toUpperCase() + itemData.type.slice(1)} saved successfully!`, 'alert', () => {
+        ui.showPopup(`${itemTypeDisplayName(itemData.type)} saved successfully!`, 'alert', () => {
             loadItemsForType(selectedDataType); // Refresh list in column 2
              // Update dashboard title if it was a new item or title changed
             if (itemData.title !== (currentItemDataCache ? currentItemDataCache.title : '')) {
@@ -1303,7 +1579,7 @@ async function handleDeleteItem(itemType) {
     if (!currentUser || !currentOpenItemDataID) return;
 
     ui.showPopup(
-        `Are you sure you want to delete this ${itemType}? This action cannot be undone.`,
+        `Are you sure you want to delete this ${itemType === 'blog' ? 'page' : itemType}? This action cannot be undone.`,
         'confirm',
         async () => { // onConfirm
             ui.showLoading(true);
@@ -1323,7 +1599,7 @@ async function handleDeleteItem(itemType) {
                     // await Promise.all(deletePromises);
                 }
                 await fsService.deleteItem(targetUid, currentOpenItemDataID);
-                ui.showPopup(`${itemType.charAt(0).toUpperCase() + itemType.slice(1)} deleted successfully!`, 'alert', () => {
+                ui.showPopup(`${itemTypeDisplayName(itemType)} deleted successfully!`, 'alert', () => {
                     currentOpenItemDataID = null;
                     currentItemDataCache = null;
                     ui.clearDashboard();
@@ -1456,14 +1732,25 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
         const reader = new FileReader();
         let previewElement;
         if (file.type.startsWith('image/')) {
-            previewElement = document.createElement('img');
+            const thumbWrap = document.createElement('div');
+            thumbWrap.className = 'media-preview-thumb-wrap';
+            const imgEl = document.createElement('img');
+            imgEl.title = 'Click to view fullscreen';
+            const fsBtn = document.createElement('button');
+            fsBtn.type = 'button';
+            fsBtn.className = 'media-preview-fullscreen-btn';
+            fsBtn.setAttribute('aria-label', 'View fullscreen');
+            fsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+            thumbWrap.appendChild(imgEl);
+            thumbWrap.appendChild(fsBtn);
             reader.onload = async (e) => {
-                previewElement.src = e.target.result;
-                previewElement.onload = () => {
-                    const { width, height } = previewElement;
+                imgEl.src = e.target.result;
+                imgEl.onload = () => {
+                    const { width, height } = imgEl;
                     updateImageInfo(previewItem, file, width, height);
                 };
             };
+            previewElement = thumbWrap;
         } else if (file.type.startsWith('video/')) {
             previewElement = document.createElement('div');
             previewElement.style.position = 'relative';
@@ -1539,9 +1826,7 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
             previewElement.textContent = `Preview not available for ${file.name}`;
         }
         if (file.type.startsWith('image/')) {
-            if (previewElement.src !== undefined) {
-                reader.readAsDataURL(file);
-            }
+            reader.readAsDataURL(file);
         }
         previewItem.appendChild(previewElement);
         const infoDiv = document.createElement('div');
@@ -2482,8 +2767,8 @@ function initResize(e) {
         
         // Get constraints from CSS
         const computedStyle = window.getComputedStyle(targetColumn);
-        const minWidth = parseInt(computedStyle.minWidth) || 150;
-        const maxWidth = parseInt(computedStyle.maxWidth) || 500;
+        const minWidth = parseInt(computedStyle.minWidth, 10) || 100;
+        const maxWidth = parseInt(computedStyle.maxWidth, 10) || 500;
         
         // Apply constraints
         newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));

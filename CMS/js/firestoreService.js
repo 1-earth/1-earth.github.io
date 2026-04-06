@@ -86,6 +86,99 @@ export async function getItemById(userId, dataID) {
     return db.collection('users').doc(userId).collection('items').doc(dataID).get();
 }
 
+/**
+ * Returns the document ID of another page (type blog) with the same title after trim,
+ * compared case-insensitively, or null if the title is unique for this user.
+ * @param {string} excludeDataID - Current item when editing; omit for new items.
+ */
+export async function findDuplicatePageTitle(userId, title, excludeDataID) {
+    const normalized = String(title || '').trim().toLowerCase();
+    if (!normalized) return null;
+    const snap = await getItemsByType(userId, 'blog');
+    let conflictId = null;
+    snap.forEach((doc) => {
+        if (conflictId) return;
+        if (excludeDataID && doc.id === excludeDataID) return;
+        const t = String((doc.data() && doc.data().title) || '').trim().toLowerCase();
+        if (t === normalized) conflictId = doc.id;
+    });
+    return conflictId;
+}
+
+function escapeRegex(str) {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Strip trailing " #123" for duplicate title grouping. */
+function stemPageTitle(title) {
+    return String(title || '').replace(/\s*#\d+\s*$/i, '').trim();
+}
+
+/**
+ * Next unique title for a duplicate: "My Page" -> "My Page #2", then "#3", etc.
+ */
+export async function computeNextDuplicateBlogTitle(userId, sourceTitle) {
+    const snap = await getItemsByType(userId, 'blog');
+    const titles = [];
+    snap.forEach((doc) => {
+        titles.push(String((doc.data() && doc.data().title) || '').trim());
+    });
+    let stem = stemPageTitle(sourceTitle);
+    if (!stem) stem = 'Untitled';
+    const exactStem = new RegExp('^' + escapeRegex(stem) + '$', 'i');
+    const numbered = new RegExp('^' + escapeRegex(stem) + '\\s*#(\\d+)\\s*$', 'i');
+    let maxIdx = 0;
+    for (let i = 0; i < titles.length; i++) {
+        const t = titles[i];
+        if (!t) continue;
+        if (exactStem.test(t)) maxIdx = Math.max(maxIdx, 1);
+        const m = t.match(numbered);
+        if (m) maxIdx = Math.max(maxIdx, parseInt(m[1], 10) || 0);
+    }
+    return stem + ' #' + (maxIdx + 1);
+}
+
+/**
+ * Deep-copy a blog/page item to a new document id and sequenced title (#2, #3, …).
+ * @returns {Promise<string>} new document id
+ */
+export async function duplicateBlogFromSource(userId, sourceDataID) {
+    const snap = await getItemById(userId, sourceDataID);
+    if (!snap.exists) throw new Error('Source page not found');
+    const d = snap.data() || {};
+    if (d.type !== 'blog') throw new Error('Not a page item');
+
+    const newTitle = await computeNextDuplicateBlogTitle(userId, d.title || '');
+    const conflict = await findDuplicatePageTitle(userId, newTitle, null);
+    if (conflict) throw new Error('Could not assign a unique title; try again.');
+
+    const newId = await generateNewDataID(userId, 'blog');
+
+    let featuredMedia = d.featuredMedia;
+    if (!featuredMedia && d.featuredImage) {
+        featuredMedia = { url: d.featuredImage, poster: '' };
+    }
+    if (featuredMedia && typeof featuredMedia === 'object') {
+        featuredMedia = { url: featuredMedia.url || '', poster: featuredMedia.poster || '' };
+    }
+
+    const itemData = {
+        type: 'blog',
+        title: newTitle,
+        author: d.author != null ? d.author : '',
+        category: d.category != null ? d.category : '',
+        excerpt: d.excerpt != null ? d.excerpt : '',
+        featuredMedia: featuredMedia && (featuredMedia.url || featuredMedia.poster) ? featuredMedia : null,
+        tags: d.tags != null ? d.tags : '',
+        datePosted: d.datePosted,
+        sections: d.sections ? JSON.parse(JSON.stringify(d.sections)) : [],
+    };
+    if (d.content) itemData.content = d.content;
+
+    await saveItem(userId, newId, itemData);
+    return newId;
+}
+
 export async function deleteItem(userId, dataID) {
     const db = getDbInstance();
     return db.collection('users').doc(userId).collection('items').doc(dataID).delete();

@@ -59,7 +59,7 @@
             <h2>Data Types</h2>
             <button class="btn data-type-btn" data-type="text">Text</button>
             <button class="btn data-type-btn" data-type="media">Media</button>
-            <button class="btn data-type-btn" data-type="blog">Blog</button>
+            <button class="btn data-type-btn" data-type="blog">Pages</button>
             <button class="btn data-type-btn" data-type="calendar">Calendar</button>
         </nav>
         
@@ -98,6 +98,11 @@
             <h2>Rotate your device</h2>
             <p>Please rotate your phone to landscape for the best editing experience.</p>
         </div>
+    </div>
+
+    <div id="mediaImageLightbox" class="media-image-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Fullscreen image preview">
+        <button type="button" class="media-image-lightbox-close btn" aria-label="Close fullscreen image">Close</button>
+        <img id="mediaImageLightboxImg" class="media-image-lightbox-img" alt="">
     </div>
 
     <script src="firebase-config.js"></script>

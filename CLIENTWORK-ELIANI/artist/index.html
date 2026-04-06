@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist | Eliani Studios</title>
+  <link rel="icon" type="image/png" href="../static/assets/logo 2.png">
+  <link rel="apple-touch-icon" href="../static/assets/logo 2.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Baskervville:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:wght@400;500&family=Geist:wght@400;500&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../static/assets/styles.css">
+  <link rel="canonical" href="https://1-earth.github.io/CLIENTWORK-ELIANI/artist/">
+  <meta name="description" content="Artists at Eliani Studios.">
+  <meta property="og:site_name" content="Eliani Studios">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Artists | Eliani Studios">
+  <meta property="og:description" content="Artists at Eliani Studios.">
+  <meta property="og:url" content="https://1-earth.github.io/CLIENTWORK-ELIANI/artist/">
+  <meta property="og:image" content="https://1-earth.github.io/CLIENTWORK-ELIANI/static/assets/placeholder2.png">
+  <meta property="og:image:alt" content="Eliani Studios artists">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Artists | Eliani Studios">
+  <meta name="twitter:description" content="Artists at Eliani Studios.">
+  <meta name="twitter:image" content="https://1-earth.github.io/CLIENTWORK-ELIANI/static/assets/placeholder2.png">
+  <style>
+    .eliani-work-page {
+      background: var(--page-bg);
+    }
+
+    body.eliani-viewer-open {
+      overflow: hidden;
+    }
+
+    .eliani-work-shell {
+      width: min(100%, 1440px);
+      margin: 0 auto;
+      padding: 0 clamp(1.4rem, 4vw, 3rem) clamp(4rem, 6vw, 5rem);
+    }
+
+    .eliani-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin: 1.6rem 0 1.2rem;
+      font-family: "Geist", sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-bottom: 1px solid currentColor;
+    }
+
+    .eliani-work-status,
+    .eliani-work-intro,
+    .eliani-related-section {
+      background: rgba(255, 255, 255, 0.48);
+      border: 1px solid rgba(38, 35, 32, 0.1);
+      border-radius: 28px;
+      backdrop-filter: blur(6px);
+    }
+
+    .eliani-work-status {
+      padding: clamp(2rem, 4vw, 3rem);
+      text-align: center;
+    }
+
+    .eliani-kicker {
+      margin: 0 0 0.9rem;
+      font-family: "Geist", sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted-text);
+    }
+
+    .eliani-work-status h1,
+    .eliani-work-hero-copy h1,
+    .eliani-related-heading h2 {
+      margin: 0;
+      font-family: "Aboreto", serif;
+      font-size: clamp(2rem, 4vw, 4.2rem);
+      font-weight: 400;
+      line-height: 0.96;
+      text-transform: uppercase;
+    }
+
+    .eliani-work-status p,
+    .eliani-work-intro p,
+    .eliani-related-card p,
+    .blog-body-frontend,
+    .blog-media-caption {
+      margin: 0;
+      color: var(--muted-text);
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.2rem, 1.7vw, 1.58rem);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .eliani-work-layout {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .eliani-work-hero {
+      position: relative;
+      min-height: min(74vh, 820px);
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+      border-radius: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      overflow: hidden;
+    }
+
+    .eliani-work-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top, rgba(38, 35, 32, 0.42), rgba(38, 35, 32, 0.08) 35%, rgba(38, 35, 32, 0.18));
+    }
+
+    .eliani-work-hero-copy {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: calc(var(--header-offset) + 2rem) 1.5rem 3rem;
+      color: #fffdf8;
+    }
+
+    .eliani-work-hero-inner {
+      width: min(100%, 860px);
+    }
+
+    .eliani-work-hero h1 {
+      color: inherit;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.24);
+    }
+
+    .eliani-work-hero-copy .eliani-kicker,
+    .eliani-work-hero-copy .eliani-work-date {
+      color: rgba(255, 253, 248, 0.95);
+    }
+
+    .eliani-work-hero-meta {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+      margin-top: 0.7rem;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1rem, 1.6vw, 1.35rem);
+      line-height: 1.1;
+      letter-spacing: 0.02em;
+    }
+
+    .eliani-work-intro {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: clamp(2rem, 4vw, 3rem);
+      text-align: center;
+    }
+
+    .eliani-work-intro p {
+      max-width: 34ch;
+      margin: 0 auto;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.32;
+      color: var(--text-color);
+    }
+
+    .eliani-work-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem 1rem;
+      align-items: center;
+      margin: 1.2rem 0 1rem;
+    }
+
+    .eliani-work-date {
+      font-family: "Geist", sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted-text);
+    }
+
+    .eliani-tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .eliani-tag {
+      padding: 0.5rem 0.8rem;
+      border: 1px solid rgba(38, 35, 32, 0.18);
+      border-radius: 999px;
+      font-family: "Geist", sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-color);
+      background: rgba(255, 252, 247, 0.82);
+    }
+
+    .eliani-work-body {
+      display: grid;
+      gap: 1.4rem;
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .eliani-related-section {
+      overflow: hidden;
+      border-radius: 28px;
+    }
+
+    .blog-section-frontend,
+    .blog-block-frontend {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .blog-subtitle-frontend {
+      font-family: "Baskervville", serif;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      line-height: 1.15;
+      color: var(--text-color);
+      border-bottom: 1px solid rgb(38, 35, 32);
+      text-align: center;
+    }
+
+    .blog-subtitle-frontend p {
+      margin: 0;
+    }
+
+    .blog-body-frontend p {
+      margin: 0 0 1rem;
+    }
+
+    .blog-body-frontend p:last-child {
+      margin-bottom: 0;
+    }
+
+    .blog-media-frontend,
+    .blog-embed-frontend,
+    .blog-column-group-frontend {
+      width: 100%;
+    }
+
+    .blog-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.95rem;
+    }
+
+    .blog-gallery-item {
+      appearance: none;
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      text-align: left;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .blog-gallery-trigger,
+    .blog-gallery-link {
+      cursor: pointer;
+    }
+
+    .blog-gallery-static {
+      cursor: default;
+    }
+
+    .blog-gallery-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1.25;
+      object-fit: cover;
+      border-radius: 0;
+      display: block;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+
+    .blog-media-frontend .blog-gallery-item img {
+      border-radius: 0;
+    }
+
+    .blog-gallery-trigger:hover img,
+    .blog-gallery-trigger:focus-visible img,
+    .blog-gallery-link:hover img,
+    .blog-gallery-link:focus-visible img {
+      transform: scale(0.985);
+      opacity: 0.94;
+    }
+
+    .blog-gallery-caption {
+      margin: 0.6rem 0 0;
+      text-align: left;
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: rgba(38, 35, 32, 0.82);
+    }
+
+    .blog-media-frontend img,
+    .blog-media-frontend video {
+      width: 100%;
+      display: block;
+      /* border-radius: 24px; */
+      background: rgba(38, 35, 32, 0.06);
+      object-fit: cover;
+      max-height: 84vh;
+    }
+
+    .blog-media-caption {
+      padding-top: 0.75rem;
+      text-align: center;
+      font-size: 1.02rem;
+    }
+
+    .embed-container {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      overflow: hidden;
+      /* border-radius: 24px; */
+      background: rgba(38, 35, 32, 0.08);
+    }
+
+    .embed-container iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .blog-column-group-frontend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .blog-column-frontend {
+      min-width: min(100%, 280px);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .eliani-related-section {
+      padding: clamp(1.8rem, 4vw, 3rem);
+      margin-top: 1rem;
+      max-width: 1120px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .eliani-related-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.4rem;
+    }
+
+    .eliani-related-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .eliani-related-card {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .eliani-related-card-media img {
+      width: 100%;
+      aspect-ratio: 1.08 / 1;
+      object-fit: cover;
+      /* border-radius: 22px; */
+    }
+
+    .eliani-related-card h3 {
+      margin: 0;
+      font-family: "Baskervville", serif;
+      font-size: clamp(1.12rem, 1.8vw, 1.65rem);
+      font-weight: 400;
+      line-height: 1.05;
+    }
+
+    .eliani-related-card .eliani-kicker {
+      margin-bottom: 0.45rem;
+      font-size: 0.72rem;
+    }
+
+    .eliani-pager {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-top: 1.6rem;
+    }
+
+    .eliani-pager-btn {
+      appearance: none;
+      border: 1px solid rgba(38, 35, 32, 0.22);
+      background: rgba(255, 252, 247, 0.82);
+      color: var(--text-color);
+      border-radius: 999px;
+      padding: 0.9rem 1.25rem;
+      font-family: "Geist", sans-serif;
+      font-size: 0.76rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .eliani-pager-btn:hover,
+    .eliani-pager-btn:focus-visible {
+      background: rgba(146, 170, 121, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .eliani-pager-btn[hidden] {
+      display: none;
+    }
+
+    .eliani-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: none;
+      background: rgba(14, 13, 11, 0.105);
+      backdrop-filter: blur(27px);
+    }
+
+    .eliani-viewer.is-open {
+      display: block;
+    }
+
+    .eliani-viewer-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 1rem;
+      padding: 1rem 1rem 1.2rem;
+    }
+
+    .eliani-viewer-close,
+    .eliani-viewer-nav {
+      appearance: none;
+      border: 1px solid rgba(255, 253, 248, 0.3);
+      background: rgba(255, 252, 247, 0.08);
+      color: #fffdf8;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .eliani-viewer-close:hover,
+    .eliani-viewer-close:focus-visible,
+    .eliani-viewer-nav:hover,
+    .eliani-viewer-nav:focus-visible {
+      background: rgba(255, 252, 247, 0.16);
+      border-color: rgba(255, 253, 248, 0.52);
+      transform: translateY(-1px);
+    }
+
+    .eliani-viewer-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 2;
+      width: 46px;
+      height: 46px;
+      border-radius: 999px;
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .eliani-viewer-stage {
+      position: relative;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .eliani-viewer-viewport {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 4.75rem 1rem;
+    }
+
+    .eliani-viewer-media {
+      max-width: min(100%, 1180px);
+      max-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .eliani-viewer-media img {
+      display: block;
+      width: auto;
+      height: calc(100vh - 11rem);
+      max-width: 50vw;
+      max-height: calc(100vh - 11rem);
+      object-fit: contain;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+    }
+
+    .eliani-viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2;
+      width: 60px;
+      height: 42px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Geist", sans-serif;
+      font-size: 1rem;
+      line-height: 1;
+      letter-spacing: 0.08em;
+      opacity: 0.9;
+    }
+
+    .eliani-viewer-nav--prev {
+      left: 1rem;
+    }
+
+    .eliani-viewer-nav--prev::before,
+    .eliani-viewer-nav--next::before {
+      display: block;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.55rem;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    .eliani-viewer-nav--prev::before {
+      content: "←";
+    }
+
+    .eliani-viewer-nav--next {
+      right: 1rem;
+    }
+
+    .eliani-viewer-nav--next::before {
+      content: "→";
+    }
+
+    .eliani-viewer-footer {
+      display: grid;
+      gap: 0.75rem;
+      align-self: end;
+    }
+
+    .eliani-viewer-caption {
+      min-height: 1.4rem;
+      margin: 0;
+      text-align: center;
+      color: rgba(255, 253, 248, 0.92);
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+      line-height: 1.2;
+    }
+
+    .eliani-viewer-thumbs {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      overflow-x: auto;
+      padding-bottom: 0.2rem;
+      scrollbar-width: thin;
+    }
+
+    .eliani-viewer-thumb {
+      appearance: none;
+      padding: 0;
+      border: 2px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      flex: 0 0 auto;
+      opacity: 0.72;
+      transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .eliani-viewer-thumb.is-active {
+      border-color: rgba(255, 253, 248, 0.9);
+      opacity: 1;
+    }
+
+    .eliani-viewer-thumb:hover,
+    .eliani-viewer-thumb:focus-visible {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    .eliani-viewer-thumb img {
+      width: 54px;
+      height: 54px;
+      display: block;
+      object-fit: cover;
+    }
+
+    @media (max-width: 980px) {
+      .blog-gallery-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .eliani-related-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .blog-column-group-frontend {
+        flex-direction: column;
+      }
+
+      .blog-column-frontend {
+        width: 100% !important;
+        flex-basis: 100% !important;
+      }
+
+      .eliani-viewer-viewport {
+        padding-left: 4rem;
+        padding-right: 4rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .eliani-work-shell {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .eliani-work-status,
+      .eliani-work-intro,
+      .eliani-related-section {
+        border-radius: 22px;
+      }
+
+      .eliani-work-hero {
+        min-height: 56vh;
+      }
+
+      .eliani-work-hero-copy {
+        padding-top: calc(var(--header-offset) + 1.5rem);
+        padding-bottom: 2rem;
+      }
+
+      .blog-gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+      }
+
+      .blog-media-frontend img,
+      .blog-media-frontend video,
+      .embed-container,
+      .eliani-related-card-media img {
+        border-radius: 18px;
+      }
+
+      .eliani-pager {
+        flex-direction: column;
+      }
+
+      .eliani-pager-btn {
+        width: 100%;
+      }
+
+      .eliani-viewer-inner {
+        padding: 0.75rem 0.75rem 1rem;
+      }
+
+      .eliani-viewer-close {
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 42px;
+        height: 42px;
+      }
+
+      .eliani-viewer-nav {
+        width: 50px;
+        height: 38px;
+      }
+
+      .eliani-viewer-nav--prev {
+        left: 0.4rem;
+      }
+
+      .eliani-viewer-nav--next {
+        right: 0.4rem;
+      }
+
+      .eliani-viewer-viewport {
+        padding: 3.5rem 2.8rem 0.5rem;
+      }
+
+      .eliani-viewer-media img {
+        width: auto;
+        height: calc(100vh - 12rem);
+        max-width: 80vw;
+        max-height: calc(100vh - 12rem);
+      }
+
+      .eliani-viewer-thumb img {
+        width: 46px;
+        height: 46px;
+      }
+    }
+  </style>
+</head>
+<body class="header-parallax-page eliani-work-page">
+  <div class="page">
+    <header class="site-header">
+      <a class="site-logo" href="../index.html" aria-label="Eliani home">
+        <img src="../static/assets/logo 2.png" alt="Eliani logo">
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-menu" aria-label="Open menu">
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+        <span class="menu-toggle-line"></span>
+      </button>
+
+      <nav class="site-nav" id="primary-menu" aria-label="Primary">
+        <a href="../index.html">Home</a>
+        <a href="../about.html">About</a>
+        <a href="../artists.html">Artists</a>
+        <a href="../contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <div class="menu-backdrop" aria-hidden="true"></div>
+
+    <main class="eliani-work-shell">
+      <!-- <a class="eliani-back-link" href="../index.html">&#8592; Back to home</a> -->
+      <div id="artist-content" class="eliani-work-layout" aria-live="polite">
+        <section class="eliani-work-status">
+          <p class="eliani-kicker">Loading</p>
+          <h1>Preparing artist profile.</h1>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-block">
+        <h3>Follow Us</h3>
+        <a href="https://www.instagram.com/elianistudios/" target="_blank" rel="noreferrer">Instagram</a>
+        <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">LinkedIn</a>
+      </div>
+
+      <div class="footer-block footer-contact">
+        <h3>Contact Us</h3>
+        <a href="mailto:hello@elianistudios.com">hello@elianistudios.com</a>
+        <p>182 high street north, London, e6 2ja, UK</p>
+      </div>
+    </footer>
+  </div>
+
+  <div class="eliani-viewer" id="eliani-gallery-viewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div class="eliani-viewer-inner">
+      <button class="eliani-viewer-close" type="button" aria-label="Close viewer">&times;</button>
+      <div class="eliani-viewer-stage">
+        <button class="eliani-viewer-nav eliani-viewer-nav--prev" type="button" aria-label="Previous image">&#8249;</button>
+        <div class="eliani-viewer-viewport" id="eliani-gallery-viewport">
+          <div class="eliani-viewer-media">
+            <img id="eliani-gallery-image" src="" alt="">
+          </div>
+        </div>
+        <button class="eliani-viewer-nav eliani-viewer-nav--next" type="button" aria-label="Next image">&#8250;</button>
+      </div>
+      <div class="eliani-viewer-footer">
+        <p class="eliani-viewer-caption" id="eliani-gallery-caption"></p>
+        <div class="eliani-viewer-thumbs" id="eliani-gallery-thumbs" aria-label="Gallery thumbnails"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var menuButton = document.querySelector(".menu-toggle");
+      var siteNav = document.querySelector(".site-nav");
+      var menuBackdrop = document.querySelector(".menu-backdrop");
+      var mobileBreakpoint = window.matchMedia("(max-width: 980px)");
+
+      if (!menuButton || !siteNav || !menuBackdrop) return;
+
+      function setMenuState(isOpen) {
+        document.body.classList.toggle("menu-open", isOpen);
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+        menuButton.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
+      }
+
+      menuButton.addEventListener("click", function () {
+        var isOpen = menuButton.getAttribute("aria-expanded") !== "true";
+        setMenuState(isOpen);
+      });
+
+      menuBackdrop.addEventListener("click", function () {
+        setMenuState(false);
+      });
+
+      siteNav.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          if (mobileBreakpoint.matches) {
+            setMenuState(false);
+          }
+        });
+      });
+
+      function handleMobileBreakpointChange(event) {
+        if (!event.matches) {
+          setMenuState(false);
+        }
+      }
+
+      if (typeof mobileBreakpoint.addEventListener === "function") {
+        mobileBreakpoint.addEventListener("change", handleMobileBreakpointChange);
+      } else if (typeof mobileBreakpoint.addListener === "function") {
+        mobileBreakpoint.addListener(handleMobileBreakpointChange);
+      }
+    })();
+  </script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    (function () {
+      var TARGET_USER_UID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2";
+      var PLACEHOLDER_IMAGE = "../static/assets/placeholder2.png";
+      var galleryStore = {};
+      var galleryCount = 0;
+      var firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
+
+      function safeInitFirebase() {
+        try {
+          if (!window.firebase) return false;
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          return true;
+        } catch (_) {
+          return !!window.firebase;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function parseCsv(csv) {
+        if (!csv) return [];
+        return String(csv).split(",").map(function (part) {
+          return part.trim();
+        }).filter(Boolean);
+      }
+
+      function getTagsArray(post) {
+        var raw = post && (post.tags != null ? post.tags : post.keywords);
+        if (raw == null) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(function (t) {
+            return String(t).trim();
+          }).filter(Boolean);
+        }
+        return parseCsv(raw);
+      }
+
+      function hasArtistTag(post) {
+        return getTagsArray(post).some(function (tag) {
+          return String(tag).trim().toLowerCase() === "artist";
+        });
+      }
+
+      function isVideoUrl(url) {
+        return /\.(mp4|webm|ogg|mov|m4v|avi)(?:$|[?#])/i.test((url || "").split("?")[0]);
+      }
+
+      function isImageUrl(url) {
+        return /\.(png|jpe?g|webp|gif|avif|svg)(?:$|[?#])/i.test((url || "").split("?")[0]);
+      }
+
+      function setMeta(selector, attr, value) {
+        if (!value) return;
+        var el = document.querySelector(selector);
+        if (!el) {
+          el = document.createElement(selector.indexOf("link") === 0 ? "link" : "meta");
+          if (selector.indexOf('property="') !== -1) {
+            el.setAttribute("property", selector.match(/property="([^"]+)"/)[1]);
+          } else if (selector.indexOf('name="') !== -1) {
+            el.setAttribute("name", selector.match(/name="([^"]+)"/)[1]);
+          } else if (selector.indexOf('rel="') !== -1) {
+            el.setAttribute("rel", selector.match(/rel="([^"]+)"/)[1]);
+          }
+          document.head.appendChild(el);
+        }
+        el.setAttribute(attr, value);
+      }
+
+      function normalizeWork(work) {
+        if (!work) return work;
+        if (!work.featuredMedia && work.featuredImage) {
+          work.featuredMedia = { url: work.featuredImage };
+        }
+        return work;
+      }
+
+      function textFromHtml(html) {
+        if (!html) return "";
+        var div = document.createElement("div");
+        div.innerHTML = html;
+        return (div.textContent || div.innerText || "").replace(/\s+/g, " ").trim();
+      }
+
+      function sanitizeRichText(html) {
+        if (!html) return "";
+        var template = document.createElement("template");
+        template.innerHTML = String(html);
+        var blocked = template.content.querySelectorAll("script, style, iframe, object, embed, link, meta");
+        blocked.forEach(function (node) {
+          if (node.parentNode) node.parentNode.removeChild(node);
+        });
+        var elements = template.content.querySelectorAll("*");
+        elements.forEach(function (element) {
+          Array.prototype.slice.call(element.attributes).forEach(function (attr) {
+            var name = attr.name.toLowerCase();
+            var value = attr.value || "";
+            if (name.indexOf("on") === 0) {
+              element.removeAttribute(attr.name);
+            }
+            if ((name === "href" || name === "src") && /^\s*javascript:/i.test(value)) {
+              element.removeAttribute(attr.name);
+            }
+          });
+        });
+        return template.innerHTML;
+      }
+
+      function getArtistBasePath() {
+        var path = window.location.pathname || "/CLIENTWORK-ELIANI/artist/";
+        return /\/$/.test(path) ? path : path + "/";
+      }
+
+      function slugifyTitle(title) {
+        return String(title || "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .replace(/[^A-Za-z0-9-]/g, "")
+          .replace(/-+/g, "-");
+      }
+
+      function normalizeSlug(value) {
+        return slugifyTitle(value).toLowerCase();
+      }
+
+      function buildArtistHref(post) {
+        return getArtistBasePath() + "?" + encodeURIComponent(slugifyTitle(post && post.title));
+      }
+
+      function getArtistSlugFromLocation() {
+        var search = window.location.search || "";
+        var raw = search.charAt(0) === "?" ? search.slice(1) : search;
+        if (!raw) return "";
+        try {
+          var params = new URLSearchParams(raw);
+          var paramSlug = params.get("title") || params.get("id");
+          if (paramSlug) return paramSlug;
+        } catch (_) {}
+        if (raw.indexOf("=") === -1 && raw.indexOf("&") === -1) {
+          try {
+            return decodeURIComponent(raw);
+          } catch (_) {
+            return raw;
+          }
+        }
+        return "";
+      }
+
+      function renderStatus(kicker, heading, copy) {
+        return '' +
+          '<section class="eliani-work-status">' +
+            '<p class="eliani-kicker">' + escapeHtml(kicker) + '</p>' +
+            '<h1>' + escapeHtml(heading) + '</h1>' +
+            '<p>' + escapeHtml(copy) + '</p>' +
+          '</section>';
+      }
+
+      function renderMediaFromUrl(url, caption, poster) {
+        var safeCaption = escapeHtml(caption || "");
+        if (!url) {
+          return '<div class="blog-media-frontend"><img class="blog-media-img" src="' + escapeHtml(PLACEHOLDER_IMAGE) + '" alt="Placeholder image"><p class="blog-media-caption">Imagery coming soon.</p></div>';
+        }
+        if (isVideoUrl(url)) {
+          var posterAttr = poster ? ' poster="' + escapeHtml(poster) + '"' : "";
+          return '<div class="blog-media-frontend"><video class="blog-media-video" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline></video>' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+        }
+        return '<div class="blog-media-frontend"><img class="blog-media-img" loading="lazy" src="' + escapeHtml(url) + '" alt="' + (safeCaption || "Artist") + '">' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+      }
+
+      function normalizeGallerySettings(settings, fileCount) {
+        var normalized = {
+          showCaptions: !!(settings && settings.showCaptions),
+          clickAction: settings && settings.clickAction === "link" ? "link" : "preview",
+          openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
+          imageLinks: []
+        };
+        var rawLinks = Array.isArray(settings && settings.imageLinks) ? settings.imageLinks : [];
+        var linkCount = Math.max(Number(fileCount) || 0, rawLinks.length);
+        for (var i = 0; i < linkCount; i++) {
+          normalized.imageLinks.push(String(rawLinks[i] || "").trim());
+        }
+        if (fileCount > 0) {
+          normalized.imageLinks = normalized.imageLinks.slice(0, fileCount);
+        }
+        return normalized;
+      }
+
+      function normalizeGalleryLinkHref(value) {
+        var href = String(value || "").trim();
+        if (!href || /^\s*javascript:/i.test(href)) return "";
+
+        var hasExplicitProtocol = /^[a-z][a-z0-9+.-]*:/i.test(href);
+        if (hasExplicitProtocol) {
+          try {
+            var parsedExplicit = new URL(href);
+            if (["http:", "https:", "mailto:", "tel:"].indexOf(parsedExplicit.protocol) === -1) return "";
+            return href;
+          } catch (_) {
+            return "";
+          }
+        }
+
+        // Same-page / site-relative (browser must not treat as hostname)
+        if (/^(?:\/|\?|#|\.\/|\.\.\/)/.test(href)) {
+          return href;
+        }
+
+        // "//example.com/..." — protocol-relative
+        if (/^\/\//.test(href)) {
+          return "https:" + href;
+        }
+
+        // Looks like "www.google.com" or "google.com/foo" — without a scheme the browser
+        // resolves these as paths under the current folder (broken). Prepend https://.
+        if (/^www\./i.test(href)) {
+          return "https://" + href;
+        }
+
+        var commonFileExt = /\.(html?|php|aspx?|jsp|js|css|json|pdf|png|jpe?g|gif|webp|svg|ico|mp4|webm|mov|m4v|txt|md|map)$/i;
+        var hostLike = /^([a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i;
+
+        var slash = href.indexOf("/");
+        if (slash === -1) {
+          if (commonFileExt.test(href)) return href;
+          if (hostLike.test(href)) return "https://" + href;
+          return href;
+        }
+
+        var hostPart = href.slice(0, slash);
+        if (hostLike.test(hostPart)) {
+          return "https://" + href;
+        }
+
+        return href;
+      }
+
+      function renderGalleryItemInner(item, showCaptions) {
+        var html = '<img loading="lazy" src="' + escapeHtml(item.thumb) + '" alt="' + escapeHtml(item.alt) + '">';
+        if (showCaptions && item.caption) {
+          html += '<p class="blog-gallery-caption">' + escapeHtml(item.caption) + '</p>';
+        }
+        return html;
+      }
+
+      function buildGalleryItems(files, fallbackTitle, settings) {
+        var normalizedSettings = normalizeGallerySettings(settings, Array.isArray(files) ? files.length : 0);
+        var items = [];
+        if (!Array.isArray(files)) return items;
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i] || {};
+          var url = file.url || "";
+          var fileType = (file.type || "").toLowerCase();
+          if (!url) continue;
+          if (fileType.indexOf("image/") === 0 || isImageUrl(url)) {
+            var linkHref = normalizeGalleryLinkHref(normalizedSettings.imageLinks[i] || "");
+            items.push({
+              url: url,
+              alt: file.caption || fallbackTitle || "Gallery image",
+              caption: file.caption || "",
+              thumb: file.poster || url,
+              sourceIndex: i,
+              linkHref: linkHref
+            });
+          }
+        }
+        return items;
+      }
+
+      function registerGallery(items) {
+        galleryCount += 1;
+        var galleryId = "gallery-" + galleryCount;
+        galleryStore[galleryId] = items;
+        return galleryId;
+      }
+
+      function renderImageGallery(files, fallbackTitle, settings) {
+        var normalizedSettings = normalizeGallerySettings(settings, Array.isArray(files) ? files.length : 0);
+        var items = buildGalleryItems(files, fallbackTitle, normalizedSettings);
+        if (!items.length) return "";
+        if (items.length === 1) {
+          return renderMediaFromUrl(items[0].url, items[0].caption, "");
+        }
+        var html = '<div class="blog-media-frontend">';
+        if (normalizedSettings.clickAction === "preview") {
+          var galleryId = registerGallery(items);
+          html += '<div class="blog-gallery-grid" data-gallery-id="' + galleryId + '">';
+          for (var i = 0; i < items.length; i++) {
+            html += '' +
+              '<button class="blog-gallery-item blog-gallery-trigger" type="button" data-gallery-id="' + galleryId + '" data-gallery-index="' + i + '" aria-label="Open image ' + (i + 1) + ' of ' + items.length + '">' +
+                renderGalleryItemInner(items[i], normalizedSettings.showCaptions) +
+              '</button>';
+          }
+        } else {
+          html += '<div class="blog-gallery-grid">';
+          for (var j = 0; j < items.length; j++) {
+            var item = items[j];
+            var targetAttr = normalizedSettings.openLinksInNewTab && item.linkHref ? ' target="_blank" rel="noopener noreferrer"' : "";
+            if (item.linkHref) {
+              html += '' +
+                '<a class="blog-gallery-item blog-gallery-link" href="' + escapeHtml(item.linkHref) + '"' + targetAttr + ' aria-label="Open linked page for image ' + (j + 1) + '">' +
+                  renderGalleryItemInner(item, normalizedSettings.showCaptions) +
+                '</a>';
+            } else {
+              html += '' +
+                '<div class="blog-gallery-item blog-gallery-static">' +
+                  renderGalleryItemInner(item, normalizedSettings.showCaptions) +
+                '</div>';
+            }
+          }
+        }
+        html += '</div>';
+        html += '</div>';
+        return html;
+      }
+
+      function renderEmbed(block) {
+        var content = block && block.content;
+        if (!content) return "";
+        var data = null;
+        try {
+          data = typeof content === "string" ? JSON.parse(content) : content;
+        } catch (_) {
+          return String(content);
+        }
+        if (!data || !data.platform) return "";
+        var widthStyle = data.width && data.width < 100 ? ' style="width:' + Number(data.width) + '%; margin:0 auto;"' : "";
+        if (data.platform === "youtube") {
+          return '<div class="blog-embed-frontend youtube-embed-frontend"' + widthStyle + '><div class="embed-container"><iframe src="https://www.youtube.com/embed/' + encodeURIComponent(data.embedId) + '" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>';
+        }
+        if (data.platform === "spotify") {
+          return '<div class="blog-embed-frontend spotify-embed-frontend"' + widthStyle + '><div class="embed-container"><iframe src="https://open.spotify.com/embed/' + escapeHtml(data.embedId) + '?utm_source=generator&theme=0" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe></div></div>';
+        }
+        if (data.platform === "soundcloud") {
+          return '<div class="blog-embed-frontend soundcloud-embed-frontend"' + widthStyle + '><div class="embed-container"><iframe src="https://w.soundcloud.com/player/?url=' + encodeURIComponent("https://soundcloud.com/" + data.embedId) + '" frameborder="0" allow="autoplay"></iframe></div></div>';
+        }
+        return "";
+      }
+
+      async function renderBlockAsync(db, block) {
+        if (!block) return "";
+        var type = block.blockType || block.type;
+        if (type === "subtitle") {
+          return '<div class="blog-subtitle-frontend">' + sanitizeRichText(block.content || "") + '</div>';
+        }
+        if (type === "body") {
+          return '<div class="blog-body-frontend">' + sanitizeRichText(block.content || "") + '</div>';
+        }
+        if (type === "embed") {
+          return renderEmbed(block);
+        }
+        if (type === "media") {
+          var mediaSettings = block.mediaSettings || block.slideshowSettings || null;
+          if (Array.isArray(block.files) && block.files.length) {
+            var inlineGalleryHtml = renderImageGallery(block.files, block.title || block.caption || "Gallery", mediaSettings);
+            if (inlineGalleryHtml) return inlineGalleryHtml;
+          }
+          if (block.cachedMediaUrl) {
+            return renderMediaFromUrl(block.cachedMediaUrl, block.caption, block.poster);
+          }
+          if (block.mediaId) {
+            try {
+              var mediaDoc = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(block.mediaId).get();
+              if (mediaDoc.exists) {
+                var media = mediaDoc.data();
+                if (media && media.files && media.files.length) {
+                  var galleryHtml = renderImageGallery(media.files, media.title || block.caption || "Gallery", mediaSettings);
+                  if (galleryHtml) return galleryHtml;
+                  var file = media.files[0];
+                  return renderMediaFromUrl(file.url, file.caption, file.poster);
+                }
+              }
+            } catch (_) {}
+          }
+          return renderMediaFromUrl("", block.caption, block.poster);
+        }
+        return "";
+      }
+
+      function getColumnGroupColumns(block) {
+        if (block && Array.isArray(block.columns) && block.columns.length) {
+          var mappedColumns = block.columns.slice().sort(function (a, b) {
+            return (a.order || 0) - (b.order || 0);
+          }).map(function (column, index) {
+            return {
+              id: column.id || ("column-" + index),
+              width: Number(column.width) || 0,
+              blocks: Array.isArray(column.blocks) ? column.blocks.slice().sort(function (a, b) {
+                return (a.order || 0) - (b.order || 0);
+              }) : []
+            };
+          });
+
+          var totalWidth = mappedColumns.reduce(function (sum, column) {
+            return sum + (column.width || 0);
+          }, 0);
+
+          if (totalWidth > 0) {
+            var runningWidth = 0;
+            mappedColumns = mappedColumns.map(function (column, index) {
+              var normalizedWidth = index === mappedColumns.length - 1
+                ? Math.max(0, 100 - runningWidth)
+                : Math.round((column.width / totalWidth) * 100);
+              runningWidth += normalizedWidth;
+              return {
+                id: column.id,
+                width: normalizedWidth,
+                blocks: column.blocks
+              };
+            });
+          } else {
+            var evenWidth = Math.floor(100 / mappedColumns.length);
+            mappedColumns = mappedColumns.map(function (column, index) {
+              return {
+                id: column.id,
+                width: index === mappedColumns.length - 1 ? 100 - (evenWidth * (mappedColumns.length - 1)) : evenWidth,
+                blocks: column.blocks
+              };
+            });
+          }
+
+          return mappedColumns;
+        }
+
+        var leftRatio = block && block.columnRatio && typeof block.columnRatio.left === "number" ? block.columnRatio.left : 50;
+        var rightRatio = block && block.columnRatio && typeof block.columnRatio.right === "number" ? block.columnRatio.right : (100 - leftRatio);
+        return [
+          {
+            id: "left",
+            width: leftRatio,
+            blocks: (block && block.leftColumn ? block.leftColumn : []).slice().sort(function (a, b) {
+              return (a.order || 0) - (b.order || 0);
+            })
+          },
+          {
+            id: "right",
+            width: rightRatio,
+            blocks: (block && block.rightColumn ? block.rightColumn : []).slice().sort(function (a, b) {
+              return (a.order || 0) - (b.order || 0);
+            })
+          }
+        ];
+      }
+
+      async function renderColumnGroup(db, block) {
+        if (!block) return "";
+        var columns = getColumnGroupColumns(block);
+        if (!columns.length) return "";
+        var html = '<div class="blog-column-group-frontend">';
+        for (var i = 0; i < columns.length; i++) {
+          var column = columns[i];
+          var width = Number(column.width) || 0;
+          html += '<div class="blog-column-frontend" style="flex: 0 1 ' + width + '%; width:' + width + '%;">';
+          for (var j = 0; j < column.blocks.length; j++) {
+            html += '<div class="blog-block-frontend">' + await renderBlockAsync(db, column.blocks[j]) + '</div>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+        return html;
+      }
+
+      async function renderModularBlogContent(db, work) {
+        if (!work || !work.sections || !work.sections.length) {
+          return work && work.content ? '<div class="blog-body-frontend">' + sanitizeRichText(work.content) + '</div>' : "";
+        }
+        var html = "";
+        var sections = work.sections.slice().sort(function (a, b) {
+          return (a.order || 0) - (b.order || 0);
+        });
+        for (var i = 0; i < sections.length; i++) {
+          var section = sections[i];
+          var items = (section.items || section.blocks || []).slice().sort(function (a, b) {
+            return (a.order || 0) - (b.order || 0);
+          });
+          if (!items.length) continue;
+          html += '<section class="blog-section-frontend">';
+          for (var j = 0; j < items.length; j++) {
+            var item = items[j];
+            var type = item.blockType || item.type;
+            if (type === "column-group") {
+              html += await renderColumnGroup(db, item);
+              continue;
+            }
+            html += await renderBlockAsync(db, item);
+          }
+          html += "</section>";
+        }
+        return html;
+      }
+
+      function pickThumbnailFromWork(work) {
+        try {
+          if (work && work.featuredMedia) {
+            if (work.featuredMedia.poster && isImageUrl(work.featuredMedia.poster)) return work.featuredMedia.poster;
+            if (work.featuredMedia.url && isImageUrl(work.featuredMedia.url)) return work.featuredMedia.url;
+          }
+          if (work && work.featuredImage && isImageUrl(work.featuredImage)) return work.featuredImage;
+          if (work && work.sections) {
+            for (var i = 0; i < work.sections.length; i++) {
+              var items = work.sections[i].items || work.sections[i].blocks || [];
+              for (var j = 0; j < items.length; j++) {
+                var item = items[j];
+                if (item.cachedMediaUrl && isImageUrl(item.cachedMediaUrl)) return item.cachedMediaUrl;
+              }
+            }
+          }
+        } catch (_) {}
+        return "";
+      }
+
+      function getSummary(work) {
+        if (work && work.summary) return String(work.summary);
+        if (work && work.subtitle) return String(work.subtitle);
+        if (work && work.excerpt) return String(work.excerpt);
+        if (work && work.content) return textFromHtml(work.content).slice(0, 180);
+        if (work && work.sections) {
+          for (var i = 0; i < work.sections.length; i++) {
+            var items = work.sections[i].items || work.sections[i].blocks || [];
+            for (var j = 0; j < items.length; j++) {
+              var item = items[j];
+              var type = item.blockType || item.type;
+              if (type === "body" && item.content) {
+                var summary = textFromHtml(item.content);
+                if (summary) return summary.slice(0, 180);
+              }
+            }
+          }
+        }
+        return "Artist at Eliani Studios.";
+      }
+
+      function getDateLabel(work) {
+        if (!work || !work.datePosted || !work.datePosted.seconds) return "Undated";
+        return new Date(work.datePosted.seconds * 1000).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
+      }
+
+      function getWorkKicker(work) {
+        if (work && work.workKicker) return String(work.workKicker);
+        if (work && work.kicker) return String(work.kicker);
+        if (work && work.category) return String(work.category);
+        return "Artist";
+      }
+
+      function getWorkMeta(work) {
+        if (work && work.meta) return String(work.meta);
+        if (work && work.location) return String(work.location);
+        if (work && work.client) return String(work.client);
+        return getDateLabel(work);
+      }
+
+      function updateSocialMeta(work) {
+        var title = (work && work.title ? work.title : "Artist") + " | Eliani Studios";
+        var description = getSummary(work);
+        var image = pickThumbnailFromWork(work);
+        if (!image) {
+          image = new URL(PLACEHOLDER_IMAGE, window.location.href).href;
+        }
+        var url = window.location.origin + buildArtistHref(work);
+        setMeta('meta[property="og:title"]', "content", title);
+        setMeta('meta[property="og:description"]', "content", description);
+        setMeta('meta[property="og:url"]', "content", url);
+        setMeta('meta[property="og:image"]', "content", image);
+        setMeta('meta[name="twitter:title"]', "content", title);
+        setMeta('meta[name="twitter:description"]', "content", description);
+        setMeta('meta[name="twitter:image"]', "content", image);
+        setMeta('link[rel="canonical"]', "href", url);
+        document.title = title;
+      }
+
+      function createViewerController() {
+        var viewer = document.getElementById("eliani-gallery-viewer");
+        var closeBtn = viewer ? viewer.querySelector(".eliani-viewer-close") : null;
+        var prevBtn = viewer ? viewer.querySelector(".eliani-viewer-nav--prev") : null;
+        var nextBtn = viewer ? viewer.querySelector(".eliani-viewer-nav--next") : null;
+        var image = document.getElementById("eliani-gallery-image");
+        var caption = document.getElementById("eliani-gallery-caption");
+        var thumbs = document.getElementById("eliani-gallery-thumbs");
+        var viewport = document.getElementById("eliani-gallery-viewport");
+        if (!viewer || !closeBtn || !prevBtn || !nextBtn || !image || !caption || !thumbs || !viewport) {
+          return null;
+        }
+
+        var state = {
+          galleryId: "",
+          index: 0,
+          touchStartX: 0
+        };
+
+        function getItems() {
+          return galleryStore[state.galleryId] || [];
+        }
+
+        function renderThumbs(items) {
+          thumbs.innerHTML = items.map(function (item, index) {
+            var activeClass = index === state.index ? " is-active" : "";
+            return '' +
+              '<button class="eliani-viewer-thumb' + activeClass + '" type="button" data-thumb-index="' + index + '" aria-label="Show image ' + (index + 1) + '">' +
+                '<img loading="lazy" src="' + escapeHtml(item.thumb || item.url) + '" alt="' + escapeHtml(item.alt || "Thumbnail") + '">' +
+              '</button>';
+          }).join("");
+          var activeThumb = thumbs.querySelector('.eliani-viewer-thumb.is-active');
+          if (activeThumb && activeThumb.scrollIntoView) {
+            activeThumb.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+          }
+        }
+
+        function render() {
+          var items = getItems();
+          if (!items.length) return;
+          var current = items[state.index];
+          image.src = current.url;
+          image.alt = current.alt || "Gallery image";
+          caption.textContent = current.caption || "";
+          renderThumbs(items);
+        }
+
+        function open(galleryId, index) {
+          state.galleryId = galleryId;
+          state.index = index || 0;
+          viewer.classList.add("is-open");
+          viewer.setAttribute("aria-hidden", "false");
+          document.body.classList.add("eliani-viewer-open");
+          render();
+          closeBtn.focus();
+        }
+
+        function close() {
+          viewer.classList.remove("is-open");
+          viewer.setAttribute("aria-hidden", "true");
+          document.body.classList.remove("eliani-viewer-open");
+          image.removeAttribute("src");
+          image.alt = "";
+          caption.textContent = "";
+          thumbs.innerHTML = "";
+          state.galleryId = "";
+          state.index = 0;
+        }
+
+        function step(direction) {
+          var items = getItems();
+          if (!items.length) return;
+          state.index = (state.index + direction + items.length) % items.length;
+          render();
+        }
+
+        function goTo(index) {
+          var items = getItems();
+          if (!items.length || index < 0 || index >= items.length) return;
+          state.index = index;
+          render();
+        }
+
+        closeBtn.addEventListener("click", close);
+        prevBtn.addEventListener("click", function () {
+          step(-1);
+        });
+        nextBtn.addEventListener("click", function () {
+          step(1);
+        });
+        viewer.addEventListener("click", function (event) {
+          if (event.target === viewer) close();
+        });
+        thumbs.addEventListener("click", function (event) {
+          var thumb = event.target.closest("[data-thumb-index]");
+          if (!thumb) return;
+          goTo(Number(thumb.getAttribute("data-thumb-index")) || 0);
+        });
+        document.addEventListener("keydown", function (event) {
+          if (!viewer.classList.contains("is-open")) return;
+          if (event.key === "Escape") {
+            close();
+          } else if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            step(-1);
+          } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            step(1);
+          }
+        });
+        viewport.addEventListener("touchstart", function (event) {
+          if (!event.changedTouches || !event.changedTouches.length) return;
+          state.touchStartX = event.changedTouches[0].clientX;
+        }, { passive: true });
+        viewport.addEventListener("touchend", function (event) {
+          if (!event.changedTouches || !event.changedTouches.length) return;
+          var touchEndX = event.changedTouches[0].clientX;
+          var deltaX = touchEndX - state.touchStartX;
+          if (Math.abs(deltaX) < 40) return;
+          if (deltaX > 0) {
+            step(-1);
+          } else {
+            step(1);
+          }
+        }, { passive: true });
+
+        return {
+          open: open
+        };
+      }
+
+      function buildRelatedCardHtml(post) {
+        var image = pickThumbnailFromWork(post) || PLACEHOLDER_IMAGE;
+        var title = escapeHtml(post.title || "Untitled");
+        var category = escapeHtml(post.category || "Artist");
+        var excerpt = escapeHtml(getSummary(post));
+        return '' +
+          '<a class="eliani-related-card" href="' + buildArtistHref(post) + '" aria-label="Open ' + title + '">' +
+            '<div class="eliani-related-card-media">' +
+              '<img loading="lazy" src="' + escapeHtml(image) + '" alt="' + title + '">' +
+            '</div>' +
+            '<div>' +
+              '<p class="eliani-kicker">' + category + '</p>' +
+              '<h3>' + title + '</h3>' +
+              '<p>' + excerpt + '</p>' +
+            '</div>' +
+          '</a>';
+      }
+
+      async function queryWorks(db) {
+        try {
+          var orderedSnap = await db.collection("users").doc(TARGET_USER_UID)
+            .collection("items")
+            .where("type", "==", "blog")
+            .orderBy("datePosted", "desc")
+            .get();
+          var orderedPosts = [];
+          orderedSnap.forEach(function (doc) {
+            orderedPosts.push(normalizeWork(Object.assign({ id: doc.id }, doc.data())));
+          });
+          return orderedPosts;
+        } catch (_) {
+          var snap = await db.collection("users").doc(TARGET_USER_UID)
+            .collection("items")
+            .where("type", "==", "blog")
+            .get();
+          var posts = [];
+          snap.forEach(function (doc) {
+            posts.push(normalizeWork(Object.assign({ id: doc.id }, doc.data())));
+          });
+          return posts;
+        }
+      }
+
+      async function renderRelatedWork(db, currentId) {
+        var container = document.getElementById("related-work-container");
+        var section = document.getElementById("related-work-section");
+        if (!container || !section) return;
+        try {
+          var posts = await queryWorks(db);
+          posts = posts.filter(hasArtistTag).filter(function (post) {
+            return post.id !== currentId;
+          });
+          if (!posts.length) {
+            section.hidden = true;
+            return;
+          }
+          for (var i = posts.length - 1; i > 0; i--) {
+            var swapIndex = Math.floor(Math.random() * (i + 1));
+            var temp = posts[i];
+            posts[i] = posts[swapIndex];
+            posts[swapIndex] = temp;
+          }
+          container.innerHTML = posts.slice(0, 3).map(buildRelatedCardHtml).join("");
+        } catch (_) {
+          section.hidden = true;
+        }
+      }
+
+      async function bindPostPager(db, currentId) {
+        var prevBtn = document.querySelector('.eliani-pager-btn[data-dir="prev"]');
+        var nextBtn = document.querySelector('.eliani-pager-btn[data-dir="next"]');
+        if (!prevBtn || !nextBtn) return;
+        try {
+          var allPosts = await queryWorks(db);
+          var posts = allPosts.filter(hasArtistTag);
+          if (posts.length < 2) {
+            prevBtn.hidden = true;
+            nextBtn.hidden = true;
+            return;
+          }
+          var currentIndex = -1;
+          for (var i = 0; i < posts.length; i++) {
+            if (posts[i].id === currentId) {
+              currentIndex = i;
+              break;
+            }
+          }
+          if (currentIndex < 0) {
+            prevBtn.hidden = true;
+            nextBtn.hidden = true;
+            return;
+          }
+          var prevPost = posts[(currentIndex - 1 + posts.length) % posts.length];
+          var nextPost = posts[(currentIndex + 1) % posts.length];
+
+          prevBtn.addEventListener("click", function () {
+            window.location.href = buildArtistHref(prevPost);
+          });
+          nextBtn.addEventListener("click", function () {
+            window.location.href = buildArtistHref(nextPost);
+          });
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "ArrowLeft") {
+              window.location.href = buildArtistHref(prevPost);
+            } else if (event.key === "ArrowRight") {
+              window.location.href = buildArtistHref(nextPost);
+            }
+          });
+        } catch (_) {}
+      }
+
+      async function run() {
+        var content = document.getElementById("artist-content");
+        var viewerController = createViewerController();
+        if (!content) return;
+
+        var slug = getArtistSlugFromLocation();
+        if (!slug) {
+          content.innerHTML = renderStatus("Missing item", "No artist specified.", "Add a name to the URL, for example ?VINCENT-ZHOU");
+          return;
+        }
+
+        if (!safeInitFirebase() || !window.firebase) {
+          content.innerHTML = renderStatus("Unavailable", "Firestore could not be initialised.", "The detail page is ready, but content is unavailable right now.");
+          return;
+        }
+
+        try {
+          var db = firebase.firestore();
+          var posts = await queryWorks(db);
+          var work = null;
+          var currentId = "";
+          for (var i = 0; i < posts.length; i++) {
+            if (normalizeSlug(posts[i].title) === normalizeSlug(slug)) {
+              work = posts[i];
+              currentId = posts[i].id;
+              break;
+            }
+          }
+
+          if (!work) {
+            var snap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(slug).get();
+            if (snap.exists) {
+              work = normalizeWork(Object.assign({ id: snap.id }, snap.data()));
+              currentId = snap.id;
+            }
+          }
+
+          if (!work) {
+            content.innerHTML = renderStatus("Not found", "That artist could not be found.", "Please return to the site and try another selection.");
+            return;
+          }
+
+          var title = escapeHtml(work.title || "Untitled");
+          var category = escapeHtml(getWorkKicker(work));
+          var metaLabel = escapeHtml(getWorkMeta(work));
+          var summary = escapeHtml(getSummary(work));
+          var tagsHtml = parseCsv(work.tags || work.keywords || "").map(function (tag) {
+            return '<span class="eliani-tag">' + escapeHtml(tag) + '</span>';
+          }).join("");
+          var heroImage = pickThumbnailFromWork(work) || PLACEHOLDER_IMAGE;
+
+          var bodyHtml = await renderModularBlogContent(db, work);
+
+          content.innerHTML = '' +
+            '<section class="eliani-work-hero reveal-on-scroll" style="background-image:url(\'' + escapeHtml(heroImage) + '\');">' +
+              '<div class="eliani-work-hero-copy">' +
+                '<div class="eliani-work-hero-inner">' +
+                  '<h1>' + title + '</h1>' +
+                  '<div class="eliani-work-hero-meta">' +
+                    '<span>' + category + '</span>' +
+                    '<span>|</span>' +
+                    '<span>' + summary + '</span>' +
+                  '</div>' +
+                '</div>' +
+              '</div>' +
+            '</section>' +
+            
+            '<section class="eliani-work-body reveal-on-scroll">' + bodyHtml + '</section>' +
+            '<section class="eliani-related-section reveal-on-scroll" id="related-work-section" aria-labelledby="related-work-title">' +
+              '<div class="eliani-related-heading">' +
+                '<div>' +
+                  '<p class="eliani-kicker">Artists</p>' +
+                  '<h2 id="related-work-title">More artists</h2>' +
+                '</div>' +
+              '</div>' +
+              '<div class="eliani-related-grid" id="related-work-container"></div>' +
+              '<div class="eliani-pager">' +
+                '<button class="eliani-pager-btn" type="button" data-dir="prev">Previous artist</button>' +
+                '<button class="eliani-pager-btn" type="button" data-dir="next">Next artist</button>' +
+              '</div>' +
+            '</section>';
+
+          updateSocialMeta(work);
+          renderRelatedWork(db, currentId);
+          bindPostPager(db, currentId);
+
+          var revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+          var revealElements = Array.prototype.slice.call(document.querySelectorAll(".reveal-on-scroll"));
+          if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
+            revealElements.forEach(function (element) {
+              element.classList.add("is-visible");
+            });
+          } else {
+            revealElements.forEach(function (element, index) {
+              element.style.setProperty("--reveal-delay", index * 80 + "ms");
+            });
+            var revealObserver = new IntersectionObserver(function (entries, observer) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("is-visible");
+                  observer.unobserve(entry.target);
+                }
+              });
+            }, {
+              threshold: 0.08,
+              rootMargin: "0px 0px -8% 0px"
+            });
+            revealElements.forEach(function (element) {
+              revealObserver.observe(element);
+            });
+          }
+
+          content.addEventListener("click", function (event) {
+            var trigger = event.target.closest(".blog-gallery-trigger");
+            if (!trigger || !viewerController) return;
+            viewerController.open(
+              trigger.getAttribute("data-gallery-id"),
+              Number(trigger.getAttribute("data-gallery-index")) || 0
+            );
+          });
+        } catch (_) {
+          content.innerHTML = renderStatus("Error", "The artist profile could not be loaded.", "Please try again shortly.");
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", run);
+      } else {
+        run();
+      }
+    })();
+  </script>
+</body>
+</html>

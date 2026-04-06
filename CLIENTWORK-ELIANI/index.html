@@ -64,8 +64,66 @@
     <section class="welcome-work" aria-labelledby="welcome-work-title">
       <h2 class="welcome-work__title reveal-on-scroll" id="welcome-work-title">Selected Works</h2>
 
-      <div class="welcome-work__grid">
-        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+      <div class="welcome-work__grid" id="welcome-work-grid">
+        <div class="welcome-work__item welcome-work__item--portrait welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+        <div class="welcome-work__item welcome-work__item--landscape welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+        <div class="welcome-work__item welcome-work__item--portrait welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+        <div class="welcome-work__item welcome-work__item--landscape welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+        <div class="welcome-work__item welcome-work__item--portrait welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+        <div class="welcome-work__item welcome-work__item--portrait welcome-work__item--skeleton reveal-on-scroll" aria-hidden="true">
+          <figure class="welcome-work__image">
+            <div class="welcome-work__skeleton-media welcome-work__skeleton-shimmer"></div>
+          </figure>
+          <div class="welcome-work__skeleton-lines">
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--medium welcome-work__skeleton-shimmer"></div>
+            <div class="welcome-work__skeleton-line welcome-work__skeleton-line--short welcome-work__skeleton-shimmer"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <template id="welcome-work-fallback">
+        <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
             <img src="static/assets/placeholder.jpeg" alt="Selected work for Rody Oliveira">
           </figure>
@@ -74,8 +132,7 @@
             <p>Rio de Janeiro, Brazil</p>
           </div>
         </a>
-
-        <a class="welcome-work__item welcome-work__item--landscape reveal-on-scroll" href="#">
+        <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
             <img src="static/assets/placeholder2.png" alt="Selected work for Mohcine Harrise">
           </figure>
@@ -84,8 +141,7 @@
             <p>Marrakech, Morocco</p>
           </div>
         </a>
-
-        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+        <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
             <img src="static/assets/placeholder.jpeg" alt="Selected work for Vincent Zhou">
           </figure>
@@ -94,8 +150,7 @@
             <p>Nanjing, China</p>
           </div>
         </a>
-
-        <a class="welcome-work__item welcome-work__item--landscape reveal-on-scroll" href="#">
+        <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
             <img src="static/assets/placeholder2.png" alt="Selected work for Matthew Maete">
           </figure>
@@ -104,8 +159,7 @@
             <p>Nairobi, Kenya</p>
           </div>
         </a>
-
-        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
+        <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
             <img src="static/assets/placeholder.jpeg" alt="Selected work for Sackitey Tesa">
           </figure>
@@ -114,18 +168,16 @@
             <p>Accra, Ghana</p>
           </div>
         </a>
-
-        <a class="welcome-work__item welcome-work__item--portrait reveal-on-scroll" href="#">
-            <figure class="welcome-work__image">
-              <img src="static/assets/placeholder.jpeg" alt="Selected work for Sackitey Tesa">
-            </figure>
-            <div class="welcome-work__copy">
-              <h3>Root by Wasim Malik</h3>
-              <p>Ladakh, India</p>
-            </div>
-          </a>
-      </div>
-    </section>
+        <a class="welcome-work__item reveal-on-scroll" href="#">
+          <figure class="welcome-work__image">
+            <img src="static/assets/placeholder.jpeg" alt="Selected work for Wasim Malik">
+          </figure>
+          <div class="welcome-work__copy">
+            <h3>Root by Wasim Malik</h3>
+            <p>Ladakh, India</p>
+          </div>
+        </a>
+    </template>
 
     <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
         <img src="static/assets/placeholder.jpeg" alt="Hands holding seaweed in shallow water">
@@ -344,6 +396,177 @@
 
       updateHomeParallax();
     }
+  </script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    (function () {
+      var TARGET_USER_UID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2";
+      var HOME_GRID_DOC_ID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2-blog-5";
+      var PLACEHOLDER_IMAGE = "static/assets/placeholder.jpeg";
+
+      var firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
+
+      function safeInitFirebase() {
+        try {
+          if (!window.firebase) return false;
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          return true;
+        } catch (_) {
+          return !!window.firebase;
+        }
+      }
+
+      function stripHtml(value) {
+        if (value == null || value === "") return "";
+        var div = document.createElement("div");
+        div.innerHTML = String(value);
+        return (div.textContent || "").trim();
+      }
+
+      function wireWelcomeGridReveal(grid) {
+        if (!grid) return;
+        var items = grid.querySelectorAll(".reveal-on-scroll");
+        var motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        items.forEach(function (el, index) {
+          el.style.setProperty("--reveal-delay", index * 80 + "ms");
+        });
+        if (motion.matches || !("IntersectionObserver" in window)) {
+          items.forEach(function (el) {
+            el.classList.add("is-visible");
+          });
+          return;
+        }
+        var observer = new IntersectionObserver(function (entries, obs) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              obs.unobserve(entry.target);
+            }
+          });
+        }, {
+          threshold: 0.01,
+          rootMargin: "0px 0px 24% 0px"
+        });
+        items.forEach(function (el) {
+          observer.observe(el);
+        });
+      }
+
+      function applyFallback(grid, template) {
+        if (!grid || !template) return;
+        grid.innerHTML = "";
+        grid.appendChild(template.content.cloneNode(true));
+        wireWelcomeGridReveal(grid);
+      }
+
+      async function mediaUrlFromId(db, mediaId) {
+        if (!mediaId) return null;
+        var snap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(mediaId).get();
+        if (!snap.exists) return null;
+        var data = snap.data();
+        if (data && Array.isArray(data.files) && data.files.length && data.files[0].url) {
+          return data.files[0].url;
+        }
+        return null;
+      }
+
+      async function resolveSectionCard(db, section) {
+        var items = (section && section.items) || [];
+        var mediaBlock = items[0] || {};
+        var title = stripHtml(items[1] && items[1].content);
+        var location = stripHtml(items[2] && items[2].content);
+        var href = stripHtml(items[3] && items[3].content) || "#";
+        if (href === "") href = "#";
+
+        var imgUrl = PLACEHOLDER_IMAGE;
+        if (mediaBlock.mediaId) {
+          try {
+            var resolved = await mediaUrlFromId(db, mediaBlock.mediaId);
+            if (resolved) imgUrl = resolved;
+          } catch (_) {}
+        }
+
+        return { title: title, location: location, href: href, imgUrl: imgUrl };
+      }
+
+      function buildCardEl(card) {
+        var a = document.createElement("a");
+        a.className = "welcome-work__item reveal-on-scroll";
+        a.setAttribute("href", card.href);
+
+        var figure = document.createElement("figure");
+        figure.className = "welcome-work__image";
+        var img = document.createElement("img");
+        img.loading = "lazy";
+        img.src = card.imgUrl;
+        img.alt = card.title || "Selected work";
+        figure.appendChild(img);
+
+        var copy = document.createElement("div");
+        copy.className = "welcome-work__copy";
+        var h3 = document.createElement("h3");
+        h3.textContent = card.title;
+        var p = document.createElement("p");
+        p.textContent = card.location;
+        copy.appendChild(h3);
+        copy.appendChild(p);
+
+        a.appendChild(figure);
+        a.appendChild(copy);
+        return a;
+      }
+
+      async function loadWelcomeWorkGrid() {
+        var grid = document.getElementById("welcome-work-grid");
+        var fallbackTpl = document.getElementById("welcome-work-fallback");
+        if (!grid || !fallbackTpl) return;
+
+        try {
+          if (!safeInitFirebase()) {
+            throw new Error("firebase unavailable");
+          }
+          var db = firebase.firestore();
+          var docSnap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(HOME_GRID_DOC_ID).get();
+          if (!docSnap.exists) {
+            throw new Error("doc missing");
+          }
+          var data = docSnap.data();
+          var sections = data && data.sections;
+          if (!Array.isArray(sections) || sections.length === 0) {
+            throw new Error("no sections");
+          }
+
+          var cards = await Promise.all(sections.map(function (sec) {
+            return resolveSectionCard(db, sec);
+          }));
+
+          grid.innerHTML = "";
+          for (var i = 0; i < cards.length; i++) {
+            grid.appendChild(buildCardEl(cards[i]));
+          }
+          wireWelcomeGridReveal(grid);
+        } catch (_) {
+          applyFallback(grid, fallbackTpl);
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadWelcomeWorkGrid);
+      } else {
+        loadWelcomeWorkGrid();
+      }
+    })();
   </script>
 </body>
 </html>

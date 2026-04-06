@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Matches CMS admin custom claim (see main.js isAdmin).
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function canAccessUserData(userId) {
+      return isOwner(userId) || isAdmin();
+    }
+
+    // Directory used by the CMS “Editing as” dropdown.
+    match /userDirectory/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow delete: if false;
+    }
+
+    // All nested paths: items, _counters (for generateNewDataID), etc.
+    match /users/{userId}/{document=**} {
+      allow read, write: if canAccessUserData(userId);
+    }
+
+    // Deny everything else by default (implicit).
+  }
+}
