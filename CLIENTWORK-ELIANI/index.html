@@ -18,7 +18,7 @@
     </style>
   </noscript>
 </head>
-<body class="home-page home-intro-active">
+<body class="home-page">
   <div class="home-intro" aria-hidden="true">
     <img class="home-intro__logo" src="static/assets/logo.png" alt="">
   </div>
@@ -293,6 +293,10 @@
 
         introHasFinished = true;
         document.body.classList.remove("home-intro-active");
+      }
+
+      if (!revealMotionPreference.matches) {
+        document.body.classList.add("home-intro-active");
       }
 
       if (revealMotionPreference.matches) {
