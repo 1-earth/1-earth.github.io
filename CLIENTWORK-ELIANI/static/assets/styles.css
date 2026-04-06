@@ -41,7 +41,7 @@ body.home-intro-active {
   background: var(--page-bg);
   opacity: 1;
   visibility: visible;
-  pointer-events: auto;
+  pointer-events: none;
   animation: home-intro-overlay-exit 1.6s linear forwards;
 }
 
@@ -55,13 +55,11 @@ body.home-intro-active {
   62.5% {
     opacity: 1;
     visibility: visible;
-    pointer-events: auto;
   }
 
   100% {
     opacity: 0;
     visibility: hidden;
-    pointer-events: none;
   }
 }
 

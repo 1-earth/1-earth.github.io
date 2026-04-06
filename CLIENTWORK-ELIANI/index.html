@@ -293,6 +293,9 @@
 
         introHasFinished = true;
         document.body.classList.remove("home-intro-active");
+        introOverlay.style.opacity = "0";
+        introOverlay.style.visibility = "hidden";
+        introOverlay.style.pointerEvents = "none";
       }
 
       if (!revealMotionPreference.matches) {
