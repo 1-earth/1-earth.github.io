@@ -211,6 +211,30 @@ function setupEventListeners() {
                 markPageDashboardDirty();
             }
         });
+        // Media dropzone: without preventDefault on dragover/drop, Chrome opens the file in a new tab.
+        dashboardContentEl.addEventListener('dragenter', (e) => {
+            const dz = e.target.closest && e.target.closest('#mediaUploadDropzone');
+            if (!dz) return;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        dashboardContentEl.addEventListener('dragover', (e) => {
+            const dz = e.target.closest && e.target.closest('#mediaUploadDropzone');
+            if (!dz) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        });
+        dashboardContentEl.addEventListener('drop', (e) => {
+            const dz = e.target.closest && e.target.closest('#mediaUploadDropzone');
+            if (!dz) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const dt = e.dataTransfer;
+            if (!dt || !dt.files || !dt.files.length) return;
+            const input = document.getElementById('mediaFileUpload');
+            processSelectedMediaFiles(Array.from(dt.files), input);
+        });
     }
 
     document.addEventListener('cms-page-editor-dirty', () => {
@@ -1662,18 +1686,45 @@ function updateMediaUploadButtonVisibility(type, currentFileCount) {
     }
 }
 
-function handleMediaFileSelection(event) {
-    const files = Array.from(event.target.files);
-    if (files.length === 0) return;
+/** Strip last extension, replace _ and - with spaces for a readable collection title. */
+function deriveMediaTitleFromFilename(file) {
+    if (!file || !file.name) return '';
+    let base = file.name;
+    const lastDot = base.lastIndexOf('.');
+    if (lastDot > 0) {
+        base = base.slice(0, lastDot);
+    }
+    return base.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
 
-    const mediaType = document.getElementById('mediaTypeSelect').value;
-    if (mediaType !== 'photoGallery' && (existingMediaFiles.length > 0 || files.length > 1)) {
+/** If Collection Title is empty, set it from the first file of this selection (user can clear and re-upload to refresh). */
+function maybeAutofillMediaTitleFromFirstFile(firstFile) {
+    const titleInput = document.getElementById('mediaTitle');
+    if (!titleInput || !firstFile) return;
+    if (titleInput.value.trim() !== '') return;
+    const derived = deriveMediaTitleFromFilename(firstFile);
+    if (derived) {
+        titleInput.value = derived;
+    }
+}
+
+/** Shared path for file input and drag-and-drop onto #mediaUploadDropzone. */
+function processSelectedMediaFiles(files, fileInputElement) {
+    const fileArray = Array.isArray(files) ? files : Array.from(files || []);
+    if (fileArray.length === 0) return;
+
+    const mediaTypeSelect = document.getElementById('mediaTypeSelect');
+    const mediaType = mediaTypeSelect ? mediaTypeSelect.value : '';
+
+    if (mediaType !== 'photoGallery' && (existingMediaFiles.length > 0 || fileArray.length > 1)) {
         ui.showPopup("For Single Photo/Video/PDF type, only one file can be uploaded. Please remove existing or select one file.");
-        event.target.value = ''; // Clear selection
+        if (fileInputElement) fileInputElement.value = '';
         return;
     }
 
-    files.forEach((file) => {
+    maybeAutofillMediaTitleFromFirstFile(fileArray[0]);
+
+    fileArray.forEach((file) => {
         mediaFilesToUpload.push(file);
         if (file.type.startsWith('video/')) {
             // Start upload immediately
@@ -1716,8 +1767,12 @@ function handleMediaFileSelection(event) {
             });
         }
     });
-    renderMediaPreviewsFromQueue(event.target); // Pass input to clear it
-    event.target.value = '';
+    renderMediaPreviewsFromQueue(fileInputElement || null);
+    if (fileInputElement) fileInputElement.value = '';
+}
+
+function handleMediaFileSelection(event) {
+    processSelectedMediaFiles(Array.from(event.target.files), event.target);
 }
 
 function renderMediaPreviewsFromQueue(fileInputElement = null) {

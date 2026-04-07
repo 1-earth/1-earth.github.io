@@ -133,7 +133,7 @@ a {
 }
 
 .site-logo {
-  width: 46px;
+  width: 53px;
   flex: 0 0 auto;
   position: relative;
   z-index: 30;
@@ -623,16 +623,22 @@ a {
   /* border-radius: 18px; */
 }
 
-.home-impact-banner > img {
+.home-impact-banner > img,
+.home-impact-banner > video {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .home-impact-banner__overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -735,7 +741,8 @@ a {
   margin: 0;
 }
 
-.welcome-work__item img {
+.welcome-work__item img,
+.welcome-work__item video {
   display: block;
   width: 100%;
   object-fit: cover;
@@ -743,12 +750,48 @@ a {
   border-radius: 0px;
 }
 
-.welcome-work__item--portrait img {
+.welcome-work__item--portrait img,
+.welcome-work__item--portrait video {
   aspect-ratio: 4 / 5.4;
 }
 
-.welcome-work__item--landscape img {
+.welcome-work__item--landscape img,
+.welcome-work__item--landscape video {
   aspect-ratio: 1.65 / 1;
+}
+
+.welcome-work__media-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.welcome-work__media-wrap video {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.welcome-work__media-wrap video.welcome-work__video--visible {
+  opacity: 1;
+}
+
+.welcome-work__video-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 1;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.welcome-work__media-wrap .welcome-work__video-poster--hidden {
+  opacity: 0;
 }
 
 .welcome-work__copy {
@@ -922,19 +965,30 @@ a {
   height: 80vh;
 }
 
-.artists-hero img,
-.artists-bookings img,
-.artist-card img {
+.artists-hero img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
 }
 
+.artists-bookings img,
+.artists-bookings video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .artists-hero__overlay,
 .artists-bookings__overlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -984,9 +1038,15 @@ a {
   color: #8a2c0d;
 }
 
+.artists-grid > a.artist-card {
+  min-width: 0;
+}
+
 .artist-card {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  width: 100%;
 }
 
 a.artist-card {
@@ -1001,7 +1061,14 @@ a.artist-card:hover .artist-card__copy h2 {
 }
 
 .artist-card img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
   aspect-ratio: 0.78 / 1;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
 }
 
 .artist-card__copy {
@@ -1032,7 +1099,7 @@ a.artist-card:hover .artist-card__copy h2 {
 .artists-bookings {
   position: relative;
   /* margin-top: 2.6rem; */
-  /* min-height: 17rem; */
+  min-height: 17rem;
   overflow: hidden;
   max-height: 480px;
 }
@@ -1325,7 +1392,8 @@ padding-bottom: 30px;
 
   .home-production-values__grid {
     /* grid-template-columns: 2fr; */
-    gap: 1.8rem;
+    gap: 1.5rem;
+    column-gap: 1.1rem;
   }
 
   .home-production-card {

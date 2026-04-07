@@ -50,7 +50,7 @@
       </section>
 
       <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
-        <img src="static/assets/placeholder.jpeg" alt="Hands holding seaweed in shallow water">
+        <img src="static/assets/landingimage.jpg" alt="Hands holding seaweed in shallow water">
         <div class="home-hero__overlay">
           <p>
             We are a creative agency connecting exceptional, untapped local
@@ -180,7 +180,7 @@
     </template>
 
     <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
-        <img src="static/assets/placeholder.jpeg" alt="Hands holding seaweed in shallow water">
+        <img src="static/assets/createlocal1.jpg" alt="Hands holding seaweed in shallow water">
         <div class="home-hero__overlay">
             <h2 class="overlay-title">
                 create local
@@ -207,7 +207,7 @@
         <div class="home-production-values__grid">
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Social impact placeholder image">
+              <img src="static/assets/homepageslides/1_social_impact.jpg" alt="Social impact placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Social Impact</h3>
@@ -217,7 +217,7 @@
 
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Sustainability placeholder image">
+              <img src="static/assets/homepageslides/2_sustainability.jpg" alt="Sustainability placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Sustainability</h3>
@@ -227,7 +227,7 @@
 
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Global access placeholder image">
+              <img src="static/assets/homepageslides/3_global_access.jpg" alt="Global access placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Global Access</h3>
@@ -237,7 +237,7 @@
 
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Cost efficiency placeholder image">
+              <img src="static/assets/homepageslides/4_cost_efficiency.jpg" alt="Cost efficiency placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Cost Efficiency</h3>
@@ -247,7 +247,7 @@
 
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Authenticity placeholder image">
+              <img src="static/assets/homepageslides/5_authenticity.jpg" alt="Authenticity placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Authenticity</h3>
@@ -257,7 +257,7 @@
 
           <article class="home-production-card reveal-on-scroll">
             <figure class="home-production-card__image">
-              <img src="static/assets/placeholder.jpeg" alt="Creative access placeholder image">
+              <img src="static/assets/homepageslides/6_creative_access.jpg" alt="Creative access placeholder image">
             </figure>
             <div class="home-production-card__copy">
               <h3>Creative Access</h3>
@@ -268,7 +268,18 @@
       </section>
 
       <section class="home-impact-banner reveal-on-scroll" aria-labelledby="home-impact-banner-title">
-        <img src="static/assets/placeholder2.png" alt="Create local impact global placeholder image">
+        <video
+          class="home-impact-banner__video"
+          src="static/assets/bookings.mp4"
+          poster="static/assets/placeholder2.png"
+          autoplay
+          muted
+          loop
+          playsinline
+          webkit-playsinline
+          preload="auto"
+          aria-hidden="true"
+        ></video>
         <div class="home-impact-banner__overlay">
           <h2 id="home-impact-banner-title">Create Local<br>Impact Global</h2>
           <button class="home-impact-banner__cta" type="button">Sign Up to The Newsletter</button>
@@ -470,15 +481,52 @@
         wireWelcomeGridReveal(grid);
       }
 
-      async function mediaUrlFromId(db, mediaId) {
+      function fileIsVideo(file) {
+        if (!file || !file.url) return false;
+        if (file.type && String(file.type).indexOf("video/") === 0) return true;
+        var u = String(file.url).split("?")[0].toLowerCase();
+        return /\.(mp4|webm|mov|m4v|ogv)(\?.*)?$/.test(u);
+      }
+
+      function fileIsImage(file) {
+        return !!(file && file.url && file.type && String(file.type).indexOf("image/") === 0);
+      }
+
+      function pickPrimaryFile(files) {
+        if (!Array.isArray(files) || !files.length) return { file: null, index: -1 };
+        for (var i = 0; i < files.length; i++) {
+          if (files[i] && files[i].url) return { file: files[i], index: i };
+        }
+        return { file: null, index: -1 };
+      }
+
+      function posterUrlFromMediaData(data, primaryIndex, primaryIsVideo) {
+        if (!primaryIsVideo) return "";
+        var d = data || {};
+        var explicit = d.poster || d.posterUrl || d.posterImage || d.thumbnailUrl || "";
+        if (explicit) return String(explicit).trim();
+        var files = d.files || [];
+        for (var j = 0; j < files.length; j++) {
+          if (j === primaryIndex) continue;
+          if (fileIsImage(files[j])) return files[j].url;
+        }
+        return PLACEHOLDER_IMAGE;
+      }
+
+      async function resolveMediaFromId(db, mediaId) {
         if (!mediaId) return null;
         var snap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(mediaId).get();
         if (!snap.exists) return null;
         var data = snap.data();
-        if (data && Array.isArray(data.files) && data.files.length && data.files[0].url) {
-          return data.files[0].url;
-        }
-        return null;
+        var picked = pickPrimaryFile(data && data.files);
+        if (!picked.file || !picked.file.url) return null;
+        var isVideo = fileIsVideo(picked.file);
+        var posterUrl = posterUrlFromMediaData(data, picked.index, isVideo);
+        return {
+          url: picked.file.url,
+          isVideo: isVideo,
+          posterUrl: isVideo ? posterUrl : ""
+        };
       }
 
       async function resolveSectionCard(db, section) {
@@ -490,28 +538,124 @@
         if (href === "") href = "#";
 
         var imgUrl = PLACEHOLDER_IMAGE;
+        var isVideo = false;
+        var posterUrl = PLACEHOLDER_IMAGE;
         if (mediaBlock.mediaId) {
           try {
-            var resolved = await mediaUrlFromId(db, mediaBlock.mediaId);
-            if (resolved) imgUrl = resolved;
+            var resolved = await resolveMediaFromId(db, mediaBlock.mediaId);
+            if (resolved && resolved.url) {
+              imgUrl = resolved.url;
+              isVideo = !!resolved.isVideo;
+              posterUrl = resolved.isVideo ? (resolved.posterUrl || PLACEHOLDER_IMAGE) : "";
+            }
           } catch (_) {}
         }
 
-        return { title: title, location: location, href: href, imgUrl: imgUrl };
+        return { title: title, location: location, href: href, imgUrl: imgUrl, isVideo: isVideo, posterUrl: posterUrl };
       }
 
-      function buildCardEl(card) {
+      function showWelcomeWorkVideoPlaying(wrap, video, posterImg) {
+        video.classList.add("welcome-work__video--visible");
+        if (posterImg) posterImg.classList.add("welcome-work__video-poster--hidden");
+        wrap.classList.remove("welcome-work__video-play-failed");
+      }
+
+      function showWelcomeWorkVideoPosterOnly(wrap, video, posterImg) {
+        video.classList.remove("welcome-work__video--visible");
+        if (posterImg) posterImg.classList.remove("welcome-work__video-poster--hidden");
+        wrap.classList.add("welcome-work__video-play-failed");
+      }
+
+      function wireWelcomeWorkVideoInView(grid) {
+        if (!grid || !("IntersectionObserver" in window)) return;
+        var videos = grid.querySelectorAll("video.welcome-work__grid-video");
+        if (!videos.length) return;
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              var video = entry.target;
+              var wrap = video.closest(".welcome-work__media-wrap");
+              var posterImg = wrap ? wrap.querySelector(".welcome-work__video-poster") : null;
+              if (entry.isIntersecting) {
+                var p = video.play();
+                if (p && typeof p.catch === "function") {
+                  p.catch(function () {
+                    try {
+                      video.pause();
+                    } catch (_) {}
+                    if (wrap) showWelcomeWorkVideoPosterOnly(wrap, video, posterImg);
+                  });
+                }
+              } else {
+                try {
+                  video.pause();
+                } catch (_) {}
+              }
+            });
+          },
+          { threshold: 0.2, rootMargin: "0px" }
+        );
+        for (var v = 0; v < videos.length; v++) {
+          io.observe(videos[v]);
+        }
+      }
+
+      function mosaicOrientationClass(index) {
+        var r = typeof index === "number" ? index % 6 : 0;
+        return r === 1 || r === 3 ? "welcome-work__item--landscape" : "welcome-work__item--portrait";
+      }
+
+      function buildCardEl(card, index) {
         var a = document.createElement("a");
-        a.className = "welcome-work__item reveal-on-scroll";
+        a.className = "welcome-work__item reveal-on-scroll " + mosaicOrientationClass(index);
         a.setAttribute("href", card.href);
 
         var figure = document.createElement("figure");
         figure.className = "welcome-work__image";
-        var img = document.createElement("img");
-        img.loading = "lazy";
-        img.src = card.imgUrl;
-        img.alt = card.title || "Selected work";
-        figure.appendChild(img);
+
+        if (card.isVideo) {
+          figure.classList.add("welcome-work__image--video");
+          var wrap = document.createElement("div");
+          wrap.className = "welcome-work__media-wrap";
+
+          var posterImg = document.createElement("img");
+          posterImg.className = "welcome-work__video-poster";
+          posterImg.loading = "lazy";
+          posterImg.decoding = "async";
+          posterImg.src = card.posterUrl || PLACEHOLDER_IMAGE;
+          posterImg.alt = "";
+          posterImg.setAttribute("aria-hidden", "true");
+
+          var video = document.createElement("video");
+          video.className = "welcome-work__grid-video";
+          video.controls = false;
+          video.setAttribute("muted", "");
+          video.muted = true;
+          video.setAttribute("playsinline", "");
+          video.setAttribute("webkit-playsinline", "");
+          video.loop = true;
+          video.setAttribute("loop", "");
+          video.preload = "metadata";
+          video.src = card.imgUrl;
+          if (card.posterUrl || PLACEHOLDER_IMAGE) {
+            video.setAttribute("poster", card.posterUrl || PLACEHOLDER_IMAGE);
+          }
+          video.addEventListener("playing", function () {
+            var w = video.closest(".welcome-work__media-wrap");
+            var imgEl = w ? w.querySelector(".welcome-work__video-poster") : null;
+            if (w) showWelcomeWorkVideoPlaying(w, video, imgEl);
+          });
+
+          wrap.appendChild(posterImg);
+          wrap.appendChild(video);
+          figure.appendChild(wrap);
+        } else {
+          var img = document.createElement("img");
+          img.loading = "lazy";
+          img.src = card.imgUrl;
+          img.alt = card.title || "Selected work";
+          figure.appendChild(img);
+        }
 
         var copy = document.createElement("div");
         copy.className = "welcome-work__copy";
@@ -553,9 +697,10 @@
 
           grid.innerHTML = "";
           for (var i = 0; i < cards.length; i++) {
-            grid.appendChild(buildCardEl(cards[i]));
+            grid.appendChild(buildCardEl(cards[i], i));
           }
           wireWelcomeGridReveal(grid);
+          wireWelcomeWorkVideoInView(grid);
         } catch (_) {
           applyFallback(grid, fallbackTpl);
         }
