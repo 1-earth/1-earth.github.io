@@ -73,12 +73,60 @@ export async function saveItem(userId, dataID, itemData) {
     return itemRef.set(dataToSave, { merge: true });
 }
 
+/** @returns {number|null} epoch ms */
+function timestampToMillis(ts) {
+    if (ts == null) return null;
+    if (typeof ts.toMillis === 'function') return ts.toMillis();
+    if (typeof ts.seconds === 'number') {
+        return ts.seconds * 1000 + Math.floor((ts.nanoseconds || 0) / 1e6);
+    }
+    return null;
+}
+
+function blogListSortMillis(data) {
+    if (!data) return 0;
+    const posted = timestampToMillis(data.datePosted);
+    if (posted != null) return posted;
+    const created = timestampToMillis(data.createdAt);
+    if (created != null) return created;
+    return 0;
+}
+
+/**
+ * Wrap sorted docs so callers can keep using .forEach() like a QuerySnapshot.
+ * @param {firebase.firestore.QueryDocumentSnapshot[]} sortedDocs
+ */
+function asIterableSnapshot(sortedDocs) {
+    return {
+        forEach(callback) {
+            sortedDocs.forEach((doc) => callback(doc));
+        },
+        get docs() {
+            return sortedDocs;
+        },
+        get empty() {
+            return sortedDocs.length === 0;
+        },
+        get size() {
+            return sortedDocs.length;
+        }
+    };
+}
+
 export async function getItemsByType(userId, dataType) {
     const db = getDbInstance();
-    return db.collection('users').doc(userId).collection('items')
-        .where('type', '==', dataType)
-        .orderBy('createdAt', 'desc') // Or 'title' or 'updatedAt'
-        .get();
+    const base = db.collection('users').doc(userId).collection('items')
+        .where('type', '==', dataType);
+
+    if (dataType === 'blog') {
+        const snap = await base.get();
+        const sortedDocs = snap.docs.slice().sort((a, b) => {
+            return blogListSortMillis(b.data()) - blogListSortMillis(a.data());
+        });
+        return asIterableSnapshot(sortedDocs);
+    }
+
+    return base.orderBy('createdAt', 'desc').get();
 }
 
 export async function getItemById(userId, dataID) {
