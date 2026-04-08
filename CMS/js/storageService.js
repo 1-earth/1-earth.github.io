@@ -95,6 +95,32 @@ export async function deleteFile(fullStoragePath) {
     }
 }
 
+/**
+ * Copy a Storage object to a new path by re-downloading and uploading (same bucket).
+ * @param {string} sourceFullPath e.g. users/uid/media/oldId/file.jpg
+ * @param {string} destFullPath e.g. users/uid/media/newId/file.jpg
+ */
+export async function copyFileToNewPath(sourceFullPath, destFullPath, onProgress) {
+    const storage = getStorageInstance();
+    if (!sourceFullPath || !destFullPath) {
+        throw new Error('copyFileToNewPath: source and dest paths required');
+    }
+    if (!sourceFullPath.startsWith('users/') || !destFullPath.startsWith('users/')) {
+        throw new Error('copyFileToNewPath: invalid path');
+    }
+    const srcRef = storage.ref(sourceFullPath);
+    const url = await srcRef.getDownloadURL();
+    const resp = await fetch(url);
+    if (!resp.ok) {
+        throw new Error(`Failed to download source file: ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const name = destFullPath.split('/').pop() || 'file';
+    const file = new File([blob], name, { type: blob.type || 'application/octet-stream' });
+    const progress = typeof onProgress === 'function' ? onProgress : () => {};
+    return uploadFile(destFullPath, file, progress);
+}
+
 export async function deleteFolderContents(folderPath) {
     const storage = getStorageInstance();
     const listRef = storage.ref(folderPath);

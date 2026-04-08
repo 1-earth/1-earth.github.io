@@ -385,9 +385,23 @@ export function clearDashboard(message = "Select an item or create a new one.") 
     document.dispatchEvent(new CustomEvent('cms-dashboard-cleared'));
 }
 
+/**
+ * @typedef {Object} ItemsListMenuAction
+ * @property {string} text
+ * @property {boolean} [danger]
+ * @property {(dataID: string) => void} onSelect
+ */
+
+/**
+ * @typedef {Object} ItemsListItemMenu
+ * @property {string} ariaLabel
+ * @property {ItemsListMenuAction[]} actions
+ */
+
 export function displayItemsList(items, currentOpenItemID, onItemSelected, listOptions = {}) {
     if (!itemsListUl) return;
-    const { showBlogItemMenu, onBlogDuplicate, onBlogDelete } = listOptions;
+    /** @type {ItemsListItemMenu|undefined} */
+    const itemMenu = listOptions.itemMenu;
     itemsListUl.innerHTML = '';
     if (!items || items.length === 0) {
         itemsListUl.innerHTML = '<li class="placeholder-text">No items yet.</li>';
@@ -402,7 +416,7 @@ export function displayItemsList(items, currentOpenItemID, onItemSelected, listO
             li.classList.add('active');
         }
 
-        if (showBlogItemMenu && item.dataID) {
+        if (itemMenu && item.dataID && Array.isArray(itemMenu.actions) && itemMenu.actions.length) {
             li.classList.add('items-list-item--with-menu');
 
             const row = document.createElement('div');
@@ -419,7 +433,7 @@ export function displayItemsList(items, currentOpenItemID, onItemSelected, listO
             const menuBtn = document.createElement('button');
             menuBtn.type = 'button';
             menuBtn.className = 'items-list-menu-trigger';
-            menuBtn.setAttribute('aria-label', 'Page options');
+            menuBtn.setAttribute('aria-label', itemMenu.ariaLabel || 'Item options');
             menuBtn.setAttribute('aria-haspopup', 'true');
             menuBtn.setAttribute('aria-expanded', 'false');
             menuBtn.innerHTML = '<svg class="items-list-menu-trigger-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';
@@ -429,18 +443,22 @@ export function displayItemsList(items, currentOpenItemID, onItemSelected, listO
             dropdown.hidden = true;
             dropdown.setAttribute('role', 'menu');
 
-            const dupBtn = document.createElement('button');
-            dupBtn.type = 'button';
-            dupBtn.className = 'items-list-dropdown-action';
-            dupBtn.textContent = 'Duplicate page';
+            itemMenu.actions.forEach((action) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = action.danger
+                    ? 'items-list-dropdown-action items-list-dropdown-action--danger'
+                    : 'items-list-dropdown-action';
+                btn.textContent = action.text;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    dropdown.hidden = true;
+                    menuBtn.setAttribute('aria-expanded', 'false');
+                    if (typeof action.onSelect === 'function') action.onSelect(item.dataID);
+                });
+                dropdown.appendChild(btn);
+            });
 
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'items-list-dropdown-action items-list-dropdown-action--danger';
-            delBtn.textContent = 'Delete page';
-
-            dropdown.appendChild(dupBtn);
-            dropdown.appendChild(delBtn);
             menuWrap.appendChild(menuBtn);
             menuWrap.appendChild(dropdown);
             row.appendChild(titleBtn);
@@ -464,20 +482,6 @@ export function displayItemsList(items, currentOpenItemID, onItemSelected, listO
                 itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
                 dropdown.hidden = !willOpen;
                 menuBtn.setAttribute('aria-expanded', String(willOpen));
-            });
-
-            dupBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.hidden = true;
-                menuBtn.setAttribute('aria-expanded', 'false');
-                if (typeof onBlogDuplicate === 'function') onBlogDuplicate(item.dataID);
-            });
-
-            delBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.hidden = true;
-                menuBtn.setAttribute('aria-expanded', 'false');
-                if (typeof onBlogDelete === 'function') onBlogDelete(item.dataID);
             });
         } else {
             li.textContent = titleText;
@@ -625,57 +629,7 @@ export function renderMediaDashboard(dataID, existingData = null, currentUserID)
     if (!dashboardContentEl) { console.error("Dashboard content element not found!"); return; }
     const title = existingData ? existingData.title : '';
     const selectedMediaType = existingData ? existingData.mediaType : 'photo';
-    const files = existingData ? existingData.files || [] : [];
     const isNew = !existingData;
-
-    let filesHTML = files.map((file, index) => {
-        if (!file || !file.url) return ''; // Skip if file or URL is missing
-        const isVideo = file.url.includes('.mp4') || file.url.includes('.webm') || (file.type && file.type.startsWith('video/'));
-        const isImage = file.type && file.type.startsWith('image/');
-        const isPdf = file.type === 'application/pdf' || (file.url && file.url.toLowerCase().endsWith('.pdf'));
-        let mediaElementHTML;
-        if (isVideo) {
-            mediaElementHTML = `<video src="${escapeHTML(file.url)}" controls></video>`;
-        } else if (isImage) {
-            const fsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
-            mediaElementHTML = `<div class="media-preview-thumb-wrap"><img src="${escapeHTML(file.url)}" alt="${escapeHTML(file.caption || 'media preview')}" title="Click to view fullscreen" onload="updateExistingImageInfo(this, ${index})"><button type="button" class="media-preview-fullscreen-btn" aria-label="View fullscreen">${fsIcon}</button></div>`;
-        } else if (isPdf) {
-            // Canvas thumbnail container; rendered by admin PDF initializer in main.js (client-side)
-            mediaElementHTML = `<canvas class="pdf-thumb-canvas" data-pdf-url="${escapeHTML(file.url)}" width="200" height="260" style="max-width:200px; max-height:260px;"></canvas>`;
-        } else {
-            mediaElementHTML = `<div class="media-placeholder">Preview not available</div>`;
-        }
-
-        // Create image info and controls for images
-        let imageInfoHTML = '';
-        if (isImage) {
-            imageInfoHTML = `
-                <div class="image-info" id="existingImageInfo_${index}">
-                    <p class="image-specs">Loading dimensions...</p>
-                </div>
-                <div class="image-controls">
-                    <div class="existing-image-notice">
-                        <p class="edit-restriction-notice">⚠️ Editing unavailable for saved images due to security restrictions</p>
-                        <p class="edit-suggestion">To edit: Delete this image and re-upload to enable Crop/Compress/Resize</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        return `
-        <div class="media-preview-item" data-file-index="${index}" data-filename="${escapeHTML(file.filename)}" data-storage-path="${escapeHTML(file.storagePath || '')}">
-            ${mediaElementHTML}
-            <div class="media-preview-item-info">
-                <div class="form-group">
-                     <label for="mediaFileCaption_${index}">Caption/Alt Text:</label>
-                     <input type="text" id="mediaFileCaption_${index}" class="media-file-caption" value="${escapeHTML(file.caption || '')}" placeholder="Enter caption">
-                </div>
-                <p class="media-filename">Filename: ${escapeHTML(file.filename)}</p>
-                ${imageInfoHTML}
-            </div>
-            <button class="btn btn-danger btn-sm remove-media-file-btn" data-file-index="${index}">Remove</button>
-        </div>`;
-    }).join('');
 
     const html = `
         <div class="dashboard-section media-dashboard dashboard-with-sidebar">
@@ -700,9 +654,7 @@ export function renderMediaDashboard(dataID, existingData = null, currentUserID)
                         <progress id="uploadProgressBar" value="0" max="100" style="width:100%;"></progress>
                     </div>
                 </div>
-                <div class="media-previews" id="mediaPreviewsContainer">
-                    ${filesHTML}
-                </div>
+                <div class="media-previews" id="mediaPreviewsContainer"></div>
             </div>
             <div class="dashboard-sidebar">
                 <div class="dashboard-sidebar-header">Page Settings:</div>

@@ -403,7 +403,9 @@
             : "";
           return (
             '<a class="artist-card" href="' + escapeHtml(href) + '" aria-label="View ' + escapeHtml(title) + '">' +
-              '<img loading="lazy" src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '">' +
+              '<div class="artist-card__media">' +
+                '<img loading="lazy" src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '">' +
+              '</div>' +
               '<div class="artist-card__copy">' +
                 "<h2>" + escapeHtml(title) + "</h2>" +
                 "<p>" + escapeHtml(category) + "</p>" +

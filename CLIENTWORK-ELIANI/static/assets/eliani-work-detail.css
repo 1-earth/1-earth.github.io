@@ -1,0 +1,800 @@
+/* Shared: artist + work detail templates (eliani-work-page). Depends on styles.css for variables. */
+.eliani-work-page {
+  background: var(--page-bg);
+}
+
+body.eliani-viewer-open {
+  overflow: hidden;
+}
+
+.eliani-work-shell {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  padding: 0 clamp(1.4rem, 4vw, 3rem) clamp(4rem, 6vw, 5rem);
+}
+
+.eliani-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 1.6rem 0 1.2rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-bottom: 1px solid currentColor;
+}
+
+.eliani-work-status,
+.eliani-work-intro,
+.eliani-related-section {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(38, 35, 32, 0.1);
+  border-radius: 28px;
+  backdrop-filter: blur(6px);
+}
+
+.eliani-work-status {
+  padding: clamp(2rem, 4vw, 3rem);
+  text-align: center;
+}
+
+.eliani-kicker {
+  margin: 0 0 0.9rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+}
+
+.eliani-work-status h1,
+.eliani-work-hero-copy h1,
+.eliani-related-heading h2 {
+  margin: 0;
+  font-family: "Aboreto", serif;
+  font-size: clamp(2rem, 4vw, 4.2rem);
+  font-weight: 400;
+  line-height: 0.96;
+  text-transform: uppercase;
+}
+
+.eliani-work-status p,
+.eliani-work-intro p,
+.eliani-related-card p,
+.blog-body-frontend,
+.blog-media-caption {
+  margin: 0;
+  margin-bottom: 2rem;
+  margin-top: 1.2rem;
+  color: var(--muted-text);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1.2rem, 1.9vw, 1.58rem);
+  line-height: 1.45;
+  text-align: center;
+}
+
+.eliani-work-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.eliani-work-hero {
+  position: relative;
+  min-height: min(74vh, 820px);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.eliani-work-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(38, 35, 32, 0.42), rgba(38, 35, 32, 0.08) 35%, rgba(38, 35, 32, 0.18));
+}
+
+.eliani-work-hero-copy {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: calc(var(--header-offset) + 2rem) 1.5rem 3rem;
+  color: #fffdf8;
+}
+
+.eliani-work-hero-inner {
+  width: min(100%, 860px);
+}
+
+.eliani-work-hero h1 {
+  color: inherit;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.24);
+}
+
+.eliani-work-hero-copy .eliani-kicker,
+.eliani-work-hero-copy .eliani-work-date {
+  color: rgba(255, 253, 248, 0.95);
+}
+
+.eliani-work-hero-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+
+.eliani-work-intro {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(2rem, 4vw, 3rem);
+  text-align: center;
+}
+
+.eliani-work-intro p {
+  max-width: 34ch;
+  margin: 0 auto;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  line-height: 1.32;
+  color: var(--text-color);
+}
+
+.eliani-work-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1rem;
+  align-items: center;
+  margin: 1.2rem 0 1rem;
+}
+
+.eliani-work-date {
+  font-family: "Geist", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted-text);
+}
+
+.eliani-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.eliani-tag {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(38, 35, 32, 0.18);
+  border-radius: 999px;
+  font-family: "Geist", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  background: rgba(245, 245, 245, 0.82);
+}
+
+.eliani-work-body {
+  display: grid;
+  gap: 1.4rem;
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/*
+ * Reveal: do not animate opacity on the whole block — <video> becomes translucent and the
+ * poster shows through. Keep children at full opacity; fade a page-toned veil instead.
+ */
+.eliani-work-body.reveal-on-scroll {
+  position: relative;
+  opacity: 1;
+  transform: translate3d(0, 28px, 0);
+  transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.eliani-work-body.reveal-on-scroll::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: rgba(245, 245, 245, 0.92);
+  opacity: 1;
+  transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.eliani-work-body.reveal-on-scroll.is-visible {
+  transform: translate3d(0, 0, 0);
+}
+
+.eliani-work-body.reveal-on-scroll.is-visible::after {
+  opacity: 0;
+}
+
+.eliani-related-logo-wrap {
+  max-width: 200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: clamp(2.75rem, 5vw, 4rem);
+  margin-bottom: 0px;
+  padding: 0;
+  text-align: center;
+}
+
+.eliani-related-logo-link {
+  display: inline-block;
+  line-height: 0;
+  text-decoration: none;
+  color: inherit;
+  border: 0;
+}
+
+.eliani-related-logo-link:focus-visible {
+  outline: 2px solid var(--text-color);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.eliani-related-logo {
+  display: inline-block;
+  width: min(100%, 400px);
+  height: auto;
+  vertical-align: middle;
+}
+
+.eliani-related-section {
+  overflow: hidden;
+  border-radius: 28px;
+}
+
+.blog-section-frontend,
+.blog-block-frontend {
+  display: grid;
+  gap: 1rem;
+}
+
+.blog-subtitle-frontend {
+  font-family: "Baskervville", serif;
+  font-size: clamp(2.35rem, 3vw, 5rem);
+  line-height: 1.15;
+  color: var(--text-color);
+  border-bottom: 1px solid rgb(38, 35, 32);
+  text-align: center;
+}
+
+.blog-subtitle-frontend p {
+  margin: 0;
+}
+
+.blog-body-frontend p {
+  margin: 0 0 1rem;
+}
+
+.blog-body-frontend p:last-child {
+  margin-bottom: 0;
+}
+
+.blog-media-frontend,
+.blog-embed-frontend,
+.blog-column-group-frontend {
+  width: 100%;
+}
+
+.blog-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.blog-gallery-item {
+  appearance: none;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.blog-gallery-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(245, 245, 245, 0);
+  transition: background 0.25s ease;
+}
+
+.blog-gallery-trigger:hover::after,
+.blog-gallery-trigger:focus-visible::after,
+.blog-gallery-link:hover::after,
+.blog-gallery-link:focus-visible::after {
+  background: rgba(245, 245, 245, 0.2);
+}
+
+.blog-gallery-trigger,
+.blog-gallery-link {
+  cursor: pointer;
+}
+
+.blog-gallery-static {
+  cursor: default;
+}
+
+.blog-gallery-item img {
+  width: 100%;
+  aspect-ratio: 1 / 1.25;
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
+  position: relative;
+  z-index: 0;
+  transition: transform 0.25s ease;
+}
+
+.blog-media-frontend .blog-gallery-item img {
+  border-radius: 0;
+}
+
+.blog-gallery-trigger:hover img,
+.blog-gallery-trigger:focus-visible img,
+.blog-gallery-link:hover img,
+.blog-gallery-link:focus-visible img {
+  transform: scale(0.985);
+}
+
+.blog-gallery-caption {
+  margin: 0.6rem 0 0;
+  text-align: left;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: rgba(38, 35, 32, 0.82);
+}
+
+.blog-media-frontend img,
+.blog-media-frontend video {
+  width: 100%;
+  display: block;
+  /* border-radius: 24px; */
+  background: rgba(38, 35, 32, 0.06);
+  object-fit: cover;
+  max-height: 84vh;
+}
+
+.blog-media-caption {
+  padding-top: 0.75rem;
+  text-align: center;
+  font-size: 1.02rem;
+}
+
+.embed-container {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  overflow: hidden;
+  /* border-radius: 24px; */
+  background: rgba(38, 35, 32, 0.08);
+}
+
+.embed-container iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.blog-column-group-frontend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.blog-column-frontend {
+  min-width: min(100%, 280px);
+  display: grid;
+  gap: 1rem;
+}
+
+.eliani-related-section {
+  padding: clamp(1.8rem, 4vw, 3rem);
+  margin-top: 0;
+  max-width: 1120px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.eliani-related-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.4rem;
+}
+
+.eliani-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.eliani-related-card {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.eliani-related-card-media img {
+  width: 100%;
+  aspect-ratio: 1.08 / 1;
+  object-fit: cover;
+  /* border-radius: 22px; */
+}
+
+.eliani-related-card h3 {
+  margin: 0;
+  font-family: "Baskervville", serif;
+  font-size: clamp(1.12rem, 1.8vw, 1.65rem);
+  font-weight: 400;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.eliani-related-card .eliani-kicker {
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.eliani-pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1.6rem;
+}
+
+.eliani-pager-btn {
+  appearance: none;
+  border: 1px solid rgba(38, 35, 32, 0.22);
+  background: rgba(245, 245, 245, 0.82);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.9rem 1.25rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.eliani-pager-btn:hover,
+.eliani-pager-btn:focus-visible {
+  background: rgba(146, 170, 121, 0.28);
+  transform: translateY(-1px);
+}
+
+.eliani-pager-btn[hidden] {
+  display: none;
+}
+
+.eliani-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+  background: rgba(14, 13, 11, 0.105);
+  backdrop-filter: blur(27px);
+}
+
+.eliani-viewer.is-open {
+  display: block;
+}
+
+.eliani-viewer-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: 1rem 1rem 1.2rem;
+}
+
+.eliani-viewer-close,
+.eliani-viewer-nav {
+  appearance: none;
+  border: 1px solid rgba(255, 253, 248, 0.3);
+  background: rgba(245, 245, 245, 0.08);
+  color: #fffdf8;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.eliani-viewer-close:hover,
+.eliani-viewer-close:focus-visible,
+.eliani-viewer-nav:hover,
+.eliani-viewer-nav:focus-visible {
+  background: rgba(245, 245, 245, 0.16);
+  border-color: rgba(255, 253, 248, 0.52);
+  transform: translateY(-1px);
+}
+
+.eliani-viewer-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.eliani-viewer-stage {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.eliani-viewer-viewport {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 4.75rem 1rem;
+}
+
+.eliani-viewer-media {
+  max-width: min(100%, 1180px);
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eliani-viewer-media img {
+  display: block;
+  width: auto;
+  height: calc(100vh - 11rem);
+  max-width: 50vw;
+  max-height: calc(100vh - 11rem);
+  object-fit: contain;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+}
+
+.eliani-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 60px;
+  height: 42px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Geist", sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  opacity: 0.9;
+}
+
+.eliani-viewer-nav--prev {
+  left: 1rem;
+}
+
+.eliani-viewer-nav--prev::before,
+.eliani-viewer-nav--next::before {
+  display: block;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.55rem;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.eliani-viewer-nav--prev::before {
+  content: "←";
+}
+
+.eliani-viewer-nav--next {
+  right: 1rem;
+}
+
+.eliani-viewer-nav--next::before {
+  content: "→";
+}
+
+.eliani-viewer-footer {
+  display: grid;
+  gap: 0.75rem;
+  align-self: end;
+}
+
+.eliani-viewer-caption {
+  min-height: 1.4rem;
+  margin: 0;
+  text-align: center;
+  color: rgba(255, 253, 248, 0.92);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.2;
+}
+
+.eliani-viewer-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+}
+
+.eliani-viewer-thumb {
+  appearance: none;
+  padding: 0;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+  opacity: 0.72;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.eliani-viewer-thumb.is-active {
+  border-color: rgba(255, 253, 248, 0.9);
+  opacity: 1;
+}
+
+.eliani-viewer-thumb:hover,
+.eliani-viewer-thumb:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.eliani-viewer-thumb img {
+  width: 54px;
+  height: 54px;
+  display: block;
+  object-fit: cover;
+}
+
+@media (max-width: 980px) {
+  .blog-gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eliani-related-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-column-group-frontend {
+    flex-direction: column;
+  }
+
+  .blog-column-frontend {
+    width: 100% !important;
+    flex-basis: 100% !important;
+  }
+
+  .eliani-viewer-viewport {
+    padding-left: 4rem;
+    padding-right: 4rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .eliani-work-shell {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .eliani-work-status,
+  .eliani-work-intro,
+  .eliani-related-section {
+    border-radius: 22px;
+  }
+
+  .eliani-work-hero {
+    min-height: 56vh;
+  }
+
+  .eliani-work-hero-copy {
+    padding-top: calc(var(--header-offset) + 1.5rem);
+    padding-bottom: 2rem;
+  }
+
+  .blog-gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .blog-media-frontend img,
+  .blog-media-frontend video,
+  .embed-container,
+  .eliani-related-card-media img {
+    border-radius: 18px;
+  }
+
+  .eliani-pager {
+    flex-direction: column;
+  }
+
+  .eliani-pager-btn {
+    width: 100%;
+  }
+
+  .eliani-viewer-inner {
+    padding: 0.75rem 0.75rem 1rem;
+  }
+
+  .eliani-viewer-close {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 42px;
+    height: 42px;
+  }
+
+  .eliani-viewer-nav {
+    width: 50px;
+    height: 38px;
+  }
+
+  .eliani-viewer-nav--prev {
+    left: 0.4rem;
+  }
+
+  .eliani-viewer-nav--next {
+    right: 0.4rem;
+  }
+
+  .eliani-viewer-viewport {
+    padding: 3.5rem 2.8rem 0.5rem;
+  }
+
+  .eliani-viewer-media img {
+    width: auto;
+    height: calc(100vh - 12rem);
+    max-width: 80vw;
+    max-height: calc(100vh - 12rem);
+  }
+
+  .eliani-viewer-thumb img {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eliani-work-body.reveal-on-scroll::after {
+    opacity: 0;
+    transition: none;
+  }
+}

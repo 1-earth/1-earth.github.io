@@ -12,6 +12,9 @@ let currentItemDataCache = null; // Cache of the currently open item's data
 let mediaFilesToUpload = []; // For media dashboard: array of File objects
 let existingMediaFiles = []; // For media dashboard: array of {url, caption, filename, storagePath}
 let mediaUploadsInProgress = []; // [{file, progress, uploadTask, uploadedUrl, storagePath, error, isCompressed, isDone}]
+let draggedMediaPreviewItem = null;
+/** True after mousedown on gallery grip; dragstart on the row only proceeds when this is set. */
+let mediaReorderGripArmed = false;
 let isAdmin = false; // From custom claim
 let effectiveUserId = null; // Admin-selected user being edited
 let effectiveUserEmail = null;
@@ -235,6 +238,8 @@ function setupEventListeners() {
             const input = document.getElementById('mediaFileUpload');
             processSelectedMediaFiles(Array.from(dt.files), input);
         });
+
+        setupMediaGalleryReorderDelegation(dashboardContentEl);
     }
 
     document.addEventListener('cms-page-editor-dirty', () => {
@@ -337,6 +342,10 @@ function handleDashboardChanges(e) {
         markPageDashboardDirty();
     }
 
+    if (e.target.id === 'mediaTypeSelect') {
+        handleMediaTypeChange(e.target.value);
+        renderAllMediaPreviews();
+    }
 }
 
 // --- Data Loading and Display ---
@@ -350,13 +359,24 @@ async function loadItemsForType(dataType) {
         querySnapshot.forEach(doc => {
             items.push({ dataID: doc.id, ...doc.data() });
         });
-        const listOpts = selectedDataType === 'blog'
-            ? {
-                showBlogItemMenu: true,
-                onBlogDuplicate: handleDuplicateBlogItem,
-                onBlogDelete: handleDeleteBlogFromList
-            }
-            : {};
+        const listOpts = {};
+        if (selectedDataType === 'blog') {
+            listOpts.itemMenu = {
+                ariaLabel: 'Page options',
+                actions: [
+                    { text: 'Duplicate page', onSelect: (id) => { handleDuplicateBlogItem(id); } },
+                    { text: 'Delete page', danger: true, onSelect: (id) => { handleDeleteBlogFromList(id); } }
+                ]
+            };
+        } else if (selectedDataType === 'media') {
+            listOpts.itemMenu = {
+                ariaLabel: 'Media options',
+                actions: [
+                    { text: 'Duplicate media', onSelect: (id) => { handleDuplicateMediaItem(id); } },
+                    { text: 'Delete media', danger: true, onSelect: (id) => { handleDeleteMediaFromList(id); } }
+                ]
+            };
+        }
         ui.displayItemsList(items, currentOpenItemDataID, handleItemSelected, listOpts);
     } catch (error) {
         console.error(`Error loading ${dataType} items:`, error);
@@ -410,6 +430,55 @@ function handleDeleteBlogFromList(dataID) {
             }
         }
     );
+}
+
+function handleDeleteMediaFromList(dataID) {
+    if (!currentUser || !dataID) return;
+    ui.showPopup(
+        'Are you sure you want to delete this media? This action cannot be undone.',
+        'confirm',
+        async () => {
+            ui.showLoading(true);
+            try {
+                const targetUid = getTargetUserId();
+                const folderPath = `users/${targetUid}/media/${dataID}`;
+                await storageService.deleteFolderContents(folderPath);
+                await fsService.deleteItem(targetUid, dataID);
+                if (currentOpenItemDataID === dataID) {
+                    currentOpenItemDataID = null;
+                    currentItemDataCache = null;
+                    mediaFilesToUpload = [];
+                    existingMediaFiles = [];
+                    ui.clearDashboard();
+                }
+                ui.showPopup('Media deleted successfully!', 'alert', () => {
+                    loadItemsForType(selectedDataType);
+                });
+            } catch (error) {
+                console.error('handleDeleteMediaFromList:', error);
+                ui.showPopup('Error deleting: ' + error.message);
+            } finally {
+                ui.showLoading(false);
+            }
+        }
+    );
+}
+
+async function handleDuplicateMediaItem(sourceDataID) {
+    if (!currentUser || !sourceDataID) return;
+    ui.showLoading(true);
+    try {
+        const targetUid = getTargetUserId();
+        const newId = await fsService.duplicateMediaFromSource(targetUid, sourceDataID);
+        await loadItemsForType(selectedDataType);
+        await handleItemSelected(newId);
+        ui.showPopup('Duplicate media created. You can edit it below.', 'alert');
+    } catch (error) {
+        console.error('handleDuplicateMediaItem:', error);
+        ui.showPopup('Could not duplicate: ' + (error.message || String(error)));
+    } finally {
+        ui.showLoading(false);
+    }
 }
 
 async function handleItemSelected(dataID) {
@@ -629,10 +698,7 @@ function handleDashboardActions(e) {
     else if (e.target.id === 'mediaFileUpload') { // The actual file input
         e.target.addEventListener('change', handleMediaFileSelection);
     }
-    else if (e.target.id === 'mediaTypeSelect'){
-        handleMediaTypeChange(e.target.value);
-    }
-    
+
     // Image editing buttons (only for new uploads)
     else if (e.target.classList.contains('crop-btn')) {
         const fileIndex = parseInt(e.target.dataset.fileIndex);
@@ -1654,8 +1720,7 @@ function setupMediaDashboardControls(dataID, existingItemData) {
     }
     // fileInput listener also handled by delegation
 
-    // Initialize PDF thumbnails for existing saved PDFs
-    initAdminPdfThumbnails();
+    renderAllMediaPreviews();
 }
 
 function handleMediaTypeChange(selectedType) {
@@ -1749,7 +1814,7 @@ function processSelectedMediaFiles(files, fileInputElement) {
             // Start upload
             const uploadPromise = storageService.uploadFile(storagePath, file, (progress) => {
                 uploadObj.progress = progress;
-                renderMediaPreviewsFromQueue();
+                renderAllMediaPreviews();
             });
             uploadObj.uploadTask = uploadPromise;
             uploadObj.cancelUpload = () => {
@@ -1760,14 +1825,14 @@ function processSelectedMediaFiles(files, fileInputElement) {
                 uploadObj.uploadedUrl = downloadURL;
                 uploadObj.storagePath = storagePath;
                 uploadObj.isDone = true;
-                renderMediaPreviewsFromQueue();
+                renderAllMediaPreviews();
             }).catch((err) => {
                 uploadObj.error = err;
-                renderMediaPreviewsFromQueue();
+                renderAllMediaPreviews();
             });
         }
     });
-    renderMediaPreviewsFromQueue(fileInputElement || null);
+    renderAllMediaPreviews();
     if (fileInputElement) fileInputElement.value = '';
 }
 
@@ -1775,15 +1840,225 @@ function handleMediaFileSelection(event) {
     processSelectedMediaFiles(Array.from(event.target.files), event.target);
 }
 
-function renderMediaPreviewsFromQueue(fileInputElement = null) {
+function buildExistingMediaPreviewHtml(file, index, showDragHandle) {
+    if (!file || !file.url) return '';
+    const dragHandleHtml = showDragHandle
+        ? `<span class="media-preview-drag-handle" aria-hidden="true" title="Drag to reorder">⋮⋮</span>`
+        : '';
+    const isVideo = file.url.includes('.mp4') || file.url.includes('.webm') || (file.type && file.type.startsWith('video/'));
+    const isImage = file.type && file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf' || (file.url && file.url.toLowerCase().endsWith('.pdf'));
+    let mediaElementHTML;
+    if (isVideo) {
+        mediaElementHTML = `<video src="${ui.escapeHTML(file.url)}" controls draggable="false"></video>`;
+    } else if (isImage) {
+        const fsIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+        mediaElementHTML = `<div class="media-preview-thumb-wrap"><img src="${ui.escapeHTML(file.url)}" alt="${ui.escapeHTML(file.caption || 'media preview')}" title="Click to view fullscreen" draggable="false" onload="updateExistingImageInfo(this, ${index})"><button type="button" class="media-preview-fullscreen-btn" aria-label="View fullscreen">${fsIcon}</button></div>`;
+    } else if (isPdf) {
+        mediaElementHTML = `<canvas class="pdf-thumb-canvas" data-pdf-url="${ui.escapeHTML(file.url)}" width="200" height="260" style="max-width:200px; max-height:260px;"></canvas>`;
+    } else {
+        mediaElementHTML = `<div class="media-placeholder">Preview not available</div>`;
+    }
+    let imageInfoHTML = '';
+    if (isImage) {
+        imageInfoHTML = `
+                <div class="image-info" id="existingImageInfo_${index}">
+                    <p class="image-specs">Loading dimensions...</p>
+                </div>
+                <div class="image-controls">
+                    <div class="existing-image-notice">
+                        <p class="edit-restriction-notice">⚠️ Editing unavailable for saved images due to security restrictions</p>
+                        <p class="edit-suggestion">To edit: Delete this image and re-upload to enable Crop/Compress/Resize</p>
+                    </div>
+                </div>
+            `;
+    }
+    const dragAttr = showDragHandle ? 'true' : 'false';
+    return `
+        <div class="media-preview-item" data-file-index="${index}" data-filename="${ui.escapeHTML(file.filename)}" data-storage-path="${ui.escapeHTML(file.storagePath || '')}" draggable="${dragAttr}">
+            ${dragHandleHtml}
+            ${mediaElementHTML}
+            <div class="media-preview-item-info">
+                <div class="form-group">
+                     <label for="mediaFileCaption_${index}">Caption/Alt Text:</label>
+                     <input type="text" id="mediaFileCaption_${index}" class="media-file-caption" value="${ui.escapeHTML(file.caption || '')}" placeholder="Enter caption">
+                </div>
+                <p class="media-filename">Filename: ${ui.escapeHTML(file.filename)}</p>
+                ${imageInfoHTML}
+            </div>
+            <button type="button" class="btn btn-danger btn-sm remove-media-file-btn" data-file-index="${index}">Remove</button>
+        </div>`;
+}
+
+function getMediaDragAfterElement(container, y) {
+    const elements = [...container.querySelectorAll('.media-preview-item:not(.media-preview-item--dragging)')];
+    return elements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset, element: child };
+        }
+        return closest;
+    }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+}
+
+function syncMediaPreviewOrderFromDom() {
+    const container = document.getElementById('mediaPreviewsContainer');
+    if (!container) return;
+    const items = [...container.querySelectorAll('.media-preview-item')];
+    const nextExisting = [];
+    const nextNew = [];
+    const oldNewIndices = [];
+    items.forEach((el) => {
+        if (el.dataset.newFileIndex !== undefined && el.dataset.newFileIndex !== '') {
+            const oldIdx = parseInt(el.dataset.newFileIndex, 10);
+            if (!Number.isNaN(oldIdx) && mediaFilesToUpload[oldIdx]) {
+                oldNewIndices.push(oldIdx);
+                nextNew.push(mediaFilesToUpload[oldIdx]);
+            }
+        } else if (el.dataset.fileIndex !== undefined && el.dataset.fileIndex !== '') {
+            const oldIdx = parseInt(el.dataset.fileIndex, 10);
+            if (!Number.isNaN(oldIdx) && existingMediaFiles[oldIdx]) {
+                nextExisting.push(existingMediaFiles[oldIdx]);
+            }
+        }
+    });
+    if (nextExisting.length + nextNew.length !== items.length) return;
+    existingMediaFiles = nextExisting;
+    mediaFilesToUpload = nextNew;
+    const nextProgress = [];
+    oldNewIndices.forEach((oldIdx, newIdx) => {
+        if (mediaUploadsInProgress[oldIdx] !== undefined) {
+            nextProgress[newIdx] = mediaUploadsInProgress[oldIdx];
+        }
+    });
+    mediaUploadsInProgress = nextProgress;
+}
+
+function _eventTargetElement(ev) {
+    const n = ev && ev.target;
+    if (!n) return null;
+    return n.nodeType === Node.TEXT_NODE ? n.parentElement : n;
+}
+
+function setupMediaGalleryReorderDelegation(rootEl) {
+    // dragstart's e.target is the draggable .media-preview-item, not the grip (closest() only walks up).
+    // Arm reorder only when the pointer went down on the grip.
+    rootEl.addEventListener('mousedown', (e) => {
+        const el = _eventTargetElement(e);
+        if (!el || !el.closest) return;
+        const container = document.getElementById('mediaPreviewsContainer');
+        const item = el.closest('.media-preview-item');
+        if (!container || !item || !container.contains(item) || !container.classList.contains('media-previews--reorderable')) {
+            mediaReorderGripArmed = false;
+            return;
+        }
+        mediaReorderGripArmed = !!el.closest('.media-preview-drag-handle');
+    });
+
+    rootEl.addEventListener('mouseup', () => {
+        if (!draggedMediaPreviewItem) {
+            mediaReorderGripArmed = false;
+        }
+    });
+
+    rootEl.addEventListener('dragstart', (e) => {
+        const startEl = _eventTargetElement(e);
+        const item = startEl && startEl.closest ? startEl.closest('.media-preview-item') : null;
+        const container = document.getElementById('mediaPreviewsContainer');
+        if (!item || !container || !container.contains(item)) return;
+        if (!container.classList.contains('media-previews--reorderable')) return;
+        if (!mediaReorderGripArmed) {
+            e.preventDefault();
+            return;
+        }
+        mediaReorderGripArmed = false;
+        draggedMediaPreviewItem = item;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', 'media-preview-reorder');
+        item.classList.add('media-preview-item--dragging');
+    });
+
+    rootEl.addEventListener('dragend', (e) => {
+        const item = e.target.closest('.media-preview-item');
+        const container = document.getElementById('mediaPreviewsContainer');
+        mediaReorderGripArmed = false;
+        if (!item || !container || !container.contains(item)) {
+            draggedMediaPreviewItem = null;
+            return;
+        }
+        item.classList.remove('media-preview-item--dragging');
+        if (draggedMediaPreviewItem) {
+            syncMediaPreviewOrderFromDom();
+            renderAllMediaPreviews();
+        }
+        draggedMediaPreviewItem = null;
+    });
+
+    rootEl.addEventListener('dragover', (e) => {
+        if (!draggedMediaPreviewItem) return;
+        const container = document.getElementById('mediaPreviewsContainer');
+        if (!container || !container.classList.contains('media-previews--reorderable')) return;
+        if (!container.contains(e.target)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const afterElement = getMediaDragAfterElement(container, e.clientY);
+        if (afterElement == null) {
+            container.appendChild(draggedMediaPreviewItem);
+        } else {
+            container.insertBefore(draggedMediaPreviewItem, afterElement);
+        }
+    });
+
+    rootEl.addEventListener('drop', (e) => {
+        const container = document.getElementById('mediaPreviewsContainer');
+        if (container && container.contains(e.target) && draggedMediaPreviewItem) {
+            e.preventDefault();
+        }
+    });
+}
+
+function renderAllMediaPreviews() {
     const previewsContainer = document.getElementById('mediaPreviewsContainer');
     if (!previewsContainer) return;
+
+    const mediaTypeSelect = document.getElementById('mediaTypeSelect');
+    const mediaType = mediaTypeSelect ? mediaTypeSelect.value : '';
+    const totalCount = existingMediaFiles.length + mediaFilesToUpload.length;
+    const reorderable = mediaType === 'photoGallery' && totalCount > 1;
+
     previewsContainer.innerHTML = '';
+    previewsContainer.classList.toggle('media-previews--reorderable', reorderable);
+
+    if (reorderable) {
+        const hint = document.createElement('p');
+        hint.className = 'form-field-hint media-gallery-reorder-hint';
+        hint.textContent = 'Use the grip on the left to drag photos into order. Save to apply on the site.';
+        previewsContainer.appendChild(hint);
+    }
+
+    existingMediaFiles.forEach((file, index) => {
+        const html = buildExistingMediaPreviewHtml(file, index, reorderable);
+        if (html) previewsContainer.insertAdjacentHTML('beforeend', html);
+    });
+
     mediaFilesToUpload.forEach((file, indexOffset) => {
         const fileIndex = existingMediaFiles.length + indexOffset;
         const previewItem = document.createElement('div');
         previewItem.className = 'media-preview-item';
-        previewItem.dataset.newFileIndex = indexOffset;
+        previewItem.dataset.newFileIndex = String(indexOffset);
+        if (reorderable) {
+            previewItem.draggable = true;
+            const grip = document.createElement('span');
+            grip.className = 'media-preview-drag-handle';
+            grip.setAttribute('aria-hidden', 'true');
+            grip.title = 'Drag to reorder';
+            grip.textContent = '⋮⋮';
+            previewItem.appendChild(grip);
+        } else {
+            previewItem.draggable = false;
+        }
+
         const reader = new FileReader();
         let previewElement;
         if (file.type.startsWith('image/')) {
@@ -1791,6 +2066,7 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
             thumbWrap.className = 'media-preview-thumb-wrap';
             const imgEl = document.createElement('img');
             imgEl.title = 'Click to view fullscreen';
+            imgEl.draggable = false;
             const fsBtn = document.createElement('button');
             fsBtn.type = 'button';
             fsBtn.className = 'media-preview-fullscreen-btn';
@@ -1813,11 +2089,11 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
             previewElement.style.height = '100px';
             const video = document.createElement('video');
             video.controls = true;
+            video.draggable = false;
             video.style.maxWidth = '200px';
             video.style.maxHeight = '100px';
             video.style.objectFit = 'cover';
             video.preload = 'auto';
-            // Show preview from local file until uploaded
             reader.onload = (e) => {
                 video.src = e.target.result;
                 video.onloadedmetadata = () => {
@@ -1829,7 +2105,6 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
                 reader.readAsDataURL(file);
             }
             previewElement.appendChild(video);
-            // Upload progress bar
             const uploadObj = mediaUploadsInProgress[indexOffset];
             if (uploadObj && !uploadObj.isDone) {
                 const progressBarContainer = document.createElement('div');
@@ -1853,7 +2128,6 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
             canvas.style.maxWidth = '200px';
             canvas.style.maxHeight = '260px';
             previewElement.appendChild(canvas);
-            // Render first page using PDF.js
             (async () => {
                 try {
                     const arrayBuffer = await file.arrayBuffer();
@@ -1875,7 +2149,6 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
                     previewElement.innerHTML = '<div>PDF preview error</div>';
                 }
             })();
-            // No dimensions info for PDFs
         } else {
             previewElement = document.createElement('p');
             previewElement.textContent = `Preview not available for ${file.name}`;
@@ -1906,17 +2179,14 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
             `;
         }
         infoDiv.innerHTML = infoHtml;
-        // Add event listeners for controls
         const cropBtn = infoDiv.querySelector('.crop-btn');
         if (cropBtn) {
             cropBtn.addEventListener('click', () => openCropModal(indexOffset));
         }
         const compressBtn = infoDiv.querySelector('.compress-btn');
         if (compressBtn) {
-            // Replace the button to remove all old event listeners
             const newCompressBtn = compressBtn.cloneNode(true);
             compressBtn.parentNode.replaceChild(newCompressBtn, compressBtn);
-            // Disable compress button for videos until upload is done
             if (file.type.startsWith('video/')) {
                 const uploadObj = mediaUploadsInProgress[indexOffset];
                 newCompressBtn.disabled = !(uploadObj && uploadObj.isDone);
@@ -1944,15 +2214,18 @@ function renderMediaPreviewsFromQueue(fileInputElement = null) {
         }
         previewItem.appendChild(infoDiv);
         const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
         removeBtn.className = 'btn btn-danger btn-sm remove-media-file-btn';
         removeBtn.textContent = 'Remove';
-        removeBtn.dataset.newFileIndex = indexOffset;
-        removeBtn.addEventListener('click', () => handleRemoveMediaFile(indexOffset, previewItem));
+        removeBtn.dataset.newFileIndex = String(indexOffset);
         previewItem.appendChild(removeBtn);
         previewsContainer.appendChild(previewItem);
     });
-    const mediaType = document.getElementById('mediaTypeSelect').value;
-    updateMediaUploadButtonVisibility(mediaType, existingMediaFiles.length + mediaFilesToUpload.length);
+
+    if (mediaTypeSelect) {
+        updateMediaUploadButtonVisibility(mediaTypeSelect.value, existingMediaFiles.length + mediaFilesToUpload.length);
+    }
+    initAdminPdfThumbnails();
 }
 
 // --- IMAGE EDITING FUNCTIONS ---
@@ -2641,18 +2914,12 @@ function handleRemoveMediaFile(index, itemElement) {
     const isNewFile = itemElement.dataset.newFileIndex !== undefined;
 
     if (isNewFile) {
-        const newFileIdx = parseInt(itemElement.dataset.newFileIndex);
-        mediaFilesToUpload.splice(newFileIdx, 1); // Remove from upload queue
-        itemElement.remove();
-        // Re-render or re-index data-new-file-index for subsequent new files if necessary
-        // For simplicity, current approach might leave gaps in newFileIndex if multiple are added then one removed.
-        // A better way is to re-render all new previews.
-        // Quick fix: just remove and let save handle current queue.
-        document.querySelectorAll('.media-preview-item[data-new-file-index]').forEach((el, i) => {
-            el.dataset.newFileIndex = i; // Re-index
-            el.querySelector('.remove-media-file-btn').dataset.newFileIndex = i;
-        });
-
+        const newFileIdx = parseInt(itemElement.dataset.newFileIndex, 10);
+        if (!Number.isNaN(newFileIdx)) {
+            mediaFilesToUpload.splice(newFileIdx, 1);
+            mediaUploadsInProgress.splice(newFileIdx, 1);
+        }
+        renderAllMediaPreviews();
     } else { // Existing file
         const filename = itemElement.dataset.filename;
         ui.showPopup(`Are you sure you want to remove "${filename}"? It will be deleted from storage on save.`, 'confirm',
@@ -2676,16 +2943,12 @@ function handleRemoveMediaFile(index, itemElement) {
                         currentItemDataCache.filesToDelete.push(removedFile.storagePath);
                     }
                 }
-                itemElement.remove();
-                // Update visibility
-                const mediaType = document.getElementById('mediaTypeSelect').value;
-                updateMediaUploadButtonVisibility(mediaType, existingMediaFiles.length + mediaFilesToUpload.length);
+                renderAllMediaPreviews();
             }
         );
     }
-     // Update visibility of upload button
-    const mediaType = document.getElementById('mediaTypeSelect').value;
-    updateMediaUploadButtonVisibility(mediaType, existingMediaFiles.length + mediaFilesToUpload.length);
+    const mediaType = document.getElementById('mediaTypeSelect') && document.getElementById('mediaTypeSelect').value;
+    if (mediaType) updateMediaUploadButtonVisibility(mediaType, existingMediaFiles.length + mediaFilesToUpload.length);
 }
 
 

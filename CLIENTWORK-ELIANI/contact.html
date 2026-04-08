@@ -66,8 +66,12 @@
         </div>
       </section>
 
-      <section class="contact-image" aria-label="Featured portrait">
-        <img src="static/assets/contact.jpg" alt="Eliani Studios Creative Agency Connecting Talent around the world">
+      <section class="contact-image" aria-label="Featured media">
+        <div class="contact-slideshow" data-contact-slideshow>
+          <div class="contact-slideshow__slot" aria-hidden="true"></div>
+          <div class="contact-slideshow__slot" aria-hidden="true"></div>
+          <img class="contact-slideshow__fallback" src="static/assets/contact.jpg" alt="Eliani Studios Creative Agency Connecting Talent around the world">
+        </div>
       </section>
     </main>
 
@@ -196,6 +200,266 @@
 
       updateHomeParallax();
     }
+  </script>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    (function () {
+      var TARGET_USER_UID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2";
+      var CONTACT_GALLERY_DOC_ID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2-media-26";
+      var SLIDE_MS = 3000;
+      var PLACEHOLDER_IMAGE = "static/assets/placeholder.jpeg";
+
+      var firebaseConfig = {
+        apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
+        authDomain: "one-earth-cms.firebaseapp.com",
+        projectId: "one-earth-cms",
+        storageBucket: "one-earth-cms.appspot.com",
+        messagingSenderId: "649151856539",
+        appId: "1:649151856539:web:3c5b6a1fe176a4f31ed347"
+      };
+
+      function safeInitFirebase() {
+        try {
+          if (!window.firebase) return false;
+          if (!firebase.apps || !firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          return true;
+        } catch (_) {
+          return !!window.firebase;
+        }
+      }
+
+      function fileIsVideo(file) {
+        if (!file || !file.url) return false;
+        if (file.type && String(file.type).indexOf("video/") === 0) return true;
+        var u = String(file.url).split("?")[0].toLowerCase();
+        return /\.(mp4|webm|mov|m4v|ogv)(\?.*)?$/.test(u);
+      }
+
+      function fileIsImage(file) {
+        if (!file || !file.url) return false;
+        if (file.type && String(file.type).indexOf("image/") === 0) return true;
+        var u = String(file.url).split("?")[0].toLowerCase();
+        return /\.(jpe?g|png|gif|webp|avif|bmp|svg)(\?.*)?$/.test(u);
+      }
+
+      function posterForVideoAtIndex(data, videoIndex) {
+        var files = (data && data.files) || [];
+        var d = data || {};
+        var explicit = d.poster || d.posterUrl || d.posterImage || d.thumbnailUrl || "";
+        if (explicit) return String(explicit).trim();
+        for (var j = 0; j < files.length; j++) {
+          if (j === videoIndex) continue;
+          if (fileIsImage(files[j])) return files[j].url;
+        }
+        return PLACEHOLDER_IMAGE;
+      }
+
+      function buildSlides(data) {
+        var files = (data && data.files) || [];
+        var slides = [];
+        for (var i = 0; i < files.length; i++) {
+          var f = files[i];
+          if (!f || !f.url) continue;
+          if (fileIsVideo(f)) {
+            slides.push({ url: f.url, isVideo: true, poster: posterForVideoAtIndex(data, i) });
+          } else if (fileIsImage(f)) {
+            slides.push({ url: f.url, isVideo: false, poster: "" });
+          }
+        }
+        return slides;
+      }
+
+      function loadIntoSlot(slotEl, slide, onReady) {
+        slotEl.innerHTML = "";
+        var done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          onReady();
+        }
+
+        if (slide.isVideo) {
+          var v = document.createElement("video");
+          v.setAttribute("muted", "");
+          v.muted = true;
+          v.setAttribute("playsinline", "");
+          v.playsInline = true;
+          v.preload = "auto";
+          if (slide.poster) v.poster = slide.poster;
+          v.src = slide.url;
+          v.addEventListener("loadeddata", function onLd() {
+            v.removeEventListener("loadeddata", onLd);
+            finish();
+          });
+          v.addEventListener("error", finish);
+          slotEl.appendChild(v);
+          if (v.readyState >= 2) finish();
+        } else {
+          var img = document.createElement("img");
+          img.alt = "Eliani Studios";
+          img.decoding = "async";
+          img.onload = finish;
+          img.onerror = finish;
+          img.src = slide.url;
+          slotEl.appendChild(img);
+          if (img.complete && img.naturalWidth) finish();
+        }
+      }
+
+      function pauseVideosInSlot(slotEl) {
+        if (!slotEl) return;
+        var v = slotEl.querySelector("video");
+        if (v) {
+          try {
+            v.pause();
+          } catch (_) {}
+        }
+      }
+
+      function playVideoInSlot(slotEl) {
+        if (!slotEl) return;
+        var v = slotEl.querySelector("video");
+        if (v) {
+          try {
+            v.currentTime = 0;
+          } catch (_) {}
+          var p = v.play();
+          if (p && typeof p.catch === "function") p.catch(function () {});
+        }
+      }
+
+      function startSlideshow(root, slides, reduceMotion) {
+        var slots = root.querySelectorAll(".contact-slideshow__slot");
+        var slot0 = slots[0];
+        var slot1 = slots[1];
+        var n = slides.length;
+        var timer = null;
+        var activeSlot = 0;
+        var currentIndex = 0;
+
+        function clearTimer() {
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
+        }
+
+        function scheduleAdvance() {
+          clearTimer();
+          if (n <= 1 || reduceMotion || document.hidden) return;
+          timer = setTimeout(advance, SLIDE_MS);
+        }
+
+        function onTransitionEnd(ev) {
+          if (ev.propertyName !== "opacity") return;
+          var incoming = ev.target;
+          if (incoming !== slot0 && incoming !== slot1) return;
+          if (!incoming.classList.contains("is-entering")) return;
+
+          var outgoing = slots[activeSlot];
+          incoming.classList.remove("is-entering", "is-entering--visible");
+          incoming.classList.add("is-active");
+
+          pauseVideosInSlot(outgoing);
+          outgoing.classList.remove("is-active");
+          outgoing.innerHTML = "";
+
+          currentIndex = (currentIndex + 1) % n;
+          activeSlot = 1 - activeSlot;
+
+          loadIntoSlot(outgoing, slides[(currentIndex + 1) % n], function () {});
+          scheduleAdvance();
+        }
+
+        slot0.addEventListener("transitionend", onTransitionEnd);
+        slot1.addEventListener("transitionend", onTransitionEnd);
+
+        function advance() {
+          clearTimer();
+          if (n <= 1 || reduceMotion) return;
+          var outgoing = slots[activeSlot];
+          var incoming = slots[1 - activeSlot];
+          if (!incoming.firstChild) {
+            loadIntoSlot(incoming, slides[(currentIndex + 1) % n], function () {
+              advance();
+            });
+            return;
+          }
+          pauseVideosInSlot(outgoing);
+          playVideoInSlot(incoming);
+          incoming.classList.remove("is-entering", "is-entering--visible");
+          incoming.classList.add("is-entering");
+          void incoming.offsetWidth;
+          incoming.classList.add("is-entering--visible");
+        }
+
+        root.classList.add("contact-slideshow--has-gallery");
+
+        if (n === 1) {
+          loadIntoSlot(slot0, slides[0], function () {
+            slot0.classList.add("is-active");
+            var v = slot0.querySelector("video");
+            if (v) v.loop = true;
+            if (reduceMotion) pauseVideosInSlot(slot0);
+            else playVideoInSlot(slot0);
+          });
+          return;
+        }
+
+        loadIntoSlot(slot0, slides[0], function () {
+          slot0.classList.add("is-active");
+          playVideoInSlot(slot0);
+          loadIntoSlot(slot1, slides[1 % n], function () {
+            scheduleAdvance();
+          });
+        });
+
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            clearTimer();
+            pauseVideosInSlot(slots[0]);
+            pauseVideosInSlot(slots[1]);
+          } else if (n > 1 && !reduceMotion) {
+            playVideoInSlot(slots[activeSlot]);
+            scheduleAdvance();
+          }
+        });
+      }
+
+      async function loadContactSlideshow() {
+        var root = document.querySelector("[data-contact-slideshow]");
+        if (!root) return;
+
+        var reduceMotion = false;
+        try {
+          reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        } catch (_) {}
+
+        try {
+          if (!safeInitFirebase() || !window.firebase) throw new Error("no firebase");
+          var db = firebase.firestore();
+          var snap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(CONTACT_GALLERY_DOC_ID).get();
+          if (!snap.exists) throw new Error("missing doc");
+          var slides = buildSlides(snap.data());
+          if (reduceMotion && slides.length > 1) slides = [slides[0]];
+          if (!slides.length) throw new Error("no slides");
+
+          startSlideshow(root, slides, reduceMotion);
+        } catch (_) {
+          /* fallback img stays visible */
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", loadContactSlideshow);
+      } else {
+        loadContactSlideshow();
+      }
+    })();
   </script>
 </body>
 </html>

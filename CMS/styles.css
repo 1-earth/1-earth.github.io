@@ -610,6 +610,36 @@ body {
 .media-previews {
     margin-top: 20px;
 }
+.media-previews--reorderable .media-preview-item {
+    position: relative;
+}
+.media-gallery-reorder-hint {
+    margin: 0 0 12px 0;
+    font-size: 0.9rem;
+    color: #555;
+}
+.media-preview-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    min-height: 28px;
+    margin-bottom: 6px;
+    cursor: grab;
+    user-select: none;
+    color: #888;
+    font-size: 1.1rem;
+    line-height: 1;
+    letter-spacing: -0.15em;
+}
+.media-preview-drag-handle:active {
+    cursor: grabbing;
+}
+.media-preview-item--dragging {
+    opacity: 0.55;
+    outline: 2px dashed #3498db;
+    outline-offset: 2px;
+}
 .media-preview-item {
     display: flex;
     flex-direction: column;
