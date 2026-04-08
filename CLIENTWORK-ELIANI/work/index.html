@@ -149,6 +149,7 @@
       var PLACEHOLDER_IMAGE = "../static/assets/placeholder2.png";
       var galleryStore = {};
       var galleryCount = 0;
+      var elianiHeroVisibilityCleanup = null;
       var firebaseConfig = {
         apiKey: "AIzaSyBLhjeaX_vl5-7_I9xT1Ae9JMQnLlKCpX4",
         authDomain: "one-earth-cms.firebaseapp.com",
@@ -306,9 +307,95 @@
         }
         if (isVideoUrl(url)) {
           var posterAttr = poster ? ' poster="' + escapeHtml(poster) + '"' : "";
-          return '<div class="blog-media-frontend"><video class="blog-media-video" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline></video>' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+          return '<div class="blog-media-frontend"><video class="blog-media-video" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline muted></video>' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
         }
         return '<div class="blog-media-frontend"><img class="blog-media-img" loading="lazy" src="' + escapeHtml(url) + '" alt="' + (safeCaption || "Selected work") + '">' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+      }
+
+      var BLOG_MEDIA_VIDEO_IO_THRESHOLD = 0.1;
+
+      function setupBlogMediaVideoAutoplay(bodyRoot) {
+        if (!bodyRoot || !("IntersectionObserver" in window)) return;
+        var videos = bodyRoot.querySelectorAll("video.blog-media-video");
+        if (!videos.length) return;
+
+        function stateFor(video) {
+          if (!video._elianiBlogVp) {
+            video._elianiBlogVp = { userPaused: false, suppressPlay: false, viewportPausePending: false };
+          }
+          return video._elianiBlogVp;
+        }
+
+        function pauseForViewport(video) {
+          var st = stateFor(video);
+          if (video.paused) return;
+          st.viewportPausePending = true;
+          try {
+            video.pause();
+          } catch (_) {
+            st.viewportPausePending = false;
+            return;
+          }
+          if (!video.paused) {
+            st.viewportPausePending = false;
+          }
+        }
+
+        function playInView(video) {
+          if (document.hidden) return;
+          var st = stateFor(video);
+          st.viewportPausePending = false;
+          if (st.userPaused) return;
+          st.suppressPlay = true;
+          var pr;
+          try {
+            pr = video.play();
+          } catch (_) {
+            pr = null;
+          }
+          queueMicrotask(function () {
+            st.suppressPlay = false;
+          });
+          if (pr && typeof pr.catch === "function") {
+            pr.catch(function () {
+              video.muted = true;
+              var pr2 = video.play();
+              if (pr2 && typeof pr2.catch === "function") pr2.catch(function () {});
+            });
+          }
+        }
+
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              var video = entry.target;
+              var enough = entry.isIntersecting && entry.intersectionRatio >= BLOG_MEDIA_VIDEO_IO_THRESHOLD;
+              if (!enough) {
+                pauseForViewport(video);
+                return;
+              }
+              playInView(video);
+            });
+          },
+          { threshold: [0, 0.05, 0.1, 0.25, 0.5, 0.75, 1] }
+        );
+
+        Array.prototype.forEach.call(videos, function (video) {
+          var st = stateFor(video);
+          if (!video.hasAttribute("muted")) video.muted = true;
+          video.addEventListener("pause", function () {
+            if (st.viewportPausePending) {
+              st.viewportPausePending = false;
+              return;
+            }
+            st.userPaused = true;
+          });
+          video.addEventListener("play", function () {
+            if (st.suppressPlay) return;
+            st.userPaused = false;
+          });
+          observer.observe(video);
+        });
       }
 
       function normalizeGallerySettings(settings, fileCount) {
@@ -652,6 +739,118 @@
         return "";
       }
 
+      function featuredMediaIsVideo(work) {
+        if (!work || !work.featuredMedia || !work.featuredMedia.url) return false;
+        var u = String(work.featuredMedia.url).trim();
+        if (!u) return false;
+        if (isVideoUrl(u)) return true;
+        var typ = work.featuredMedia.type && String(work.featuredMedia.type).toLowerCase();
+        return !!(typ && typ.indexOf("video") !== -1);
+      }
+
+      function pickFeaturedHeroMedia(work) {
+        try {
+          if (work && work.featuredMedia && work.featuredMedia.url && featuredMediaIsVideo(work)) {
+            var vUrl = String(work.featuredMedia.url).trim();
+            var poster = "";
+            if (work.featuredMedia.poster && isImageUrl(work.featuredMedia.poster)) {
+              poster = work.featuredMedia.poster;
+            } else {
+              var t = pickThumbnailFromWork(work);
+              if (t && isImageUrl(t)) poster = t;
+            }
+            return { type: "video", videoUrl: vUrl, posterUrl: poster };
+          }
+          if (work && work.featuredImage) {
+            var fi = String(work.featuredImage).trim();
+            if (fi && isVideoUrl(fi)) {
+              var p2 = "";
+              var t2 = pickThumbnailFromWork(work);
+              if (t2 && isImageUrl(t2)) p2 = t2;
+              return { type: "video", videoUrl: fi, posterUrl: p2 };
+            }
+          }
+        } catch (_) {}
+        var img = pickThumbnailFromWork(work) || PLACEHOLDER_IMAGE;
+        return { type: "image", imageUrl: img };
+      }
+
+      function buildElianiWorkHeroHtml(heroMedia, titleSafe, categorySafe, summarySafe) {
+        var sectionClass = "eliani-work-hero reveal-on-scroll";
+        var videoHtml = "";
+        var bgUrl;
+        if (heroMedia.type === "video") {
+          sectionClass += " eliani-work-hero--video";
+          bgUrl = heroMedia.posterUrl || PLACEHOLDER_IMAGE;
+          var posterAttr = heroMedia.posterUrl ? ' poster="' + escapeHtml(heroMedia.posterUrl) + '"' : "";
+          videoHtml =
+            '<video class="eliani-work-hero__video" src="' + escapeHtml(heroMedia.videoUrl) + '"' +
+            posterAttr +
+            ' muted playsinline webkit-playsinline autoplay loop preload="auto" disablePictureInPicture disableRemotePlayback aria-hidden="true"></video>';
+        } else {
+          bgUrl = heroMedia.imageUrl;
+        }
+        return (
+          '<section class="' +
+          sectionClass +
+          '" style="background-image:url(\'' +
+          escapeHtml(bgUrl) +
+          '\');">' +
+          videoHtml +
+          '<div class="eliani-work-hero-copy">' +
+          '<div class="eliani-work-hero-inner">' +
+          "<h1>" +
+          titleSafe +
+          "</h1>" +
+          '<div class="eliani-work-hero-meta">' +
+          "<span>" +
+          categorySafe +
+          "</span><span>|</span><span>" +
+          summarySafe +
+          "</span></div></div></div></section>"
+        );
+      }
+
+      function disposeElianiHeroVideo() {
+        if (typeof elianiHeroVisibilityCleanup === "function") {
+          elianiHeroVisibilityCleanup();
+          elianiHeroVisibilityCleanup = null;
+        }
+      }
+
+      function registerElianiHeroVideoLifecycle(heroSection) {
+        disposeElianiHeroVideo();
+        if (!heroSection) return;
+        var video = heroSection.querySelector(".eliani-work-hero__video");
+        if (!video) return;
+        function tryPlay() {
+          video.muted = true;
+          try {
+            video.setAttribute("muted", "");
+          } catch (_) {}
+          var p = video.play();
+          if (p && typeof p.catch === "function") {
+            p.catch(function () {});
+          }
+        }
+        tryPlay();
+        video.addEventListener("loadeddata", tryPlay, { once: true });
+        video.addEventListener("canplay", tryPlay, { once: true });
+        function onVisibility() {
+          if (document.hidden) {
+            try {
+              video.pause();
+            } catch (_) {}
+          } else {
+            tryPlay();
+          }
+        }
+        document.addEventListener("visibilitychange", onVisibility);
+        elianiHeroVisibilityCleanup = function () {
+          document.removeEventListener("visibilitychange", onVisibility);
+        };
+      }
+
       function getSummary(work) {
         if (work && work.summary) return String(work.summary);
         if (work && work.subtitle) return String(work.subtitle);
@@ -699,7 +898,9 @@
       function updateSocialMeta(work) {
         var title = (work && work.title ? work.title : "Selected Work") + " | Eliani Studios";
         var description = getSummary(work);
-        var image = pickThumbnailFromWork(work);
+        var hm = pickFeaturedHeroMedia(work);
+        var image =
+          hm.type === "video" ? hm.posterUrl || pickThumbnailFromWork(work) || "" : hm.imageUrl;
         if (!image) {
           image = new URL(PLACEHOLDER_IMAGE, window.location.href).href;
         }
@@ -956,6 +1157,8 @@
         var viewerController = createViewerController();
         if (!content) return;
 
+        disposeElianiHeroVideo();
+
         var slug = getWorkSlugFromLocation();
         if (!slug) {
           content.innerHTML = renderStatus("Missing item", "No work item specified.", "Please return to the site and choose a work.");
@@ -1000,24 +1203,12 @@
           var tagsHtml = parseCsv(work.tags || work.keywords || "").map(function (tag) {
             return '<span class="eliani-tag">' + escapeHtml(tag) + '</span>';
           }).join("");
-          var heroImage = pickThumbnailFromWork(work) || PLACEHOLDER_IMAGE;
+          var heroMedia = pickFeaturedHeroMedia(work);
 
           var bodyHtml = await renderModularBlogContent(db, work);
 
-          content.innerHTML = '' +
-            '<section class="eliani-work-hero reveal-on-scroll" style="background-image:url(\'' + escapeHtml(heroImage) + '\');">' +
-              '<div class="eliani-work-hero-copy">' +
-                '<div class="eliani-work-hero-inner">' +
-                  '<h1>' + title + '</h1>' +
-                  '<div class="eliani-work-hero-meta">' +
-                    '<span>' + category + '</span>' +
-                    '<span>|</span>' +
-                    '<span>' + summary + '</span>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-            '</section>' +
-            
+          content.innerHTML =
+            buildElianiWorkHeroHtml(heroMedia, title, category, summary) +
             '<section class="eliani-work-body reveal-on-scroll">' + bodyHtml + '</section>' +
             '<div class="eliani-related-logo-wrap reveal-on-scroll">' +
               '<a class="eliani-related-logo-link" href="../index.html" aria-label="Eliani Studios — Home">' +
@@ -1041,6 +1232,8 @@
           updateSocialMeta(work);
           renderRelatedWork(db, currentId);
           bindPostPager(db, currentId);
+
+          registerElianiHeroVideoLifecycle(content.querySelector(".eliani-work-hero"));
 
           var revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
           var revealElements = Array.prototype.slice.call(document.querySelectorAll(".reveal-on-scroll"));
@@ -1087,6 +1280,9 @@
               Number(trigger.getAttribute("data-gallery-index")) || 0
             );
           });
+
+          var workBodyRoot = content.querySelector(".eliani-work-body");
+          setupBlogMediaVideoAutoplay(workBodyRoot);
         } catch (_) {
           content.innerHTML = renderStatus("Error", "The work could not be loaded.", "Please try again shortly.");
         }

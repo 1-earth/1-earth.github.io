@@ -38,6 +38,7 @@
     <div class="menu-backdrop" aria-hidden="true"></div>
 
     <main class="contact-layout" id="contact">
+      <div class="contact-layout-inner">
       <section class="contact-copy" aria-labelledby="contact-title">
         
 
@@ -65,6 +66,7 @@
           <p><a href="mailto:tionne@elianistudios.com">tionne@elianistudios.com</a></p>
         </div>
       </section>
+      </div>
 
       <section class="contact-image" aria-label="Featured media">
         <div class="contact-slideshow" data-contact-slideshow>
@@ -397,11 +399,10 @@
           incoming.classList.add("is-entering--visible");
         }
 
-        root.classList.add("contact-slideshow--has-gallery");
-
         if (n === 1) {
           loadIntoSlot(slot0, slides[0], function () {
             slot0.classList.add("is-active");
+            root.classList.add("contact-slideshow--has-gallery");
             var v = slot0.querySelector("video");
             if (v) v.loop = true;
             if (reduceMotion) pauseVideosInSlot(slot0);
@@ -412,6 +413,7 @@
 
         loadIntoSlot(slot0, slides[0], function () {
           slot0.classList.add("is-active");
+          root.classList.add("contact-slideshow--has-gallery");
           playVideoInSlot(slot0);
           loadIntoSlot(slot1, slides[1 % n], function () {
             scheduleAdvance();

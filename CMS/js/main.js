@@ -1941,6 +1941,18 @@ function _eventTargetElement(ev) {
     return n.nodeType === Node.TEXT_NODE ? n.parentElement : n;
 }
 
+function finishMediaGalleryReorderDrag() {
+    const item = draggedMediaPreviewItem;
+    draggedMediaPreviewItem = null;
+    mediaReorderGripArmed = false;
+    if (!item) return;
+    const container = document.getElementById('mediaPreviewsContainer');
+    if (!container || !container.contains(item)) return;
+    item.classList.remove('media-preview-item--dragging');
+    syncMediaPreviewOrderFromDom();
+    renderAllMediaPreviews();
+}
+
 function setupMediaGalleryReorderDelegation(rootEl) {
     // dragstart's e.target is the draggable .media-preview-item, not the grip (closest() only walks up).
     // Arm reorder only when the pointer went down on the grip.
@@ -1979,20 +1991,10 @@ function setupMediaGalleryReorderDelegation(rootEl) {
         item.classList.add('media-preview-item--dragging');
     });
 
-    rootEl.addEventListener('dragend', (e) => {
-        const item = e.target.closest('.media-preview-item');
-        const container = document.getElementById('mediaPreviewsContainer');
-        mediaReorderGripArmed = false;
-        if (!item || !container || !container.contains(item)) {
-            draggedMediaPreviewItem = null;
-            return;
-        }
-        item.classList.remove('media-preview-item--dragging');
-        if (draggedMediaPreviewItem) {
-            syncMediaPreviewOrderFromDom();
-            renderAllMediaPreviews();
-        }
-        draggedMediaPreviewItem = null;
+    // Do not use e.target here: in some browsers dragend's target is not the draggable row, so
+    // closest('.media-preview-item') fails and sync never ran.
+    rootEl.addEventListener('dragend', () => {
+        finishMediaGalleryReorderDrag();
     });
 
     rootEl.addEventListener('dragover', (e) => {
@@ -2014,6 +2016,8 @@ function setupMediaGalleryReorderDelegation(rootEl) {
         const container = document.getElementById('mediaPreviewsContainer');
         if (container && container.contains(e.target) && draggedMediaPreviewItem) {
             e.preventDefault();
+            e.stopPropagation();
+            finishMediaGalleryReorderDrag();
         }
     });
 }

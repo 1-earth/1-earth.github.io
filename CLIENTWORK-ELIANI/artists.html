@@ -126,7 +126,7 @@
 
         var artistCount = artistsGrid.querySelectorAll(".artist-card").length;
         var columnCount = getGridColumnCount(artistsGrid);
-        var firstArtistImage = artistsGrid.querySelector(".artist-card img");
+        var firstArtistImage = artistsGrid.querySelector(".artist-card__media img, .artist-card__media video");
         var remainder = columnCount > 0 ? artistCount % columnCount : 0;
         var emptySlots = remainder === 0 ? 0 : columnCount - remainder;
         var shouldInline = !mobileBreakpoint.matches && emptySlots === 2;
@@ -279,6 +279,23 @@
         return /\.(png|jpe?g|webp|gif|avif|svg)(?:$|[?#])/i.test((url || "").split("?")[0]);
       }
 
+      function isVideoUrl(url) {
+        return /\.(mp4|webm|mov|m4v|ogv)(?:$|[?#])/i.test((url || "").split("?")[0]);
+      }
+
+      /** @returns {{ src: string, poster: string }|null} */
+      function featuredMediaAsVideo(work) {
+        var fm = work && work.featuredMedia;
+        if (!fm || !fm.url) return null;
+        var url = String(fm.url).trim();
+        if (!url) return null;
+        var mime = fm.type != null ? String(fm.type) : "";
+        var isVid = mime.indexOf("video/") === 0 || isVideoUrl(url);
+        if (!isVid) return null;
+        var posterRaw = fm.poster != null ? String(fm.poster).trim() : "";
+        return { src: url, poster: posterRaw };
+      }
+
       function textFromHtml(html) {
         if (!html) return "";
         var div = document.createElement("div");
@@ -394,18 +411,33 @@
 
         var html = filtered.map(function (post) {
           var title = post.title || "Untitled";
-          var img = pickThumbnailFromWork(post) || PLACEHOLDER_IMAGE;
           var href = "artist/?" + encodeURIComponent(slugifyTitle(title));
           var category = (post.category && String(post.category).trim()) || "Artist";
           var sub = truncate(getCardSubtitle(post), 120);
           var subHtml = sub
             ? "<p>" + escapeHtml(sub) + "</p>"
             : "";
+          var videoSpec = featuredMediaAsVideo(post);
+          var mediaHtml;
+          if (videoSpec) {
+            var posterAttr = videoSpec.poster
+              ? ' poster="' + escapeHtml(videoSpec.poster) + '"'
+              : "";
+            mediaHtml =
+              '<video class="artist-card__video"' +
+              ' src="' + escapeHtml(videoSpec.src) + '"' +
+              posterAttr +
+              ' muted autoplay loop playsinline webkit-playsinline preload="metadata" aria-hidden="true"></video>';
+          } else {
+            var img = pickThumbnailFromWork(post) || PLACEHOLDER_IMAGE;
+            mediaHtml =
+              '<img loading="lazy" src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '">';
+          }
           return (
             '<a class="artist-card" href="' + escapeHtml(href) + '" aria-label="View ' + escapeHtml(title) + '">' +
               '<div class="artist-card__media">' +
-                '<img loading="lazy" src="' + escapeHtml(img) + '" alt="' + escapeHtml(title) + '">' +
-              '</div>' +
+                mediaHtml +
+              "</div>" +
               '<div class="artist-card__copy">' +
                 "<h2>" + escapeHtml(title) + "</h2>" +
                 "<p>" + escapeHtml(category) + "</p>" +
@@ -416,6 +448,14 @@
         }).join("");
 
         artistsGrid.innerHTML = html;
+        artistsGrid.querySelectorAll(".artist-card__media video").forEach(function (v) {
+          v.muted = true;
+          v.playsInline = true;
+          var playPromise = v.play();
+          if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(function () {});
+          }
+        });
         setupRevealElements(artistsGrid.querySelectorAll("a.artist-card"), 130, 0);
         updateBookingsPlacement();
         requestAnimationFrame(function () {

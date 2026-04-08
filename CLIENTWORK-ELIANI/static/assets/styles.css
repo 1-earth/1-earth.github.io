@@ -214,6 +214,21 @@ a {
   min-height: calc(100vh - var(--header-offset));
 }
 
+.contact-layout-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+.contact-layout-inner .contact-copy {
+  box-sizing: border-box;
+  /* width: 100%; */
+  max-width: 100%;
+  padding: clamp(3rem, 6vw, 6.2rem) clamp(3rem, 8vw, 6.2rem) clamp(2rem, 5vw, 3rem);
+  text-align: left;
+}
+
 .contact-copy {
   padding: clamp(3rem, 6vw, 6.2rem) 0 clamp(2rem, 5vw, 3rem) clamp(3rem, 9vw, 6.2rem);
 }
@@ -265,11 +280,16 @@ a {
 }
 
 .contact-image {
-  min-height: 620px;
+  min-height: calc(100vh - var(--header-offset));
   position: relative;
   overflow: hidden;
-  background-color: #000;
+  /* Match page until CMS slideshow is ready; black only once first slide is shown (see :has rule). */
+  background-color: var(--page-bg);
   /* align-self: end; */
+}
+
+.contact-image:has(.contact-slideshow--has-gallery) {
+  background-color: #000;
 }
 
 .contact-slideshow {
@@ -402,6 +422,16 @@ a {
 
   to {
     transform: translateX(calc(-33.333% - 1rem));
+  }
+}
+
+.artists-hero-pillars {
+  height: 100vh!important;
+}
+
+@media (max-width: 750px) {
+  .artists-hero-pillars {
+    height: 60vh!important;
   }
 }
 
@@ -1157,7 +1187,7 @@ a.welcome-work__item:focus-visible video.welcome-work__video--visible {
 
 .artists-hero h1 {
   color: #fff;
-  font-size: clamp(3.4rem, 7vw, 6.8rem);
+  font-size: clamp(1.5rem, 3.4vw, 3.4rem);
 }
 
 .artists-grid-section {
@@ -1229,7 +1259,8 @@ a.artist-card:focus-visible .artist-card__media::after {
   background: rgba(245, 245, 245, 0.24);
 }
 
-.artist-card__media img {
+.artist-card__media img,
+.artist-card__media video {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -1242,8 +1273,14 @@ a.artist-card:focus-visible .artist-card__media::after {
   transition: transform 0.25s ease;
 }
 
+.artist-card__media video {
+  pointer-events: none;
+}
+
 a.artist-card:hover .artist-card__media img,
-a.artist-card:focus-visible .artist-card__media img {
+a.artist-card:focus-visible .artist-card__media img,
+a.artist-card:hover .artist-card__media video,
+a.artist-card:focus-visible .artist-card__media video {
   transform: scale(0.995);
 }
 
@@ -1328,6 +1365,13 @@ a.artist-card:focus-visible .artist-card__media img {
   }
 }
 
+@media (max-width: 750px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
 @media (max-width: 980px) {
   :root {
     --header-offset: 88px;
@@ -1380,20 +1424,21 @@ a.artist-card:focus-visible .artist-card__media img {
     transition: transform 0.28s ease;
   }
 
-  .contact-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+  
 
   .contact-copy {
     /* width: min(100%, 34rem); */
     margin: 0 auto;
     padding: 2rem 0 0;
-padding-bottom: 30px;
+    padding-bottom: 60px;
+  }
+
+  .contact-layout-inner .contact-copy {
+    padding: 2rem 1.5rem 60px;
   }
 
   .contact-image {
-    min-height: 520px;
+    min-height: 100vh;
   }
 
   .site-footer {
@@ -1709,9 +1754,13 @@ padding-bottom: 30px;
     padding-top: 0.5rem;
   }
 
+  .contact-layout-inner .contact-copy {
+    padding-top: 0.5rem;
+  }
+
   .contact-copy h1,
   .contact-copy h2 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .contact-copy p,
@@ -1726,7 +1775,7 @@ padding-bottom: 30px;
   }
 
   .contact-image {
-    min-height: 360px;
+    min-height:53vh;
   }
 
   .site-footer {
