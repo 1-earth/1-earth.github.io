@@ -1450,7 +1450,7 @@ a.artist-card:focus-visible .artist-card__media video {
   }
 
   .contact-layout-inner .contact-copy {
-    padding: 2rem 1.5rem 60px;
+    padding: 2rem 2rem 60px;
   }
 
   .contact-image {
@@ -1770,8 +1770,12 @@ a.artist-card:focus-visible .artist-card__media video {
     padding-top: 0.5rem;
   }
 
-  .contact-layout-inner .contact-copy {
+  .contact-copy {
     padding-top: 0.5rem;
+  }
+
+  .contact-layout{
+    padding-top: 0px !important;
   }
 
   .contact-copy h1,
@@ -1783,7 +1787,7 @@ a.artist-card:focus-visible .artist-card__media video {
   .site-footer p,
   .site-footer a,
   .site-footer h3 {
-    font-size: 0.88rem;
+    font-size: 1rem;
   }
 
   .site-nav a {
@@ -1805,11 +1809,11 @@ a.artist-card:focus-visible .artist-card__media video {
   }
 
   .home-intro {
-    animation: none;
+    /* animation: none; */
   }
 
   .home-intro__logo {
-    animation: none;
+    /* animation: none; */
   }
 
   .reveal-on-scroll {
@@ -1819,6 +1823,6 @@ a.artist-card:focus-visible .artist-card__media video {
   }
 
   .about-marquee__track {
-    animation: none;
+    /* animation: none; */
   }
 }
