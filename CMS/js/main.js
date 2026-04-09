@@ -213,6 +213,16 @@ function setupEventListeners() {
             if (e.target.closest('.blog-dashboard')) {
                 markPageDashboardDirty();
             }
+            if (
+                e.target.classList.contains('media-gallery-min-cols') ||
+                e.target.classList.contains('media-gallery-max-cols')
+            ) {
+                ui.syncGalleryColumnSliders(e.target);
+                const blockEl = e.target.closest('.blog-block');
+                if (blockEl) {
+                    ui.syncMediaBlockSettingsUi(blockEl);
+                }
+            }
         });
         // Media dropzone: without preventDefault on dragover/drop, Chrome opens the file in a new tab.
         dashboardContentEl.addEventListener('dragenter', (e) => {
@@ -330,10 +340,18 @@ function handleDashboardChanges(e) {
         e.target.classList.contains('media-click-action-select') ||
         e.target.classList.contains('media-show-captions-toggle') ||
         e.target.classList.contains('media-open-links-toggle') ||
-        e.target.classList.contains('media-link-input')
+        e.target.classList.contains('media-link-input') ||
+        e.target.classList.contains('media-gallery-min-cols') ||
+        e.target.classList.contains('media-gallery-max-cols')
     ) {
         const blockEl = e.target.closest('.blog-block');
         if (blockEl) {
+            if (
+                e.target.classList.contains('media-gallery-min-cols') ||
+                e.target.classList.contains('media-gallery-max-cols')
+            ) {
+                ui.syncGalleryColumnSliders(e.target);
+            }
             ui.syncMediaBlockSettingsUi(blockEl);
         }
     }
@@ -2307,13 +2325,19 @@ function openCropModal(fileIndex) {
                     </select>
                 </div>
                 <div class="crop-canvas-container">
-                    <canvas id="cropCanvas"></canvas>
-                    <div class="crop-overlay">
-                        <div class="crop-selection">
-                            <div class="crop-handle nw"></div>
-                            <div class="crop-handle ne"></div>
-                            <div class="crop-handle sw"></div>
-                            <div class="crop-handle se"></div>
+                    <div class="crop-stage" id="cropStage">
+                        <canvas id="cropCanvas"></canvas>
+                        <div class="crop-overlay">
+                            <div class="crop-selection" id="cropSelection">
+                                <div class="crop-handle nw" data-dir="nw" role="presentation"></div>
+                                <div class="crop-handle n" data-dir="n" role="presentation"></div>
+                                <div class="crop-handle ne" data-dir="ne" role="presentation"></div>
+                                <div class="crop-handle e" data-dir="e" role="presentation"></div>
+                                <div class="crop-handle se" data-dir="se" role="presentation"></div>
+                                <div class="crop-handle s" data-dir="s" role="presentation"></div>
+                                <div class="crop-handle sw" data-dir="sw" role="presentation"></div>
+                                <div class="crop-handle w" data-dir="w" role="presentation"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2462,31 +2486,338 @@ function openResizeModal(fileIndex) {
     initializeResizeModal(modal, file, fileIndex);
 }
 
+const CROP_MIN_PX = 32;
+
 function initializeCropModal(modal, file, fileIndex) {
     const canvas = modal.querySelector('#cropCanvas');
+    const cropStage = modal.querySelector('#cropStage');
     const ctx = canvas.getContext('2d');
     const aspectRatioSelect = modal.querySelector('.aspect-ratio-select');
-    const cropOverlay = modal.querySelector('.crop-overlay');
-    const cropSelection = modal.querySelector('.crop-selection');
-    
+    const cropSelection = modal.querySelector('#cropSelection') || modal.querySelector('.crop-selection');
+    const container = modal.querySelector('.crop-canvas-container');
+
     let img = new Image();
     let cropData = { x: 0, y: 0, width: 0, height: 0 };
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
-    
+    let aspectPreset = 'free';
+
+    let dragMode = null;
+    let startPointerBmp = { x: 0, y: 0 };
+    let startCrop = { x: 0, y: 0, width: 0, height: 0 };
+
+    function getAspectRatioNumber() {
+        if (aspectPreset === 'free') return null;
+        const parts = aspectPreset.split(':').map(Number);
+        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+        return parts[0] / parts[1];
+    }
+
+    function snapSizeToAspect(width, height, ar) {
+        const r = width / height;
+        if (r > ar) {
+            return { width, height: width / ar };
+        }
+        return { width: height * ar, height };
+    }
+
+    function clampCropToCanvas() {
+        const cw = canvas.width;
+        const ch = canvas.height;
+        cropData.width = Math.max(CROP_MIN_PX, Math.min(cropData.width, cw));
+        cropData.height = Math.max(CROP_MIN_PX, Math.min(cropData.height, ch));
+        cropData.x = Math.max(0, Math.min(cropData.x, cw - cropData.width));
+        cropData.y = Math.max(0, Math.min(cropData.y, ch - cropData.height));
+    }
+
+    function applyAspectPresetFromUi() {
+        const ar = getAspectRatioNumber();
+        if (ar == null) {
+            updateCropSelection();
+            return;
+        }
+        const snapped = snapSizeToAspect(cropData.width, cropData.height, ar);
+        cropData.width = snapped.width;
+        cropData.height = snapped.height;
+        clampCropToCanvas();
+        if (cropData.x + cropData.width > canvas.width) cropData.x = canvas.width - cropData.width;
+        if (cropData.y + cropData.height > canvas.height) cropData.y = canvas.height - cropData.height;
+        clampCropToCanvas();
+        updateCropSelection();
+    }
+
+    function layoutCanvasDisplay() {
+        if (!container || !canvas.width) return;
+        const pad = 40;
+        const maxCssW = Math.max(CROP_MIN_PX * 2, Math.min(720, container.clientWidth - pad));
+        const cssScale = Math.min(1, maxCssW / canvas.width);
+        const cssW = Math.round(canvas.width * cssScale);
+        const cssH = Math.round(canvas.height * cssScale);
+        canvas.style.width = `${cssW}px`;
+        canvas.style.height = `${cssH}px`;
+        if (cropStage) {
+            cropStage.style.width = `${cssW}px`;
+            cropStage.style.height = `${cssH}px`;
+        }
+    }
+
+    function clientToBitmap(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = canvas.width / rect.width;
+        const sy = canvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * sx,
+            y: (clientY - rect.top) * sy
+        };
+    }
+
+    function updateCropSelection() {
+        const rect = canvas.getBoundingClientRect();
+        const sx = rect.width / canvas.width;
+        const sy = rect.height / canvas.height;
+        cropSelection.style.left = `${cropData.x * sx}px`;
+        cropSelection.style.top = `${cropData.y * sy}px`;
+        cropSelection.style.width = `${cropData.width * sx}px`;
+        cropSelection.style.height = `${cropData.height * sy}px`;
+    }
+
+    function computeResizeRect(pt) {
+        const sc = startCrop;
+        const cw = canvas.width;
+        const ch = canvas.height;
+        const ar = getAspectRatioNumber();
+
+        let x = sc.x;
+        let y = sc.y;
+        let w = sc.width;
+        let h = sc.height;
+
+        if (ar == null) {
+            switch (dragMode) {
+                case 'se':
+                    w = pt.x - sc.x;
+                    h = pt.y - sc.y;
+                    break;
+                case 'nw':
+                    x = pt.x;
+                    y = pt.y;
+                    w = sc.x + sc.width - pt.x;
+                    h = sc.y + sc.height - pt.y;
+                    break;
+                case 'ne':
+                    y = pt.y;
+                    w = pt.x - sc.x;
+                    h = sc.y + sc.height - pt.y;
+                    break;
+                case 'sw':
+                    x = pt.x;
+                    w = sc.x + sc.width - pt.x;
+                    h = pt.y - sc.y;
+                    break;
+                case 'n': {
+                    const bottom = sc.y + sc.height;
+                    y = pt.y;
+                    h = bottom - pt.y;
+                    x = sc.x;
+                    w = sc.width;
+                    break;
+                }
+                case 's':
+                    h = pt.y - sc.y;
+                    x = sc.x;
+                    w = sc.width;
+                    y = sc.y;
+                    break;
+                case 'e':
+                    w = pt.x - sc.x;
+                    x = sc.x;
+                    y = sc.y;
+                    h = sc.height;
+                    break;
+                case 'w':
+                    x = pt.x;
+                    w = sc.x + sc.width - pt.x;
+                    y = sc.y;
+                    h = sc.height;
+                    break;
+                default:
+                    return null;
+            }
+        } else {
+            switch (dragMode) {
+                case 'se': {
+                    w = Math.max(CROP_MIN_PX, pt.x - sc.x);
+                    h = Math.max(CROP_MIN_PX, pt.y - sc.y);
+                    const s = snapSizeToAspect(w, h, ar);
+                    w = s.width;
+                    h = s.height;
+                    x = sc.x;
+                    y = sc.y;
+                    break;
+                }
+                case 'nw': {
+                    const rx = sc.x + sc.width;
+                    const ry = sc.y + sc.height;
+                    w = Math.max(CROP_MIN_PX, rx - pt.x);
+                    h = Math.max(CROP_MIN_PX, ry - pt.y);
+                    const s = snapSizeToAspect(w, h, ar);
+                    w = s.width;
+                    h = s.height;
+                    x = rx - w;
+                    y = ry - h;
+                    break;
+                }
+                case 'ne': {
+                    const by = sc.y + sc.height;
+                    w = Math.max(CROP_MIN_PX, pt.x - sc.x);
+                    h = Math.max(CROP_MIN_PX, by - pt.y);
+                    const s = snapSizeToAspect(w, h, ar);
+                    w = s.width;
+                    h = s.height;
+                    x = sc.x;
+                    y = by - h;
+                    break;
+                }
+                case 'sw': {
+                    const rx = sc.x + sc.width;
+                    w = Math.max(CROP_MIN_PX, rx - pt.x);
+                    h = Math.max(CROP_MIN_PX, pt.y - sc.y);
+                    const s = snapSizeToAspect(w, h, ar);
+                    w = s.width;
+                    h = s.height;
+                    x = rx - w;
+                    y = sc.y;
+                    break;
+                }
+                case 'n': {
+                    const bottom = sc.y + sc.height;
+                    y = Math.min(pt.y, bottom - CROP_MIN_PX);
+                    h = bottom - y;
+                    w = h * ar;
+                    x = sc.x + (sc.width - w) / 2;
+                    break;
+                }
+                case 's': {
+                    h = Math.max(CROP_MIN_PX, pt.y - sc.y);
+                    w = h * ar;
+                    x = sc.x + (sc.width - w) / 2;
+                    y = sc.y;
+                    break;
+                }
+                case 'e': {
+                    w = Math.max(CROP_MIN_PX, pt.x - sc.x);
+                    h = w / ar;
+                    y = sc.y + (sc.height - h) / 2;
+                    x = sc.x;
+                    break;
+                }
+                case 'w': {
+                    const right = sc.x + sc.width;
+                    w = Math.max(CROP_MIN_PX, right - pt.x);
+                    h = w / ar;
+                    y = sc.y + (sc.height - h) / 2;
+                    x = right - w;
+                    break;
+                }
+                default:
+                    return null;
+            }
+        }
+
+        w = Math.max(CROP_MIN_PX, w);
+        h = Math.max(CROP_MIN_PX, h);
+        x = Math.max(0, Math.min(x, cw - w));
+        y = Math.max(0, Math.min(y, ch - h));
+        if (x + w > cw) {
+            x = cw - w;
+        }
+        if (y + h > ch) {
+            y = ch - h;
+        }
+        w = Math.min(w, cw - x);
+        h = Math.min(h, ch - y);
+        w = Math.max(CROP_MIN_PX, w);
+        h = Math.max(CROP_MIN_PX, h);
+
+        return { x, y, width: w, height: h };
+    }
+
+    function onPointerMove(e) {
+        if (!dragMode) return;
+        e.preventDefault();
+        const pt = clientToBitmap(e.clientX, e.clientY);
+        if (dragMode === 'move') {
+            const dx = pt.x - startPointerBmp.x;
+            const dy = pt.y - startPointerBmp.y;
+            cropData.x = Math.max(0, Math.min(canvas.width - startCrop.width, startCrop.x + dx));
+            cropData.y = Math.max(0, Math.min(canvas.height - startCrop.height, startCrop.y + dy));
+            updateCropSelection();
+            return;
+        }
+        const next = computeResizeRect(pt);
+        if (!next) return;
+        cropData.x = next.x;
+        cropData.y = next.y;
+        cropData.width = next.width;
+        cropData.height = next.height;
+        clampCropToCanvas();
+        updateCropSelection();
+    }
+
+    let pointerCaptureEl = null;
+
+    function onPointerUp(e) {
+        if (!dragMode) return;
+        dragMode = null;
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('pointercancel', onPointerUp);
+        const el = pointerCaptureEl;
+        pointerCaptureEl = null;
+        if (el && typeof el.releasePointerCapture === 'function' && e.pointerId != null) {
+            try {
+                el.releasePointerCapture(e.pointerId);
+            } catch (_) { /* noop */ }
+        }
+    }
+
+    function onPointerDown(e) {
+        const handle = e.target.closest && e.target.closest('.crop-handle[data-dir]');
+        if (handle) {
+            dragMode = handle.getAttribute('data-dir');
+        } else if (e.target.closest && e.target.closest('.crop-selection')) {
+            dragMode = 'move';
+        } else {
+            return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        startPointerBmp = clientToBitmap(e.clientX, e.clientY);
+        startCrop = { x: cropData.x, y: cropData.y, width: cropData.width, height: cropData.height };
+        pointerCaptureEl = handle || cropSelection;
+        try {
+            pointerCaptureEl.setPointerCapture(e.pointerId);
+        } catch (_) { /* noop */ }
+        document.addEventListener('pointermove', onPointerMove, { passive: false });
+        document.addEventListener('pointerup', onPointerUp);
+        document.addEventListener('pointercancel', onPointerUp);
+    }
+
+    function onWindowResize() {
+        layoutCanvasDisplay();
+        clampCropToCanvas();
+        updateCropSelection();
+    }
+
     img.onload = () => {
-        // Set canvas size
         const maxWidth = 600;
         const maxHeight = 400;
-        const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
-        
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        
-        // Draw image
+        const innerMaxW = container ? Math.min(maxWidth, Math.max(200, container.clientWidth - 40)) : maxWidth;
+        const scale = Math.min(innerMaxW / img.width, maxHeight / img.height, 1);
+
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        // Initialize crop selection (25% margin)
+
         const margin = 0.125;
         cropData = {
             x: canvas.width * margin,
@@ -2494,85 +2825,51 @@ function initializeCropModal(modal, file, fileIndex) {
             width: canvas.width * (1 - 2 * margin),
             height: canvas.height * (1 - 2 * margin)
         };
-        
-        updateCropSelection();
+        aspectPreset = aspectRatioSelect.value || 'free';
+        layoutCanvasDisplay();
+        applyAspectPresetFromUi();
+        requestAnimationFrame(() => {
+            layoutCanvasDisplay();
+            clampCropToCanvas();
+            updateCropSelection();
+        });
     };
-    
+
     img.src = URL.createObjectURL(file);
-    
-    function updateCropSelection() {
-        cropSelection.style.left = cropData.x + 'px';
-        cropSelection.style.top = cropData.y + 'px';
-        cropSelection.style.width = cropData.width + 'px';
-        cropSelection.style.height = cropData.height + 'px';
+
+    aspectRatioSelect.addEventListener('change', () => {
+        aspectPreset = aspectRatioSelect.value;
+        applyAspectPresetFromUi();
+    });
+
+    cropSelection.addEventListener('pointerdown', onPointerDown);
+
+    window.addEventListener('resize', onWindowResize);
+
+    function teardown() {
+        window.removeEventListener('resize', onWindowResize);
+        cropSelection.removeEventListener('pointerdown', onPointerDown);
+        document.removeEventListener('pointermove', onPointerMove);
+        document.removeEventListener('pointerup', onPointerUp);
+        document.removeEventListener('pointercancel', onPointerUp);
+        if (img.src && img.src.indexOf('blob:') === 0) {
+            URL.revokeObjectURL(img.src);
+        }
     }
-    
-    function applyAspectRatio(ratio) {
-        if (ratio === 'free') return;
-        
-        const [w, h] = ratio.split(':').map(Number);
-        const aspectRatio = w / h;
-        
-        // Adjust crop dimensions to maintain aspect ratio
-        const currentRatio = cropData.width / cropData.height;
-        
-        if (currentRatio > aspectRatio) {
-            cropData.width = cropData.height * aspectRatio;
-        } else {
-            cropData.height = cropData.width / aspectRatio;
-        }
-        
-        // Keep within bounds
-        if (cropData.x + cropData.width > canvas.width) {
-            cropData.x = canvas.width - cropData.width;
-        }
-        if (cropData.y + cropData.height > canvas.height) {
-            cropData.y = canvas.height - cropData.height;
-        }
-        
-        updateCropSelection();
-    }
-    
-    // Event handlers
-    aspectRatioSelect.addEventListener('change', (e) => {
-        applyAspectRatio(e.target.value);
-    });
-    
-    // Simple drag functionality for crop selection
-    cropSelection.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        dragStart = { x: e.clientX, y: e.clientY };
-        e.preventDefault();
-    });
-    
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        
-        const deltaX = e.clientX - dragStart.x;
-        const deltaY = e.clientY - dragStart.y;
-        
-        cropData.x = Math.max(0, Math.min(canvas.width - cropData.width, cropData.x + deltaX));
-        cropData.y = Math.max(0, Math.min(canvas.height - cropData.height, cropData.y + deltaY));
-        
-        updateCropSelection();
-        dragStart = { x: e.clientX, y: e.clientY };
-    });
-    
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-    
-    // Modal actions
+
     modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+        teardown();
         modal.remove();
     });
-    
+
     modal.querySelector('.cancel-crop').addEventListener('click', () => {
+        teardown();
         modal.remove();
     });
-    
+
     modal.querySelector('.apply-crop').addEventListener('click', () => {
         applyCrop(fileIndex, cropData, canvas, img);
+        teardown();
         modal.remove();
     });
 }

@@ -1013,6 +1013,15 @@ function isValidMediaBlockLinkValue(value) {
     }
 }
 
+const GALLERY_COLS_MIN = 1;
+const GALLERY_COLS_MAX = 6;
+
+function clampGalleryColumnCount(value, fallback) {
+    const n = Math.round(Number(value));
+    if (!Number.isFinite(n)) return fallback;
+    return Math.min(GALLERY_COLS_MAX, Math.max(GALLERY_COLS_MIN, n));
+}
+
 export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
     const normalized = {
         showCaptions: !!(settings && settings.showCaptions),
@@ -1020,6 +1029,16 @@ export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
         openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
         imageLinks: []
     };
+
+    let gmin = clampGalleryColumnCount(settings && settings.galleryMinColumns, GALLERY_COLS_MIN);
+    let gmax = clampGalleryColumnCount(settings && settings.galleryMaxColumns, 3);
+    if (gmin > gmax) {
+        const t = gmin;
+        gmin = gmax;
+        gmax = t;
+    }
+    normalized.galleryMinColumns = gmin;
+    normalized.galleryMaxColumns = gmax;
 
     const rawLinks = Array.isArray(settings && settings.imageLinks) ? settings.imageLinks : [];
     const linkCount = Math.max(Number(fileCount) || 0, rawLinks.length);
@@ -1033,6 +1052,34 @@ export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
     }
 
     return normalized;
+}
+
+/** Keeps min/max column sliders consistent (min ≤ max) and updates value labels. */
+export function syncGalleryColumnSliders(changedInput) {
+    if (!changedInput) return;
+    const panel = changedInput.closest('.media-block-settings-panel');
+    if (!panel) return;
+    const minEl = panel.querySelector('.media-gallery-min-cols');
+    const maxEl = panel.querySelector('.media-gallery-max-cols');
+    const minLabel = panel.querySelector('[data-gallery-cols-min-value]');
+    const maxLabel = panel.querySelector('[data-gallery-cols-max-value]');
+    if (!minEl || !maxEl) return;
+    let minV = clampGalleryColumnCount(minEl.value, GALLERY_COLS_MIN);
+    let maxV = clampGalleryColumnCount(maxEl.value, 3);
+    if (changedInput === minEl && minV > maxV) {
+        maxEl.value = String(minV);
+        maxV = minV;
+    } else if (changedInput === maxEl && maxV < minV) {
+        minEl.value = String(maxV);
+        minV = maxV;
+    } else {
+        minEl.value = String(minV);
+        maxEl.value = String(maxV);
+    }
+    if (minLabel) minLabel.textContent = String(minV);
+    if (maxLabel) maxLabel.textContent = String(maxV);
+    minEl.setAttribute('aria-valuenow', String(minV));
+    maxEl.setAttribute('aria-valuenow', String(maxV));
 }
 
 function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) {
@@ -1052,6 +1099,10 @@ function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) 
     const showCaptionsId = `${blockId}_showCaptions`;
     const openLinksTabId = `${blockId}_openLinksNewTab`;
     const clickActionId = `${blockId}_clickAction`;
+    const galleryMinColsId = `${blockId}_galleryMinCols`;
+    const galleryMaxColsId = `${blockId}_galleryMaxCols`;
+    const gmin = normalizedSettings.galleryMinColumns;
+    const gmax = normalizedSettings.galleryMaxColumns;
 
     return `
         <div class="media-block-settings-panel" data-block-id="${blockId}">
@@ -1061,6 +1112,44 @@ function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) 
             </div>
 
             <div class="media-block-settings-stack">
+                <div class="media-gallery-cols-section">
+                    <p class="media-gallery-cols-hint">Min applies on small screens, max on large; tablet uses a value between them.</p>
+                    <div class="media-gallery-cols-row">
+                        <label class="media-gallery-cols-label" for="${galleryMinColsId}">
+                            Min: <span data-gallery-cols-min-value>${gmin}</span>
+                        </label>
+                        <input
+                            type="range"
+                            id="${galleryMinColsId}"
+                            class="media-gallery-min-cols media-gallery-cols-range"
+                            min="${GALLERY_COLS_MIN}"
+                            max="${GALLERY_COLS_MAX}"
+                            step="1"
+                            value="${gmin}"
+                            aria-valuemin="${GALLERY_COLS_MIN}"
+                            aria-valuemax="${GALLERY_COLS_MAX}"
+                            aria-valuenow="${gmin}"
+                        >
+                    </div>
+                    <div class="media-gallery-cols-row">
+                        <label class="media-gallery-cols-label" for="${galleryMaxColsId}">
+                            Max: <span data-gallery-cols-max-value>${gmax}</span>
+                        </label>
+                        <input
+                            type="range"
+                            id="${galleryMaxColsId}"
+                            class="media-gallery-max-cols media-gallery-cols-range"
+                            min="${GALLERY_COLS_MIN}"
+                            max="${GALLERY_COLS_MAX}"
+                            step="1"
+                            value="${gmax}"
+                            aria-valuemin="${GALLERY_COLS_MIN}"
+                            aria-valuemax="${GALLERY_COLS_MAX}"
+                            aria-valuenow="${gmax}"
+                        >
+                    </div>
+                </div>
+
                 <div class="media-setting-toggle-row">
                     <div class="media-setting-toggle-row__copy">
                         <span class="media-setting-label" id="${showCaptionsId}_label">Caption below each image</span>
@@ -1150,6 +1239,8 @@ export function collectMediaBlockSettings(blockEl) {
     const clickActionSelect = settingsContainer.querySelector('.media-click-action-select');
     const openLinksToggle = settingsContainer.querySelector('.media-open-links-toggle');
     const linkInputs = settingsContainer.querySelectorAll('.media-link-input');
+    const galleryMinCols = settingsContainer.querySelector('.media-gallery-min-cols');
+    const galleryMaxCols = settingsContainer.querySelector('.media-gallery-max-cols');
 
     const imageLinks = new Array(fileCount).fill('');
     linkInputs.forEach((input) => {
@@ -1162,6 +1253,8 @@ export function collectMediaBlockSettings(blockEl) {
         showCaptions: !!(showCaptionsToggle && showCaptionsToggle.checked),
         clickAction: clickActionSelect ? clickActionSelect.value : 'preview',
         openLinksInNewTab: !!(openLinksToggle && openLinksToggle.checked),
+        galleryMinColumns: galleryMinCols ? Number(galleryMinCols.value) : undefined,
+        galleryMaxColumns: galleryMaxCols ? Number(galleryMaxCols.value) : undefined,
         imageLinks
     }, fileCount);
 }

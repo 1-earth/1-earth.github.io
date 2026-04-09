@@ -187,6 +187,23 @@
         }).filter(Boolean);
       }
 
+      function getTagsArray(post) {
+        var raw = post && (post.tags != null ? post.tags : post.keywords);
+        if (raw == null) return [];
+        if (Array.isArray(raw)) {
+          return raw.map(function (t) {
+            return String(t).trim();
+          }).filter(Boolean);
+        }
+        return parseCsv(raw);
+      }
+
+      function hasSitepageTag(post) {
+        return getTagsArray(post).some(function (tag) {
+          return String(tag).trim().toLowerCase() === "sitepage";
+        });
+      }
+
       function isVideoUrl(url) {
         return /\.(mp4|webm|ogg|mov|m4v|avi)(?:$|[?#])/i.test((url || "").split("?")[0]);
       }
@@ -398,6 +415,34 @@
         });
       }
 
+      var GALLERY_COLS_MIN = 1;
+      var GALLERY_COLS_MAX = 6;
+
+      function clampGalleryColumnCount(value, fallback) {
+        var n = Math.round(Number(value));
+        if (!isFinite(n)) return fallback;
+        return Math.min(GALLERY_COLS_MAX, Math.max(GALLERY_COLS_MIN, n));
+      }
+
+      function galleryTabletColumnCount(minCols, maxCols) {
+        var mid = Math.round((minCols + maxCols) / 2);
+        if (mid < minCols) return minCols;
+        if (mid > maxCols) return maxCols;
+        return mid;
+      }
+
+      function blogGalleryGridStyleAttr(minCols, maxCols) {
+        var gmin = clampGalleryColumnCount(minCols, GALLERY_COLS_MIN);
+        var gmax = clampGalleryColumnCount(maxCols, 3);
+        if (gmin > gmax) {
+          var t = gmin;
+          gmin = gmax;
+          gmax = t;
+        }
+        var gmid = galleryTabletColumnCount(gmin, gmax);
+        return ' style="--g-min:' + gmin + ';--g-mid:' + gmid + ';--g-max:' + gmax + '"';
+      }
+
       function normalizeGallerySettings(settings, fileCount) {
         var normalized = {
           showCaptions: !!(settings && settings.showCaptions),
@@ -405,6 +450,15 @@
           openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
           imageLinks: []
         };
+        var gmin = clampGalleryColumnCount(settings && settings.galleryMinColumns, GALLERY_COLS_MIN);
+        var gmax = clampGalleryColumnCount(settings && settings.galleryMaxColumns, 3);
+        if (gmin > gmax) {
+          var swap = gmin;
+          gmin = gmax;
+          gmax = swap;
+        }
+        normalized.galleryMinColumns = gmin;
+        normalized.galleryMaxColumns = gmax;
         var rawLinks = Array.isArray(settings && settings.imageLinks) ? settings.imageLinks : [];
         var linkCount = Math.max(Number(fileCount) || 0, rawLinks.length);
         for (var i = 0; i < linkCount; i++) {
@@ -512,9 +566,13 @@
           return renderMediaFromUrl(items[0].url, items[0].caption, "");
         }
         var html = '<div class="blog-media-frontend">';
+        var gridColStyle = blogGalleryGridStyleAttr(
+          normalizedSettings.galleryMinColumns,
+          normalizedSettings.galleryMaxColumns
+        );
         if (normalizedSettings.clickAction === "preview") {
           var galleryId = registerGallery(items);
-          html += '<div class="blog-gallery-grid" data-gallery-id="' + galleryId + '">';
+          html += '<div class="blog-gallery-grid"' + gridColStyle + ' data-gallery-id="' + galleryId + '">';
           for (var i = 0; i < items.length; i++) {
             html += '' +
               '<button class="blog-gallery-item blog-gallery-trigger" type="button" data-gallery-id="' + galleryId + '" data-gallery-index="' + i + '" aria-label="Open image ' + (i + 1) + ' of ' + items.length + '">' +
@@ -522,7 +580,7 @@
               '</button>';
           }
         } else {
-          html += '<div class="blog-gallery-grid">';
+          html += '<div class="blog-gallery-grid"' + gridColStyle + ">";
           for (var j = 0; j < items.length; j++) {
             var item = items[j];
             var targetAttr = normalizedSettings.openLinksInNewTab && item.linkHref ? ' target="_blank" rel="noopener noreferrer"' : "";
@@ -739,6 +797,17 @@
         return "";
       }
 
+      function pickFeaturedThumbnailOnly(work) {
+        try {
+          if (work && work.featuredMedia) {
+            if (work.featuredMedia.poster && isImageUrl(work.featuredMedia.poster)) return work.featuredMedia.poster;
+            if (work.featuredMedia.url && isImageUrl(work.featuredMedia.url)) return work.featuredMedia.url;
+          }
+          if (work && work.featuredImage && isImageUrl(work.featuredImage)) return work.featuredImage;
+        } catch (_) {}
+        return "";
+      }
+
       function featuredMediaIsVideo(work) {
         if (!work || !work.featuredMedia || !work.featuredMedia.url) return false;
         var u = String(work.featuredMedia.url).trim();
@@ -756,7 +825,7 @@
             if (work.featuredMedia.poster && isImageUrl(work.featuredMedia.poster)) {
               poster = work.featuredMedia.poster;
             } else {
-              var t = pickThumbnailFromWork(work);
+              var t = pickFeaturedThumbnailOnly(work);
               if (t && isImageUrl(t)) poster = t;
             }
             return { type: "video", videoUrl: vUrl, posterUrl: poster };
@@ -765,37 +834,43 @@
             var fi = String(work.featuredImage).trim();
             if (fi && isVideoUrl(fi)) {
               var p2 = "";
-              var t2 = pickThumbnailFromWork(work);
+              var t2 = pickFeaturedThumbnailOnly(work);
               if (t2 && isImageUrl(t2)) p2 = t2;
               return { type: "video", videoUrl: fi, posterUrl: p2 };
             }
           }
         } catch (_) {}
-        var img = pickThumbnailFromWork(work) || PLACEHOLDER_IMAGE;
-        return { type: "image", imageUrl: img };
+        var img = pickFeaturedThumbnailOnly(work);
+        if (img) {
+          return { type: "image", imageUrl: img };
+        }
+        return { type: "none" };
       }
 
       function buildElianiWorkHeroHtml(heroMedia, titleSafe, categorySafe, summarySafe) {
         var sectionClass = "eliani-work-hero reveal-on-scroll";
         var videoHtml = "";
-        var bgUrl;
+        var sectionStyleAttr = "";
         if (heroMedia.type === "video") {
           sectionClass += " eliani-work-hero--video";
-          bgUrl = heroMedia.posterUrl || PLACEHOLDER_IMAGE;
+          var bgUrl = heroMedia.posterUrl || PLACEHOLDER_IMAGE;
+          sectionStyleAttr = ' style="background-image:url(\'' + escapeHtml(bgUrl) + '\');"';
           var posterAttr = heroMedia.posterUrl ? ' poster="' + escapeHtml(heroMedia.posterUrl) + '"' : "";
           videoHtml =
             '<video class="eliani-work-hero__video" src="' + escapeHtml(heroMedia.videoUrl) + '"' +
             posterAttr +
             ' muted playsinline webkit-playsinline autoplay loop preload="auto" disablePictureInPicture disableRemotePlayback aria-hidden="true"></video>';
+        } else if (heroMedia.type === "image") {
+          sectionStyleAttr = ' style="background-image:url(\'' + escapeHtml(heroMedia.imageUrl) + '\');"';
         } else {
-          bgUrl = heroMedia.imageUrl;
+          sectionClass += " eliani-work-hero--no-media";
         }
         return (
           '<section class="' +
           sectionClass +
-          '" style="background-image:url(\'' +
-          escapeHtml(bgUrl) +
-          '\');">' +
+          '"' +
+          sectionStyleAttr +
+          ">" +
           videoHtml +
           '<div class="eliani-work-hero-copy">' +
           '<div class="eliani-work-hero-inner">' +
@@ -899,8 +974,14 @@
         var title = (work && work.title ? work.title : "Selected Work") + " | Eliani Studios";
         var description = getSummary(work);
         var hm = pickFeaturedHeroMedia(work);
-        var image =
-          hm.type === "video" ? hm.posterUrl || pickThumbnailFromWork(work) || "" : hm.imageUrl;
+        var image = "";
+        if (hm.type === "video") {
+          image = hm.posterUrl || pickThumbnailFromWork(work) || "";
+        } else if (hm.type === "image") {
+          image = hm.imageUrl || "";
+        } else {
+          image = pickThumbnailFromWork(work) || "";
+        }
         if (!image) {
           image = new URL(PLACEHOLDER_IMAGE, window.location.href).href;
         }
@@ -934,6 +1015,7 @@
           index: 0,
           touchStartX: 0
         };
+        var viewerCloseGeneration = 0;
 
         function getItems() {
           return galleryStore[state.galleryId] || [];
@@ -964,17 +1046,21 @@
         }
 
         function open(galleryId, index) {
+          viewerCloseGeneration += 1;
           state.galleryId = galleryId;
           state.index = index || 0;
-          viewer.classList.add("is-open");
           viewer.setAttribute("aria-hidden", "false");
           document.body.classList.add("eliani-viewer-open");
           render();
-          closeBtn.focus();
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              viewer.classList.add("is-open");
+              closeBtn.focus();
+            });
+          });
         }
 
-        function close() {
-          viewer.classList.remove("is-open");
+        function finalizeViewerClose() {
           viewer.setAttribute("aria-hidden", "true");
           document.body.classList.remove("eliani-viewer-open");
           image.removeAttribute("src");
@@ -983,6 +1069,32 @@
           thumbs.innerHTML = "";
           state.galleryId = "";
           state.index = 0;
+        }
+
+        function close() {
+          if (!viewer.classList.contains("is-open")) return;
+          var myGen = viewerCloseGeneration;
+          viewer.classList.remove("is-open");
+          var done = false;
+          function complete() {
+            if (done) return;
+            if (viewer.classList.contains("is-open")) return;
+            if (viewerCloseGeneration !== myGen) return;
+            done = true;
+            finalizeViewerClose();
+          }
+          var fallbackMs = 520;
+          var fallback = setTimeout(function () {
+            viewer.removeEventListener("transitionend", onTransitionEnd);
+            complete();
+          }, fallbackMs);
+          function onTransitionEnd(ev) {
+            if (ev.target !== viewer || ev.propertyName !== "opacity") return;
+            clearTimeout(fallback);
+            viewer.removeEventListener("transitionend", onTransitionEnd);
+            complete();
+          }
+          viewer.addEventListener("transitionend", onTransitionEnd);
         }
 
         function step(direction) {
@@ -1007,7 +1119,14 @@
           step(1);
         });
         viewer.addEventListener("click", function (event) {
-          if (event.target === viewer) close();
+          if (!viewer.classList.contains("is-open")) return;
+          var t = event.target;
+          if (!t || typeof t.closest !== "function") return;
+          if (t.id === "eliani-gallery-image" || t.closest("#eliani-gallery-image")) return;
+          if (t.closest(".eliani-viewer-close")) return;
+          if (t.closest(".eliani-viewer-nav")) return;
+          if (t.closest(".eliani-viewer-thumbs")) return;
+          close();
         });
         thumbs.addEventListener("click", function (event) {
           var thumb = event.target.closest("[data-thumb-index]");
@@ -1057,10 +1176,10 @@
             '<div class="eliani-related-card-media">' +
               '<img loading="lazy" src="' + escapeHtml(image) + '" alt="' + title + '">' +
             '</div>' +
-            '<div>' +
+            '<div class="eliani-related-card-body">' +
               '<p class="eliani-kicker">' + category + '</p>' +
               '<h3>' + title + '</h3>' +
-              '<p>' + excerpt + '</p>' +
+              '<p class="eliani-related-card-excerpt">' + excerpt + "</p>" +
             '</div>' +
           '</a>';
       }
@@ -1097,7 +1216,7 @@
         try {
           var posts = await queryWorks(db);
           posts = posts.filter(function (post) {
-            return post.id !== currentId;
+            return post.id !== currentId && !hasSitepageTag(post);
           });
           if (!posts.length) {
             section.hidden = true;

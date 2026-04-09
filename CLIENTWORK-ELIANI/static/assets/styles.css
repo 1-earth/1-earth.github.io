@@ -1185,6 +1185,18 @@ a.welcome-work__item:focus-visible video.welcome-work__video--visible {
   color: #fff;
   font-size: clamp(4rem, 10.4vw, 14.4rem);
 }
+
+.three-pillars-hero h1{
+  font-family: "Aboreto", serif;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  font-size: clamp(1.8rem, 3.4vw, 3.4rem);
+}
+
+
 .artists-bookings h2 {
   margin: 0;
   font-family: "Baskervville", serif;
