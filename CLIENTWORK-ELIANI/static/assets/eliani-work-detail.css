@@ -1,4 +1,14 @@
 /* Shared: artist + work detail templates (eliani-work-page). Depends on styles.css for variables. */
+@font-face {
+  font-family: "BB Noname Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/BBNonamePro-Normal.woff2") format("woff2"),
+    url("fonts/BBNonamePro-Normal.woff") format("woff"),
+    url("fonts/BBNonamePro-Normal.otf") format("opentype");
+}
+
 .eliani-work-page {
   background: var(--page-bg);
 }
@@ -388,10 +398,28 @@ body.eliani-viewer-open {
 
 .blog-gallery-caption {
   margin: 0.6rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-wrap: wrap;
   text-align: left;
-  font-size: 0.95rem;
+  font-family: "BB Noname Pro", "Geist", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1rem;
   line-height: 1.45;
   color: rgba(38, 35, 32, 0.82);
+}
+
+/* Filled arrow (SVGRepo-style polygon), tinted to caption text */
+.blog-gallery-caption::after {
+  content: "";
+  display: block;
+  flex-shrink: 0;
+  width: 0.95em;
+  height: 0.95em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpolygon fill='%23262320' fill-opacity='0.82' points='315.1,48.6 196.9,48.6 354.5,206.1 0,206.1 0,284.9 354.5,284.9 196.9,442.4 315.1,442.4 512,245.5'/%3E%3C/svg%3E")
+    no-repeat 50% 50% / contain;
 }
 
 .blog-media-frontend img,

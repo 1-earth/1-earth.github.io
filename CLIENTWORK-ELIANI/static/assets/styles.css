@@ -1139,7 +1139,7 @@ a.welcome-work__item:focus-visible video.welcome-work__video--visible {
   position: relative;
   min-height: clamp(24rem, 60vh, 42rem);
   overflow: hidden;
-  height: 80vh;
+  height: 90vh;
 }
 
 .artists-hero img {
@@ -1176,7 +1176,15 @@ a.welcome-work__item:focus-visible video.welcome-work__video--visible {
   background: linear-gradient(to bottom, rgba(38, 35, 32, 0.12), rgba(38, 35, 32, 0.18));
 }
 
-.artists-hero h1,
+.artists-hero h1{
+  font-family: "Aboreto", serif;
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  font-size: clamp(4rem, 10.4vw, 14.4rem);
+}
 .artists-bookings h2 {
   margin: 0;
   font-family: "Baskervville", serif;
@@ -1185,10 +1193,6 @@ a.welcome-work__item:focus-visible video.welcome-work__video--visible {
   text-transform: uppercase;
 }
 
-.artists-hero h1 {
-  color: #fff;
-  font-size: clamp(1.5rem, 3.4vw, 3.4rem);
-}
 
 .artists-grid-section {
   /* padding-top: 2rem; */
