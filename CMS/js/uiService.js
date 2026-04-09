@@ -829,21 +829,9 @@ export function renderBlogDashboard(dataID, existingData = null) {
             const sectionHtml = createBlogSectionHtml(section.id, items, sectionIndex);
             sectionsContainer.insertAdjacentHTML('beforeend', sectionHtml);
             
-            // Make section draggable
             const sectionElement = document.querySelector(`[data-section-id="${section.id}"]`);
             if (sectionElement) {
-                sectionElement.draggable = true;
-                
-                // Add drag event listeners
-                sectionElement.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', e.target.dataset.sectionId);
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.target.classList.add('dragging');
-                });
-                
-                sectionElement.addEventListener('dragend', (e) => {
-                    e.target.classList.remove('dragging');
-                });
+                wireBlogSectionDrag(sectionElement);
             }
             
             // Initialize items (blocks and column groups)
@@ -861,18 +849,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                     allColumnBlocks.forEach(block => {
                         const blockElement = document.querySelector(`[data-block-id="${block.id}"]`);
                         if (blockElement) {
-                            blockElement.draggable = true;
-                            
-                            // Add drag event listeners
-                            blockElement.addEventListener('dragstart', (e) => {
-                                e.dataTransfer.setData('text/plain', e.target.dataset.blockId);
-                                e.dataTransfer.effectAllowed = 'move';
-                                e.target.classList.add('dragging');
-                            });
-                            
-                            blockElement.addEventListener('dragend', (e) => {
-                                e.target.classList.remove('dragging');
-                            });
+                            wireBlogBlockDrag(blockElement);
                         }
                         
                         if (block.type === 'subtitle' || block.type === 'body') {
@@ -899,18 +876,7 @@ export function renderBlogDashboard(dataID, existingData = null) {
                     // Initialize single block
                     const blockElement = document.querySelector(`[data-block-id="${item.id}"]`);
                     if (blockElement) {
-                        blockElement.draggable = true;
-                        
-                        // Add drag event listeners
-                        blockElement.addEventListener('dragstart', (e) => {
-                            e.dataTransfer.setData('text/plain', e.target.dataset.blockId);
-                            e.dataTransfer.effectAllowed = 'move';
-                            e.target.classList.add('dragging');
-                        });
-                        
-                        blockElement.addEventListener('dragend', (e) => {
-                            e.target.classList.remove('dragging');
-                        });
+                        wireBlogBlockDrag(blockElement);
                     }
                     
                     if (item.blockType === 'subtitle' || item.blockType === 'body') {
@@ -1727,6 +1693,75 @@ export function updateBlockLayoutDisplay(blockEl, layout) {
         const layoutRatio = blockEl.dataset.layoutRatio || '50';
         blockEl.style.width = `${layoutRatio}%`;
     }
+}
+
+/** True when pointerdown target should not start a blog section/block HTML5 drag (sliders, Quill, form controls, etc.). */
+export function isBlogReorderInteractionSuppressed(el) {
+    if (!el) return false;
+    const node = el.nodeType === Node.TEXT_NODE ? el.parentElement : el;
+    if (!node || !node.closest) return false;
+    if (node.closest('.ql-editor, .ql-toolbar, .ql-container, .ql-picker, .ql-picker-options, .ql-tooltip, .ql-bubble')) {
+        return true;
+    }
+    if (node.closest('[contenteditable="true"]')) return true;
+    if (node.closest('button, input, textarea, select, option, label, fieldset, legend, datalist, output')) {
+        return true;
+    }
+    if (node.closest('a[href]')) return true;
+    if (node.closest('.media-previews--reorderable, .media-preview-drag-handle')) return true;
+    return false;
+}
+
+const blogReorderSuppressNextDrag = new WeakMap();
+
+function clearBlogReorderSuppressFlag(draggableEl) {
+    blogReorderSuppressNextDrag.delete(draggableEl);
+}
+
+export function wireBlogSectionDrag(sectionElement) {
+    if (!sectionElement) return;
+    sectionElement.draggable = true;
+    sectionElement.addEventListener('pointerdown', (e) => {
+        blogReorderSuppressNextDrag.set(sectionElement, isBlogReorderInteractionSuppressed(e.target));
+    }, true);
+    sectionElement.addEventListener('dragstart', (e) => {
+        if (blogReorderSuppressNextDrag.get(sectionElement)) {
+            e.preventDefault();
+            return;
+        }
+        e.dataTransfer.setData('text/plain', sectionElement.dataset.sectionId);
+        e.dataTransfer.effectAllowed = 'move';
+        sectionElement.classList.add('dragging');
+    });
+    sectionElement.addEventListener('dragend', () => {
+        clearBlogReorderSuppressFlag(sectionElement);
+        sectionElement.classList.remove('dragging');
+    });
+    sectionElement.addEventListener('pointerup', () => clearBlogReorderSuppressFlag(sectionElement));
+    sectionElement.addEventListener('pointercancel', () => clearBlogReorderSuppressFlag(sectionElement));
+}
+
+export function wireBlogBlockDrag(blockElement) {
+    if (!blockElement) return;
+    blockElement.draggable = true;
+    blockElement.addEventListener('pointerdown', (e) => {
+        blogReorderSuppressNextDrag.set(blockElement, isBlogReorderInteractionSuppressed(e.target));
+    }, true);
+    blockElement.addEventListener('dragstart', (e) => {
+        if (blogReorderSuppressNextDrag.get(blockElement)) {
+            e.preventDefault();
+            return;
+        }
+        e.dataTransfer.setData('text/plain', blockElement.dataset.blockId);
+        e.dataTransfer.effectAllowed = 'move';
+        blockElement.classList.add('dragging');
+    });
+    blockElement.addEventListener('dragend', () => {
+        clearBlogReorderSuppressFlag(blockElement);
+        blockElement.classList.remove('dragging');
+    });
+    blockElement.addEventListener('pointerup', () => clearBlogReorderSuppressFlag(blockElement));
+    blockElement.addEventListener('pointercancel', () => clearBlogReorderSuppressFlag(blockElement));
 }
 
 // --- DRAG AND DROP FUNCTIONALITY ---

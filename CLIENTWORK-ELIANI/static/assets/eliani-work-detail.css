@@ -51,6 +51,15 @@ body.eliani-viewer-open {
   margin-bottom: 30vh;
 }
 
+.eliani-work-status-logo {
+  display: block;
+  width: 100px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto 1.1rem;
+  margin-bottom: 0px;
+}
+
 .eliani-kicker {
   margin: 0 0 0.9rem;
   font-family: "Geist", sans-serif;
@@ -149,6 +158,43 @@ body.eliani-viewer-open {
   z-index: 1;
   background:
     linear-gradient(to top, rgba(38, 35, 32, 0.42), rgba(38, 35, 32, 0.08) 35%, rgba(38, 35, 32, 0.18));
+}
+
+.eliani-work-hero-back {
+  position: absolute;
+  top: calc(var(--header-offset) + 1.6rem);
+  left: clamp(1rem, 4vw, 2.5rem);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* padding: 0.5rem; */
+  margin: -0.5rem;
+  color: #fffdf8;
+  text-decoration: none;
+  opacity: 0.94;
+  transition: opacity 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .eliani-work-hero-back {
+    top: 20px;
+    left: 34px;
+  }
+}
+
+.eliani-work-hero-back:hover,
+.eliani-work-hero-back:focus-visible {
+  opacity: 1;
+}
+
+.eliani-work-hero-back:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.eliani-work-hero--no-media .eliani-work-hero-back {
+  color: var(--text-color);
 }
 
 .eliani-work-hero-copy {

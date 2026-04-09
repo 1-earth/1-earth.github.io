@@ -1563,29 +1563,13 @@ function handleColumnWidthChange(target) {
 
 // Note: Drag and drop functionality is now handled in uiService.js
 
-// Add drag attributes to sections and blocks when they're created
+// Add drag attributes to sections and blocks when they're created (shared with uiService blog load path)
 function makeSectionDraggable(sectionElement) {
-    sectionElement.draggable = true;
-    sectionElement.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', e.target.dataset.sectionId);
-        e.dataTransfer.effectAllowed = 'move';
-        e.target.classList.add('dragging');
-    });
-    sectionElement.addEventListener('dragend', (e) => {
-        e.target.classList.remove('dragging');
-    });
+    ui.wireBlogSectionDrag(sectionElement);
 }
 
 function makeBlockDraggable(blockElement) {
-    blockElement.draggable = true;
-    blockElement.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', e.target.dataset.blockId);
-        e.dataTransfer.effectAllowed = 'move';
-        e.target.classList.add('dragging');
-    });
-    blockElement.addEventListener('dragend', (e) => {
-        e.target.classList.remove('dragging');
-    });
+    ui.wireBlogBlockDrag(blockElement);
 }
 
 async function handleSaveCalendar() {
