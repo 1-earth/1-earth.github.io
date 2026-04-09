@@ -838,11 +838,11 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
 }
 
 .home-hero__overlay p {
-  max-width: 45rem;
+  max-width: 46rem;
   margin: 0;
   color: #fff;
   font-family: "Cormorant Garamond", serif;
-  font-size: clamp(2rem, 2vw, 3rem);
+  font-size: clamp(2.6rem, 2vw, 3rem);
   line-height: 1.12;
   text-wrap: balance;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
