@@ -85,6 +85,7 @@
         <div class="eliani-viewer-viewport" id="eliani-gallery-viewport">
           <div class="eliani-viewer-media">
             <img id="eliani-gallery-image" src="" alt="">
+            <video id="eliani-gallery-video" class="eliani-viewer-video" controls playsinline preload="metadata" style="display:none"></video>
           </div>
         </div>
         <button class="eliani-viewer-nav eliani-viewer-nav--next" type="button" aria-label="Next image"></button>
@@ -329,16 +330,23 @@
           '</section>';
       }
 
-      function renderMediaFromUrl(url, caption, poster) {
+      function renderMediaFromUrl(url, caption, poster, mediaSettings) {
         var safeCaption = escapeHtml(caption || "");
+        var capBlock = safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "";
+        var aspectVal = mediaSettingsToAspectCssValue(mediaSettings);
+        var cropOpen = aspectVal ? '<div class="blog-media-aspect-crop" style="--eliani-media-aspect:' + aspectVal + '">' : "";
+        var cropClose = aspectVal ? "</div>" : "";
+
         if (!url) {
           return '<div class="blog-media-frontend"><img class="blog-media-img" src="' + escapeHtml(PLACEHOLDER_IMAGE) + '" alt="Placeholder image"><p class="blog-media-caption">Imagery coming soon.</p></div>';
         }
         if (isVideoUrl(url)) {
           var posterAttr = poster ? ' poster="' + escapeHtml(poster) + '"' : "";
-          return '<div class="blog-media-frontend"><video class="blog-media-video" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline muted></video>' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+          var vClass = aspectVal ? "blog-media-video blog-media-crop-fill" : "blog-media-video";
+          return '<div class="blog-media-frontend">' + cropOpen + '<video class="' + vClass + '" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline muted></video>' + cropClose + capBlock + "</div>";
         }
-        return '<div class="blog-media-frontend"><img class="blog-media-img" loading="lazy" src="' + escapeHtml(url) + '" alt="' + (safeCaption || "Selected work") + '">' + (safeCaption ? '<p class="blog-media-caption">' + safeCaption + '</p>' : "") + '</div>';
+        var imgClass = aspectVal ? "blog-media-img blog-media-crop-fill" : "blog-media-img";
+        return '<div class="blog-media-frontend">' + cropOpen + '<img class="' + imgClass + '" loading="lazy" src="' + escapeHtml(url) + '" alt="' + (safeCaption || "Selected work") + '">' + cropClose + capBlock + "</div>";
       }
 
       var BLOG_MEDIA_VIDEO_IO_THRESHOLD = 0.1;
@@ -479,7 +487,39 @@
         if (fileCount > 0) {
           normalized.imageLinks = normalized.imageLinks.slice(0, fileCount);
         }
+        if (settings && settings.aspectRatio != null && settings.aspectRatio !== "" && settings.aspectRatio !== "default") {
+          normalized.aspectRatio = settings.aspectRatio;
+          normalized.aspectRatioCustom = settings.aspectRatioCustom || null;
+        } else {
+          normalized.aspectRatio = null;
+          normalized.aspectRatioCustom = null;
+        }
         return normalized;
+      }
+
+      function mediaSettingsToAspectCssValue(settings) {
+        if (!settings) return null;
+        var ar = settings.aspectRatio;
+        if (ar === undefined || ar === null || ar === "" || ar === "default") return null;
+        if (ar === "custom") {
+          var c = settings.aspectRatioCustom || {};
+          var w = Math.round(Number(c.w));
+          var h = Math.round(Number(c.h));
+          if (!isFinite(w) || !isFinite(h) || w < 1 || h < 1) return null;
+          return w + " / " + h;
+        }
+        var map = {
+          "9:16": "9 / 16",
+          "2:3": "2 / 3",
+          "3:4": "3 / 4",
+          "4:5": "4 / 5",
+          "1:1": "1 / 1",
+          "5:4": "5 / 4",
+          "4:3": "4 / 3",
+          "3:2": "3 / 2",
+          "16:9": "16 / 9"
+        };
+        return map[ar] || null;
       }
 
       function normalizeGalleryLinkHref(value) {
@@ -531,10 +571,21 @@
         return href;
       }
 
-      function renderGalleryItemInner(item, showCaptions) {
-        var html = '<img loading="lazy" src="' + escapeHtml(item.thumb) + '" alt="' + escapeHtml(item.alt) + '">';
+      function renderGalleryItemInner(item, showCaptions, mediaSettings) {
+        var aspectVal = mediaSettingsToAspectCssValue(mediaSettings);
+        var open = aspectVal
+          ? '<div class="blog-gallery-item-crop blog-gallery-item-crop--user" style="--eliani-media-aspect: ' + aspectVal + '">'
+          : '<div class="blog-gallery-item-crop blog-gallery-item-crop--default">';
+        var inner;
+        if (item.isVideo) {
+          var posterAttr = item.thumb && item.thumb !== item.url ? ' poster="' + escapeHtml(item.thumb) + '"' : "";
+          inner = '<video class="blog-gallery-item-media" src="' + escapeHtml(item.url) + '"' + posterAttr + ' muted playsinline preload="metadata"></video>';
+        } else {
+          inner = '<img class="blog-gallery-item-media" loading="lazy" src="' + escapeHtml(item.thumb) + '" alt="' + escapeHtml(item.alt) + '">';
+        }
+        var html = open + inner + "</div>";
         if (showCaptions && item.caption) {
-          html += '<p class="blog-gallery-caption">' + escapeHtml(item.caption) + '</p>';
+          html += '<p class="blog-gallery-caption">' + escapeHtml(item.caption) + "</p>";
         }
         return html;
       }
@@ -548,15 +599,26 @@
           var url = file.url || "";
           var fileType = (file.type || "").toLowerCase();
           if (!url) continue;
+          var linkHref = normalizeGalleryLinkHref(normalizedSettings.imageLinks[i] || "");
           if (fileType.indexOf("image/") === 0 || isImageUrl(url)) {
-            var linkHref = normalizeGalleryLinkHref(normalizedSettings.imageLinks[i] || "");
             items.push({
               url: url,
               alt: file.caption || fallbackTitle || "Gallery image",
               caption: file.caption || "",
               thumb: file.poster || url,
               sourceIndex: i,
-              linkHref: linkHref
+              linkHref: linkHref,
+              isVideo: false
+            });
+          } else if (fileType.indexOf("video/") === 0 || isVideoUrl(url)) {
+            items.push({
+              url: url,
+              alt: file.caption || fallbackTitle || "Gallery video",
+              caption: file.caption || "",
+              thumb: file.poster || url,
+              sourceIndex: i,
+              linkHref: linkHref,
+              isVideo: true
             });
           }
         }
@@ -575,7 +637,8 @@
         var items = buildGalleryItems(files, fallbackTitle, normalizedSettings);
         if (!items.length) return "";
         if (items.length === 1) {
-          return renderMediaFromUrl(items[0].url, items[0].caption, "");
+          var one = items[0];
+          return renderMediaFromUrl(one.url, one.caption, one.thumb && one.thumb !== one.url ? one.thumb : "", normalizedSettings);
         }
         var html = '<div class="blog-media-frontend">';
         var gridColStyle = blogGalleryGridStyleAttr(
@@ -588,7 +651,7 @@
           for (var i = 0; i < items.length; i++) {
             html += '' +
               '<button class="blog-gallery-item blog-gallery-trigger" type="button" data-gallery-id="' + galleryId + '" data-gallery-index="' + i + '" aria-label="Open image ' + (i + 1) + ' of ' + items.length + '">' +
-                renderGalleryItemInner(items[i], normalizedSettings.showCaptions) +
+                renderGalleryItemInner(items[i], normalizedSettings.showCaptions, normalizedSettings) +
               '</button>';
           }
         } else {
@@ -599,12 +662,12 @@
             if (item.linkHref) {
               html += '' +
                 '<a class="blog-gallery-item blog-gallery-link" href="' + escapeHtml(item.linkHref) + '"' + targetAttr + ' aria-label="Open linked page for image ' + (j + 1) + '">' +
-                  renderGalleryItemInner(item, normalizedSettings.showCaptions) +
+                  renderGalleryItemInner(item, normalizedSettings.showCaptions, normalizedSettings) +
                 '</a>';
             } else {
               html += '' +
                 '<div class="blog-gallery-item blog-gallery-static">' +
-                  renderGalleryItemInner(item, normalizedSettings.showCaptions) +
+                  renderGalleryItemInner(item, normalizedSettings.showCaptions, normalizedSettings) +
                 '</div>';
             }
           }
@@ -656,7 +719,7 @@
             if (inlineGalleryHtml) return inlineGalleryHtml;
           }
           if (block.cachedMediaUrl) {
-            return renderMediaFromUrl(block.cachedMediaUrl, block.caption, block.poster);
+            return renderMediaFromUrl(block.cachedMediaUrl, block.caption, block.poster, mediaSettings);
           }
           if (block.mediaId) {
             try {
@@ -667,12 +730,12 @@
                   var galleryHtml = renderImageGallery(media.files, media.title || block.caption || "Gallery", mediaSettings);
                   if (galleryHtml) return galleryHtml;
                   var file = media.files[0];
-                  return renderMediaFromUrl(file.url, file.caption, file.poster);
+                  return renderMediaFromUrl(file.url, file.caption, file.poster, mediaSettings);
                 }
               }
             } catch (_) {}
           }
-          return renderMediaFromUrl("", block.caption, block.poster);
+          return renderMediaFromUrl("", block.caption, block.poster, mediaSettings);
         }
         return "";
       }
@@ -1029,6 +1092,7 @@
         var prevBtn = viewer ? viewer.querySelector(".eliani-viewer-nav--prev") : null;
         var nextBtn = viewer ? viewer.querySelector(".eliani-viewer-nav--next") : null;
         var image = document.getElementById("eliani-gallery-image");
+        var video = document.getElementById("eliani-gallery-video");
         var caption = document.getElementById("eliani-gallery-caption");
         var thumbs = document.getElementById("eliani-gallery-thumbs");
         var viewport = document.getElementById("eliani-gallery-viewport");
@@ -1065,8 +1129,32 @@
           var items = getItems();
           if (!items.length) return;
           var current = items[state.index];
-          image.src = current.url;
-          image.alt = current.alt || "Gallery image";
+          if (current.isVideo && video) {
+            image.style.display = "none";
+            image.removeAttribute("src");
+            image.alt = "";
+            video.style.display = "block";
+            try {
+              video.pause();
+            } catch (_) {}
+            video.src = current.url;
+            if (current.thumb && current.thumb !== current.url) {
+              video.setAttribute("poster", current.thumb);
+            } else {
+              video.removeAttribute("poster");
+            }
+          } else {
+            if (video) {
+              try {
+                video.pause();
+              } catch (_) {}
+              video.removeAttribute("src");
+              video.style.display = "none";
+            }
+            image.style.display = "";
+            image.src = current.url;
+            image.alt = current.alt || "Gallery image";
+          }
           caption.textContent = current.caption || "";
           renderThumbs(items);
         }
@@ -1091,6 +1179,14 @@
           document.body.classList.remove("eliani-viewer-open");
           image.removeAttribute("src");
           image.alt = "";
+          image.style.display = "";
+          if (video) {
+            try {
+              video.pause();
+            } catch (_) {}
+            video.removeAttribute("src");
+            video.style.display = "none";
+          }
           caption.textContent = "";
           thumbs.innerHTML = "";
           state.galleryId = "";
@@ -1148,7 +1244,7 @@
           if (!viewer.classList.contains("is-open")) return;
           var t = event.target;
           if (!t || typeof t.closest !== "function") return;
-          if (t.id === "eliani-gallery-image" || t.closest("#eliani-gallery-image")) return;
+          if (t.id === "eliani-gallery-image" || t.id === "eliani-gallery-video" || t.closest("#eliani-gallery-image") || t.closest("#eliani-gallery-video")) return;
           if (t.closest(".eliani-viewer-close")) return;
           if (t.closest(".eliani-viewer-nav")) return;
           if (t.closest(".eliani-viewer-thumbs")) return;

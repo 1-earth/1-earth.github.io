@@ -52,8 +52,11 @@
         <h1 id="home-title">Eliani Studios</h1>
       </section>
 
-      <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image">
-        <img src="static/assets/landingimage.jpg" alt="Hands holding seaweed in shallow water">
+      <section class="home-hero reveal-on-scroll" aria-label="Eliani landing image" data-home-hero>
+        <div class="home-hero__media">
+          <img class="home-hero__poster" src="static/assets/landingimage.jpg" alt="Hands holding seaweed in shallow water">
+          <video class="home-hero__video" poster="static/assets/landingimage.jpg" muted loop playsinline preload="none" aria-hidden="true"></video>
+        </div>
         <div class="home-hero__overlay">
           <p>
             We are a creative agency connecting exceptional, untapped local
@@ -137,7 +140,7 @@
         </a>
         <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
-            <img src="static/assets/placeholder2.png" alt="Selected work for Mohcine Harrise">
+            <img src="static/assets/dailypaperposter.jpg" alt="Selected work for Mohcine Harrise">
           </figure>
           <div class="welcome-work__copy">
             <h3>Mohcine Harrise for Daily Paper</h3>
@@ -155,7 +158,7 @@
         </a>
         <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
-            <img src="static/assets/placeholder2.png" alt="Selected work for Matthew Maete">
+            <img src="static/assets/matthew.jpg" alt="Selected work for Matthew Maete">
           </figure>
           <div class="welcome-work__copy">
             <h3>Matthew Maete for Muyishime</h3>
@@ -173,7 +176,7 @@
         </a>
         <a class="welcome-work__item reveal-on-scroll" href="#">
           <figure class="welcome-work__image">
-            <img src="static/assets/placeholder.jpeg" alt="Selected work for Wasim Malik">
+            <img src="static/assets/root.jpg" alt="Selected work for Wasim Malik">
           </figure>
           <div class="welcome-work__copy">
             <h3>Root by Wasim Malik</h3>
@@ -271,18 +274,25 @@
       </section>
 
       <section class="home-impact-banner reveal-on-scroll" aria-labelledby="home-impact-banner-title">
-        <video
-          class="home-impact-banner__video"
-          src="static/assets/newslettervideo.mp4"
-          poster="static/assets/placeholder2.png"
-          autoplay
-          muted
-          loop
-          playsinline
-          webkit-playsinline
-          preload="auto"
-          aria-hidden="true"
-        ></video>
+        <div class="home-impact-banner__media">
+          <img
+            class="home-impact-banner__poster"
+            src="static/assets/newsletterposter.jpg"
+            alt=""
+            decoding="async"
+            fetchpriority="low"
+          >
+          <video
+            class="home-impact-banner__video"
+            src="static/assets/newslettervideo.mp4"
+            muted
+            loop
+            playsinline
+            webkit-playsinline
+            preload="auto"
+            aria-hidden="true"
+          ></video>
+        </div>
         <div class="home-impact-banner__overlay">
           <h2 id="home-impact-banner-title">Create Local<br>Impact Global</h2>
           <button class="home-impact-banner__cta" type="button">Sign Up to The Newsletter</button>
@@ -410,6 +420,44 @@
 
       updateHomeParallax();
     }
+
+    (function initHomeImpactBannerVideo() {
+      var section = document.querySelector(".home-impact-banner");
+      var video = section && section.querySelector(".home-impact-banner__video");
+      if (!section || !video) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.setAttribute("muted", "");
+
+      function onPlayFailed() {
+        section.classList.add("home-impact-banner--video-failed");
+        try {
+          video.pause();
+          video.removeAttribute("src");
+          video.load();
+        } catch (_) {}
+      }
+
+      video.addEventListener("playing", function () {
+        section.classList.add("home-impact-banner--video-playing");
+      }, { once: true });
+
+      function tryPlay() {
+        var p = video.play();
+        if (p && typeof p.catch === "function") {
+          p.catch(onPlayFailed);
+        }
+      }
+
+      if (video.readyState >= 2) {
+        tryPlay();
+      } else {
+        video.addEventListener("canplay", function onCan() {
+          video.removeEventListener("canplay", onCan);
+          tryPlay();
+        });
+      }
+    })();
   </script>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -418,6 +466,8 @@
     (function () {
       var TARGET_USER_UID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2";
       var HOME_GRID_DOC_ID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2-blog-5";
+      var HOME_HERO_MEDIA_DOC_ID = "UfldOoeILnOG8m8aZ3WQOlkk3ab2-media-88";
+      var HOME_HERO_POSTER_URL = "static/assets/landingimage.jpg";
       var PLACEHOLDER_IMAGE = "static/assets/placeholder.jpeg";
 
       var firebaseConfig = {
@@ -674,6 +724,87 @@
         return a;
       }
 
+      function shouldSkipHomeHeroVideo() {
+        try {
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
+        } catch (_) {}
+        try {
+          var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (c && c.saveData) return true;
+        } catch (_) {}
+        return false;
+      }
+
+      function batterySuggestsConservePower() {
+        if (!navigator.getBattery) return Promise.resolve(false);
+        return navigator.getBattery().then(function (b) {
+          return !!b && !b.charging && typeof b.level === "number" && b.level <= 0.2;
+        }).catch(function () {
+          return false;
+        });
+      }
+
+      async function initHomeHeroVideo() {
+        var section = document.querySelector(".home-hero[data-home-hero]");
+        if (!section) return;
+        var video = section.querySelector(".home-hero__video");
+        if (!video) return;
+
+        if (shouldSkipHomeHeroVideo()) return;
+
+        try {
+          if (await batterySuggestsConservePower()) return;
+        } catch (_) {}
+
+        try {
+          if (!safeInitFirebase() || !window.firebase) return;
+          var db = firebase.firestore();
+          var resolved = await resolveMediaFromId(db, HOME_HERO_MEDIA_DOC_ID);
+          if (!resolved || !resolved.isVideo || !resolved.url) return;
+
+          video.setAttribute("poster", HOME_HERO_POSTER_URL);
+          video.src = resolved.url;
+          video.muted = true;
+          video.defaultMuted = true;
+          video.setAttribute("muted", "");
+          video.playsInline = true;
+          video.setAttribute("playsinline", "");
+          video.setAttribute("webkit-playsinline", "");
+          video.loop = true;
+          video.setAttribute("loop", "");
+          video.preload = "auto";
+          try {
+            video.disableRemotePlayback = true;
+          } catch (_) {}
+
+          video.addEventListener("playing", function () {
+            section.classList.add("home-hero--video-playing");
+          }, { once: true });
+
+          var attempt = function () {
+            var p = video.play();
+            if (p && typeof p.catch === "function") {
+              p.catch(function () {
+                try {
+                  video.pause();
+                  video.removeAttribute("src");
+                  video.load();
+                } catch (_) {}
+              });
+            }
+          };
+
+          if (video.readyState >= 2) {
+            attempt();
+          } else {
+            video.addEventListener("canplay", function onCan() {
+              video.removeEventListener("canplay", onCan);
+              attempt();
+            });
+          }
+        } catch (_) {}
+      }
+
       async function loadWelcomeWorkGrid() {
         var grid = document.getElementById("welcome-work-grid");
         var fallbackTpl = document.getElementById("welcome-work-fallback");
@@ -709,10 +840,15 @@
         }
       }
 
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", loadWelcomeWorkGrid);
-      } else {
+      function bootWelcomeAndHero() {
         loadWelcomeWorkGrid();
+        initHomeHeroVideo();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootWelcomeAndHero);
+      } else {
+        bootWelcomeAndHero();
       }
     })();
   </script>

@@ -342,7 +342,10 @@ function handleDashboardChanges(e) {
         e.target.classList.contains('media-open-links-toggle') ||
         e.target.classList.contains('media-link-input') ||
         e.target.classList.contains('media-gallery-min-cols') ||
-        e.target.classList.contains('media-gallery-max-cols')
+        e.target.classList.contains('media-gallery-max-cols') ||
+        e.target.classList.contains('media-aspect-ratio-input') ||
+        e.target.classList.contains('media-aspect-custom-w') ||
+        e.target.classList.contains('media-aspect-custom-h')
     ) {
         const blockEl = e.target.closest('.blog-block');
         if (blockEl) {
@@ -675,6 +678,9 @@ function handleDashboardActions(e) {
     else if (e.target.classList.contains('select-media-btn')) handleSelectMediaForBlock(e.target);
     else if (e.target.classList.contains('select-featured-media-btn')) handleSelectFeaturedMedia(e.target);
     else if (e.target.classList.contains('select-poster-image-btn')) handleSelectPosterImage(e.target);
+    else if (e.target.classList.contains('select-featured-media2-btn')) handleSelectFeaturedMedia2(e.target);
+    else if (e.target.classList.contains('select-poster-image2-btn')) handleSelectPosterImage2(e.target);
+    else if (e.target.classList.contains('clear-featured-media2-btn')) handleClearFeaturedMedia2();
     // Legacy support
     else if (e.target.classList.contains('select-featured-image-btn')) handleSelectFeaturedMedia(e.target);
     else if (e.target.classList.contains('layout-toggle-btn')) handleBlockLayoutToggle(e.target);
@@ -807,12 +813,28 @@ async function handleSaveBlog() {
     
     const featuredMediaUrl = featuredMediaUrlInput ? featuredMediaUrlInput.value.trim() : '';
     const featuredMediaPoster = featuredMediaPosterInput ? featuredMediaPosterInput.value.trim() : '';
+    const featuredMedia2UrlInput = document.getElementById('blogFeaturedMedia2Url');
+    const featuredMedia2PosterInput = document.getElementById('blogFeaturedMedia2Poster');
+    const featuredMedia2TypeInput = document.getElementById('blogFeaturedMedia2Type');
+    const featuredMedia2Url = featuredMedia2UrlInput ? featuredMedia2UrlInput.value.trim() : '';
+    const featuredMedia2Poster = featuredMedia2PosterInput ? featuredMedia2PosterInput.value.trim() : '';
+    const featuredMedia2TypeRaw = featuredMedia2TypeInput ? featuredMedia2TypeInput.value.trim() : '';
     
     // Create featuredMedia object
     const featuredMedia = featuredMediaUrl ? {
         url: featuredMediaUrl,
         poster: featuredMediaPoster || ''
     } : null;
+    let featuredMedia2 = null;
+    if (featuredMedia2Url) {
+        featuredMedia2 = {
+            url: featuredMedia2Url,
+            poster: featuredMedia2Poster || ''
+        };
+        if (featuredMedia2TypeRaw) {
+            featuredMedia2.type = featuredMedia2TypeRaw;
+        }
+    }
     const tags = document.getElementById('blogTags').value.trim();
     const datePostedStr = document.getElementById('blogDatePosted').value;
     let datePosted = null;
@@ -848,6 +870,7 @@ async function handleSaveBlog() {
         category: category,
         excerpt: excerpt,
         featuredMedia: featuredMedia,
+        featuredMedia2: featuredMedia2,
         tags: tags, // Store as string, split on client if needed
         datePosted: datePosted,
         sections: sections,
@@ -1286,6 +1309,181 @@ async function handleSelectPosterImage(target) {
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
     }
+}
+
+async function handleSelectFeaturedMedia2(target) {
+    try {
+        const mediaItems = await getAvailableMediaItems();
+        ui.showMediaSelector(mediaItems, async (selectedMedia) => {
+            const featuredMedia2Container = document.getElementById('featuredMedia2Container');
+            const posterImage2Container = document.getElementById('posterImage2Container');
+            const featuredMedia2UrlInput = document.getElementById('blogFeaturedMedia2Url');
+            const featuredMedia2PosterInput = document.getElementById('blogFeaturedMedia2Poster');
+            const featuredMedia2TypeInput = document.getElementById('blogFeaturedMedia2Type');
+            const clearBtn = document.querySelector('.clear-featured-media2-btn');
+            const detailsEl = document.querySelector('.blog-featured-media2-details');
+
+            if (featuredMedia2Container && featuredMedia2UrlInput) {
+                let mediaURL = '';
+                if (selectedMedia.files && selectedMedia.files.length > 0) {
+                    mediaURL = selectedMedia.files[0].url;
+                } else if (selectedMedia.mediaURL) {
+                    mediaURL = selectedMedia.mediaURL;
+                }
+
+                featuredMedia2UrlInput.value = mediaURL;
+                if (featuredMedia2PosterInput) {
+                    featuredMedia2PosterInput.value = '';
+                }
+                if (featuredMedia2TypeInput) {
+                    let typeVal = '';
+                    if (selectedMedia.files && selectedMedia.files.length > 0) {
+                        const firstFile = selectedMedia.files[0];
+                        if (firstFile.type) typeVal = firstFile.type;
+                    }
+                    featuredMedia2TypeInput.value = typeVal;
+                }
+
+                let previewElement = '';
+                if (selectedMedia.files && selectedMedia.files.length > 0) {
+                    const firstFile = selectedMedia.files[0];
+                    const isVideo = firstFile.type && firstFile.type.startsWith('video/');
+                    if (isVideo) {
+                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
+                    } else {
+                        previewElement = `<img src="${mediaURL}" alt="Hero-only media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
+                    }
+                } else {
+                    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+                    const isVideo = videoExtensions.some(ext => mediaURL.toLowerCase().includes(ext));
+                    if (isVideo) {
+                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
+                    } else {
+                        previewElement = `<img src="${mediaURL}" alt="Hero-only media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
+                    }
+                }
+
+                featuredMedia2Container.innerHTML = `
+                    <div class="featured-media-preview">
+                        ${previewElement}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary select-featured-media2-btn">Change hero-only media</button>
+                `;
+
+                if (posterImage2Container) {
+                    posterImage2Container.style.display = 'block';
+                    const existingLabel = posterImage2Container.querySelector('label');
+                    const existingHint = posterImage2Container.querySelector('.form-field-hint');
+                    posterImage2Container.innerHTML = '';
+                    if (existingLabel) {
+                        posterImage2Container.appendChild(existingLabel);
+                    }
+                    if (existingHint) {
+                        posterImage2Container.appendChild(existingHint);
+                    }
+                    posterImage2Container.insertAdjacentHTML('beforeend', `
+                        <div class="poster-image-placeholder">No poster selected</div>
+                        <button type="button" class="btn btn-sm btn-primary select-poster-image2-btn">Select hero poster</button>
+                    `);
+                }
+                if (clearBtn) {
+                    clearBtn.disabled = false;
+                }
+                if (detailsEl) {
+                    detailsEl.setAttribute('open', '');
+                }
+                markPageDashboardDirty();
+            }
+        });
+    } catch (error) {
+        ui.showPopup('Error loading media: ' + error.message);
+    }
+}
+
+async function handleSelectPosterImage2(target) {
+    try {
+        const mediaItems = await getAvailableMediaItems();
+        const imageItems = mediaItems.filter(item => {
+            if (item.files && item.files.length > 0) {
+                const firstFile = item.files[0];
+                return firstFile.type && firstFile.type.startsWith('image/');
+            }
+            return false;
+        });
+
+        ui.showMediaSelector(imageItems, async (selectedMedia) => {
+            const posterImage2Container = document.getElementById('posterImage2Container');
+            const posterImage2Input = document.getElementById('blogFeaturedMedia2Poster');
+
+            if (posterImage2Container && posterImage2Input) {
+                let posterURL = '';
+                if (selectedMedia.files && selectedMedia.files.length > 0) {
+                    posterURL = selectedMedia.files[0].url;
+                } else if (selectedMedia.mediaURL) {
+                    posterURL = selectedMedia.mediaURL;
+                }
+                posterImage2Input.value = posterURL;
+
+                const posterPreviewHtml = `
+                    <div class="poster-image-preview">
+                        <img src="${posterURL}" alt="Hero video poster" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-secondary select-poster-image2-btn">Change hero poster</button>
+                `;
+
+                const existingLabel = posterImage2Container.querySelector('label');
+                const existingHint = posterImage2Container.querySelector('.form-field-hint');
+                posterImage2Container.innerHTML = '';
+                if (existingLabel) {
+                    posterImage2Container.appendChild(existingLabel);
+                }
+                if (existingHint) {
+                    posterImage2Container.appendChild(existingHint);
+                }
+                posterImage2Container.insertAdjacentHTML('beforeend', posterPreviewHtml);
+                markPageDashboardDirty();
+            }
+        });
+    } catch (error) {
+        ui.showPopup('Error loading media: ' + error.message);
+    }
+}
+
+function handleClearFeaturedMedia2() {
+    const featuredMedia2UrlInput = document.getElementById('blogFeaturedMedia2Url');
+    const featuredMedia2PosterInput = document.getElementById('blogFeaturedMedia2Poster');
+    const featuredMedia2TypeInput = document.getElementById('blogFeaturedMedia2Type');
+    const featuredMedia2Container = document.getElementById('featuredMedia2Container');
+    const posterImage2Container = document.getElementById('posterImage2Container');
+    const detailsEl = document.querySelector('.blog-featured-media2-details');
+    const clearBtn = document.querySelector('.clear-featured-media2-btn');
+
+    if (featuredMedia2UrlInput) featuredMedia2UrlInput.value = '';
+    if (featuredMedia2PosterInput) featuredMedia2PosterInput.value = '';
+    if (featuredMedia2TypeInput) featuredMedia2TypeInput.value = '';
+
+    if (featuredMedia2Container) {
+        featuredMedia2Container.innerHTML = `
+            <div class="featured-media-placeholder">Not set — hero matches cover media</div>
+            <button type="button" class="btn btn-sm btn-primary select-featured-media2-btn">Select hero-only media</button>
+        `;
+    }
+    if (posterImage2Container) {
+        posterImage2Container.style.display = 'none';
+        posterImage2Container.innerHTML = `
+            <label for="blogPosterImage2">Poster (hero video)</label>
+            <p class="form-field-hint">Recommended for video: a still frame before playback (especially on mobile).</p>
+            <div class="poster-image-placeholder">No poster selected</div>
+            <button type="button" class="btn btn-sm btn-primary select-poster-image2-btn">Select hero poster</button>
+        `;
+    }
+    if (detailsEl) {
+        detailsEl.removeAttribute('open');
+    }
+    if (clearBtn) {
+        clearBtn.disabled = true;
+    }
+    markPageDashboardDirty();
 }
 
 function handleBlockLayoutToggle(target) {

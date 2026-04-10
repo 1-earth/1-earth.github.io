@@ -696,9 +696,14 @@ export function renderBlogDashboard(dataID, existingData = null) {
     if (!featuredMedia) {
         featuredMedia = { url: '', poster: '' };
     }
-    
 
-    
+    let featuredMedia2 = existingData && existingData.featuredMedia2 ? existingData.featuredMedia2 : null;
+    if (!featuredMedia2) {
+        featuredMedia2 = { url: '', poster: '', type: '' };
+    }
+    const featuredMedia2Open = !!(featuredMedia2.url && String(featuredMedia2.url).trim());
+    const posterImage2ContainerStyle = featuredMedia2.url && String(featuredMedia2.url).trim() ? '' : 'display:none;';
+
     const tags = existingData ? existingData.tags : '';
     const datePostedValue = existingData && existingData.datePosted ?
                            formatDateForInput(existingData.datePosted) :
@@ -799,6 +804,52 @@ export function renderBlogDashboard(dataID, existingData = null) {
                                     <button class="btn btn-sm btn-primary select-poster-image-btn">Select poster image</button>
                                 `}
                             </div>
+                            <details class="blog-featured-media2-details" ${featuredMedia2Open ? 'open' : ''}>
+                                <summary class="blog-featured-media2-summary">
+                                    <span class="blog-featured-media2-summary-title">Artist profile hero only (optional)</span>
+                                    <span class="blog-featured-media2-summary-hint">Separate from cover / listing card</span>
+                                </summary>
+                                <div class="blog-featured-media2-body">
+                                    <p class="form-field-hint blog-featured-media2-lead">
+                                        When set, the large hero on the <strong>artist profile</strong> page uses this media instead of the cover above.
+                                        The <strong>Artists</strong> grid card still uses <strong>Featured media</strong> only. Leave empty for the default behavior.
+                                    </p>
+                                    <div class="form-group">
+                                        <label>Hero media</label>
+                                        <p class="form-field-hint">Image or video from your library.</p>
+                                        <div class="featured-media-container" id="featuredMedia2Container">
+                                            ${featuredMedia2.url ? `
+                                                <div class="featured-media-preview">
+                                                    ${createFeaturedMediaPreview(featuredMedia2.url)}
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-secondary select-featured-media2-btn">Change hero-only media</button>
+                                            ` : `
+                                                <div class="featured-media-placeholder">Not set — hero matches cover media</div>
+                                                <button type="button" class="btn btn-sm btn-primary select-featured-media2-btn">Select hero-only media</button>
+                                            `}
+                                        </div>
+                                        <div class="poster-image-container" id="posterImage2Container" style="${posterImage2ContainerStyle}">
+                                            <label for="blogPosterImage2">Poster (hero video)</label>
+                                            <p class="form-field-hint">Recommended for video: a still frame before playback (especially on mobile).</p>
+                                            ${featuredMedia2.poster ? `
+                                                <div class="poster-image-preview">
+                                                    <img src="${escapeHTML(featuredMedia2.poster)}" alt="Hero video poster" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-secondary select-poster-image2-btn">Change hero poster</button>
+                                            ` : `
+                                                <div class="poster-image-placeholder">No poster selected</div>
+                                                <button type="button" class="btn btn-sm btn-primary select-poster-image2-btn">Select hero poster</button>
+                                            `}
+                                        </div>
+                                        <div class="blog-featured-media2-actions">
+                                            <button type="button" class="btn btn-sm btn-secondary clear-featured-media2-btn"${featuredMedia2.url && String(featuredMedia2.url).trim() ? '' : ' disabled'}>Remove hero-only media</button>
+                                        </div>
+                                        <input type="hidden" id="blogFeaturedMedia2Url" value="${escapeHTML(featuredMedia2.url)}">
+                                        <input type="hidden" id="blogFeaturedMedia2Poster" value="${escapeHTML(featuredMedia2.poster || '')}">
+                                        <input type="hidden" id="blogFeaturedMedia2Type" value="${escapeHTML(featuredMedia2.type || '')}">
+                                    </div>
+                                </div>
+                            </details>
                             <input type="hidden" id="blogFeaturedMediaUrl" value="${escapeHTML(featuredMedia.url)}">
                             <input type="hidden" id="blogFeaturedMediaPoster" value="${escapeHTML(featuredMedia.poster)}">
                         </div>
@@ -982,6 +1033,40 @@ function isValidMediaBlockLinkValue(value) {
 const GALLERY_COLS_MIN = 1;
 const GALLERY_COLS_MAX = 6;
 
+const MEDIA_ASPECT_PRESET_KEYS = ['9:16', '2:3', '3:4', '4:5', '1:1', '5:4', '4:3', '3:2', '16:9'];
+
+function clampPositiveAspectInt(value, fallback = 0, max = 10000) {
+    const n = Math.round(Number(value));
+    if (!Number.isFinite(n) || n < 1) return fallback;
+    return Math.min(max, n);
+}
+
+/** Normalizes aspect ratio fields for storage (null = default / legacy). */
+export function normalizeAspectRatioFields(settings = {}) {
+    const ar = settings && settings.aspectRatio;
+    if (ar === undefined || ar === null || ar === '' || ar === 'default') {
+        return { aspectRatio: null, aspectRatioCustom: null };
+    }
+    if (ar === 'custom') {
+        const c = (settings && settings.aspectRatioCustom) || {};
+        const w = clampPositiveAspectInt(c.w ?? c.width, 0);
+        const h = clampPositiveAspectInt(c.h ?? c.height, 0);
+        if (!w || !h) return { aspectRatio: null, aspectRatioCustom: null };
+        return { aspectRatio: 'custom', aspectRatioCustom: { w, h } };
+    }
+    const key = String(ar);
+    if (MEDIA_ASPECT_PRESET_KEYS.includes(key)) {
+        return { aspectRatio: key, aspectRatioCustom: null };
+    }
+    return { aspectRatio: null, aspectRatioCustom: null };
+}
+
+function fileHasVisualMediaForAspect(file) {
+    if (!file || !file.url) return false;
+    const t = String(file.type || '').toLowerCase();
+    return t.startsWith('image/') || t.startsWith('video/');
+}
+
 function clampGalleryColumnCount(value, fallback) {
     const n = Math.round(Number(value));
     if (!Number.isFinite(n)) return fallback;
@@ -989,11 +1074,15 @@ function clampGalleryColumnCount(value, fallback) {
 }
 
 export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
+    const arFields = normalizeAspectRatioFields(settings || {});
+
     const normalized = {
         showCaptions: !!(settings && settings.showCaptions),
         clickAction: settings && settings.clickAction === 'link' ? 'link' : 'preview',
         openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
-        imageLinks: []
+        imageLinks: [],
+        aspectRatio: arFields.aspectRatio,
+        aspectRatioCustom: arFields.aspectRatioCustom
     };
 
     let gmin = clampGalleryColumnCount(settings && settings.galleryMinColumns, GALLERY_COLS_MIN);
@@ -1048,6 +1137,122 @@ export function syncGalleryColumnSliders(changedInput) {
     maxEl.setAttribute('aria-valuenow', String(maxV));
 }
 
+function aspectPreviewShapeHtml(val) {
+    if (val === 'default') {
+        return '<span class="media-aspect-preview-shape media-aspect-preview-shape--default" aria-hidden="true"></span>';
+    }
+    if (val === 'custom') {
+        return '<span class="media-aspect-preview-shape media-aspect-preview-shape--custom" aria-hidden="true"><span class="media-aspect-preview-custom-icon">W∶H</span></span>';
+    }
+    const ratioMap = {
+        '9:16': '9 / 16',
+        '2:3': '2 / 3',
+        '3:4': '3 / 4',
+        '4:5': '4 / 5',
+        '1:1': '1 / 1',
+        '5:4': '5 / 4',
+        '4:3': '4 / 3',
+        '3:2': '3 / 2',
+        '16:9': '16 / 9'
+    };
+    const cssRatio = ratioMap[val];
+    if (!cssRatio) {
+        return '<span class="media-aspect-preview-shape media-aspect-preview-shape--default" aria-hidden="true"></span>';
+    }
+    const parts = val.split(':');
+    const wNum = Number(parts[0]);
+    const hNum = Number(parts[1]);
+    if (!Number.isFinite(wNum) || !Number.isFinite(hNum) || wNum <= 0 || hNum <= 0) {
+        return '<span class="media-aspect-preview-shape media-aspect-preview-shape--default" aria-hidden="true"></span>';
+    }
+    const wide = wNum >= hNum;
+    const maxPreviewW = 46;
+    const maxPreviewH = 48;
+    let wPx;
+    let hPx;
+    if (wide) {
+        wPx = maxPreviewW;
+        hPx = Math.max(1, Math.round((maxPreviewW * hNum) / wNum));
+    } else {
+        hPx = maxPreviewH;
+        wPx = Math.max(1, Math.round((maxPreviewH * wNum) / hNum));
+    }
+    const style = `width:${wPx}px;height:${hPx}px;aspect-ratio:${cssRatio};flex-shrink:0;`;
+    return `<span class="media-aspect-preview-shape" style="${style}" aria-hidden="true"></span>`;
+}
+
+function createMediaAspectRatioSectionHtml(blockId, normalizedSettings) {
+    const aspectId = `${blockId}_aspectRatio`;
+    const radioName = `${blockId}_aspectRatioRadios`;
+    const customWId = `${blockId}_aspectCustomW`;
+    const customHId = `${blockId}_aspectCustomH`;
+    const ar = normalizedSettings.aspectRatio;
+    const custom = normalizedSettings.aspectRatioCustom;
+    const isCustom = ar === 'custom';
+    const selValue = ar == null ? 'default' : ar;
+    const cw = isCustom && custom && custom.w ? String(custom.w) : '16';
+    const ch = isCustom && custom && custom.h ? String(custom.h) : '9';
+
+    const presetOptions = [
+        ['default', 'Default'],
+        ['9:16', '9:16'],
+        ['2:3', '2:3'],
+        ['3:4', '3:4'],
+        ['4:5', '4:5'],
+        ['1:1', '1:1'],
+        ['5:4', '5:4'],
+        ['4:3', '4:3'],
+        ['3:2', '3:2'],
+        ['16:9', '16:9'],
+        ['custom', 'Custom']
+    ];
+
+    const gridHtml = presetOptions.map(([val, label]) => {
+        const inputId = `${aspectId}_opt_${val.replace(/:/g, '_')}`;
+        const checked = selValue === val ? 'checked' : '';
+        return `
+                <label class="media-aspect-option" for="${inputId}">
+                    <input
+                        type="radio"
+                        id="${inputId}"
+                        name="${radioName}"
+                        class="media-aspect-ratio-input"
+                        value="${val}"
+                        ${checked}
+                    >
+                    <span class="media-aspect-option-card">
+                        <span class="media-aspect-preview-frame">
+                            ${aspectPreviewShapeHtml(val)}
+                        </span>
+                        <span class="media-aspect-option-text">${escapeHTML(label)}</span>
+                    </span>
+                </label>`;
+    }).join('');
+
+    return `
+            <div class="media-block-settings-header">
+                <h4>Media aspect ratio</h4>
+                <p>Applies to images and video in the on-page grid. Default keeps the existing look (including gallery thumbnails). Lightbox stays full-frame.</p>
+            </div>
+            <div class="media-block-field media-block-field--full media-aspect-ratio-field">
+                <p class="media-field-label" id="${aspectId}_label">Aspect ratio</p>
+                <div class="media-aspect-ratio-grid" role="radiogroup" aria-labelledby="${aspectId}_label">
+                    ${gridHtml}
+                </div>
+            </div>
+            <div class="media-aspect-custom-row ${isCustom ? '' : 'is-hidden'}">
+                <div class="media-aspect-custom-inputs">
+                    <label class="media-field-label" for="${customWId}">Width</label>
+                    <input type="number" id="${customWId}" class="media-aspect-custom-w" min="1" max="10000" step="1" value="${escapeHTML(cw)}" inputmode="numeric">
+                    <span class="media-aspect-custom-sep" aria-hidden="true">∶</span>
+                    <label class="media-field-label" for="${customHId}">Height</label>
+                    <input type="number" id="${customHId}" class="media-aspect-custom-h" min="1" max="10000" step="1" value="${escapeHTML(ch)}" inputmode="numeric">
+                </div>
+                <p class="media-setting-hint">Enter any positive whole numbers (e.g. 21 and 9).</p>
+            </div>
+    `;
+}
+
 function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) {
     const files = Array.isArray(mediaItem && mediaItem.files) ? mediaItem.files : [];
     const isPhotoGallery = mediaItem && mediaItem.mediaType === 'photoGallery';
@@ -1055,11 +1260,26 @@ function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) 
         .map((file, index) => ({ file, index }))
         .filter(({ file }) => file && file.type && file.type.startsWith('image/'));
 
-    if (!isPhotoGallery || files.length <= 1 || !imageFiles.length) {
+    const hasVisual = files.some((f) => fileHasVisualMediaForAspect(f));
+    if (!hasVisual) {
         return '';
     }
 
     const normalizedSettings = normalizeMediaBlockSettings(mediaSettings, files.length);
+    const showSlideshow = isPhotoGallery && files.length > 1 && imageFiles.length;
+
+    const aspectSectionHtml = createMediaAspectRatioSectionHtml(blockId, normalizedSettings);
+
+    if (!showSlideshow) {
+        return `
+        <div class="media-block-settings-panel" data-block-id="${blockId}">
+            <div class="media-block-settings-stack">
+                ${aspectSectionHtml}
+            </div>
+        </div>
+    `;
+    }
+
     const linkModeActive = normalizedSettings.clickAction === 'link';
 
     const showCaptionsId = `${blockId}_showCaptions`;
@@ -1072,12 +1292,14 @@ function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) 
 
     return `
         <div class="media-block-settings-panel" data-block-id="${blockId}">
-            <div class="media-block-settings-header">
-                <h4>Slideshow</h4>
-                <p>These options apply to this gallery on the live work page.</p>
-            </div>
-
             <div class="media-block-settings-stack">
+                ${aspectSectionHtml}
+
+                <div class="media-block-settings-header media-block-settings-header--slideshow">
+                    <h4>Slideshow</h4>
+                    <p>These options apply to this gallery on the live work page.</p>
+                </div>
+
                 <div class="media-gallery-cols-section">
                     <p class="media-gallery-cols-hint">Min applies on small screens, max on large; tablet uses a value between them.</p>
                     <div class="media-gallery-cols-row">
@@ -1207,6 +1429,9 @@ export function collectMediaBlockSettings(blockEl) {
     const linkInputs = settingsContainer.querySelectorAll('.media-link-input');
     const galleryMinCols = settingsContainer.querySelector('.media-gallery-min-cols');
     const galleryMaxCols = settingsContainer.querySelector('.media-gallery-max-cols');
+    const aspectRadio = settingsContainer.querySelector('input.media-aspect-ratio-input:checked');
+    const customWInp = settingsContainer.querySelector('.media-aspect-custom-w');
+    const customHInp = settingsContainer.querySelector('.media-aspect-custom-h');
 
     const imageLinks = new Array(fileCount).fill('');
     linkInputs.forEach((input) => {
@@ -1215,13 +1440,30 @@ export function collectMediaBlockSettings(blockEl) {
         imageLinks[fileIndex] = sanitizeMediaBlockLinkValue(input.value);
     });
 
+    let aspectRatioPayload = null;
+    let aspectRatioCustomPayload = undefined;
+    if (aspectRadio) {
+        const raw = aspectRadio.value;
+        if (raw === 'custom') {
+            aspectRatioPayload = 'custom';
+            aspectRatioCustomPayload = {
+                w: clampPositiveAspectInt(customWInp ? customWInp.value : 0, 0),
+                h: clampPositiveAspectInt(customHInp ? customHInp.value : 0, 0)
+            };
+        } else if (raw && raw !== 'default') {
+            aspectRatioPayload = raw;
+        }
+    }
+
     return normalizeMediaBlockSettings({
         showCaptions: !!(showCaptionsToggle && showCaptionsToggle.checked),
         clickAction: clickActionSelect ? clickActionSelect.value : 'preview',
         openLinksInNewTab: !!(openLinksToggle && openLinksToggle.checked),
         galleryMinColumns: galleryMinCols ? Number(galleryMinCols.value) : undefined,
         galleryMaxColumns: galleryMaxCols ? Number(galleryMaxCols.value) : undefined,
-        imageLinks
+        imageLinks,
+        aspectRatio: aspectRatioPayload,
+        aspectRatioCustom: aspectRatioCustomPayload
     }, fileCount);
 }
 
@@ -1274,6 +1516,12 @@ export function syncMediaBlockSettingsUi(blockEl) {
             badge.parentNode.removeChild(badge);
         }
     });
+
+    const customRow = settingsContainer.querySelector('.media-aspect-custom-row');
+    const customAspectChecked = settingsContainer.querySelector('input.media-aspect-ratio-input[value="custom"]:checked');
+    if (customRow) {
+        customRow.classList.toggle('is-hidden', !customAspectChecked);
+    }
 }
 
 export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = null, layout = 'full', layoutRatio = 50, mediaSettings = null) {
