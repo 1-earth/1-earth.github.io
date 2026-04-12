@@ -590,6 +590,9 @@
         var href = stripHtml(items[3] && items[3].content) || "#";
         if (href === "") href = "#";
 
+        var settings = mediaBlock.mediaSettings || mediaBlock.slideshowSettings || {};
+        var blockPoster = (settings.videoPosterUrl && String(settings.videoPosterUrl).trim()) || "";
+
         var imgUrl = PLACEHOLDER_IMAGE;
         var isVideo = false;
         var posterUrl = PLACEHOLDER_IMAGE;
@@ -599,7 +602,11 @@
             if (resolved && resolved.url) {
               imgUrl = resolved.url;
               isVideo = !!resolved.isVideo;
-              posterUrl = resolved.isVideo ? (resolved.posterUrl || PLACEHOLDER_IMAGE) : "";
+              if (resolved.isVideo) {
+                posterUrl = blockPoster || (resolved.posterUrl || PLACEHOLDER_IMAGE);
+              } else {
+                posterUrl = "";
+              }
             }
           } catch (_) {}
         }
@@ -678,6 +685,10 @@
           posterImg.src = card.posterUrl || PLACEHOLDER_IMAGE;
           posterImg.alt = "";
           posterImg.setAttribute("aria-hidden", "true");
+          posterImg.onerror = function () {
+            this.onerror = null;
+            this.src = PLACEHOLDER_IMAGE;
+          };
 
           var video = document.createElement("video");
           video.className = "welcome-work__grid-video";

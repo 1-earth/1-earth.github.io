@@ -367,7 +367,8 @@ async function getBlockContent(block) {
                     const mediaDoc = await db.collection('users').doc(USER_ID).collection('items').doc(block.mediaId).get();
                     if (mediaDoc.exists) {
                         const mediaData = mediaDoc.data();
-                        return renderMediaBlock(mediaData);
+                        const blockMediaSettings = block.mediaSettings || block.slideshowSettings || null;
+                        return renderMediaBlock(mediaData, blockMediaSettings);
                     }
                 } catch (error) {
                     console.error('Error loading media for block:', error);
@@ -381,10 +382,18 @@ async function getBlockContent(block) {
     }
 }
 
-function renderMediaBlock(mediaData) {
+function renderMediaBlock(mediaData, blockMediaSettings = null) {
     if (!mediaData.files || mediaData.files.length === 0) {
         return '<div class="blog-media-placeholder">No media files</div>';
     }
+
+    const blockPosterRaw =
+        blockMediaSettings &&
+        blockMediaSettings.videoPosterUrl &&
+        String(blockMediaSettings.videoPosterUrl).trim();
+    const blockPosterAttr = blockPosterRaw
+        ? ` poster="${String(blockPosterRaw).replace(/"/g, '&quot;')}"`
+        : '';
     
     // If only one file, render simple media block
     if (mediaData.files.length === 1) {
@@ -398,7 +407,7 @@ function renderMediaBlock(mediaData) {
         if (isImage) {
             mediaHtml += `<img src="${primaryFile.url}" alt="${primaryFile.caption || mediaData.title || 'Image'}" class="blog-media-img">`;
         } else if (isVideo) {
-            mediaHtml += `<video src="${primaryFile.url}" controls class="blog-media-video"></video>`;
+            mediaHtml += `<video src="${primaryFile.url}" controls class="blog-media-video"${blockPosterAttr}></video>`;
         } else if (isPdf) {
             mediaHtml += `
                 <div class="pdf-inline-embed">

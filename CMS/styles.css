@@ -1694,6 +1694,17 @@ body {
     margin-top: 16px;
 }
 
+.media-block-video-poster-field .poster-image-preview,
+.media-block-video-poster-field .poster-image-placeholder {
+    margin-top: 10px;
+}
+
+.media-block-video-poster-field .select-media-block-video-poster-btn,
+.media-block-video-poster-field .clear-media-block-video-poster-btn {
+    margin-top: 10px;
+    margin-right: 8px;
+}
+
 .media-block-settings-header--slideshow {
     margin-top: 8px;
     padding-top: 18px;

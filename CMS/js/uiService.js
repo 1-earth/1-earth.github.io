@@ -1073,6 +1073,12 @@ function clampGalleryColumnCount(value, fallback) {
     return Math.min(GALLERY_COLS_MAX, Math.max(GALLERY_COLS_MIN, n));
 }
 
+function sanitizeVideoPosterUrl(url) {
+    if (url == null || url === '') return '';
+    const s = String(url).trim();
+    return s;
+}
+
 export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
     const arFields = normalizeAspectRatioFields(settings || {});
 
@@ -1082,7 +1088,8 @@ export function normalizeMediaBlockSettings(settings = {}, fileCount = 0) {
         openLinksInNewTab: !!(settings && settings.openLinksInNewTab),
         imageLinks: [],
         aspectRatio: arFields.aspectRatio,
-        aspectRatioCustom: arFields.aspectRatioCustom
+        aspectRatioCustom: arFields.aspectRatioCustom,
+        videoPosterUrl: sanitizeVideoPosterUrl(settings && settings.videoPosterUrl)
     };
 
     let gmin = clampGalleryColumnCount(settings && settings.galleryMinColumns, GALLERY_COLS_MIN);
@@ -1253,6 +1260,34 @@ function createMediaAspectRatioSectionHtml(blockId, normalizedSettings) {
     `;
 }
 
+function createMediaBlockVideoPosterSectionHtml(blockId, normalizedSettings) {
+    const posterUrl = normalizedSettings.videoPosterUrl || '';
+    const hiddenId = `${blockId}_videoPosterUrl`;
+    const hasPoster = !!String(posterUrl).trim();
+    const previewOrPlaceholder = hasPoster
+        ? `
+            <div class="poster-image-preview media-block-video-poster-preview">
+                <img src="${escapeHTML(posterUrl)}" alt="" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+            </div>
+            <button type="button" class="btn btn-sm btn-secondary select-media-block-video-poster-btn">Change poster</button>
+            <button type="button" class="btn btn-sm btn-secondary clear-media-block-video-poster-btn">Remove poster</button>
+        `
+        : `
+            <div class="poster-image-placeholder">No poster — a still image before playback (optional).</div>
+            <button type="button" class="btn btn-sm btn-primary select-media-block-video-poster-btn">Select poster image</button>
+        `;
+    return `
+            <div class="media-block-video-poster-field">
+                <div class="media-block-settings-header">
+                    <h4>Video poster</h4>
+                    <p>Shown before the video loads (e.g. home grid, mobile). Pick an image from your library.</p>
+                </div>
+                <input type="hidden" id="${hiddenId}" class="media-block-video-poster-url" value="${escapeHTML(posterUrl)}">
+                ${previewOrPlaceholder}
+            </div>
+    `;
+}
+
 function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) {
     const files = Array.isArray(mediaItem && mediaItem.files) ? mediaItem.files : [];
     const isPhotoGallery = mediaItem && mediaItem.mediaType === 'photoGallery';
@@ -1269,11 +1304,22 @@ function createMediaBlockSettingsHtml(blockId, mediaItem, mediaSettings = null) 
     const showSlideshow = isPhotoGallery && files.length > 1 && imageFiles.length;
 
     const aspectSectionHtml = createMediaAspectRatioSectionHtml(blockId, normalizedSettings);
+    const firstFile = files[0];
+    const isSingleNonGalleryVideo = !!(
+        firstFile &&
+        firstFile.type &&
+        firstFile.type.startsWith('video/') &&
+        !isPhotoGallery
+    );
+    const videoPosterSectionHtml = isSingleNonGalleryVideo
+        ? createMediaBlockVideoPosterSectionHtml(blockId, normalizedSettings)
+        : '';
 
     if (!showSlideshow) {
         return `
         <div class="media-block-settings-panel" data-block-id="${blockId}">
             <div class="media-block-settings-stack">
+                ${videoPosterSectionHtml}
                 ${aspectSectionHtml}
             </div>
         </div>
@@ -1455,7 +1501,8 @@ export function collectMediaBlockSettings(blockEl) {
         }
     }
 
-    return normalizeMediaBlockSettings({
+    const videoPosterInput = settingsContainer.querySelector('.media-block-video-poster-url');
+    const collectPayload = {
         showCaptions: !!(showCaptionsToggle && showCaptionsToggle.checked),
         clickAction: clickActionSelect ? clickActionSelect.value : 'preview',
         openLinksInNewTab: !!(openLinksToggle && openLinksToggle.checked),
@@ -1464,7 +1511,12 @@ export function collectMediaBlockSettings(blockEl) {
         imageLinks,
         aspectRatio: aspectRatioPayload,
         aspectRatioCustom: aspectRatioCustomPayload
-    }, fileCount);
+    };
+    if (videoPosterInput) {
+        collectPayload.videoPosterUrl = videoPosterInput.value;
+    }
+
+    return normalizeMediaBlockSettings(collectPayload, fileCount);
 }
 
 export function syncMediaBlockSettingsUi(blockEl) {
@@ -1810,11 +1862,14 @@ export function createMediaPreviewHtml(mediaItem, mediaSettings = null) {
     const isVideo = firstFile.type && firstFile.type.startsWith('video/');
     const isImage = firstFile.type && firstFile.type.startsWith('image/');
     const isPhotoGallery = mediaType === 'photoGallery';
+    const normalizedPreviewSettings = normalizeMediaBlockSettings(mediaSettings, files.length);
+    const blockVideoPoster =
+        isVideo && !isPhotoGallery ? (normalizedPreviewSettings.videoPosterUrl || '').trim() : '';
     
     let previewHtml = '';
     
     if (isPhotoGallery && files.length > 1) {
-        const normalizedSettings = normalizeMediaBlockSettings(mediaSettings, files.length);
+        const normalizedSettings = normalizedPreviewSettings;
         const linkModeActive = normalizedSettings.clickAction === 'link';
         previewHtml = `
             <div class="media-preview-gallery">
@@ -1856,7 +1911,8 @@ export function createMediaPreviewHtml(mediaItem, mediaSettings = null) {
             </div>
         `;
     } else if (isVideo) {
-        previewHtml = `<video src="${firstFile.url}" controls class="media-preview-video"></video>`;
+        const posterAttr = blockVideoPoster ? ` poster="${escapeHTML(blockVideoPoster)}"` : '';
+        previewHtml = `<video src="${firstFile.url}"${posterAttr} controls class="media-preview-video"></video>`;
     } else if (isImage) {
         previewHtml = `<img src="${firstFile.url}" alt="${escapeHTML(firstFile.caption || mediaItem.title)}" class="media-preview-img">`;
     } else {

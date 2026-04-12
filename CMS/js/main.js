@@ -681,6 +681,8 @@ function handleDashboardActions(e) {
     else if (e.target.classList.contains('select-featured-media2-btn')) handleSelectFeaturedMedia2(e.target);
     else if (e.target.classList.contains('select-poster-image2-btn')) handleSelectPosterImage2(e.target);
     else if (e.target.classList.contains('clear-featured-media2-btn')) handleClearFeaturedMedia2();
+    else if (e.target.classList.contains('select-media-block-video-poster-btn')) handleSelectMediaBlockVideoPoster(e.target);
+    else if (e.target.classList.contains('clear-media-block-video-poster-btn')) handleClearMediaBlockVideoPoster(e.target);
     // Legacy support
     else if (e.target.classList.contains('select-featured-image-btn')) handleSelectFeaturedMedia(e.target);
     else if (e.target.classList.contains('layout-toggle-btn')) handleBlockLayoutToggle(e.target);
@@ -1397,6 +1399,71 @@ async function handleSelectFeaturedMedia2(target) {
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
+    }
+}
+
+async function handleSelectMediaBlockVideoPoster(target) {
+    try {
+        const blockEl = target.closest('.blog-block');
+        if (!blockEl) return;
+
+        const blockId = blockEl.dataset.blockId;
+        const mediaContainer = blockEl.querySelector('.block-media-container[data-media-id]');
+        const mediaId = mediaContainer ? mediaContainer.dataset.mediaId : null;
+        if (!mediaId) {
+            ui.showPopup('Select a video in this block first.');
+            return;
+        }
+
+        const mediaItems = await getAvailableMediaItems();
+        const imageItems = mediaItems.filter((item) => {
+            if (item.files && item.files.length > 0) {
+                const firstFile = item.files[0];
+                return firstFile.type && firstFile.type.startsWith('image/');
+            }
+            return false;
+        });
+
+        ui.showMediaSelector(imageItems, async (selectedMedia) => {
+            let posterURL = '';
+            if (selectedMedia.files && selectedMedia.files.length > 0) {
+                posterURL = selectedMedia.files[0].url;
+            } else if (selectedMedia.mediaURL) {
+                posterURL = selectedMedia.mediaURL;
+            }
+
+            let merged = ui.collectMediaBlockSettings(blockEl);
+            if (!merged) merged = {};
+            merged.videoPosterUrl = posterURL;
+
+            const targetUid = getTargetUserId();
+            await ui.loadMediaIntoBlock(blockId, mediaId, targetUid, merged);
+            markPageDashboardDirty();
+        });
+    } catch (error) {
+        ui.showPopup('Error loading media: ' + error.message);
+    }
+}
+
+async function handleClearMediaBlockVideoPoster(target) {
+    try {
+        const blockEl = target.closest('.blog-block');
+        if (!blockEl) return;
+
+        const blockId = blockEl.dataset.blockId;
+        const mediaContainer = blockEl.querySelector('.block-media-container[data-media-id]');
+        const mediaId = mediaContainer ? mediaContainer.dataset.mediaId : null;
+        if (!mediaId) return;
+
+        let merged = ui.collectMediaBlockSettings(blockEl);
+        if (!merged) merged = {};
+        merged.videoPosterUrl = '';
+
+        const targetUid = getTargetUserId();
+        await ui.loadMediaIntoBlock(blockId, mediaId, targetUid, merged);
+        markPageDashboardDirty();
+    } catch (error) {
+        ui.showPopup('Error updating poster: ' + error.message);
     }
 }
 
