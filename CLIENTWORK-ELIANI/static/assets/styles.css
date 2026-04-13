@@ -1457,7 +1457,24 @@ a.artist-card:focus-visible .artist-card__media video {
 }
 
 .home-hero-createlocal {
-  min-height: 100vh;
+  height: 100vh!important;
+}
+
+@media (max-width: 1100px) {
+  .home-hero-createlocal {
+    height: 80vh!important;
+  }
+}
+
+@media (max-width: 900px) {
+  .home-hero-createlocal {
+    height: 60vh!important;
+  }
+}
+@media (max-width: 700px) {
+  .home-hero-createlocal {
+    height: 40vh!important;
+  }
 }
 
 .artists-bookings a:hover {
