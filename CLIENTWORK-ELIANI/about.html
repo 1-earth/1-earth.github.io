@@ -198,16 +198,34 @@
     const revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const revealSelectors = [
       [".contact-group", 0],
-      [".contact-image", 140],
+      [".contact-image", 70],
       [".about-marquee", 0],
       [".about-values__image-wrap", 0],
-      [".about-value-card", 90],
+      [".about-value-card", 50],
       [".artists-hero", 0],
-      [".about-principle", 120],
-      [".site-footer .footer-block", 120]
+      [".about-principle", 60],
+      [".site-footer .footer-block", 60]
     ];
 
     const revealElements = [];
+
+    function setupRevealImageFades(root) {
+      var scope = root || document;
+      var imgs = scope.querySelectorAll(".reveal-on-scroll img");
+      imgs.forEach(function (img) {
+        if (img.classList.contains("reveal-img")) return;
+        img.classList.add("reveal-img");
+        function markLoaded() {
+          img.classList.add("is-loaded");
+        }
+        if (img.complete && img.naturalWidth > 0) {
+          markLoaded();
+        } else {
+          img.addEventListener("load", markLoaded, { once: true });
+          img.addEventListener("error", markLoaded, { once: true });
+        }
+      });
+    }
 
     revealSelectors.forEach(function ([selector, delayStep]) {
       document.querySelectorAll(selector).forEach(function (element, index) {
@@ -216,6 +234,8 @@
         revealElements.push(element);
       });
     });
+
+    setupRevealImageFades(document);
 
     if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
       revealElements.forEach(function (element) {
@@ -230,8 +250,8 @@
           }
         });
       }, {
-        threshold: 0.14,
-        rootMargin: "0px 0px -8% 0px"
+        threshold: 1,
+        rootMargin: "0px 0px 45% 0px"
       });
 
       revealElements.forEach(function (element) {

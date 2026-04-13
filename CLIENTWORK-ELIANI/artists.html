@@ -185,6 +185,24 @@
       var revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
       var revealObserver = null;
 
+      function setupRevealImageFades(root) {
+        var scope = root || document;
+        var imgs = scope.querySelectorAll(".reveal-on-scroll img");
+        imgs.forEach(function (img) {
+          if (img.classList.contains("reveal-img")) return;
+          img.classList.add("reveal-img");
+          function markLoaded() {
+            img.classList.add("is-loaded");
+          }
+          if (img.complete && img.naturalWidth > 0) {
+            markLoaded();
+          } else {
+            img.addEventListener("load", markLoaded, { once: true });
+            img.addEventListener("error", markLoaded, { once: true });
+          }
+        });
+      }
+
       function bindRevealObserver() {
         if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
           return null;
@@ -197,8 +215,8 @@
             }
           });
         }, {
-          threshold: 0.14,
-          rootMargin: "0px 0px -8% 0px"
+          threshold: 1,
+          rootMargin: "0px 0px 45% 0px"
         });
       }
 
@@ -208,6 +226,7 @@
         list.forEach(function (element, index) {
           element.classList.add("reveal-on-scroll");
           element.style.setProperty("--reveal-delay", base + index * delayStep + "ms");
+          setupRevealImageFades(element);
           if (revealMotionPreference.matches || !revealObserver) {
             element.classList.add("is-visible");
           } else {
@@ -221,9 +240,9 @@
       setupRevealElements(document.querySelectorAll(".artists-hero"), 0, 0);
       var bookingsEl = document.querySelector(".artists-bookings");
       if (bookingsEl) {
-        setupRevealElements([bookingsEl], 120, 0);
+        setupRevealElements([bookingsEl], 60, 0);
       }
-      setupRevealElements(document.querySelectorAll(".site-footer .footer-block"), 120, 0);
+      setupRevealElements(document.querySelectorAll(".site-footer .footer-block"), 60, 0);
 
       window.addEventListener("resize", updateBookingsPlacement);
       window.addEventListener("load", function () {

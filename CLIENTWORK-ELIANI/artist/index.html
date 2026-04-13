@@ -1560,17 +1560,52 @@
 
           registerElianiHeroVideoLifecycle(content.querySelector(".eliani-work-hero"));
 
+          function setupRevealImageFades(root) {
+            var scope = root || document;
+            var imgs = scope.querySelectorAll(".reveal-on-scroll img");
+            imgs.forEach(function (img) {
+              if (img.classList.contains("reveal-img")) return;
+              img.classList.add("reveal-img");
+              function markLoaded() {
+                img.classList.add("is-loaded");
+              }
+              if (img.complete && img.naturalWidth > 0) {
+                markLoaded();
+              } else {
+                img.addEventListener("load", markLoaded, { once: true });
+                img.addEventListener("error", markLoaded, { once: true });
+              }
+            });
+          }
+
           var revealMotionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
           var revealElements = Array.prototype.slice.call(document.querySelectorAll(".reveal-on-scroll"));
+          setupRevealImageFades(document);
+
+          function setupGalleryItemReveals(root, observer) {
+            var scope = root || document;
+            var items = Array.prototype.slice.call(scope.querySelectorAll(".blog-gallery-grid .blog-gallery-item"));
+            if (!items.length) return;
+            items.forEach(function (item, index) {
+              item.classList.add("reveal-on-scroll");
+              item.style.setProperty("--reveal-delay", index * 70 + "ms");
+              setupRevealImageFades(item);
+              if (revealMotionPreference.matches || !observer) {
+                item.classList.add("is-visible");
+              } else {
+                observer.observe(item);
+              }
+            });
+          }
+
           if (revealMotionPreference.matches || !("IntersectionObserver" in window)) {
             revealElements.forEach(function (element) {
               element.classList.add("is-visible");
             });
           } else {
-            var workBodyRevealMs = 500;
             var workBodyEl = content.querySelector(".eliani-work-body.reveal-on-scroll");
-            revealElements.forEach(function (element, index) {
-              element.style.setProperty("--reveal-delay", index * 80 + "ms");
+            revealElements.forEach(function (element) {
+              element.style.setProperty("--reveal-delay", "0ms");
             });
             if (workBodyEl) {
               workBodyEl.style.setProperty("--reveal-delay", "0ms");
@@ -1583,17 +1618,18 @@
                 }
               });
             }, {
-              threshold: 0.08,
-              rootMargin: "0px 0px -1% 0px"
+              threshold: 0,
+              rootMargin: "0px 0px 35% 0px"
             });
+
+            setupGalleryItemReveals(content, revealObserver);
+
             revealElements.forEach(function (element) {
               if (element === workBodyEl) return;
               revealObserver.observe(element);
             });
             if (workBodyEl) {
-              window.setTimeout(function () {
-                workBodyEl.classList.add("is-visible");
-              }, workBodyRevealMs);
+              workBodyEl.classList.add("is-visible");
             }
           }
 

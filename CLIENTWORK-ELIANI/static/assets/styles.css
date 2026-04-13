@@ -73,10 +73,10 @@ body.menu-open {
 
 .reveal-on-scroll {
   opacity: 0;
-  transform: translate3d(0, 28px, 0);
+  transform: translate3d(0, 24px, 0);
   transition:
-    opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.95s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
   will-change: opacity, transform;
 }
@@ -84,6 +84,16 @@ body.menu-open {
 .reveal-on-scroll.is-visible {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+}
+
+.reveal-on-scroll img.reveal-img {
+  opacity: 0;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity;
+}
+
+.reveal-on-scroll.is-visible img.reveal-img.is-loaded {
+  opacity: 1;
 }
 
 img {
@@ -644,7 +654,7 @@ a {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: top;
 }
 
 .home-hero__media {
@@ -1358,6 +1368,28 @@ a.artist-card:focus-visible .artist-card__media video {
   transform: scale(0.995);
 }
 
+#pillars{
+  height: 100vh!important;
+}
+
+@media (max-width: 1100px) {
+  #pillars{
+    height: 90vh!important;
+  }
+}
+
+@media (max-width: 900px) {
+  #pillars{
+    height: 70vh!important;
+  }
+}
+
+@media (max-width: 700px) {
+  #pillars{
+    height: 50vh!important;
+  }
+}
+
 .artist-card__copy {
   padding-top: 1rem;
   text-align: center;
@@ -1425,7 +1457,7 @@ a.artist-card:focus-visible .artist-card__media video {
 }
 
 .home-hero-createlocal {
-  min-height: 90vh;
+  min-height: 100vh;
 }
 
 .artists-bookings a:hover {
