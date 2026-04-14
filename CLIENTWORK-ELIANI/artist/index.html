@@ -1521,6 +1521,9 @@
             return;
           }
 
+          var rawTitle = String(work.title || "");
+          var needsHeroBgPositionFix = rawTitle.trim() === "SACKITEY TESA MATE-KODJO";
+
           var title = escapeHtml(work.title || "Untitled");
           var category = escapeHtml(getWorkKicker(work));
           var metaLabel = escapeHtml(getWorkMeta(work));
@@ -1558,7 +1561,11 @@
           renderRelatedWork(db, currentId);
           bindPostPager(db, currentId);
 
-          registerElianiHeroVideoLifecycle(content.querySelector(".eliani-work-hero"));
+          var heroSection = content.querySelector(".eliani-work-hero");
+          if (heroSection && needsHeroBgPositionFix) {
+            heroSection.classList.add("eliani-work-hero--bgpos-sackitey");
+          }
+          registerElianiHeroVideoLifecycle(heroSection);
 
           function setupRevealImageFades(root) {
             var scope = root || document;

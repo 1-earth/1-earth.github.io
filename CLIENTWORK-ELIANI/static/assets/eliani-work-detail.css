@@ -111,6 +111,10 @@ body.eliani-viewer-open {
   overflow: hidden;
 }
 
+.eliani-work-hero.eliani-work-hero--bgpos-sackitey {
+  background-position: 0% 25%;
+}
+
 .eliani-work-hero--no-media {
   background-image: none;
   min-height: 0;
@@ -235,10 +239,16 @@ body.eliani-viewer-open {
   gap: 0.45rem;
   margin-top: 0.5rem;
   font-family: "Cormorant Garamond", serif;
-  font-size: clamp(0.5rem, 1.3vw, 1.35rem);
+  font-size: clamp(1rem, 1.3vw, 1.35rem);
   line-height: 1.1;
   letter-spacing: 0.02em;
 }
+
+/* @media (max-width: 640px) {
+  .overlay-title {
+    font-size: 20px;
+  }
+} */
 
 .eliani-work-intro {
   max-width: 980px;
@@ -370,7 +380,7 @@ body.eliani-viewer-open {
 .blog-block-frontend {
   display: grid;
   gap: 1rem;
-  margin-bottom:100px;
+  margin-bottom:60px;
 }
 
 .blog-subtitle-frontend {

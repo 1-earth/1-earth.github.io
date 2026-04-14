@@ -894,6 +894,7 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   color: #fff;
 }
 
+
 .home-hero__overlay {
   position: absolute;
   inset: 0;
@@ -1368,8 +1369,15 @@ a.artist-card:focus-visible .artist-card__media video {
   transform: scale(0.995);
 }
 
+
 #pillars{
-  height: 100vh!important;
+  height: 140vh!important;
+}
+
+@media (max-width: 1400px) {
+  #pillars{
+    height: 100vh!important;
+  }
 }
 
 @media (max-width: 1100px) {
@@ -1389,6 +1397,9 @@ a.artist-card:focus-visible .artist-card__media video {
     height: 50vh!important;
   }
 }
+
+
+
 
 .artist-card__copy {
   padding-top: 1rem;
@@ -1933,3 +1944,17 @@ a.artist-card:focus-visible .artist-card__media video {
     /* animation: none; */
   }
 }
+
+@media (max-width: 640px) {
+  .overlay-title {
+    font-size: 20px;
+  }
+
+  .overlay-body {
+    font-size: 20px !important;
+  }
+  
+}
+
+
+
