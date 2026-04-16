@@ -1331,6 +1331,7 @@
         thumbs.addEventListener("click", function (event) {
           var thumb = event.target.closest("[data-thumb-index]");
           if (!thumb) return;
+          event.stopPropagation();
           goTo(Number(thumb.getAttribute("data-thumb-index")) || 0);
         });
         document.addEventListener("keydown", function (event) {
