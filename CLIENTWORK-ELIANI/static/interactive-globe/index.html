@@ -17,12 +17,10 @@
         height: 100%;
         max-width: 100%;
         overflow: hidden;
+        background: transparent !important;
       }
       body {
         margin: 0;
-        /* Match the app's aura background as a fallback */
-        background: radial-gradient(120% 90% at 50% 45%, rgba(14, 139, 255, 0.28) 0%, rgba(21, 34, 92, 0.1) 45%, rgba(2,6,23,1) 100%);
-        background-color: #020617;
       }
       main {
         position: relative;
@@ -30,6 +28,7 @@
         height: 100vh;
         overflow: hidden;
         user-select: none;
+        background-color: transparent !important;
       }
       /* Ensure the centered container fills the viewport without relying on Tailwind utility classes */
       main > div:first-child {
@@ -56,7 +55,7 @@
         filter: drop-shadow(0 0 12px theme('colors.cyan.100'));
       }
       .globe-glow {
-        filter: drop-shadow(0 0 35px rgba(252, 206, 0, 0.619));
+        filter: drop-shadow(0 0 35px rgba(252, 206, 0, 0.319));
       }
       .card-body {
         color: #000000 !important;
@@ -104,5 +103,59 @@
 </head>
   <body>
     <div id="root"></div>
+    <!-- Wheel over an iframe stays inside the iframe. Forward to parent when embedded.
+         Batch deltas in requestAnimationFrame so we do not call scrollBy dozens of times per
+         second (that fights layout and feels laggy). Ctrl/Cmd+wheel stays in the globe. -->
+    <script>
+      (function () {
+        if (window.parent === window) return;
+        var scheduleFrame =
+          window.parent.requestAnimationFrame
+            ? window.parent.requestAnimationFrame.bind(window.parent)
+            : window.requestAnimationFrame.bind(window);
+        var pendingY = 0;
+        var pendingX = 0;
+        var rafId = 0;
+
+        function toPixels(e) {
+          var y = e.deltaY;
+          var x = e.deltaX;
+          if (e.deltaMode === 1) {
+            y *= 16;
+            x *= 16;
+          } else if (e.deltaMode === 2) {
+            y *= window.innerHeight || 1;
+            x *= window.innerWidth || 1;
+          }
+          return { x: x, y: y };
+        }
+
+        function flush() {
+          rafId = 0;
+          if (pendingY === 0 && pendingX === 0) return;
+          try {
+            window.parent.scrollBy({ top: pendingY, left: pendingX, behavior: "instant" });
+          } catch (err) {}
+          pendingY = 0;
+          pendingX = 0;
+        }
+
+        window.addEventListener(
+          "wheel",
+          function (e) {
+            if (e.ctrlKey || e.metaKey) return;
+            var d = toPixels(e);
+            pendingY += d.y;
+            pendingX += d.x;
+            if (!rafId) {
+              rafId = scheduleFrame(flush);
+            }
+            e.preventDefault();
+            e.stopPropagation();
+          },
+          { passive: false, capture: true }
+        );
+      })();
+    </script>
   </body>
 </html>

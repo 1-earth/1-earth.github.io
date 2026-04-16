@@ -696,6 +696,7 @@ a {
   margin: 0;
   padding: 0;
   border: none;
+  overflow: hidden !important;
 }
 
 /* Inline iframes reserve space for text descenders — removes grey line at bottom */
@@ -752,6 +753,23 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
 
 .home-production-card__image {
   margin: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  position: relative;
+}
+
+.home-production-card__image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(245, 245, 245, 0);
+  transition: background 0.25s ease;
+}
+
+.home-production-card:hover .home-production-card__image::after {
+  background: rgba(245, 245, 245, 0.24);
 }
 
 .home-production-card__image img {
@@ -760,6 +778,11 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   object-fit: cover;
   object-position: center;
   border-radius: 14px;
+  transition: transform 0.25s ease;
+}
+
+.home-production-card:hover .home-production-card__image img {
+  transform: scale(0.995);
 }
 
 .home-production-card__copy {
@@ -787,7 +810,7 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   position: relative;
   width: 100%;
   margin: 0;
-  min-height: clamp(24rem, 56vw, 38rem);
+  min-height: clamp(24rem, 56vw, 51rem);
   overflow: hidden;
   /* border-radius: 18px; */
 }
@@ -904,6 +927,7 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   justify-content: center;
   padding: 2rem;
   text-align: center;
+  margin-top: -20px;
 }
 
 .home-hero__overlay p {
@@ -915,6 +939,7 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   line-height: 1.12;
   text-wrap: balance;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+  font-weight: 500;
 }
 
 .welcome-work {
@@ -1781,7 +1806,7 @@ a.artist-card:focus-visible .artist-card__media video {
   }
 
   .home-impact-banner__overlay h2 {
-    font-size: clamp(2.1rem, 11vw, 3.6rem);
+    font-size: clamp(2.1rem, 11vw, 3.2rem);
     line-height: 0.9;
   }
 
