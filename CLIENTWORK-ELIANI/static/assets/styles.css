@@ -584,8 +584,12 @@ a {
 }
 
 .home-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  margin: 0 ;
+  margin: 0;
   padding: calc(var(--header-offset) + 1.25rem) 0 0;
 }
 
@@ -645,7 +649,7 @@ a {
   position: relative;
   min-height: clamp(28rem, 66vh, 48rem);
   overflow: hidden;
-  height: 71vh;
+  flex: 1;
 }
 
 .home-hero > img,
@@ -1724,7 +1728,7 @@ a.artist-card:focus-visible .artist-card__media video {
   }
 
   .home-main {
-    padding-top: 1.6rem;
+    padding-top: 0rem;
   }
 
   .home-brand {
