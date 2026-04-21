@@ -3,7 +3,7 @@
   --surface: #fbf7f2;
   --surface-strong: #f0e7da;
   --text: #1c1814;
-  --muted: #6f6559;
+  --muted: #827970;
   --line: rgba(28, 24, 20, 0.12);
   --line-strong: rgba(28, 24, 20, 0.22);
   --accent: #7e3b22;
@@ -262,7 +262,7 @@ body.menu-open .mobile-menu-panel {
 }
 
 .section {
-  padding: 72px 0;
+  padding: 34px 0;
 }
 
 .section-head {
@@ -296,6 +296,8 @@ body.menu-open .mobile-menu-panel {
 .error-box p {
   color: var(--muted);
   line-height: 1.7;
+  margin-top: 2px !important;
+
 }
 
 .hero {
@@ -310,7 +312,7 @@ body.menu-open .mobile-menu-panel {
 .hero-copy {
   display: grid;
   gap: 18px;
-  max-width: 900px;
+  max-width: var(--content-width);
 }
 
 .hero-title {
@@ -318,12 +320,12 @@ body.menu-open .mobile-menu-panel {
   font-size: clamp(52px, 12vw, 126px);
   line-height: 0.86;
   letter-spacing: -0.08em;
-  max-width: 900px;
+  max-width: var(--content-width);
   text-transform: uppercase;
 }
 
 .hero-copy .lede {
-  max-width: 780px;
+  max-width: var(--content-width);
   font-size: clamp(17px, 2vw, 22px);
 }
 
@@ -411,6 +413,7 @@ body.menu-open .mobile-menu-panel {
   line-height: 0.92;
   letter-spacing: -0.05em;
 }
+
 
 .hero-nav-btn {
   width: 56px;
@@ -890,6 +893,52 @@ body.menu-open .mobile-menu-panel {
   border: 0;
 }
 
+.series-grid,
+.statement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 26px;
+}
+
+.quote-card {
+  padding: 30px 28px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  box-shadow: var(--shadow);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--text);
+  margin: 0;
+}
+
+.quote-card::before {
+  content: "\201C";
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-size: 52px;
+  line-height: 0.6;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.bio-lineage {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+
+.bio-lineage-title {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
 @media (max-width: 1024px) {
   .works-grid,
   .related-grid,
@@ -987,6 +1036,8 @@ body.menu-open .mobile-menu-panel {
   .works-grid,
   .related-grid,
   .bio-grid,
+  .series-grid,
+  .statement-grid,
   .blog-column-group-frontend {
     grid-template-columns: 1fr;
   }
