@@ -144,7 +144,7 @@
       top: 12px;
       left: 12px;
       width: calc(100vw - 24px);
-      height: calc(60vh - 18px);
+      height: calc(52vh - 18px);
       border-radius: 3px;
       background: #0a0806;
       box-shadow:
@@ -161,7 +161,7 @@
     body.mobile #stars { font-size: 14px; letter-spacing: 1px; }
     body.mobile #prompt { display: none !important; }
     body.mobile #wasted {
-      inset: 12px 12px calc(40vh - 6px) 12px;
+      inset: 12px 12px calc(48vh - 6px) 12px;
       font-size: 50px; letter-spacing: 10px;
       z-index: 7;
     }
@@ -177,7 +177,7 @@
       display: block;
       position: fixed;
       left: 0; right: 0; bottom: 0;
-      height: 40vh;
+      height: 48vh;
       background: transparent;
       z-index: 5;
       touch-action: none;
@@ -388,7 +388,7 @@
     #pausedOverlay {
       position: fixed;
       left: 0; right: 0; top: 0;
-      height: 60vh;
+      height: 52vh;
       align-items: center;
       justify-content: center;
       background: rgba(10, 8, 6, 0.72);
@@ -526,7 +526,7 @@
         // Match the internal pixel buffer to the rendered CSS size so the
         // game doesn't get scaled or blurred.
         W = canvas.width = Math.max(1, window.innerWidth - 24);
-        H = canvas.height = Math.max(1, Math.floor(window.innerHeight * 0.6) - 18);
+        H = canvas.height = Math.max(1, Math.floor(window.innerHeight * 0.52) - 18);
       } else {
         W = canvas.width = window.innerWidth;
         H = canvas.height = window.innerHeight;
@@ -1075,6 +1075,7 @@
     const billboardImages = [
       { src: 'static/img/advo.png',   img: null },
       { src: 'static/img/krlogo.jpg', img: null },
+      { src: 'static/img/krlogo2.jpg', img: null },
       { src: 'static/img/img1.jpg', img: null },
       { src: 'static/img/img2.jpg', img: null },
       { src: 'static/img/img3.jpg', img: null },
@@ -1207,6 +1208,36 @@
       timer: 0,
       duration: 0.6,
     };
+
+    // Cop-kill cinematic: brief freeze → slow-mo → normal, with a ZOOM punch and
+    // camera-bias toward the exploding wreck. Kicks in when the player destroys
+    // a police car or SWAT van.
+    const copKillFx = {
+      active: false,
+      timer: 0,              // seconds since trigger
+      duration: 0.60,        // total cinematic length
+      freezeEnd: 0.09,       // hard freeze until this
+      slowEnd:   0.42,       // slow-mo tapers back to 1x by this
+      x: 0, y: 0             // world-space focal point (the wreck)
+    };
+    function triggerCopKillFx(x, y) {
+      // If one is already running, retarget/extend rather than stacking.
+      copKillFx.active = true;
+      copKillFx.timer = 0;
+      copKillFx.x = x;
+      copKillFx.y = y;
+    }
+    // Expanding shockwave rings drawn over the world — { x, y, life, maxLife, maxR, color }.
+    const shockwaves = [];
+    function addShockwave(x, y, maxR, life, color) {
+      shockwaves.push({ x, y, life, maxLife: life, maxR, color: color || 'rgba(255,240,180,0.8)' });
+    }
+    function updateShockwaves(dt) {
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        shockwaves[i].life -= dt;
+        if (shockwaves[i].life <= 0) shockwaves.splice(i, 1);
+      }
+    }
     function applyShake() {
       if (camera.shake <= 0) return { ox: 0, oy: 0 };
       const s = camera.shake;
@@ -1421,6 +1452,26 @@
     };
     const typePool = ['sedan','sedan','sedan','sedan','sports','sports','van','van','van'];
 
+    // UK police livery: white body + "Battenburg" roof (fluorescent blue + yellow‑green)
+    // and blue/white light bar — distinct from US red/blue.
+    const UK_FLO_BLUE = '#0090D0';
+    const UK_FLO_LIME = '#C8E600';
+    const UK_POLICE_WHITE = '#f2f2f4';
+    const UK_LBAR_A = '#0060B8';
+    const UK_LBAR_B = '#9AE5FF';
+    // roofRect: roof band in local car space (yTop inclusive, hInner = roof strip height)
+    function drawUKBattenburgStripes(ctx, roofX, yTop, roofW, yBot) {
+      const hInner = yBot - yTop;
+      if (hInner < 1 || roofW < 1) return;
+      const bands = 5;
+      for (let b = 0; b < bands; b++) {
+        const t0 = yTop + hInner * b / bands;
+        const t1 = yTop + hInner * (b + 1) / bands;
+        ctx.fillStyle = (b % 2 === 0) ? UK_FLO_BLUE : UK_FLO_LIME;
+        ctx.fillRect(roofX, t0, roofW, t1 - t0);
+      }
+    }
+
     // shade('#rrggbb', amount): lighten/darken. amount negative = darker.
     function shade(hex, amount) {
       const h = hex.charAt(0) === '#' ? hex.slice(1) : hex;
@@ -1588,9 +1639,9 @@
         angle: [0, Math.PI / 2, Math.PI, -Math.PI / 2][(Math.random() * 4) | 0],
         speed: 0,
         hp: 85, maxHp: 85,
-        color: '#eeeeee',
+        color: UK_POLICE_WHITE,
         type,
-        accent: '#1a1a1a',
+        accent: null,
         driver: null,
         isCop: false,
         isPolice: true,
@@ -1661,9 +1712,9 @@
         angle: snap,
         speed: 0,
         hp: 220, maxHp: 220,
-        color: '#1a1a22',
+        color: UK_POLICE_WHITE,
         type: 'van',
-        accent: '#4a4a58',
+        accent: null,
         driver: null,
         isCop: false,
         isPolice: false,
@@ -1708,23 +1759,39 @@
       return { x: player.x, y: player.y };
     }
 
-    function addExplosion(x, y, big) {
-      const n = big ? 40 : 18;
+    function addExplosion(x, y, big, huge) {
+      const n = huge ? 110 : (big ? 40 : 18);
       for (let i = 0; i < n; i++) {
         const a = Math.random() * Math.PI * 2;
-        const s = 80 + Math.random() * 260;
+        const s = (huge ? 140 : 80) + Math.random() * (huge ? 420 : 260);
         particles.push({
           x, y,
           vx: Math.cos(a) * s,
           vy: Math.sin(a) * s,
-          life: 0.3 + Math.random() * 0.6,
-          maxLife: 0.9,
-          size: 3 + Math.random() * 5,
+          life: 0.3 + Math.random() * (huge ? 1.1 : 0.6),
+          maxLife: huge ? 1.4 : 0.9,
+          size: (huge ? 4 : 3) + Math.random() * (huge ? 8 : 5),
           color: ['#ffcc00', '#ff7a1a', '#ff3322', '#888', '#fff'][(Math.random() * 5) | 0]
         });
       }
-      camera.shake = Math.max(camera.shake, big ? 14 : 6);
-      if (big) audio.explosion();
+      // Extra chunky debris (slower, bigger, darker) for huge blasts — reads as wreckage.
+      if (huge) {
+        for (let i = 0; i < 16; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const s = 60 + Math.random() * 180;
+          particles.push({
+            x, y,
+            vx: Math.cos(a) * s,
+            vy: Math.sin(a) * s,
+            life: 0.8 + Math.random() * 0.8,
+            maxLife: 1.6,
+            size: 4 + Math.random() * 5,
+            color: ['#2a2a2a', '#1a1a1a', '#4a3a20'][(Math.random() * 3) | 0]
+          });
+        }
+      }
+      camera.shake = Math.max(camera.shake, huge ? 22 : (big ? 14 : 6));
+      if (big || huge) audio.explosion();
     }
 
     function alertPeds(x, y, radius) {
@@ -1766,11 +1833,13 @@
           if (cp.hp <= 0) killCop(cp, sourceIsPlayer);
         }
       }
-      // damage cars (chain reactions)
+      // damage cars (chain reactions) — propagate player-blame so chained
+      // explosions still raise the wanted level.
       for (const c of cars) {
         if (c.hp <= 0) continue;
         if (Math.hypot(c.x - x, c.y - y) < radius) {
           c.hp -= amount;
+          if (sourceIsPlayer) c.playerBlame = true;
         }
       }
       // damage player
@@ -2016,6 +2085,7 @@
           other.x += nxv * push; other.y += nyv * push;
           if (Math.abs(beforeSpeed) > 80) {
             other.hp -= Math.abs(beforeSpeed) * 0.1;
+            other.playerBlame = true;
             c.hp -= Math.abs(beforeSpeed) * 0.02;
             c.speed *= 0.5;
             camera.shake = Math.max(camera.shake, 4);
@@ -2153,6 +2223,7 @@
                 if (Math.abs(c.x - b.x) < c.hw + AIM_FORGIVE_CAR && Math.abs(c.y - b.y) < c.hh + AIM_FORGIVE_CAR) {
                   c.hp -= b.dmg;
                   c.hitFlash = FX.hitFlashTime;
+                  c.playerBlame = true;
                   hit = true; break;
                 }
               }
@@ -2639,8 +2710,10 @@
       for (const c of cars) {
         if (c.hp <= 0 && !c.exploded) {
           c.exploded = true;
-          addExplosion(c.x, c.y, true);
-          damageAt(c.x, c.y, 70, 80, false);
+          const copKill = (c.isPolice || c.isSwatVan) && !!c.playerBlame;
+          addExplosion(c.x, c.y, true, copKill);
+          // Pass blame through so chain explosions still count as player kills.
+          damageAt(c.x, c.y, copKill ? 90 : 70, copKill ? 110 : 80, !!c.playerBlame);
           // leave a permanent scorch mark under the wreck
           scorchMarks.push({
             x: c.x, y: c.y,
@@ -2648,12 +2721,24 @@
             w: c.hw * 2 + 10,
             h: c.hh * 2 + 8
           });
-          if (c.isPolice) {
+          if (c.playerBlame) {
+            // Wanted bump scales with the target: SWAT van > police car = civilian.
+            if (c.isSwatVan)      raiseWanted(2);
+            else if (c.isPolice)  raiseWanted(1);
+            else                  raiseWanted(1);
+          }
+          if (c.isPolice || c.isSwatVan) {
             kills++;
-            raiseWanted(1);
             // Punch the moment: brief timescale freeze + extra shake kick.
             triggerHitstop(FX.copCarHitstop);
-            camera.shake = Math.max(camera.shake, 16);
+            camera.shake = Math.max(camera.shake, copKill ? 22 : 16);
+          }
+          // Full cinematic only when the player actually caused the kill.
+          if (copKill) {
+            triggerCopKillFx(c.x, c.y);
+            // Two stacked shockwave rings: a fast bright crack, then a slower smoke halo.
+            addShockwave(c.x, c.y, 140, 0.32, 'rgba(255,240,180,0.85)');
+            addShockwave(c.x, c.y, 220, 0.55, 'rgba(255,120,50,0.45)');
           }
         }
         if (c.hp > 0 && c.hp < 35 && !c.onFire) {
@@ -2876,10 +2961,22 @@
       // viewport in world units after zoom
       const viewW = W / ZOOM;
       const viewH = H / ZOOM;
-      const targetX = pos.x - viewW / 2;
-      const targetY = pos.y - viewH / 2;
-      camera.x = lerp(camera.x, targetX, 0.12);
-      camera.y = lerp(camera.y, targetY, 0.12);
+      let focusX = pos.x, focusY = pos.y;
+      // During the cop-kill cinematic, bias focus toward the wreck (max 60% blend).
+      if (copKillFx.active) {
+        const k = Math.min(1, copKillFx.timer / copKillFx.duration);
+        let bias;
+        if (k < 0.25) bias = (k / 0.25) * 0.6;
+        else          bias = (1 - (k - 0.25) / 0.75) * 0.6;
+        focusX = pos.x + (copKillFx.x - pos.x) * bias;
+        focusY = pos.y + (copKillFx.y - pos.y) * bias;
+      }
+      const targetX = focusX - viewW / 2;
+      const targetY = focusY - viewH / 2;
+      // Snappier follow during the cinematic so the camera catches the wreck.
+      const follow = copKillFx.active ? 0.22 : 0.12;
+      camera.x = lerp(camera.x, targetX, follow);
+      camera.y = lerp(camera.y, targetY, follow);
       camera.x = Math.max(0, Math.min(Math.max(0, WORLD_W - viewW), camera.x));
       camera.y = Math.max(0, Math.min(Math.max(0, WORLD_H - viewH), camera.y));
 
@@ -3028,6 +3125,25 @@
       }
       ctx.globalAlpha = 1;
 
+      // Shockwave rings — expanding circles with additive glow.
+      if (shockwaves.length) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (const s of shockwaves) {
+          const t = 1 - s.life / s.maxLife;
+          const r = s.maxR * (t * t * (3 - 2 * t)); // smoothstep out
+          const a = Math.max(0, s.life / s.maxLife);
+          ctx.globalAlpha = a;
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 2 + (1 - t) * 4;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
       ctx.restore();
 
       // HUD-level overlays (reticle)
@@ -3168,14 +3284,14 @@
         ctx.fillStyle = '#e8e2d0';
         ctx.fillRect(mx + c.x * sx - 1, my + c.y * sy - 1, 2, 2);
       }
-      // Police + SWAT vans — red squares (SWAT slightly brighter/larger).
+      // Police + armed‑response vans — UK blue tones (van larger)
       for (const c of cars) {
         if (c.hp <= 0 || !(c.isPolice || c.isSwatVan)) continue;
         if (c.isSwatVan) {
-          ctx.fillStyle = '#ff4a66';
+          ctx.fillStyle = '#4db8ff';
           ctx.fillRect(mx + c.x * sx - 2, my + c.y * sy - 2, 4, 4);
         } else {
-          ctx.fillStyle = '#ff2a3a';
+          ctx.fillStyle = '#2080d0';
           ctx.fillRect(mx + c.x * sx - 1.5, my + c.y * sy - 1.5, 3, 3);
         }
       }
@@ -3276,20 +3392,30 @@
       ctx.fillRect(wheelFrontX, c.hh - wheelH + 1, wheelW, wheelH);
       ctx.fillRect(wheelRearX,  c.hh - wheelH + 1, wheelW, wheelH);
 
-      // body
-      ctx.fillStyle = c.color;
+      // body — UK response vehicles: white; civilians: their colour
+      if (c.isPolice || c.isSwatVan) {
+        ctx.fillStyle = UK_POLICE_WHITE;
+      } else {
+        ctx.fillStyle = c.color;
+      }
       ctx.fillRect(-c.hw, -c.hh, w, h);
 
-      // roof (inset darker shade) — defines the cabin
-      const roofColor = c.isPolice ? '#151515' : shade(c.color, -35);
+      // roof — UK police + armed‑response van: "Battenburg" fluorescent blue/lime; others: dark inset
       let roofBackPad, roofFrontPad;
       if (type === 'sports') { roofBackPad = 6; roofFrontPad = 7; }
       else if (type === 'van') { roofBackPad = 3; roofFrontPad = 4; }
       else { roofBackPad = 4; roofFrontPad = 5; }
       const roofX = -c.hw + roofBackPad;
       const roofW = w - roofBackPad - roofFrontPad;
-      ctx.fillStyle = roofColor;
-      ctx.fillRect(roofX, -c.hh + 2, roofW, h - 4);
+      const roofY0 = -c.hh + 2;
+      const roofY1 = c.hh - 2;
+      if (c.isPolice || c.isSwatVan) {
+        drawUKBattenburgStripes(ctx, roofX, roofY0, roofW, roofY1);
+      } else {
+        const roofColor = shade(c.color, -35);
+        ctx.fillStyle = roofColor;
+        ctx.fillRect(roofX, roofY0, roofW, h - 4);
+      }
 
       // windshield (front edge of cabin)
       const wsW = type === 'van' ? 2 : 3;
@@ -3305,8 +3431,8 @@
       ctx.fillStyle = 'rgba(0,0,0,0.75)';
       ctx.fillRect(roofX - 1, -c.hh + 1, 1, h - 2);
 
-      // accent stripe(s) — racing stripes on sports
-      if (c.accent) {
+      // accent stripe(s) — racing stripes on sports (not on UK livery)
+      if (c.accent && !c.isPolice && !c.isSwatVan) {
         ctx.fillStyle = c.accent;
         if (type === 'sports') {
           ctx.fillRect(-c.hw + 2, -2, w - 4, 1);
@@ -3323,44 +3449,50 @@
         ctx.fillRect(hx - 1, -1, 3, 3);
       }
 
-      // SWAT van: grey accent stripe running length of the body (drawn before the
-      // light bar so the bar sits on top; the SWAT wordmark is painted last).
+      // UK armed‑response van: thin reflective line along the sill (replaces old grey SWAT trim)
       if (c.isSwatVan) {
-        ctx.fillStyle = '#3a3a42';
-        ctx.fillRect(-c.hw + 2, -c.hh + 3, w - 4, 1);
-        ctx.fillRect(-c.hw + 2, c.hh - 4, w - 4, 1);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fillRect(-c.hw + 2, -c.hh + 2, w - 4, 1);
+        ctx.fillRect(-c.hw + 2, c.hh - 3, w - 4, 1);
       }
 
-      // police-car flashing light bar on top of the cabin
+      // UK-style blue/white light bar (no US red/blue)
       if (c.isPolice || c.isSwatVan) {
         const barW = 2;
         const halfH = Math.max(3, Math.floor((h - 4) / 2));
         const barX = roofX + Math.max(2, (roofW - wsW) / 2 - 1);
-        const blueFirst = Math.floor((c.lightPhase || 0) * 6) % 2 === 0;
+        const firstBright = Math.floor((c.lightPhase || 0) * 6) % 2 === 0;
         // rear half
-        ctx.fillStyle = blueFirst ? '#2080ff' : '#ff2030';
+        ctx.fillStyle = firstBright ? UK_LBAR_A : UK_LBAR_B;
         ctx.fillRect(barX, -halfH, barW, halfH);
         // front half
-        ctx.fillStyle = blueFirst ? '#ff2030' : '#2080ff';
+        ctx.fillStyle = firstBright ? UK_LBAR_B : UK_LBAR_A;
         ctx.fillRect(barX, 0, barW, halfH);
         // soft glow
-        ctx.globalAlpha = 0.35;
-        ctx.fillStyle = blueFirst ? '#2080ff' : '#ff2030';
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = firstBright ? UK_LBAR_A : UK_LBAR_B;
         ctx.fillRect(barX - 2, -halfH - 1, barW + 4, halfH + 1);
-        ctx.fillStyle = blueFirst ? '#ff2030' : '#2080ff';
+        ctx.fillStyle = firstBright ? UK_LBAR_B : UK_LBAR_A;
         ctx.fillRect(barX - 2, 0, barW + 4, halfH + 1);
         ctx.globalAlpha = 1;
       }
 
-      // SWAT wordmark on the roof — painted on top of the light bar so it reads
-      // at a glance from any distance.
+      // Roof legend — "POLICE" on UK response vehicles (van = larger type)
       if (c.isSwatVan) {
         ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 6px monospace';
+        ctx.fillStyle = '#0a2d4a';
+        ctx.font = 'bold 5px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('SWAT', 0, 0.5);
+        ctx.fillText('POLICE', 0, 0.5);
+        ctx.restore();
+      } else if (c.isPolice) {
+        ctx.save();
+        ctx.fillStyle = '#0a2d4a';
+        ctx.font = 'bold 4px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('POLICE', 0, 0.5);
         ctx.restore();
       }
 
@@ -3604,8 +3736,8 @@
       }
     }
 
-    // Red/blue pulsing radial wash painted on the ground under each alive
-    // police car. Phase-offset so the two hemispheres alternate, scaled down
+    // Blue + fluorescent lime pulsing radial wash (UK-style) under each alive
+    // response vehicle. Phase-offset so the two hemispheres alternate, scaled down
     // for cars far from the camera so the screen doesn't strobe.
     function drawSirenWashes() {
       const { cxw, cyw } = cameraCenter();
@@ -3617,25 +3749,24 @@
         const prox = 1 - Math.min(1, dist / 700);
         const phase = (c.lightPhase || 0) * 2.2;
         const pulse = 0.55 + 0.45 * Math.sin(phase);
-        const blueFirst = Math.sin(phase) >= 0;
+        const blueFirst = Math.sin(phase) >= 0; // which colour leads this pulse
         const R = 38 + prox * 8;
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        // Red hemisphere (offset toward the rear of the car)
+        // UK-style wash: deep blue (rear) + fluorescent lime (front) — no US red
         const rx = c.x - Math.cos(c.angle) * 6;
         const ry = c.y - Math.sin(c.angle) * 6;
-        const gRed = ctx.createRadialGradient(rx, ry, 2, rx, ry, R);
-        gRed.addColorStop(0, `rgba(255,40,48,${0.55 * (blueFirst ? 1 - pulse : pulse) * prox})`);
-        gRed.addColorStop(1, 'rgba(255,40,48,0)');
-        ctx.fillStyle = gRed;
+        const gBlueWash = ctx.createRadialGradient(rx, ry, 2, rx, ry, R);
+        gBlueWash.addColorStop(0, `rgba(0,100,200,${0.5 * (blueFirst ? pulse : 1 - pulse) * prox})`);
+        gBlueWash.addColorStop(1, 'rgba(0,100,200,0)');
+        ctx.fillStyle = gBlueWash;
         ctx.beginPath(); ctx.arc(rx, ry, R, 0, Math.PI * 2); ctx.fill();
-        // Blue hemisphere (toward the front)
         const bx = c.x + Math.cos(c.angle) * 6;
         const by = c.y + Math.sin(c.angle) * 6;
-        const gBlue = ctx.createRadialGradient(bx, by, 2, bx, by, R);
-        gBlue.addColorStop(0, `rgba(40,110,255,${0.55 * (blueFirst ? pulse : 1 - pulse) * prox})`);
-        gBlue.addColorStop(1, 'rgba(40,110,255,0)');
-        ctx.fillStyle = gBlue;
+        const gLimeWash = ctx.createRadialGradient(bx, by, 2, bx, by, R);
+        gLimeWash.addColorStop(0, `rgba(200,240,0,${0.5 * (blueFirst ? 1 - pulse : pulse) * prox})`);
+        gLimeWash.addColorStop(1, 'rgba(200,240,0,0)');
+        ctx.fillStyle = gLimeWash;
         ctx.beginPath(); ctx.arc(bx, by, R, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       }
@@ -3872,7 +4003,7 @@
       }
     }
 
-    // SWAT officer — black padded armor, helmet with red visor, rifle/shotgun
+    // Armed‑response officer — black padded armour, helmet with red visor, rifle/shotgun
     // silhouette held toward the aim direction.
     function drawSwat(cp) {
       const hw = cp.hw, hh = cp.hh;
@@ -3895,9 +4026,14 @@
       // red visor slit
       ctx.fillStyle = '#ff2a2a';
       ctx.fillRect(cp.x - 3, cp.y - 3, 6, 1);
-      // small white letters "SWAT" hint — just a pale chip on the chest
-      ctx.fillStyle = '#e6e6ec';
-      ctx.fillRect(cp.x - 1, cp.y, 2, 1);
+      // "POLICE" on chest (screen-space micro type)
+      ctx.save();
+      ctx.fillStyle = '#c8d0dc';
+      ctx.font = '4px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('POLICE', cp.x, cp.y + 0.5);
+      ctx.restore();
       // weapon silhouette aimed where they're facing
       ctx.save();
       ctx.translate(cp.x, cp.y);
@@ -4166,7 +4302,24 @@
       // but keep rendering, so the frame "punches" on the moment.
       const frozen = hitstopTimer > 0;
       if (frozen) hitstopTimer = Math.max(0, hitstopTimer - rawDt);
-      const dt = (frozen || boot.active) ? 0 : rawDt;
+
+      // Cop-kill slow-mo: after the initial hitstop, the world runs at a
+      // reduced timescale for ~350ms, easing back to 1x.
+      let timeScale = 1;
+      if (copKillFx.active) {
+        copKillFx.timer += rawDt;
+        if (copKillFx.timer < copKillFx.freezeEnd) {
+          timeScale = 0;
+        } else if (copKillFx.timer < copKillFx.slowEnd) {
+          const k = (copKillFx.timer - copKillFx.freezeEnd) / (copKillFx.slowEnd - copKillFx.freezeEnd);
+          // 0.25x at the start of the slow-mo window, easing back to 1.0x.
+          timeScale = 0.25 + 0.75 * (k * k * (3 - 2 * k));
+        }
+        if (copKillFx.timer >= copKillFx.duration) {
+          copKillFx.active = false;
+        }
+      }
+      const dt = (frozen || boot.active) ? 0 : (rawDt * timeScale);
 
       // Boot-up timer ticks on real time regardless of pause state.
       if (boot.active) {
@@ -4208,10 +4361,29 @@
         ZOOM = BASE_ZOOM + (2.4 - BASE_ZOOM) * eased;
         // glitch decays from 1 -> 0 over first 300ms
         deathFx.glitch = Math.max(0, 1 - deathFx.timer / 0.3);
+      } else if (copKillFx.active) {
+        // Cinematic zoom-in on the wreck: ease in to ~1.35x BASE over the freeze,
+        // hold through the slow-mo, then ease back. Triangle shape peaking mid.
+        const k = Math.min(1, copKillFx.timer / copKillFx.duration);
+        // Asymmetric ease: quick zoom-in, slower zoom-out so the moment lingers.
+        let zoomK;
+        if (k < 0.25) {
+          const u = k / 0.25;
+          zoomK = u * u * (3 - 2 * u); // smoothstep up
+        } else {
+          const u = (k - 0.25) / 0.75;
+          const eased = u * u * (3 - 2 * u);
+          zoomK = 1 - eased;
+        }
+        ZOOM = BASE_ZOOM * (1 + 0.35 * zoomK);
+        deathFx.glitch = 0;
       } else {
         ZOOM = BASE_ZOOM;
         deathFx.glitch = 0;
       }
+
+      // Tick shockwaves even while slow-mo is on (they read as real time).
+      updateShockwaves(rawDt);
 
       // Camera rotation: nose-up while driving, 0 on foot. Kept outside the pause
       // gate so the rotation eases to its resting state even if the game is paused.
