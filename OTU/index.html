@@ -19,6 +19,7 @@
   <meta name="twitter:image" content="https://1-earth.github.io/OTU/static/img/placeholder-art.svg">
   <link rel="icon" type="image/png" href="static/img/site-logo.png">
   <link rel="apple-touch-icon" href="static/img/site-logo.png">
+  <link rel="preload" as="image" href="static/img/logo.png">
   <link rel="stylesheet" href="static/styles/mainstyle.css">
   <script>
     (function () {
@@ -28,6 +29,104 @@
   </script>
 </head>
 <body>
+  <style>
+    html.otu-loading, html.otu-loading body { overflow: hidden; }
+    #otu-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483646;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f3ede4;
+      opacity: 1;
+      transition: opacity 320ms ease;
+      animation: otu-loader-failsafe 0s linear 6s forwards;
+    }
+    #otu-loader.is-hiding { opacity: 0; }
+    #otu-loader img {
+      width: clamp(84px, 12vw, 150px);
+      height: auto;
+      display: block;
+      animation: otu-loader-pulse 2s ease-in-out infinite;
+    }
+    @keyframes otu-loader-pulse {
+      0%, 100% { transform: scale(1); opacity: 0.92; }
+      50%      { transform: scale(1.04); opacity: 1; }
+    }
+    @keyframes otu-loader-failsafe {
+      to { opacity: 0; visibility: hidden; pointer-events: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #otu-loader { transition: none; }
+      #otu-loader img { animation: none; }
+    }
+  </style>
+  <div id="otu-loader" role="status" aria-live="polite" aria-label="Loading">
+    <img src="static/img/logo.png" alt="" aria-hidden="true">
+  </div>
+  <script>
+    (function () {
+      document.documentElement.classList.add("otu-loading");
+      var startedAt = Date.now();
+      var MIN_MS = 1000;
+      var HARD_MS = 5500;
+      var FADE_MS = 320;
+      var done = false;
+
+      function hide() {
+        if (done) return;
+        done = true;
+        var elapsed = Date.now() - startedAt;
+        var wait = Math.max(0, MIN_MS - elapsed);
+        setTimeout(function () {
+          var loader = document.getElementById("otu-loader");
+          document.documentElement.classList.remove("otu-loading");
+          if (!loader) return;
+          loader.classList.add("is-hiding");
+          loader.setAttribute("aria-hidden", "true");
+          setTimeout(function () {
+            if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+          }, FADE_MS + 60);
+        }, wait);
+      }
+
+      function watchImage(img) {
+        if (!img) return;
+        if (img.complete && img.naturalWidth > 0) { hide(); return; }
+        img.addEventListener("load", hide, { once: true });
+        img.addEventListener("error", hide, { once: true });
+      }
+
+      function findFirstHeroImage() {
+        var slides = document.getElementById("hero-slides");
+        if (!slides) return null;
+        return slides.querySelector(".hero-slide-media img");
+      }
+
+      function start() {
+        var existing = findFirstHeroImage();
+        if (existing) { watchImage(existing); return; }
+        var slides = document.getElementById("hero-slides");
+        if (!slides || typeof MutationObserver === "undefined") { return; }
+        var mo = new MutationObserver(function () {
+          var img = findFirstHeroImage();
+          if (img) {
+            mo.disconnect();
+            watchImage(img);
+          }
+        });
+        mo.observe(slides, { childList: true, subtree: true });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", start, { once: true });
+      } else {
+        start();
+      }
+      setTimeout(hide, HARD_MS);
+    })();
+  </script>
   <header class="site-header">
     <div class="site-header-inner">
       <a class="site-brand" href="index.html" aria-label="Otu Ibe-Enwo home">
@@ -106,6 +205,15 @@
         <!-- <p class="section-intro">Every card opens the full work page, while the slideshow above offers a quick way to browse the whole portfolio.</p> -->
       </div>
       <div class="works-grid" id="works-grid" aria-live="polite"></div>
+      <div class="works-toggle-wrap" id="works-toggle-wrap" hidden>
+        <button
+          type="button"
+          class="works-toggle"
+          id="works-toggle"
+          aria-controls="works-grid"
+          aria-expanded="false"
+        >View more</button>
+      </div>
     </section>
 
     <section class="section" id="series" aria-labelledby="series-title">
@@ -119,6 +227,14 @@
         <article class="card-panel">
           <div class="section-kicker">Series</div>
           <h3 class="section-title">The Chukwu-Okoro Masks</h3>
+          <div
+            class="series-slideshow"
+            data-media-doc-id="vDAW0f0Hhvcbl8inEnn8sJXvv6M2-media-8"
+            role="region"
+            aria-label="The Chukwu-Okoro Masks — media gallery"
+          >
+            <div class="series-slideshow-status" aria-live="polite">Loading gallery…</div>
+          </div>
           <div class="body-copy">
             <p>
               A series inspired by the socio-cultural intricacies and spiritual undertones of the Afikpo sub-village group
@@ -134,6 +250,14 @@
         <article class="card-panel">
           <div class="section-kicker">Series</div>
           <h3 class="section-title">The Ankara-Fairies</h3>
+          <div
+            class="series-slideshow"
+            data-media-doc-id="vDAW0f0Hhvcbl8inEnn8sJXvv6M2-media-10"
+            role="region"
+            aria-label="The Ankara-Fairies — media gallery"
+          >
+            <div class="series-slideshow-status" aria-live="polite">Loading gallery…</div>
+          </div>
           <div class="body-copy">
             <p>
               A cosmopolitan series that combines indigenous African fabrics with painted figures of varied races and
@@ -151,21 +275,28 @@
     <section class="section" id="statement" aria-labelledby="statement-title">
       <div class="section-head">
         <div>
-          <div class="section-kicker">Artist Statement</div>
-          <h2 class="section-title" id="statement-title">In his own words.</h2>
+          <h2 class="section-title" id="statement-title">OTU IBE-ENWO</h2>
         </div>
       </div>
-      <div class="statement-grid">
-        <blockquote class="quote-card">
-          As an emerging artist navigating both personal and financial challenges, my work explores themes of identity,
-          resilience, and transformation. My mixed-media paintings, sketches and sculptures are outlets that turn emotional
-          and social experience into visual form.
-        </blockquote>
-        <blockquote class="quote-card">
-          My practice stems from lived experience — moments of displacement, community, and healing. It is not only an
-          expression of self, but a dialogue with others who feel unseen or unheard.
-        </blockquote>
-      </div>
+      <article class="card-panel statement-panel">
+        <div class="section-kicker">On his practice</div>
+        <div class="statement-content">
+          <blockquote class="statement-quote">
+            <p>
+              As an emerging artist navigating both personal and financial challenges, my work explores themes of identity,
+              resilience, and transformation. My mixed-media paintings, sketches and sculptures are outlets that turn emotional
+              and social experience into visual form.
+            </p>
+            <p>
+              My practice stems from lived experience — moments of displacement, community, and healing. It is not only an
+              expression of self, but a dialogue with others who feel unseen or unheard.
+            </p>
+          </blockquote>
+          <figure class="statement-figure">
+            <img src="static/img/profile.png" alt="Otu Ibe-Enwo in his studio" loading="lazy">
+          </figure>
+        </div>
+      </article>
     </section>
 
     <section class="section" id="bio" aria-labelledby="bio-title">
@@ -232,7 +363,14 @@
             </div>
             <div class="contact-item">
               <span class="contact-label">Instagram</span>
-              <a class="contact-value" href="https://instagram.com/OtunbergsArt" target="_blank" rel="noopener">@OtunbergsArt</a>
+              <a class="contact-value contact-value-with-icon" href="https://instagram.com/OtunbergsArt" target="_blank" rel="noopener">
+                <svg class="contact-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" />
+                  <path d="M18 5C17.4477 5 17 5.44772 17 6C17 6.55228 17.4477 7 18 7C18.5523 7 19 6.55228 19 6C19 5.44772 18.5523 5 18 5Z" fill="currentColor" />
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M1.65396 4.27606C1 5.55953 1 7.23969 1 10.6V13.4C1 16.7603 1 18.4405 1.65396 19.7239C2.2292 20.8529 3.14708 21.7708 4.27606 22.346C5.55953 23 7.23969 23 10.6 23H13.4C16.7603 23 18.4405 23 19.7239 22.346C20.8529 21.7708 21.7708 20.8529 22.346 19.7239C23 18.4405 23 16.7603 23 13.4V10.6C23 7.23969 23 5.55953 22.346 4.27606C21.7708 3.14708 20.8529 2.2292 19.7239 1.65396C18.4405 1 16.7603 1 13.4 1H10.6C7.23969 1 5.55953 1 4.27606 1.65396C3.14708 2.2292 2.2292 3.14708 1.65396 4.27606ZM13.4 3H10.6C8.88684 3 7.72225 3.00156 6.82208 3.0751C5.94524 3.14674 5.49684 3.27659 5.18404 3.43597C4.43139 3.81947 3.81947 4.43139 3.43597 5.18404C3.27659 5.49684 3.14674 5.94524 3.0751 6.82208C3.00156 7.72225 3 8.88684 3 10.6V13.4C3 15.1132 3.00156 16.2777 3.0751 17.1779C3.14674 18.0548 3.27659 18.5032 3.43597 18.816C3.81947 19.5686 4.43139 20.1805 5.18404 20.564C5.49684 20.7234 5.94524 20.8533 6.82208 20.9249C7.72225 20.9984 8.88684 21 10.6 21H13.4C15.1132 21 16.2777 20.9984 17.1779 20.9249C18.0548 20.8533 18.5032 20.7234 18.816 20.564C19.5686 20.1805 20.1805 19.5686 20.564 18.816C20.7234 18.5032 20.8533 18.0548 20.9249 17.1779C20.9984 16.2777 21 15.1132 21 13.4V10.6C21 8.88684 20.9984 7.72225 20.9249 6.82208C20.8533 5.94524 20.7234 5.49684 20.564 5.18404C20.1805 4.43139 19.5686 3.81947 18.816 3.43597C18.5032 3.27659 18.0548 3.14674 17.1779 3.0751C16.2777 3.00156 15.1132 3 13.4 3Z" fill="currentColor" />
+                </svg>
+                OtunbergsArt
+              </a>
             </div>
           </div>
           <div class="button-row">
@@ -247,6 +385,9 @@
       <article class="card-panel">
         <div class="section-kicker">Community &amp; Impact</div>
         <h2 class="section-title" id="impact-title">Art as advocacy.</h2>
+        <figure class="impact-figure">
+          <img src="static/img/advo.png" alt="Masquerade figures and community in a sunlit outdoor gathering" width="1628" height="1138" loading="lazy" decoding="async">
+        </figure>
         <div class="body-copy">
           <p>
             Otu works with NGOs to host outreach programmes in Afikpo, including the <strong>Protect the Girl Child</strong>
@@ -271,6 +412,26 @@
       <p>Website designed and developed by 🌐 <a class="text-link" href="https://1-earth.world" target="_blank">ONE EARTH PRODUCTIONS</a></p>
     </div>
   </footer>
+
+  <div
+    id="series-lightbox"
+    class="series-lightbox"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Enlarged gallery"
+    hidden
+  >
+    <div class="series-lightbox-backdrop" aria-hidden="true" tabindex="-1"></div>
+    <div class="series-lightbox-inner">
+      <button type="button" class="series-lightbox-close" aria-label="Close gallery">×</button>
+      <div class="series-lightbox-stage" aria-live="polite">
+        <button type="button" class="series-lightbox-nav series-lightbox-nav-prev" aria-label="Previous image">‹</button>
+        <div class="series-lightbox-frame" id="series-lightbox-frame"></div>
+        <button type="button" class="series-lightbox-nav series-lightbox-nav-next" aria-label="Next image">›</button>
+      </div>
+      <div class="series-lightbox-thumbs" id="series-lightbox-thumbs" role="tablist" aria-label="Gallery thumbnails"></div>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -396,6 +557,422 @@
       function isImageUrl(url) {
         if (!url || typeof url !== "string") return false;
         return /\.(png|jpe?g|webp|gif|avif|svg)(?:$|[?#])/i.test(url.split("?")[0]);
+      }
+
+      function isVideoUrl(url) {
+        return /\.(mp4|webm|ogg|mov|m4v|avi)(?:$|[?#])/i.test((url || "").split("?")[0]);
+      }
+
+      function normalizeMediaFiles(data) {
+        if (!data || !data.files || !data.files.length) return [];
+        return data.files.slice().sort(function (a, b) {
+          return (Number(a.order) || 0) - (Number(b.order) || 0);
+        }).filter(function (f) {
+          return f && String(f.url || "").trim();
+        });
+      }
+
+      function pauseVideosIn(root) {
+        if (!root) return;
+        var vids = root.querySelectorAll("video");
+        for (var i = 0; i < vids.length; i++) {
+          try {
+            vids[i].pause();
+          } catch (_) {}
+        }
+      }
+
+      var seriesLbFiles = null;
+      var seriesLbIndex = 0;
+      var seriesLbLastFocus = null;
+      var seriesLbOnKey = null;
+      var seriesLbTitle = "Gallery";
+
+      function buildLightboxFrameHtml(file) {
+        if (!file) return "";
+        var url = (file.url || "").trim();
+        var caption = (file.caption || "").trim();
+        var poster = (file.poster || "").trim();
+        if (!url) {
+          return "<div class=\"series-lightbox-placeholder\"><p>No media.</p></div>";
+        }
+        if (isVideoUrl(url)) {
+          var pAttr = poster && isImageUrl(poster) ? " poster=\"" + escapeHtml(poster) + "\"" : "";
+          return "<div class=\"series-lightbox-media-wrap\">" +
+            "<video class=\"series-lightbox-video\" src=\"" + escapeHtml(url) + "\" controls playsinline" + pAttr + "></video>" +
+            (caption ? "<p class=\"series-lightbox-cap\">" + escapeHtml(caption) + "</p>" : "") +
+            "</div>";
+        }
+        return "<div class=\"series-lightbox-media-wrap\">" +
+          "<img class=\"series-lightbox-img\" src=\"" + escapeHtml(url) + "\" alt=\"" + escapeHtml(caption || "Series artwork") + "\">" +
+          (caption ? "<p class=\"series-lightbox-cap\">" + escapeHtml(caption) + "</p>" : "") +
+          "</div>";
+      }
+
+      function buildLightboxThumbButton(file, i, isActive) {
+        var url = (file && file.url) || "";
+        var cap = (file && file.caption) || "";
+        var activeClass = isActive ? " is-active" : "";
+        if (!url) {
+          return "<button type=\"button\" class=\"series-lightbox-thumb" + activeClass + "\" data-lb-index=\"" + i + "\" role=\"tab\" aria-label=\"Image " + (i + 1) + "\"><span class=\"series-lightbox-thumb-fallback\">—</span></button>";
+        }
+        if (isVideoUrl(url)) {
+          var poster = (file.poster && isImageUrl(file.poster)) ? file.poster : "";
+          if (poster) {
+            return "<button type=\"button\" class=\"series-lightbox-thumb series-lightbox-thumb--video" + activeClass + "\" data-lb-index=\"" + i + "\" role=\"tab\" aria-selected=\"" + (isActive ? "true" : "false") + "\" aria-label=\"Video " + (i + 1) + "\"><img src=\"" + escapeHtml(poster) + "\" alt=\"\"><span class=\"series-lightbox-thumb-play\" aria-hidden=\"true\">▶</span></button>";
+          }
+          return "<button type=\"button\" class=\"series-lightbox-thumb series-lightbox-thumb--video" + activeClass + "\" data-lb-index=\"" + i + "\" role=\"tab\" aria-selected=\"" + (isActive ? "true" : "false") + "\" aria-label=\"Video " + (i + 1) + "\"><span class=\"series-lightbox-thumb-fallback\">Video</span><span class=\"series-lightbox-thumb-play\" aria-hidden=\"true\">▶</span></button>";
+        }
+        return "<button type=\"button\" class=\"series-lightbox-thumb" + activeClass + "\" data-lb-index=\"" + i + "\" role=\"tab\" aria-selected=\"" + (isActive ? "true" : "false") + "\" aria-label=\"Image " + (i + 1) + "\"><img src=\"" + escapeHtml(url) + "\" alt=\"" + escapeHtml(cap || "Thumbnail " + (i + 1)) + "\"></button>";
+      }
+
+      function closeSeriesLightbox() {
+        var lb = document.getElementById("series-lightbox");
+        if (!lb) return;
+        if (lb.hasAttribute("hidden")) return;
+        var frame = document.getElementById("series-lightbox-frame");
+        if (frame) {
+          pauseVideosIn(frame);
+          frame.innerHTML = "";
+        }
+        lb.setAttribute("hidden", "hidden");
+        document.body.classList.remove("series-lightbox-open");
+        if (seriesLbOnKey) {
+          document.removeEventListener("keydown", seriesLbOnKey, true);
+          seriesLbOnKey = null;
+        }
+        seriesLbFiles = null;
+        if (seriesLbLastFocus && seriesLbLastFocus.focus) {
+          try {
+            seriesLbLastFocus.focus();
+          } catch (_) {}
+        }
+        seriesLbLastFocus = null;
+      }
+
+      function renderSeriesLightbox() {
+        if (!seriesLbFiles || !seriesLbFiles.length) return;
+        var n = seriesLbFiles.length;
+        var idx = (seriesLbIndex + n) % n;
+        seriesLbIndex = idx;
+        var file = seriesLbFiles[idx];
+        var frame = document.getElementById("series-lightbox-frame");
+        if (frame) {
+          frame.innerHTML = buildLightboxFrameHtml(file);
+        }
+        var strip = document.getElementById("series-lightbox-thumbs");
+        if (strip) {
+          strip.innerHTML = seriesLbFiles.map(function (f, i) {
+            return buildLightboxThumbButton(f, i, i === idx);
+          }).join("");
+          var thumbNodes = strip.querySelectorAll(".series-lightbox-thumb");
+          for (var t = 0; t < thumbNodes.length; t++) {
+            (function (btn) {
+              btn.addEventListener("click", function () {
+                seriesLbIndex = Number(btn.getAttribute("data-lb-index")) || 0;
+                renderSeriesLightbox();
+              });
+            })(thumbNodes[t]);
+          }
+        }
+        var pr = document.querySelector(".series-lightbox-nav-prev");
+        var nx = document.querySelector(".series-lightbox-nav-next");
+        if (pr) {
+          pr.hidden = n < 2;
+        }
+        if (nx) {
+          nx.hidden = n < 2;
+        }
+        if (strip) {
+          strip.hidden = n < 2;
+        }
+        if (strip) {
+          var activeBtn = strip.querySelector(".series-lightbox-thumb.is-active");
+          if (activeBtn && activeBtn.scrollIntoView) {
+            try {
+              activeBtn.scrollIntoView({ block: "nearest", inline: "center" });
+            } catch (_) {
+              activeBtn.scrollIntoView(false);
+            }
+          }
+        }
+      }
+
+      function openSeriesLightbox(files, startIndex, title) {
+        if (!files || !files.length) return;
+        var lb = document.getElementById("series-lightbox");
+        if (!lb) return;
+        seriesLbLastFocus = document.activeElement;
+        seriesLbFiles = files;
+        seriesLbIndex = Math.max(0, Math.min(startIndex || 0, files.length - 1));
+        seriesLbTitle = title || "Gallery";
+        lb.removeAttribute("hidden");
+        lb.setAttribute("aria-label", (title && String(title)) || "Enlarged gallery");
+        document.body.classList.add("series-lightbox-open");
+        renderSeriesLightbox();
+        var close = lb.querySelector(".series-lightbox-close");
+        if (close && close.focus) {
+          try {
+            close.focus();
+          } catch (_) {}
+        }
+        if (seriesLbOnKey) {
+          document.removeEventListener("keydown", seriesLbOnKey, true);
+        }
+        seriesLbOnKey = function (e) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            closeSeriesLightbox();
+            return;
+          }
+          if (!seriesLbFiles || seriesLbFiles.length < 2) return;
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            seriesLbIndex -= 1;
+            renderSeriesLightbox();
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            seriesLbIndex += 1;
+            renderSeriesLightbox();
+          }
+        };
+        document.addEventListener("keydown", seriesLbOnKey, true);
+      }
+
+      function initSeriesLightboxUIOnce() {
+        var lb = document.getElementById("series-lightbox");
+        if (!lb || lb.dataset.lightboxBound === "1") return;
+        lb.dataset.lightboxBound = "1";
+        var backdrop = lb.querySelector(".series-lightbox-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function () {
+            closeSeriesLightbox();
+          });
+        }
+        var close = lb.querySelector(".series-lightbox-close");
+        if (close) {
+          close.addEventListener("click", function () {
+            closeSeriesLightbox();
+          });
+        }
+        var prev = lb.querySelector(".series-lightbox-nav-prev");
+        var next = lb.querySelector(".series-lightbox-nav-next");
+        if (prev) {
+          prev.addEventListener("click", function () {
+            if (!seriesLbFiles || !seriesLbFiles.length) return;
+            seriesLbIndex -= 1;
+            renderSeriesLightbox();
+          });
+        }
+        if (next) {
+          next.addEventListener("click", function () {
+            if (!seriesLbFiles || !seriesLbFiles.length) return;
+            seriesLbIndex += 1;
+            renderSeriesLightbox();
+          });
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initSeriesLightboxUIOnce);
+      } else {
+        initSeriesLightboxUIOnce();
+      }
+
+      function buildSeriesSlideHtml(file, index, isActive) {
+        var url = (file && file.url) || "";
+        var caption = (file && file.caption) || "";
+        var poster = (file && file.poster) || "";
+        var activeClass = isActive ? " is-active" : "";
+        if (!url) {
+          return '<article class="series-slide' + activeClass + '"><div class="series-slide-media"><img src="' + escapeHtml(PLACEHOLDER_IMAGE) + '" alt=""></div></article>';
+        }
+        if (isVideoUrl(url)) {
+          var posterAttr = poster && isImageUrl(poster) ? ' poster="' + escapeHtml(poster) + '"' : "";
+          return '<article class="series-slide' + activeClass + '">' +
+            '<div class="series-slide-media"><video class="series-slide-video" src="' + escapeHtml(url) + '"' + posterAttr + ' controls playsinline></video></div>' +
+            (caption ? '<p class="series-slide-caption">' + escapeHtml(caption) + "</p>" : "") +
+            "</article>";
+        }
+        return '<article class="series-slide' + activeClass + '">' +
+          '<div class="series-slide-media"><img loading="lazy" src="' + escapeHtml(url) + '" alt="' + escapeHtml(caption || "Series artwork") + '"></div>' +
+          (caption ? '<p class="series-slide-caption">' + escapeHtml(caption) + "</p>" : "") +
+          "</article>";
+      }
+
+      function initSeriesSlideshowInContainer(container, files) {
+        if (!container) return;
+        if (!files.length) {
+          container.classList.add("series-slideshow--empty");
+          container.innerHTML = "<p class=\"series-slideshow-empty\">No media in this gallery yet.</p>";
+          container.removeAttribute("hidden");
+          return;
+        }
+        container.classList.remove("series-slideshow--empty");
+        var label = container.getAttribute("aria-label") || "Series media gallery";
+        var slidesHtml = files.map(function (f, i) {
+          return buildSeriesSlideHtml(f, i, i === 0);
+        }).join("");
+        var showControls = files.length > 1;
+        container.innerHTML = "" +
+          '<div class="series-slideshow-viewport" tabindex="0" aria-label="' + escapeHtml(label) + '">' +
+            '<div class="series-slides">' + slidesHtml + "</div>" +
+            (showControls
+              ? '<div class="series-slideshow-toolbar">' +
+                  '<button class="series-slideshow-nav series-slideshow-prev" type="button" aria-label="Previous image">' +
+                    "<span aria-hidden=\"true\">&#8592;</span>" +
+                  "</button>" +
+                  '<div class="series-slideshow-dots" role="tablist" aria-label="Gallery slides"></div>' +
+                  '<button class="series-slideshow-nav series-slideshow-next" type="button" aria-label="Next image">' +
+                    "<span aria-hidden=\"true\">&#8594;</span>" +
+                  "</button>" +
+                "</div>"
+              : "") +
+          "</div>";
+        if (!showControls) {
+          initSeriesLightboxUIOnce();
+          container._seriesFiles = files;
+          var vpSingle = container.querySelector(".series-slideshow-viewport");
+          if (vpSingle) {
+            vpSingle.addEventListener("click", function () {
+              openSeriesLightbox(files, 0, label);
+            });
+            vpSingle.style.cursor = "pointer";
+          }
+          container.removeAttribute("hidden");
+          return;
+        }
+        var viewport = container.querySelector(".series-slideshow-viewport");
+        var slidesRoot = container.querySelector(".series-slides");
+        var toolbar = container.querySelector(".series-slideshow-toolbar");
+        if (toolbar) {
+          toolbar.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+        }
+        var prevBtn = container.querySelector(".series-slideshow-prev");
+        var nextBtn = container.querySelector(".series-slideshow-next");
+        var dotsRoot = container.querySelector(".series-slideshow-dots");
+        var slides = Array.prototype.slice.call(container.querySelectorAll(".series-slide"));
+        dotsRoot.innerHTML = files.map(function (_, i) {
+          return '<button type="button" class="series-dot' + (i === 0 ? " is-active" : "") + '" data-dot-index="' + i + '" role="tab" aria-label="Slide ' + (i + 1) + " of " + files.length + '" aria-selected="' + (i === 0 ? "true" : "false") + '"></button>';
+        }).join("");
+        var dots = Array.prototype.slice.call(dotsRoot.querySelectorAll(".series-dot"));
+        var activeIndex = 0;
+        var reducedMotion = false;
+        try {
+          reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        } catch (_) {}
+        var seriesAutoplayId = null;
+        var seriesAutoplayMs = 2300;
+        function stopSeriesAutoplay() {
+          if (seriesAutoplayId) {
+            window.clearInterval(seriesAutoplayId);
+            seriesAutoplayId = null;
+          }
+        }
+        function startSeriesAutoplay() {
+          stopSeriesAutoplay();
+          if (slides.length < 2 || reducedMotion) return;
+          seriesAutoplayId = window.setInterval(function () {
+            goTo(activeIndex + 1);
+          }, seriesAutoplayMs);
+        }
+        function render() {
+          pauseVideosIn(slidesRoot);
+          slides.forEach(function (slide, i) {
+            slide.classList.toggle("is-active", i === activeIndex);
+          });
+          dots.forEach(function (dot, i) {
+            var on = i === activeIndex;
+            dot.classList.toggle("is-active", on);
+            dot.setAttribute("aria-selected", on ? "true" : "false");
+          });
+        }
+        function goTo(index) {
+          activeIndex = (index + slides.length) % slides.length;
+          render();
+        }
+        prevBtn.addEventListener("click", function () {
+          goTo(activeIndex - 1);
+          startSeriesAutoplay();
+        });
+        nextBtn.addEventListener("click", function () {
+          goTo(activeIndex + 1);
+          startSeriesAutoplay();
+        });
+        dots.forEach(function (dot) {
+          dot.addEventListener("click", function () {
+            goTo(Number(dot.getAttribute("data-dot-index")) || 0);
+            startSeriesAutoplay();
+          });
+        });
+        viewport.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            goTo(activeIndex - 1);
+            startSeriesAutoplay();
+          } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            goTo(activeIndex + 1);
+            startSeriesAutoplay();
+          }
+        });
+        viewport.addEventListener("mouseenter", stopSeriesAutoplay);
+        viewport.addEventListener("mouseleave", function () {
+          if (!reducedMotion) startSeriesAutoplay();
+        });
+        render();
+        startSeriesAutoplay();
+        initSeriesLightboxUIOnce();
+        container._seriesFiles = files;
+        viewport.addEventListener("click", function () {
+          openSeriesLightbox(files, activeIndex, label);
+        });
+        viewport.style.cursor = "pointer";
+        container.removeAttribute("hidden");
+      }
+
+      async function loadSeriesGalleries(db) {
+        var nodes = document.querySelectorAll(".series-slideshow");
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          var id = (el.getAttribute("data-media-doc-id") || "").trim();
+          if (!id) {
+            el.classList.add("series-slideshow--inactive");
+            el.innerHTML = "";
+            el.setAttribute("hidden", "hidden");
+            continue;
+          }
+          el.classList.remove("series-slideshow--inactive");
+          el.removeAttribute("hidden");
+          try {
+            var docSnap = await db.collection("users").doc(TARGET_USER_UID).collection("items").doc(id).get();
+            if (!docSnap.exists) {
+              el.classList.add("series-slideshow--error");
+              el.innerHTML = '<p class="series-slideshow-error">Gallery not found.</p>';
+              continue;
+            }
+            var data = docSnap.data();
+            var files = normalizeMediaFiles(data);
+            initSeriesSlideshowInContainer(el, files);
+          } catch (_) {
+            el.classList.add("series-slideshow--error");
+            el.innerHTML = '<p class="series-slideshow-error">Could not load this gallery.</p>';
+          }
+        }
+      }
+
+      function markSeriesGalleriesFailed() {
+        var nodes = document.querySelectorAll(".series-slideshow[data-media-doc-id]");
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i];
+          var id = (el.getAttribute("data-media-doc-id") || "").trim();
+          if (!id) continue;
+          el.classList.add("series-slideshow--error");
+          el.removeAttribute("hidden");
+          el.innerHTML = '<p class="series-slideshow-error">Galleries unavailable.</p>';
+        }
       }
 
       function normalizePost(post) {
@@ -543,9 +1120,85 @@
               '<h3 class="grid-card-title">The portfolio grid will appear here once Firestore items are available.</h3>' +
               '<p>Content loading is wired in and ready.</p>' +
             '</div>';
+          setupWorksToggle();
           return;
         }
         container.innerHTML = posts.map(buildCardHtml).join("");
+        setupWorksToggle();
+      }
+
+      var worksToggleState = { expanded: false, bound: false };
+
+      function getWorksRowsCap() {
+        var w = window.innerWidth || document.documentElement.clientWidth || 0;
+        if (w <= 768) return 4;
+        if (w <= 1024) return 3;
+        return 2;
+      }
+
+      function getWorksColumnCount(grid) {
+        if (!grid) return 1;
+        var styles = window.getComputedStyle(grid);
+        var template = styles.getPropertyValue("grid-template-columns") || "";
+        var tracks = template.trim().split(/\s+/).filter(Boolean);
+        return Math.max(tracks.length, 1);
+      }
+
+      function applyWorksToggle() {
+        var grid = document.getElementById("works-grid");
+        var wrap = document.getElementById("works-toggle-wrap");
+        var btn = document.getElementById("works-toggle");
+        if (!grid || !wrap || !btn) return;
+
+        var cards = Array.prototype.slice.call(grid.querySelectorAll(".grid-card"));
+        if (cards.length === 0) {
+          wrap.hidden = true;
+          return;
+        }
+
+        var cols = getWorksColumnCount(grid);
+        var rows = getWorksRowsCap();
+        var cap = cols * rows;
+
+        if (cards.length <= cap) {
+          cards.forEach(function (card) { card.classList.remove("is-works-hidden"); });
+          wrap.hidden = true;
+          worksToggleState.expanded = false;
+          btn.setAttribute("aria-expanded", "false");
+          btn.textContent = "View more";
+          return;
+        }
+
+        wrap.hidden = false;
+        if (worksToggleState.expanded) {
+          cards.forEach(function (card) { card.classList.remove("is-works-hidden"); });
+          btn.setAttribute("aria-expanded", "true");
+          btn.textContent = "View less";
+        } else {
+          cards.forEach(function (card, i) {
+            card.classList.toggle("is-works-hidden", i >= cap);
+          });
+          btn.setAttribute("aria-expanded", "false");
+          btn.textContent = "View more";
+        }
+      }
+
+      function setupWorksToggle() {
+        var btn = document.getElementById("works-toggle");
+        if (!btn) return;
+        if (!worksToggleState.bound) {
+          btn.addEventListener("click", function () {
+            worksToggleState.expanded = !worksToggleState.expanded;
+            applyWorksToggle();
+          });
+          var resizeRaf = null;
+          window.addEventListener("resize", function () {
+            if (resizeRaf) window.cancelAnimationFrame(resizeRaf);
+            resizeRaf = window.requestAnimationFrame(applyWorksToggle);
+          });
+          worksToggleState.bound = true;
+        }
+        applyWorksToggle();
       }
 
       function initSlider(posts) {
@@ -693,6 +1346,7 @@
               '</div>';
           }
           initSlider([]);
+          markSeriesGalleriesFailed();
           return;
         }
 
@@ -706,9 +1360,11 @@
           renderGrid(posts);
           initSlider(posts);
           updateHomeMeta(posts);
+          await loadSeriesGalleries(db);
         } catch (_) {
           renderGrid([]);
           initSlider([]);
+          markSeriesGalleriesFailed();
         }
       }
 
