@@ -307,13 +307,17 @@
     }
     #pad .label {
       position: absolute;
-      bottom: -2px;
+      bottom: 2px;
       left: 50%;
       transform: translateX(-50%);
       font-size: 9px;
-      color: rgba(40, 30, 15, 0.5);
-      letter-spacing: 3px;
+      font-weight: bold;
+      color: rgba(40, 30, 15, 0.52);
+      letter-spacing: 2.5px;
       pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+      white-space: nowrap;
     }
 
     /* ---- Bottom row: speakers + START ---- */
@@ -480,11 +484,13 @@
           <div class="stick-well" aria-hidden="true"></div>
           <div class="stick-base" id="leftBase"></div>
           <div class="stick-knob" id="leftKnob"></div>
+          <span class="label">MOVE</span>
         </div>
         <div class="stick-zone right">
           <div class="stick-well" aria-hidden="true"></div>
           <div class="stick-base" id="rightBase"></div>
           <div class="stick-knob" id="rightKnob"></div>
+          <span class="label">SHOOT</span>
         </div>
       </div>
       <div class="jj-bottom">
@@ -1279,7 +1285,7 @@
 
     // --------- CAMERA ---------
     // Mobile gets a slightly wider view since screen real estate is tighter.
-    const BASE_ZOOM = isMobile ? 1.55 : 1.75;
+    const BASE_ZOOM = isMobile ? 1.25 : 1.75;
     // ZOOM is mutable so we can briefly zoom in during the death sequence.
     let ZOOM = BASE_ZOOM;
     // rot: current world rotation (radians). targetRot: eased toward this each frame.
