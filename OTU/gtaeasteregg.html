@@ -138,15 +138,21 @@
     body.mobile .desktop-only { display: none; }
     body.mobile .mobile-only { display: block; }
 
-    /* Screen: thin bezel — thin dark line that reads as a recessed LCD. */
+    /* Screen: thin bezel — height locked with dvh so it doesn't bleed under
+       the faceplate on mobile browsers where 100vh ≠ visible viewport. */
     body.mobile #game {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      width: calc(100vw - 24px);
-      height: calc(52vh - 18px);
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top, 0px));
+      left: max(12px, env(safe-area-inset-left, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      width: auto;
+      max-width: calc(100vw - 24px);
+      height: calc(52dvh - 18px);
       border-radius: 3px;
       background: #0a0806;
+      display: block;
+      overflow: hidden;
+      z-index: 1;
       box-shadow:
         0 0 0 2px #1a1510,                       /* outer thin bezel */
         0 0 0 3px #b9ad94,                       /* hairline metallic trim */
@@ -161,7 +167,9 @@
     body.mobile #stars { font-size: 14px; letter-spacing: 1px; }
     body.mobile #prompt { display: none !important; }
     body.mobile #wasted {
-      inset: 12px 12px calc(48vh - 6px) 12px;
+      top: max(12px, env(safe-area-inset-top, 0px));
+      left: 12px; right: 12px;
+      bottom: calc(48dvh + 8px);
       font-size: 50px; letter-spacing: 10px;
       z-index: 7;
     }
@@ -172,23 +180,25 @@
     body.mobile #intro .controls { font-size: 12px; }
     body.mobile #intro button { font-size: 15px; padding: 12px 26px; margin-top: 18px; }
 
-    /* ---- Pad (faceplate) ---- */
+    /* ---- Pad (faceplate) — fills space below the screen; 48dvh tracks dynamic viewport. */
     body.mobile #pad {
       display: block;
       position: fixed;
       left: 0; right: 0; bottom: 0;
-      height: 48vh;
+      height: 48dvh;
       background: transparent;
       z-index: 5;
       touch-action: none;
       user-select: none;
       -webkit-user-select: none;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
     /* Faceplate inner frame — soft inner shadow evokes a moulded panel. */
     .jj-plate {
       position: relative;
       height: 100%;
-      padding: 10px 16px 14px;
+      min-height: 0;
+      padding: 8px 14px 10px;
       display: flex;
       flex-direction: column;
       /* A faint horizontal seam line at the top reads as the screen/faceplate join */
@@ -199,12 +209,22 @@
     /* Wordmark — tracked-out, low-contrast, utilitarian (Rams) */
     .jj-wordmark {
       text-align: center;
-      font-size: 11px;
-      letter-spacing: 7px;
+      font-size: 10px;
+      letter-spacing: 5px;
       color: #3a3328;
       font-weight: bold;
-      padding: 4px 0 8px;
+      padding: 2px 0 4px;
+      flex: 0 0 auto;
       text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+    }
+    /* ENTER in its own bar so it never sits on top of the right joystick */
+    .jj-interact {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-height: 0;
+      padding: 0 4px 4px 8px;
     }
     .jj-wordmark span {
       display: inline-block;
@@ -216,12 +236,14 @@
       letter-spacing: 2px;
     }
 
-    /* ---- Stick row ---- */
+    /* ---- Stick row (pushed down: space for wordmark + optional ENTER) ---- */
     .jj-row {
       flex: 1;
       display: flex;
       min-height: 0;
       position: relative;
+      margin-top: 4px;
+      padding-top: clamp(4px, 1.2vh, 10px);
     }
     #pad .stick-zone {
       flex: 1;
@@ -344,16 +366,14 @@
       transform: translateY(2px);
     }
 
-    /* ---- Interact button (ENTER/EXIT) — physical round button on the pad ---- */
+    /* ---- Interact button (ENTER/EXIT) — in .jj-interact, not over sticks ---- */
+    body.mobile #interactBtn { display: none; }
     body.mobile #interactBtn.show { display: block; }
     #interactBtn {
-      position: absolute;
-      /* Sit just above-and-left of the right joystick, near the centre of the pad,
-         so the user's right thumb can reach it without leaving the aim stick. */
-      left: 62%;
-      top: 22%;
-      transform: translate(-50%, -50%);
-      width: 58px; height: 58px;
+      position: static;
+      transform: none;
+      flex: 0 0 auto;
+      width: 56px; height: 56px;
       border-radius: 50%;
       color: #2a2217;
       font-family: inherit;
@@ -380,7 +400,7 @@
         0 1px 0 #8c7f68,
         0 2px 4px rgba(40, 30, 15, 0.35),
         inset 0 2px 4px rgba(40, 30, 15, 0.3);
-      transform: translate(-50%, -50%) translateY(2px);
+      transform: translateY(2px);
     }
 
     /* ---- PAUSED overlay ---- */
@@ -388,7 +408,8 @@
     #pausedOverlay {
       position: fixed;
       left: 0; right: 0; top: 0;
-      height: 52vh;
+      height: 52dvh;
+      max-height: calc(100dvh * 0.52);
       align-items: center;
       justify-content: center;
       background: rgba(10, 8, 6, 0.72);
@@ -451,6 +472,9 @@
   <div id="pad">
     <div class="jj-plate">
       <div class="jj-wordmark"><span>JJ</span>&middot;BOY</div>
+      <div class="jj-interact">
+        <button id="interactBtn" type="button">ENTER</button>
+      </div>
       <div class="jj-row">
         <div class="stick-zone left">
           <div class="stick-well" aria-hidden="true"></div>
@@ -468,7 +492,6 @@
         <button id="pauseBtn" class="jj-start" type="button">START</button>
         <div class="jj-speaker right" aria-hidden="true"></div>
       </div>
-      <button id="interactBtn" type="button">ENTER</button>
     </div>
   </div>
 
@@ -522,11 +545,13 @@
 
     function resize() {
       if (document.body.classList.contains('mobile')) {
-        // Canvas sits inside a thin bezel (12px L/R, 12px top, 6px bottom).
-        // Match the internal pixel buffer to the rendered CSS size so the
-        // game doesn't get scaled or blurred.
-        W = canvas.width = Math.max(1, window.innerWidth - 24);
-        H = canvas.height = Math.max(1, Math.floor(window.innerHeight * 0.52) - 18);
+        // Buffer size = CSS box (52dvh − 18px) so the canvas is never larger
+        // than the screen band and the faceplate (JJ·BOY) is not covered.
+        const r = canvas.getBoundingClientRect();
+        W = Math.max(1, Math.floor(r.width) || (Math.min(window.innerWidth, document.documentElement.clientWidth) - 24));
+        H = Math.max(1, Math.floor(r.height) || (Math.max(0, Math.floor(window.innerHeight * 0.52) - 18)));
+        canvas.width = W;
+        canvas.height = H;
       } else {
         W = canvas.width = window.innerWidth;
         H = canvas.height = window.innerHeight;
@@ -1179,6 +1204,79 @@
       return false;
     }
 
+    // Sidewalk substations / pad-mount transformers — solid cover (same AABB
+    // tests as building collision). Dark grey with a green tint, placed on
+    // sidewalk tiles only.
+    const transformers = [];
+    // Half-extents: long axis = parallel to the adjacent road, short = across the pavement
+    // (a bit longer + slightly wider than the first build).
+    const XFORM_ALONG = 7.8;
+    const XFORM_ACROSS = 3.1;
+    // Pixels to shift the centre from the tile middle toward the road (away from the building).
+    const XFORM_ROAD_NUDGE = 8;
+    function nudgeTowardRoad(tx, ty) {
+      let ox = 0, oy = 0;
+      if (tx > 0 && map[ty][tx - 1] === T_ROAD) ox -= 1;
+      if (tx < COLS - 1 && map[ty][tx + 1] === T_ROAD) ox += 1;
+      if (ty > 0 && map[ty - 1][tx] === T_ROAD) oy -= 1;
+      if (ty < ROWS - 1 && map[ty + 1][tx] === T_ROAD) oy += 1;
+      const len = Math.hypot(ox, oy);
+      if (len < 0.01) return { dx: 0, dy: 0 };
+      const k = XFORM_ROAD_NUDGE / len;
+      return { dx: ox * k, dy: oy * k };
+    }
+    function orientationFromRoad(tx, ty) {
+      const roadN = ty > 0 && map[ty - 1][tx] === T_ROAD;
+      const roadS = ty < ROWS - 1 && map[ty + 1][tx] === T_ROAD;
+      const roadE = tx < COLS - 1 && map[ty][tx + 1] === T_ROAD;
+      const roadW = tx > 0 && map[ty][tx - 1] === T_ROAD;
+      // Neighbouring road to N or S → street runs E–W, cabinet is long in X, thin in Y.
+      if (roadN || roadS) {
+        return { hw: XFORM_ALONG, hh: XFORM_ACROSS, horiz: true };
+      }
+      // Neighbouring road to E or W → street runs N–S, cabinet is long in Y, thin in X.
+      if (roadE || roadW) {
+        return { hw: XFORM_ACROSS, hh: XFORM_ALONG, horiz: false };
+      }
+      return { hw: XFORM_ALONG, hh: XFORM_ACROSS, horiz: true };
+    }
+    function rectHitsTransformer(x, y, hw, hh) {
+      for (const t of transformers) {
+        if (Math.abs(t.x - x) < t.hw + hw && Math.abs(t.y - y) < t.hh + hh) return true;
+      }
+      return false;
+    }
+    function rectHitsCover(x, y, hw, hh) {
+      return rectHitsBuilding(x, y, hw, hh) || rectHitsTransformer(x, y, hw, hh);
+    }
+    function pointInAnyTransformer(wx, wy) {
+      for (const t of transformers) {
+        if (Math.abs(wx - t.x) < t.hw && Math.abs(wy - t.y) < t.hh) return true;
+      }
+      return false;
+    }
+    function genTransformers() {
+      const minD = 48;
+      for (let ty = 1; ty < ROWS - 1; ty++) {
+        for (let tx = 1; tx < COLS - 1; tx++) {
+          if (map[ty][tx] !== T_SIDEWALK) continue;
+          if (tileHash(tx, ty, 404) > 0.095) continue;
+          const o = orientationFromRoad(tx, ty);
+          const n = nudgeTowardRoad(tx, ty);
+          // Centre nudged from tile middle toward the road kerb, not the building.
+          const wx = tx * TILE + TILE * 0.5 + n.dx;
+          const wy = ty * TILE + TILE * 0.5 + n.dy;
+          let ok = true;
+          for (const t of transformers) {
+            if (Math.hypot(t.x - wx, t.y - wy) < minD) { ok = false; break; }
+          }
+          if (!ok) continue;
+          transformers.push({ x: wx, y: wy, hw: o.hw, hh: o.hh, horiz: o.horiz });
+        }
+      }
+    }
+    genTransformers();
+
     // --------- CAMERA ---------
     // Mobile gets a slightly wider view since screen real estate is tighter.
     const BASE_ZOOM = isMobile ? 1.55 : 1.75;
@@ -1339,6 +1437,13 @@
       damageIdleTimer: 0,
       regenTickTimer: REGEN_INTERVAL
     };
+    (function nudgePlayerOffTransformers() {
+      for (let i = 0; i < 40; i++) {
+        if (!rectHitsCover(player.x, player.y, player.hw, player.hh)) return;
+        const p = findWalkSpot();
+        player.x = p.x; player.y = p.y;
+      }
+    })();
 
     function playerWeapon() { return WEAPONS[player.weapon] || WEAPONS.pistol; }
 
@@ -1506,7 +1611,9 @@
         const x = 50 + Math.random() * (WORLD_W - 100);
         const y = 50 + Math.random() * (WORLD_H - 100);
         const t = tileAt(x, y);
-        if (t === T_SIDEWALK || t === T_GRASS || t === T_ROAD) return { x, y };
+        if (t === T_SIDEWALK || t === T_GRASS || t === T_ROAD) {
+          if (!rectHitsTransformer(x, y, 6, 6)) return { x, y };
+        }
       }
       return { x: WORLD_W / 2, y: WORLD_H / 2 };
     }
@@ -1712,9 +1819,9 @@
         angle: snap,
         speed: 0,
         hp: 220, maxHp: 220,
-        color: UK_POLICE_WHITE,
+        color: '#14161a',       // black armed‑response (not white patrol livery)
         type: 'van',
-        accent: null,
+        accent: '#2a2c32',
         driver: null,
         isCop: false,
         isPolice: false,
@@ -1912,7 +2019,7 @@
         const c = player.inCar;
         const sx = c.x + Math.cos(c.angle + Math.PI / 2) * (c.hh + 14);
         const sy = c.y + Math.sin(c.angle + Math.PI / 2) * (c.hh + 14);
-        if (!rectHitsBuilding(sx, sy, player.hw, player.hh)) {
+        if (!rectHitsCover(sx, sy, player.hw, player.hh)) {
           player.x = sx; player.y = sy;
         } else {
           // try the other side
@@ -1947,12 +2054,12 @@
     function tryMove(ent, dx, dy) {
       // axis-separated movement against buildings
       let nx = ent.x + dx;
-      if (!rectHitsBuilding(nx, ent.y, ent.hw, ent.hh) &&
+      if (!rectHitsCover(nx, ent.y, ent.hw, ent.hh) &&
           nx - ent.hw > 0 && nx + ent.hw < WORLD_W) {
         ent.x = nx;
       }
       let ny = ent.y + dy;
-      if (!rectHitsBuilding(ent.x, ny, ent.hw, ent.hh) &&
+      if (!rectHitsCover(ent.x, ny, ent.hw, ent.hh) &&
           ny - ent.hh > 0 && ny + ent.hh < WORLD_H) {
         ent.y = ny;
       }
@@ -2042,13 +2149,13 @@
 
       const beforeSpeed = c.speed;
       const nx = c.x + dx;
-      if (!rectHitsBuilding(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
+      if (!rectHitsCover(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
         c.x = nx;
       } else {
         c.speed *= -0.25;
       }
       const ny = c.y + dy;
-      if (!rectHitsBuilding(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
+      if (!rectHitsCover(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
         c.y = ny;
       } else {
         c.speed *= -0.25;
@@ -2181,16 +2288,17 @@
 
         if (b.life <= 0) hit = true;
         else if (b.x < 0 || b.x > WORLD_W || b.y < 0 || b.y > WORLD_H) hit = true;
-        else if (isSolidPt(b.x, b.y)) {
+        else if (isSolidPt(b.x, b.y) || pointInAnyTransformer(b.x, b.y)) {
           hit = true;
-          // wall spark
+          const onTransformer = !isSolidPt(b.x, b.y) && pointInAnyTransformer(b.x, b.y);
+          // wall / transformer spark
           for (let k = 0; k < 3; k++) {
             particles.push({
               x: b.x, y: b.y,
               vx: (Math.random() - 0.5) * 80,
               vy: (Math.random() - 0.5) * 80,
               life: 0.2, maxLife: 0.2,
-              size: 2, color: '#cfcfcf'
+              size: 2, color: onTransformer ? '#8a9a8c' : '#cfcfcf'
             });
           }
         } else {
@@ -2391,7 +2499,7 @@
           const nx = Math.cos(c.angle), ny = Math.sin(c.angle);
           const newX = c.x + nx * c.speed * dt;
           const newY = c.y + ny * c.speed * dt;
-          if (!rectHitsBuilding(newX, newY, c.hw, c.hh)) { c.x = newX; c.y = newY; }
+          if (!rectHitsCover(newX, newY, c.hw, c.hh)) { c.x = newX; c.y = newY; }
           return;
         }
 
@@ -2411,7 +2519,7 @@
           const nx = Math.cos(c.angle), ny = Math.sin(c.angle);
           const newX = c.x + nx * c.speed * dt;
           const newY = c.y + ny * c.speed * dt;
-          if (!rectHitsBuilding(newX, newY, c.hw, c.hh)) {
+          if (!rectHitsCover(newX, newY, c.hw, c.hh)) {
             c.x = newX; c.y = newY; c.aiStuckTimer = 0;
           } else {
             c.speed *= 0.3;
@@ -2490,7 +2598,7 @@
       // only brake for buildings, never for the player / other cars (they're ramming!)
       const lookX = c.x + Math.cos(c.angle) * 42;
       const lookY = c.y + Math.sin(c.angle) * 42;
-      if (rectHitsBuilding(lookX, lookY, c.hw * 0.5, c.hh * 0.5)) {
+      if (rectHitsCover(lookX, lookY, c.hw * 0.5, c.hh * 0.5)) {
         if (c.speed > 40) c.brakeFlash = 1;
         c.speed = Math.max(0, c.speed - 300 * dt);
       }
@@ -2500,11 +2608,11 @@
       const mx = Math.cos(c.angle) * c.speed * dt;
       const my = Math.sin(c.angle) * c.speed * dt;
       const nx = c.x + mx;
-      if (!rectHitsBuilding(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
+      if (!rectHitsCover(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
         c.x = nx;
       } else c.speed *= -0.2;
       const ny = c.y + my;
-      if (!rectHitsBuilding(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
+      if (!rectHitsCover(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
         c.y = ny;
       } else c.speed *= -0.2;
 
@@ -2601,7 +2709,7 @@
         // brake if a car or building is right in front
         const lookX = c.x + Math.cos(c.angle) * 38;
         const lookY = c.y + Math.sin(c.angle) * 38;
-        let blocked = rectHitsBuilding(lookX, lookY, c.hw * 0.6, c.hh * 0.6);
+        let blocked = rectHitsCover(lookX, lookY, c.hw * 0.6, c.hh * 0.6);
         if (!blocked) {
           for (const other of cars) {
             if (other === c || other.hp <= 0) continue;
@@ -2618,13 +2726,13 @@
         const my = Math.sin(c.angle) * c.speed * dt;
 
         const nx = c.x + mx;
-        if (!rectHitsBuilding(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
+        if (!rectHitsCover(nx, c.y, c.hw, c.hh) && nx - c.hw > 4 && nx + c.hw < WORLD_W - 4) {
           c.x = nx;
         } else {
           c.speed *= -0.2;
         }
         const ny = c.y + my;
-        if (!rectHitsBuilding(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
+        if (!rectHitsCover(c.x, ny, c.hw, c.hh) && ny - c.hh > 4 && ny + c.hh < WORLD_H - 4) {
           c.y = ny;
         } else {
           c.speed *= -0.2;
@@ -3058,6 +3166,9 @@
       }
       ctx.globalAlpha = 1;
 
+      // Substation / pad‑mount electrical transformers (sidewalk cover)
+      drawTransformers(tx0, ty0, tx1, ty1);
+
       // billboards on the sides of buildings (cars & peds render over them)
       drawBillboards(tx0, ty0, tx1, ty1);
 
@@ -3288,8 +3399,11 @@
       for (const c of cars) {
         if (c.hp <= 0 || !(c.isPolice || c.isSwatVan)) continue;
         if (c.isSwatVan) {
-          ctx.fillStyle = '#4db8ff';
+          // Dark AR van (distinct from white patrol on the minimap)
+          ctx.fillStyle = '#1a1d22';
           ctx.fillRect(mx + c.x * sx - 2, my + c.y * sy - 2, 4, 4);
+          ctx.fillStyle = '#3a5a9a';
+          ctx.fillRect(mx + c.x * sx - 1, my + c.y * sy - 1, 2, 2);
         } else {
           ctx.fillStyle = '#2080d0';
           ctx.fillRect(mx + c.x * sx - 1.5, my + c.y * sy - 1.5, 3, 3);
@@ -3392,15 +3506,17 @@
       ctx.fillRect(wheelFrontX, c.hh - wheelH + 1, wheelW, wheelH);
       ctx.fillRect(wheelRearX,  c.hh - wheelH + 1, wheelW, wheelH);
 
-      // body — UK response vehicles: white; civilians: their colour
-      if (c.isPolice || c.isSwatVan) {
+      // body — normal UK police: white; black armed‑response van; others: their colour
+      if (c.isSwatVan) {
+        ctx.fillStyle = c.color; // black
+      } else if (c.isPolice) {
         ctx.fillStyle = UK_POLICE_WHITE;
       } else {
         ctx.fillStyle = c.color;
       }
       ctx.fillRect(-c.hw, -c.hh, w, h);
 
-      // roof — UK police + armed‑response van: "Battenburg" fluorescent blue/lime; others: dark inset
+      // roof — white patrol only: Battenburg; black AR van: dark roof; else inset shade
       let roofBackPad, roofFrontPad;
       if (type === 'sports') { roofBackPad = 6; roofFrontPad = 7; }
       else if (type === 'van') { roofBackPad = 3; roofFrontPad = 4; }
@@ -3409,10 +3525,10 @@
       const roofW = w - roofBackPad - roofFrontPad;
       const roofY0 = -c.hh + 2;
       const roofY1 = c.hh - 2;
-      if (c.isPolice || c.isSwatVan) {
+      if (c.isPolice && !c.isSwatVan) {
         drawUKBattenburgStripes(ctx, roofX, roofY0, roofW, roofY1);
       } else {
-        const roofColor = shade(c.color, -35);
+        const roofColor = c.isSwatVan ? '#0d0e12' : shade(c.color, -35);
         ctx.fillStyle = roofColor;
         ctx.fillRect(roofX, roofY0, roofW, h - 4);
       }
@@ -3431,7 +3547,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.75)';
       ctx.fillRect(roofX - 1, -c.hh + 1, 1, h - 2);
 
-      // accent stripe(s) — racing stripes on sports (not on UK livery)
+      // accent stripe(s) — racing stripes (not on police / AR van — van uses strips below)
       if (c.accent && !c.isPolice && !c.isSwatVan) {
         ctx.fillStyle = c.accent;
         if (type === 'sports') {
@@ -3449,11 +3565,11 @@
         ctx.fillRect(hx - 1, -1, 3, 3);
       }
 
-      // UK armed‑response van: thin reflective line along the sill (replaces old grey SWAT trim)
+      // Black AR van: subtle grey side strip (tactical, not white patrol)
       if (c.isSwatVan) {
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
-        ctx.fillRect(-c.hw + 2, -c.hh + 2, w - 4, 1);
-        ctx.fillRect(-c.hw + 2, c.hh - 3, w - 4, 1);
+        ctx.fillStyle = c.accent || '#2a2c32';
+        ctx.fillRect(-c.hw + 2, -c.hh + 3, w - 4, 1);
+        ctx.fillRect(-c.hw + 2, c.hh - 4, w - 4, 1);
       }
 
       // UK-style blue/white light bar (no US red/blue)
@@ -3477,10 +3593,10 @@
         ctx.globalAlpha = 1;
       }
 
-      // Roof legend — "POLICE" on UK response vehicles (van = larger type)
+      // Roof legend — "POLICE" (navy on white patrol, light on black AR van)
       if (c.isSwatVan) {
         ctx.save();
-        ctx.fillStyle = '#0a2d4a';
+        ctx.fillStyle = '#d8e0e8';
         ctx.font = 'bold 5px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -3769,6 +3885,62 @@
         ctx.fillStyle = gLimeWash;
         ctx.beginPath(); ctx.arc(bx, by, R, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
+      }
+    }
+
+    // UK-style pad-mount / mini-substation kiosks — thin, long axis always parallel
+    // to the road (horiz: E–W; vertical: N–S). Solid `rectHitsCover` in world space.
+    function drawTransformers(tx0, ty0, tx1, ty1) {
+      const cullX0 = tx0 * TILE - 40, cullY0 = ty0 * TILE - 40;
+      const cullX1 = (tx1 + 1) * TILE + 40, cullY1 = (ty1 + 1) * TILE + 40;
+      for (const t of transformers) {
+        if (t.x < cullX0 || t.x > cullX1 || t.y < cullY0 || t.y > cullY1) continue;
+        const w = t.hw * 2, h = t.hh * 2;
+        const H = t.horiz !== false; // default true for old saves
+        const m = 1, mi = 2; // insets; fit when w or h is small
+        // SE offset shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.34)';
+        ctx.fillRect(t.x - t.hw + 3, t.y - t.hh + 3, w, h);
+        // main housing — dark grey, slight cool green
+        ctx.fillStyle = '#38423e';
+        ctx.fillRect(t.x - t.hw, t.y - t.hh, w, h);
+        // inner panel
+        ctx.fillStyle = '#2c3430';
+        ctx.fillRect(t.x - t.hw + mi, t.y - t.hh + mi, w - 2 * mi, h - 2 * mi);
+        if (H) {
+          // Long axis E–W: face and strip along the long (top) edge
+          ctx.fillStyle = 'rgba(70, 110, 90, 0.35)';
+          ctx.fillRect(t.x - t.hw + mi, t.y - t.hh + mi, w - 2 * mi, Math.min(3, h * 0.35));
+          ctx.fillStyle = '#4d5a55';
+          ctx.fillRect(t.x - t.hw, t.y - t.hh, w, 1);
+          ctx.fillStyle = '#1e2421';
+          ctx.fillRect(t.x - t.hw, t.y + t.hh - 1, w, 1);
+          ctx.fillStyle = '#9a8c78';
+          for (let k = 0; k < 3; k++) {
+            const px = t.x - t.hw + 3 + (k * w) / 3.2;
+            ctx.fillRect(px, t.y - t.hh + 3, 2, 2);
+          }
+          ctx.fillStyle = 'rgba(200, 220, 80, 0.22)';
+          ctx.fillRect(t.x - t.hw + m, t.y + t.hh - 2, w - 2 * m, 1);
+        } else {
+          // Long axis N–S: highlights on left (west) and right (east) of the narrow face
+          ctx.fillStyle = 'rgba(70, 110, 90, 0.35)';
+          ctx.fillRect(t.x - t.hw + mi, t.y - t.hh + mi, Math.min(3, w * 0.4), h - 2 * mi);
+          ctx.fillStyle = '#4d5a55';
+          ctx.fillRect(t.x - t.hw, t.y - t.hh, 1, h);
+          ctx.fillStyle = '#1e2421';
+          ctx.fillRect(t.x + t.hw - 1, t.y - t.hh, 1, h);
+          ctx.fillStyle = '#9a8c78';
+          for (let k = 0; k < 3; k++) {
+            const py = t.y - t.hh + 3 + (k * h) / 3.2;
+            ctx.fillRect(t.x - t.hw + 3, py, 2, 2);
+          }
+          ctx.fillStyle = 'rgba(200, 220, 80, 0.22)';
+          ctx.fillRect(t.x + t.hw - 2, t.y - t.hh + m, 1, h - 2 * m);
+        }
+        ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(t.x - t.hw + 0.5, t.y - t.hh + 0.5, w - 1, h - 1);
       }
     }
 
