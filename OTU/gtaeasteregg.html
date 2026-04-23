@@ -1117,41 +1117,48 @@
       b.img = im;
     }
 
-    // One billboard per building block, random wall, evenly distributed images.
+    // Two billboards per building block: one full-size + one 50% size on a different wall.
     const billboards = [];
     function genBillboards() {
-      const LONG = 120;       // long axis: 3 tiles
-      const THICK = 32;       // perpendicular thickness (taller to sell the perspective illusion)
-      const OVERHANG = 6;    // how many px hangs over the sidewalk (toward the street)
-      const inset = THICK / 2 - OVERHANG; // center offset from the wall edge, into the roof
+      const LONG = 120;       // long axis (full)
+      const THICK = 32;       // perpendicular thickness
+      const LONG_S = LONG * 0.5;
+      const THICK_S = THICK * 0.5;
       // streetDir: +1 if the street side is at local +y, -1 if at local -y (after rotation)
       // N wall: no rotation, street is -y in local → -1
       // S wall: no rotation, street is +y in local → +1
       // W wall: rotated +90°, street (world -x) maps to local +y → +1
       // E wall: rotated +90°, street (world +x) maps to local -y → -1
+      function pushBillboardOnWall(bx, by, wall, long, thick, imgIdx) {
+        const overhang = long * (6 / LONG);
+        const inset = thick / 2 - overhang;
+        const BX0 = (bx * 10 + 3) * TILE;
+        const BY0 = (by * 10 + 3) * TILE;
+        const BX1 = (bx * 10 + 9) * TILE;
+        const BY1 = (by * 10 + 9) * TILE;
+        const midX = (BX0 + BX1) / 2;
+        const midY = (BY0 + BY1) / 2;
+        let cx, cy, angle, streetDir;
+        if (wall === 0)      { cx = midX;        cy = BY0 + inset; angle = 0;           streetDir = -1; }
+        else if (wall === 1) { cx = BX1 - inset; cy = midY;        angle = Math.PI / 2; streetDir = -1; }
+        else if (wall === 2) { cx = midX;        cy = BY1 - inset; angle = 0;           streetDir = 1;  }
+        else                 { cx = BX0 + inset; cy = midY;        angle = Math.PI / 2; streetDir = 1;  }
+        billboards.push({ cx, cy, long, thick, angle, streetDir, imgIdx });
+      }
       for (let by = 0; by * 10 + 9 < ROWS; by++) {
         for (let bx = 0; bx * 10 + 9 < COLS; bx++) {
           const cxT = bx * 10 + 5, cyT = by * 10 + 5;
           if (cyT >= ROWS || cxT >= COLS) continue;
           if (map[cyT][cxT] !== T_BUILDING) continue;
 
-          const wall = Math.floor(tileHash(bx, by, 101) * 4); // 0=N 1=E 2=S 3=W
-          const imgIdx = Math.floor(tileHash(bx, by, 102) * billboardImages.length);
+          const wallA = Math.floor(tileHash(bx, by, 101) * 4); // 0=N 1=E 2=S 3=W
+          let wallB = Math.floor(tileHash(bx, by, 103) * 4);
+          if (wallB === wallA) wallB = (wallA + 1) % 4;
+          const imgA = Math.floor(tileHash(bx, by, 102) * billboardImages.length);
+          const imgB = Math.floor(tileHash(bx, by, 104) * billboardImages.length);
 
-          const BX0 = (bx * 10 + 3) * TILE;
-          const BY0 = (by * 10 + 3) * TILE;
-          const BX1 = (bx * 10 + 9) * TILE;
-          const BY1 = (by * 10 + 9) * TILE;
-          const midX = (BX0 + BX1) / 2;
-          const midY = (BY0 + BY1) / 2;
-
-          let cx, cy, angle, streetDir;
-          if (wall === 0)      { cx = midX;        cy = BY0 + inset; angle = 0;           streetDir = -1; }
-          else if (wall === 1) { cx = BX1 - inset; cy = midY;        angle = Math.PI / 2; streetDir = -1; }
-          else if (wall === 2) { cx = midX;        cy = BY1 - inset; angle = 0;           streetDir = 1;  }
-          else                 { cx = BX0 + inset; cy = midY;        angle = Math.PI / 2; streetDir = 1;  }
-
-          billboards.push({ cx, cy, long: LONG, thick: THICK, angle, streetDir, imgIdx });
+          pushBillboardOnWall(bx, by, wallA, LONG, THICK, imgA);
+          pushBillboardOnWall(bx, by, wallB, LONG_S, THICK_S, imgB);
         }
       }
     }
@@ -1286,6 +1293,8 @@
     // --------- CAMERA ---------
     // Mobile gets a slightly wider view since screen real estate is tighter.
     const BASE_ZOOM = isMobile ? 1.25 : 1.75;
+    // In a vehicle on mobile, scale BASE_ZOOM by this (<1) to zoom out a little.
+    const MOBILE_CAR_ZOOM_MULT = 0.90;
     // ZOOM is mutable so we can briefly zoom in during the death sequence.
     let ZOOM = BASE_ZOOM;
     // rot: current world rotation (radians). targetRot: eased toward this each frame.
@@ -1294,6 +1303,11 @@
     const camera = { x: 0, y: 0, shake: 0, rot: 0, targetRot: 0 };
     // Time constant for the rotation lerp; higher = smoother / slower catch-up.
     const CAM_ROT_TAU = 0.08;
+    // In-car: move the focal point forward along the direction of travel (world units) so
+    // more road shows ahead. Scales with |car.speed|; 0/1 blend uses CAM_ROT_TAU (same as rot).
+    const DRIVE_LOOKAHEAD_MAX = 52;
+    const DRIVE_LOOKAHEAD_SPEED_REF = 240; // |speed| at which offset reaches DRIVE_LOOKAHEAD_MAX
+    let driveLookBlend = 0; // 0..1, eased; off during WASTED / cop-kill
 
     // Hitstop: if > 0, update() is skipped this frame (still renders) for impact punch.
     let hitstopTimer = 0;
@@ -3084,6 +3098,18 @@
         else          bias = (1 - (k - 0.25) / 0.75) * 0.6;
         focusX = pos.x + (copKillFx.x - pos.x) * bias;
         focusY = pos.y + (copKillFx.y - pos.y) * bias;
+      } else if (player.inCar && !deathFx.active && driveLookBlend > 0.001) {
+        // Shift the screen-centre world point along travel direction: car sits lower, more ahead visible.
+        const c = player.inCar;
+        const sp = Math.abs(c.speed);
+        if (sp > 0.5) {
+          const t = Math.min(1, sp / DRIVE_LOOKAHEAD_SPEED_REF);
+          const te = t * t * (3 - 2 * t);
+          const dist = DRIVE_LOOKAHEAD_MAX * te * driveLookBlend;
+          const sgn = c.speed >= 0 ? 1 : -1;
+          focusX += Math.cos(c.angle) * sgn * dist;
+          focusY += Math.sin(c.angle) * sgn * dist;
+        }
       }
       const targetX = focusX - viewW / 2;
       const targetY = focusY - viewH / 2;
@@ -4529,18 +4555,21 @@
         updateHUD();
       }
 
+      // Per-frame base zoom: slightly wider in-car on mobile (does not apply on desktop).
+      const activeBaseZoom = (isMobile && player.inCar) ? BASE_ZOOM * MOBILE_CAR_ZOOM_MULT : BASE_ZOOM;
+
       // Death cinematic: ease ZOOM and glitch from dt-independent death.timer
       // so the zoom-in keeps animating even while hitstop is active.
       if (deathFx.active) {
         deathFx.timer += rawDt;
-        // ease ZOOM from BASE_ZOOM to ~2.4 over the first 400ms
+        // ease ZOOM from active base to ~2.4 over the first 400ms
         const k = Math.min(1, deathFx.timer / 0.4);
         const eased = k * k * (3 - 2 * k); // smoothstep
-        ZOOM = BASE_ZOOM + (2.4 - BASE_ZOOM) * eased;
+        ZOOM = activeBaseZoom + (2.4 - activeBaseZoom) * eased;
         // glitch decays from 1 -> 0 over first 300ms
         deathFx.glitch = Math.max(0, 1 - deathFx.timer / 0.3);
       } else if (copKillFx.active) {
-        // Cinematic zoom-in on the wreck: ease in to ~1.35x BASE over the freeze,
+        // Cinematic zoom-in on the wreck: ease in to ~1.35x base over the freeze,
         // hold through the slow-mo, then ease back. Triangle shape peaking mid.
         const k = Math.min(1, copKillFx.timer / copKillFx.duration);
         // Asymmetric ease: quick zoom-in, slower zoom-out so the moment lingers.
@@ -4553,15 +4582,22 @@
           const eased = u * u * (3 - 2 * u);
           zoomK = 1 - eased;
         }
-        ZOOM = BASE_ZOOM * (1 + 0.35 * zoomK);
+        ZOOM = activeBaseZoom * (1 + 0.35 * zoomK);
         deathFx.glitch = 0;
       } else {
-        ZOOM = BASE_ZOOM;
+        ZOOM = activeBaseZoom;
         deathFx.glitch = 0;
       }
 
       // Tick shockwaves even while slow-mo is on (they read as real time).
       updateShockwaves(rawDt);
+
+      // Ease driving look-ahead in/out on enter/exit (same time constant as camera.rot);
+      // disabled during WASTED + cop-kill so the focal point stays on those beats.
+      {
+        const want = (player.inCar && !deathFx.active && !copKillFx.active) ? 1 : 0;
+        driveLookBlend += (want - driveLookBlend) * (1 - Math.exp(-rawDt / CAM_ROT_TAU));
+      }
 
       // Camera rotation: nose-up while driving, 0 on foot. Kept outside the pause
       // gate so the rotation eases to its resting state even if the game is paused.
