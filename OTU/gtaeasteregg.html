@@ -32,8 +32,6 @@
     #hud .ammo { border-color: #f0c030; box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 8px rgba(240, 192, 48, 0.35); }
     #hud .ammo b { color: #f0c030; }
     #hud .ammo b.reload { color: #ff5a5a; }
-    #hud .kills { border-color: #55ff7a; box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 8px rgba(85, 255, 122, 0.35); }
-    #hud .kills b { color: #55ff7a; }
     #stars {
       color: #f0c030;
       font-size: 18px; letter-spacing: 2px;
@@ -161,10 +159,32 @@
         0 3px 10px rgba(40, 30, 15, 0.35);
     }
 
-    /* HUD / wasted / credit — compact + respects the new bezel inset. */
-    body.mobile #hud { font-size: 10px; top: 18px; left: 20px; }
-    body.mobile #hud .bar { padding: 3px 7px; margin-bottom: 2px; }
-    body.mobile #stars { font-size: 14px; letter-spacing: 1px; }
+    /* HUD — bottom row inside the “LCD” (above the pad), above the canvas. */
+    body.mobile #hud {
+      position: fixed;
+      z-index: 4;
+      top: auto;
+      left: max(12px, env(safe-area-inset-left, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      /* Align bottom edge a few px above the game canvas bottom = same gTop + gH as #game */
+      bottom: calc(100dvh - max(12px, env(safe-area-inset-top, 0px)) - (52dvh - 18px) + 6px);
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 5px 8px;
+      font-size: 9px;
+      line-height: 1.2;
+      padding: 0 2px 2px;
+      pointer-events: none;
+    }
+    body.mobile #hud br { display: none; }
+    body.mobile #hud .bar {
+      padding: 3px 7px;
+      margin-bottom: 0;
+    }
+    body.mobile #stars { font-size: 11px; letter-spacing: 0.5px; }
     body.mobile #prompt { display: none !important; }
     body.mobile #wasted {
       top: max(12px, env(safe-area-inset-top, 0px));
@@ -445,7 +465,6 @@
   <div id="hud">
     <div class="bar hp">HP <b id="hp">100</b></div><br>
     <div class="bar ammo">AMMO <b id="ammo">12/12</b></div><br>
-    <div class="bar kills">KILLS <b id="kills">0</b></div><br>
     <div class="bar" id="stars">WANTED ☆☆☆☆☆</div>
   </div>
 
@@ -1524,7 +1543,6 @@
     const particles = [];
 
     let wanted = 0;
-    let kills = 0;
     let wantedCooldown = 0;
     let copSpawnTimer = 0;
     let policeCarSpawnTimer = 0;
@@ -1990,7 +2008,6 @@
       // nearby peds freak out when someone dies
       alertPeds(pd.x, pd.y, 160);
       if (byPlayer) {
-        kills++;
         raiseWanted(1);
       }
       // small blood particles
@@ -2010,7 +2027,6 @@
       audio.hit();
       alertPeds(cp.x, cp.y, 200);
       if (byPlayer) {
-        kills++;
         raiseWanted(2);
       }
       if (cp.isSwat) spawnWeaponDrop(cp.x, cp.y, cp.weapon);
@@ -2856,7 +2872,6 @@
             else                  raiseWanted(1);
           }
           if (c.isPolice || c.isSwatVan) {
-            kills++;
             // Punch the moment: brief timescale freeze + extra shake kick.
             triggerHitstop(FX.copCarHitstop);
             camera.shake = Math.max(camera.shake, copKill ? 22 : 16);
@@ -2955,7 +2970,6 @@
 
     function updateHUD() {
       document.getElementById('hp').textContent = Math.max(0, Math.round(player.hp));
-      document.getElementById('kills').textContent = kills;
       const stars = '★'.repeat(wanted) + '☆'.repeat(5 - wanted);
       document.getElementById('stars').textContent = 'WANTED ' + stars;
       const ammoEl = document.getElementById('ammo');
