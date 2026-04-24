@@ -494,7 +494,7 @@
 
   <div id="pad">
     <div class="jj-plate">
-      <div class="jj-wordmark"><span>JJ</span>&middot;BOY</div>
+      <div class="jj-wordmark"><span>KR</span>&middot;BOY</div>
       <div class="jj-interact">
         <button id="interactBtn" type="button">ENTER</button>
       </div>
@@ -1517,11 +1517,58 @@
     }
 
     // Apply damage to the player and reset the regen clock so the tick pattern restarts cleanly.
-    function damagePlayer(amount) {
+    // hitInfo: optional, drives the 8-way damage reticule (see block below).
+    function damagePlayer(amount, hitInfo) {
       if (!player.alive) return;
       player.hp -= amount;
       player.damageIdleTimer = 0;
       player.regenTickTimer = REGEN_INTERVAL;
+      if (hitInfo) {
+        if (hitInfo.kind === 'omni') triggerDamageReticuleOmni();
+        else if (hitInfo.from && typeof hitInfo.from.x === 'number' && typeof hitInfo.from.y === 'number') {
+          triggerDamageReticuleDirectional(hitInfo.from.x, hitInfo.from.y);
+        }
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Directional damage reticule — 8 sector ring (view / camera space), stacks
+    // -------------------------------------------------------------------------
+    // damagePlayer(amt) — no reticule.
+    // damagePlayer(amt, { from: {x,y} }) — one sector toward world point `from`
+    //   (e.g. a point up-range from a bullet: origin of incoming fire for angle).
+    // damagePlayer(amt, { kind: 'omni' }) — all 8 segments flash (explosion, car hit).
+    // Extend: add new `kind` branches in damagePlayer + matching triggers here, or
+    // call triggerDamageReticuleDirectional / Omni from new damage sites directly.
+    // -------------------------------------------------------------------------
+    const damageReticule = { sector: [0, 0, 0, 0, 0, 0, 0, 0] };
+    const DAMAGE_RET = {
+      PUNCH: 0.9,   // per hit, stacks up to 1
+      FADE: 0.75    // linear decay per second (slower falloff after a sharp add)
+    };
+    function triggerDamageReticuleDirectional(fromX, fromY) {
+      const p = getPlayerPos();
+      const dx = fromX - p.x, dy = fromY - p.y;
+      if (dx * dx + dy * dy < 0.25) return;
+      const c = Math.cos(-camera.rot), s = Math.sin(-camera.rot);
+      const vx = dx * c - dy * s;
+      const vy = dx * s + dy * c;
+      let a = Math.atan2(vy, vx) + Math.PI / 2;
+      a = ((a % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+      const seg = Math.min(7, Math.floor(a / (Math.PI / 4 + 1e-6)));
+      damageReticule.sector[seg] = Math.min(1, damageReticule.sector[seg] + DAMAGE_RET.PUNCH);
+    }
+    function triggerDamageReticuleOmni() {
+      const a = Math.min(1, DAMAGE_RET.PUNCH * 0.25);
+      for (let i = 0; i < 8; i++) {
+        damageReticule.sector[i] = Math.min(1, damageReticule.sector[i] + a);
+      }
+    }
+    function updateDamageReticule(dt) {
+      if (dt <= 0) return;
+      for (let i = 0; i < 8; i++) {
+        damageReticule.sector[i] = Math.max(0, damageReticule.sector[i] - dt * DAMAGE_RET.FADE);
+      }
     }
 
     function updateRegen(dt) {
@@ -1990,13 +2037,13 @@
       // damage player
       if (player.alive && !player.inCar) {
         if (Math.hypot(player.x - x, player.y - y) < radius) {
-          damagePlayer(amount * 0.6);
+          damagePlayer(amount * 0.2, { kind: 'omni' });
         }
       } else if (player.alive && player.inCar) {
         // the car absorbs some damage, but the player still gets cooked
         if (Math.hypot(player.inCar.x - x, player.inCar.y - y) < radius) {
-          damagePlayer(amount * 0.35);
-          player.inCar.hp -= amount * 0.4;
+          damagePlayer(amount * 0.35, { kind: 'omni' });
+          player.inCar.hp -= amount * 0.2;
         }
       }
     }
@@ -2376,7 +2423,11 @@
             // hit player (on foot)
             if (player.alive && !player.inCar) {
               if (Math.abs(player.x - b.x) < player.hw + 2 && Math.abs(player.y - b.y) < player.hh + 2) {
-                damagePlayer(b.dmg);
+                const from = {
+                  x: b.x - b.vx * 0.22,
+                  y: b.y - b.vy * 0.22
+                };
+                damagePlayer(b.dmg, { from });
                 hit = true;
               }
             }
@@ -2657,7 +2708,7 @@
       if (runSpeed > 40 && player.alive && !player.inCar) {
         if (Math.abs(player.x - c.x) < c.hw + player.hw &&
             Math.abs(player.y - c.y) < c.hh + player.hh) {
-          damagePlayer(55);
+          damagePlayer(55, { kind: 'omni' });
           camera.shake = Math.max(camera.shake, 9);
           c.speed *= 0.35;
         }
@@ -2793,7 +2844,7 @@
           // hit player on foot
           if (player.alive && !player.inCar) {
             if (Math.abs(player.x - c.x) < c.hw + player.hw && Math.abs(player.y - c.y) < c.hh + player.hh) {
-              damagePlayer(45);
+              damagePlayer(45, { kind: 'omni' });
               camera.shake = Math.max(camera.shake, 6);
               c.speed *= 0.3;
             }
@@ -3081,6 +3132,7 @@
           player.alive = true;
           player.damageIdleTimer = 0;
           player.regenTickTimer = REGEN_INTERVAL;
+          for (let ri = 0; ri < 8; ri++) damageReticule.sector[ri] = 0;
           wanted = 0;
           // clear cops near spawn
           for (const cp of cops) cp.alive = false;
@@ -3301,6 +3353,9 @@
         ctx.globalAlpha = 1;
       }
 
+      // Directional hit ring (8 sectors, on top of world; view-aligned at player)
+      if (player.alive) drawDamageReticule();
+
       ctx.restore();
 
       // HUD-level overlays (reticle)
@@ -3388,11 +3443,13 @@
     }
 
     // ---- Minimap ----
-    // Cached low-res representation of the map (roads vs buildings vs grass)
-    // drawn once and reused every frame. Dots for player/cops/peds/cars are
-    // painted on top each render.
+    // Cached full-map texture; each frame a crop centered (clamped) on the player
+    // is drawn into a circle — zoomed “radar” instead of the whole world at once.
     let minimapBase = null;
     const MINI_SIZE = { desktop: 130, mobile: 82 };
+    // Half-width/height in world space of the square window mapped onto the minimap
+    // (bigger = more zoomed out; tune with MINI_SIZE).
+    const MINIMAP_WORLD_HALF = 800;
     function buildMinimapBase() {
       const size = isMobile ? MINI_SIZE.mobile : MINI_SIZE.desktop;
       const off = document.createElement('canvas');
@@ -3425,57 +3482,111 @@
       const pad = isMobile ? 8 : 14;
       const mx = W - size - pad;
       const my = pad;
-      // Frame (matches HUD cyan/magenta vibe).
+      const r = MINIMAP_WORLD_HALF;
+      const viewSpan = 2 * r;
+      const pp0 = getPlayerPos();
+      let viewL = pp0.x - r;
+      let viewT = pp0.y - r;
+      if (viewL < 0) viewL = 0;
+      if (viewT < 0) viewT = 0;
+      if (viewL + viewSpan > WORLD_W) viewL = Math.max(0, WORLD_W - viewSpan);
+      if (viewT + viewSpan > WORLD_H) viewT = Math.max(0, WORLD_H - viewSpan);
+      const texW = minimapBase.width;
+      const texH = minimapBase.height;
+      const srcX = (viewL / WORLD_W) * texW;
+      const srcY = (viewT / WORLD_H) * texH;
+      const srcW = (viewSpan / WORLD_W) * texW;
+      const srcH = (viewSpan / WORLD_H) * texH;
+      const cx0 = mx + size * 0.5;
+      const cy0 = my + size * 0.5;
+      const rad = size * 0.5;
+
+      // Local coords: origin at minimap centre; same basis as main world transform
+      // so rotation matches the driving camera (camera.rot).
+      function worldToMiniLocal(wx, wy) {
+        const relX = wx - viewL;
+        const relY = wy - viewT;
+        return {
+          x: -size * 0.5 + (relX / viewSpan) * size,
+          y: -size * 0.5 + (relY / viewSpan) * size
+        };
+      }
+
+      // Circular frame: backing disc, clipped map, blips — drawn in a space
+      // rotated by camera.rot around the minimap centre (forward = screen-up when driving).
       ctx.save();
+      ctx.translate(cx0, cy0);
+      ctx.rotate(camera.rot);
       ctx.globalAlpha = paused ? 0.45 : 1;
-      ctx.fillStyle = 'rgba(10,6,18,0.72)';
-      ctx.fillRect(mx - 2, my - 2, size + 4, size + 4);
-      ctx.strokeStyle = '#00e4ff';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(mx - 2.5, my - 2.5, size + 5, size + 5);
-      ctx.drawImage(minimapBase, mx, my);
-      const sx = size / WORLD_W, sy = size / WORLD_H;
+      ctx.beginPath();
+      ctx.arc(0, 0, rad + 1.2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(10,6,18,0.9)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, rad, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(minimapBase, srcX, srcY, srcW, srcH, -size * 0.5, -size * 0.5, size, size);
+
       // Civilian cars — tiny white pips.
       for (const c of cars) {
         if (c.hp <= 0 || c.isPolice || c.isSwatVan) continue;
+        if (c.x < viewL - 2 || c.x > viewL + viewSpan + 2 || c.y < viewT - 2 || c.y > viewT + viewSpan + 2) continue;
+        const p = worldToMiniLocal(c.x, c.y);
         ctx.fillStyle = '#e8e2d0';
-        ctx.fillRect(mx + c.x * sx - 1, my + c.y * sy - 1, 2, 2);
+        ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
       }
-      // Police + armed‑response vans — UK blue tones (van larger)
+      // Police + armed‑response vans (patrol in red; van larger, dark + blue core)
       for (const c of cars) {
         if (c.hp <= 0 || !(c.isPolice || c.isSwatVan)) continue;
+        if (c.x < viewL - 4 || c.x > viewL + viewSpan + 4 || c.y < viewT - 4 || c.y > viewT + viewSpan + 4) continue;
+        const p = worldToMiniLocal(c.x, c.y);
         if (c.isSwatVan) {
-          // Dark AR van (distinct from white patrol on the minimap)
           ctx.fillStyle = '#1a1d22';
-          ctx.fillRect(mx + c.x * sx - 2, my + c.y * sy - 2, 4, 4);
+          ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
           ctx.fillStyle = '#3a5a9a';
-          ctx.fillRect(mx + c.x * sx - 1, my + c.y * sy - 1, 2, 2);
+          ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
         } else {
-          ctx.fillStyle = '#2080d0';
-          ctx.fillRect(mx + c.x * sx - 1.5, my + c.y * sy - 1.5, 3, 3);
+          ctx.fillStyle = '#e02028';
+          ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
         }
       }
       // Cops on foot — small red dots (SWAT = larger brighter blip).
       for (const cp of cops) {
         if (!cp.alive) continue;
+        if (cp.x < viewL - 2 || cp.x > viewL + viewSpan + 2 || cp.y < viewT - 2 || cp.y > viewT + viewSpan + 2) continue;
+        const p = worldToMiniLocal(cp.x, cp.y);
         if (cp.isSwat) {
           ctx.fillStyle = '#ffb1bd';
-          ctx.fillRect(mx + cp.x * sx - 1.5, my + cp.y * sy - 1.5, 3, 3);
+          ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
         } else {
           ctx.fillStyle = '#ff6a6a';
-          ctx.fillRect(mx + cp.x * sx - 1, my + cp.y * sy - 1, 2, 2);
+          ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
         }
       }
       // Weapon drops — small yellow pips.
       for (const d of weaponDrops) {
+        if (d.x < viewL - 2 || d.x > viewL + viewSpan + 2 || d.y < viewT - 2 || d.y > viewT + viewSpan + 2) continue;
+        const p = worldToMiniLocal(d.x, d.y);
         ctx.fillStyle = '#ffd23a';
-        ctx.fillRect(mx + d.x * sx - 1, my + d.y * sy - 1, 2, 2);
+        ctx.fillRect(p.x - 1, p.y - 1, 2, 2);
       }
       // Player — pulsing green dot on top of everything.
       const pp = getPlayerPos();
+      const pPlayer = worldToMiniLocal(pp.x, pp.y);
       const pulse = 0.65 + 0.35 * Math.sin(performance.now() / 220);
       ctx.fillStyle = `rgba(85,255,122,${pulse})`;
-      ctx.fillRect(mx + pp.x * sx - 2, my + pp.y * sy - 2, 4, 4);
+      ctx.fillRect(pPlayer.x - 2, pPlayer.y - 2, 4, 4);
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(cx0, cy0);
+      ctx.rotate(camera.rot);
+      ctx.globalAlpha = paused ? 0.45 : 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, rad, 0, Math.PI * 2);
+      ctx.strokeStyle = '#00e4ff';
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -3496,7 +3607,7 @@
         ctx.fillStyle = '#f0c030';
         ctx.shadowColor = '#d83880';
         ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
-        ctx.fillText('JJ\u00B7BOY', W / 2, H / 2 - 8);
+        ctx.fillText('KR\u00B7BOY', W / 2, H / 2 - 8);
         ctx.shadowColor = 'transparent';
         ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
         ctx.font = '14px "Courier New", Menlo, monospace';
@@ -4332,6 +4443,43 @@
       ctx.textAlign = 'start';
     }
 
+    function drawDamageReticule() {
+      let m = 0;
+      for (let i = 0; i < 8; i++) if (damageReticule.sector[i] > m) m = damageReticule.sector[i];
+      if (m < 0.02) return;
+      const pos = getPlayerPos();
+      const r0 = 28, r1 = 40;
+      ctx.save();
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate(-camera.rot);
+      for (let s = 0; s < 8; s++) {
+        const al = damageReticule.sector[s];
+        if (al < 0.02) continue;
+        const a0 = -Math.PI / 2 - Math.PI / 8 + s * (Math.PI / 4);
+        const a1 = a0 + Math.PI / 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, r1, a0, a1);
+        ctx.arc(0, 0, r0, a1, a0, true);
+        ctx.closePath();
+        const k = 0.45 + 0.4 * al;
+        ctx.fillStyle = `rgba(255,40,32,${k * al})`;
+        ctx.fill();
+        ctx.globalAlpha = 0.3 * al;
+        ctx.strokeStyle = 'rgba(255,200,200,0.7)';
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, r1, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = 'rgba(120, 40, 40, 0.8)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
     function drawPlayer() {
       const p = player;
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
@@ -4605,6 +4753,7 @@
 
       // Tick shockwaves even while slow-mo is on (they read as real time).
       updateShockwaves(rawDt);
+      updateDamageReticule(rawDt);
 
       // Ease driving look-ahead in/out on enter/exit (same time constant as camera.rot);
       // disabled during WASTED + cop-kill so the focal point stays on those beats.
