@@ -103,14 +103,15 @@
       max-width: 300px;
       max-height: 42vh;
       overflow: auto;
-      padding: 10px 12px 12px;
+      padding: 10px 36px 12px 12px;
       font-size: 11px;
       line-height: 1.4;
       letter-spacing: 0.5px;
       color: #e8f0f8;
-      background: rgba(8, 4, 14, 0.92);
+      /* 40% opacity → 60% see-through */
+      background: rgba(8, 4, 14, 0.4);
       border: 1px solid #ff2ea5;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 12px rgba(255, 46, 165, 0.25);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 0 12px rgba(255, 46, 165, 0.2);
       user-select: none;
       cursor: default;
       pointer-events: auto;
@@ -135,10 +136,32 @@
       box-shadow: 0 1px 0 rgba(0,0,0,0.5);
     }
     #debugCheatMenu button:hover { background: #241830; border-color: #00e4ff; color: #fff; }
+    #debugCheatMenu button.debug-cheat-close {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      margin: 0;
+      padding: 0;
+      font-size: 22px;
+      line-height: 24px;
+      font-weight: 300;
+      color: #e8f0f8;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 46, 165, 0.65);
+      border-radius: 4px;
+      box-shadow: none;
+    }
+    #debugCheatMenu button.debug-cheat-close:hover {
+      background: rgba(255, 46, 165, 0.35);
+      border-color: #00e4ff;
+      color: #fff;
+    }
     #debugCheatMenu label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: #f0a0b8; }
     #debugCheatMenu input[type="checkbox"] { cursor: pointer; }
     @media (max-width: 900px) {
-      #debugCheatMenu { top: 8px; max-width: 92vw; max-height: 32vh; font-size: 9px; }
+      #debugCheatMenu { top: 8px; max-width: 92vw; max-height: 52vh; font-size: 9px; }
     }
     /* Vice City–style: stars only, no panel */
     #stars {
@@ -587,6 +610,7 @@
   </div>
 
   <div id="debugCheatMenu" aria-label="Debug cheats">
+    <button type="button" id="debugCheatClose" class="debug-cheat-close" aria-label="Close debug menu">×</button>
     <h4>DEBUG</h4>
     <div class="dbg-row">
       <span class="dbg-label">Tile (map cell)</span>
@@ -762,6 +786,12 @@
 
     const keys = {};
     const mouse = { x: 0, y: 0, down: false, justClicked: false };
+    // Player vehicle / blast tuning (other traffic keeps baseline collision formulas).
+    const PLAYER_CAR_COLLISION_DMG_MULT = 0.65;
+    /** Explosion `damageAt`: player-driven car HP vs full `amount` for NPC cars (also × PLAYER_EXPLOSION_DMG_MULT). */
+    const PLAYER_CAR_EXPLOSION_HP_MULT = 0.48;
+    const PLAYER_EXPLOSION_DMG_MULT = 0.9;
+
     // K — tile + 10-tile block edges + map period (torus) lines in world space.
     let debugMapOverlay = false;
     // K + cheat menu: all damage in damagePlayer() ignored while true.
@@ -926,6 +956,20 @@
       canvas.style.touchAction = 'none';
       // Swallow canvas taps so they can't produce synthetic clicks that drive mouse.down.
       canvas.addEventListener('touchstart', e => e.preventDefault(), { passive: false });
+      // Same as keyboard K: toggle map debug grid + cheat menu (corner of playfield, not HUD chrome).
+      const MOBILE_DEBUG_CORNER_PX = 48;
+      canvas.addEventListener('touchend', e => {
+        if (!running || boot.active) return;
+        if (e.changedTouches.length !== 1) return;
+        const t = e.changedTouches[0];
+        const r = canvas.getBoundingClientRect();
+        const lx = t.clientX - r.left;
+        const ly = t.clientY - r.top;
+        if (lx >= 0 && ly >= 0 && lx <= MOBILE_DEBUG_CORNER_PX && ly <= MOBILE_DEBUG_CORNER_PX) {
+          debugMapOverlay = !debugMapOverlay;
+          e.preventDefault();
+        }
+      }, { passive: false });
 
       attachJoystick(
         document.querySelector('#pad .stick-zone.left'),
@@ -1225,7 +1269,7 @@
     const limeBikeBays = [];
     /** Bikes left on the ground (dismount or death). Pool at hire stands is never refilled. */
     const droppedLimeBikes = [];
-    const LIME_BIKE_SPEED = 255; // bit under sedan maxFwd 280
+    const LIME_BIKE_SPEED = 180; // bit under sedan maxFwd 280
     /** Durable but lighter than cars (≈2 pistol hits). */
     const LIME_BIKE_MAX_HP = 40;
     /** Intermittent electric spark duration after a Lime is destroyed. */
@@ -1238,11 +1282,13 @@
     const LIME = '#6bce00';
     const LIME_DARK = '#2A3020';
     /** World offset from 2-tile centre toward the road: kind n = −Y, kind w = −X (bikes sit in painted slot, not on curb). */
-    const LIME_BAY_PARK_TOWARD_ROAD = 16;
+    const LIME_BAY_PARK_TOWARD_ROAD = 18;
     function limeHireBayParkOffset(b) {
       if (b.kind === 'n') return { x: 0, y: -LIME_BAY_PARK_TOWARD_ROAD };
       return { x: -LIME_BAY_PARK_TOWARD_ROAD, y: 0 };
     }
+    /** Hire sign only: shift opposite `limeHireBayParkOffset` so text sits deeper on pavement (does not move bikes). */
+    const LIME_HIRE_LABEL_AWAY_FROM_ROAD = 2;
     const map = [];
     /** { x, y, angle } shuffled for initial non-AI spawn order; see applyCarparkBays. */
     const carparkSpawns = [];
@@ -1432,6 +1478,7 @@
       playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
       playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
       player.limeBike = null;
+      resetPlayerFootLocomotion();
     }
 
     function destroyLimeBikeAtPlayerPos() {
@@ -2031,8 +2078,8 @@
     const CAM_ROT_TAU = 0.08;
     // In-car: move the focal point forward along the direction of travel (world units) so
     // more road shows ahead. Scales with |car.speed|; 0/1 blend uses CAM_ROT_TAU (same as rot).
-    const DRIVE_LOOKAHEAD_MAX = 52;
-    const DRIVE_LOOKAHEAD_SPEED_REF = 240; // |speed| at which offset reaches DRIVE_LOOKAHEAD_MAX
+    const DRIVE_LOOKAHEAD_MAX = 83;
+    const DRIVE_LOOKAHEAD_SPEED_REF = 230; // |speed| at which offset reaches DRIVE_LOOKAHEAD_MAX
     let driveLookBlend = 0; // 0..1, eased; off during WASTED / cop-kill
 
     // Hitstop: if > 0, update() is skipped this frame (still renders) for impact punch.
@@ -2230,6 +2277,23 @@
       // Extra local px around shirt + head shadow vs the solid body rects (bigger = broader silhouette).
       shadowBodyOutset: 1.6
     };
+    // On-foot locomotion: walk warmup after a full stop, run → sprint, analog stick caps.
+    const PLAYER_RUN_SPEED = 160;
+    const PLAYER_FOOT_WALK_MULT = 0.44;
+    const PLAYER_WALK_SPEED = PLAYER_RUN_SPEED * PLAYER_FOOT_WALK_MULT;
+    const PLAYER_SPRINT_SPEED = PLAYER_RUN_SPEED * 1.4;
+    const FOOT_WALK_WARMUP_DUR = 0.4;
+    const FOOT_SPRINT_BUILDUP = 2;
+    const FOOT_STOP_DISP = 8;
+    const FOOT_STOP_HOLD = 0.15;
+    const FOOT_INTENT_COYOTE = 0.075;
+    const FOOT_ANALOG_RUN_COMMIT = 0.78;
+    const FOOT_SMOOTH_RATE = 16;
+    // Lime bike: same gait rules as on-foot, scaled from LIME_BIKE_SPEED (faster than running).
+    const BIKE_RUN_SPEED = LIME_BIKE_SPEED;
+    const BIKE_WALK_SPEED = BIKE_RUN_SPEED * PLAYER_FOOT_WALK_MULT;
+    const BIKE_SPRINT_SPEED = (BIKE_RUN_SPEED * (PLAYER_SPRINT_SPEED / PLAYER_RUN_SPEED))-10;
+    const BIKE_STOP_DISP = FOOT_STOP_DISP * (BIKE_RUN_SPEED / PLAYER_RUN_SPEED);
     // Shared T-chip layout for peds / cops (matches player shirt + head, no separate legs).
     const GTA1_ONFOOT = {
       torso: { x: -4, y: -9, w: 6, h: 19 },
@@ -2259,7 +2323,17 @@
       walkPhase: 0,
       /** Set each tick on foot: was movement input seen (for body vs aim lerp in draw). */
       walking: false,
-      speed: 160,
+      speed: PLAYER_RUN_SPEED,
+      /** Last frame’s actual ground speed (px/s) for stop detection — on-foot or Lime bike. */
+      _footLastDispSpd: 0,
+      _footStopHold: 0,
+      _footSinceIntentOff: 0,
+      /** After a confirmed full stop, next movement starts with walk warmup. */
+      _footNeedWarmup: false,
+      _footWalkWarmup: 0,
+      _footRunToSprint: 0,
+      _footSprinting: false,
+      _footSmSpeed: PLAYER_RUN_SPEED,
       hp: 100, maxHp: 100,
       inCar: null,
       /** Lime e-bike: `{ fromBay, slotIndex }` from hire stand; `{ bike }` remounting a dropped bike object. */
@@ -2731,7 +2805,7 @@
     }
 
     // At game start only — spread on the road network; same livery, no chase until wanted / shot.
-    const PATROL_CARS_AT_START = 3;
+    const PATROL_CARS_AT_START = 5;
     function spawnPatrolCar() {
       if (!roadNodes.length) return;
       const pos = getPlayerPos();
@@ -2875,7 +2949,7 @@
       });
     }
 
-    spawnCars(45);
+    spawnCars(47);
     for (let i = 0; i < PATROL_CARS_AT_START; i++) spawnPatrolCar();
     for (let i = 0; i < 45; i++) spawnPed();
 
@@ -2924,6 +2998,53 @@
       if (big || huge) audio.explosion();
     }
 
+    /** One-shot gust behind the player when sprint engages (spark streaks, ~100ms read). */
+    function spawnSprintWindGust(px, py, moveX, moveY) {
+      if (moveX === 0 && moveY === 0) return;
+      const backA = Math.atan2(moveY, moveX) + Math.PI;
+      const perpX = -moveY;
+      const perpY = moveX;
+      const pal = ['#ffffff', '#eef6ff', '#dceeff', '#f5fbff', '#cadfff'];
+      const n = 7 + ((Math.random() * 3) | 0);
+      for (let i = 0; i < n; i++) {
+        const spread = (Math.random() - 0.5) * 22;
+        const jx = px + perpX * spread + (Math.random() - 0.5) * 10;
+        const jy = py + perpY * spread + (Math.random() - 0.5) * 10;
+        const a = backA + (Math.random() - 0.5) * 0.65;
+        const sp = 200 + Math.random() * 260;
+        const maxL = 0.07 + Math.random() * 0.095;
+        particles.push({
+          x: jx - moveX * 10,
+          y: jy - moveY * 10,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp,
+          life: maxL,
+          maxLife: maxL,
+          size: 0.5 + Math.random() * 0.75,
+          color: pal[(Math.random() * pal.length) | 0],
+          spark: true,
+          windGust: true
+        });
+      }
+      for (let i = 0; i < 4; i++) {
+        const a = backA + (Math.random() - 0.5) * 0.45;
+        const sp = 320 + Math.random() * 180;
+        const maxL = 0.055 + Math.random() * 0.05;
+        particles.push({
+          x: px - moveX * 14 + (Math.random() - 0.5) * 6,
+          y: py - moveY * 14 + (Math.random() - 0.5) * 6,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp,
+          life: maxL,
+          maxLife: maxL,
+          size: 0.35 + Math.random() * 0.45,
+          color: pal[(Math.random() * pal.length) | 0],
+          spark: true,
+          windGust: true
+        });
+      }
+    }
+
     function alertPeds(x, y, radius) {
       radius = radius || 220;
       for (const pd of peds) {
@@ -2967,26 +3088,28 @@
       }
       // damage cars (chain reactions) — propagate player-blame so chained
       // explosions still raise the wanted level.
+      const expPl = PLAYER_EXPLOSION_DMG_MULT;
       for (const c of cars) {
         if (c.hp <= 0) continue;
         if (torusDist(c.x, c.y, x, y) < radius) {
-          c.hp -= amount;
+          const carDmg = (c.driver === 'player')
+            ? amount * PLAYER_CAR_EXPLOSION_HP_MULT * expPl
+            : amount;
+          c.hp -= carDmg;
           if (sourceIsPlayer) {
             c.playerBlame = true;
             if (c.isPolice) c.policePursuit = true;
           }
         }
       }
-      // damage player
+      // damage player body (vehicle HP handled in loop above — no double chip)
       if (player.alive && !player.inCar) {
         if (torusDist(player.x, player.y, x, y) < radius) {
-          damagePlayer(amount * 0.2, { kind: 'omni' });
+          damagePlayer(amount * 0.2 * expPl, { kind: 'omni' });
         }
       } else if (player.alive && player.inCar) {
-        // the car absorbs some damage, but the player still gets cooked
         if (torusDist(player.inCar.x, player.inCar.y, x, y) < radius) {
-          damagePlayer(amount * 0.35, { kind: 'omni' });
-          player.inCar.hp -= amount * 0.2;
+          damagePlayer(amount * 0.35 * expPl, { kind: 'omni' });
         }
       }
     }
@@ -3059,6 +3182,7 @@
         player.inCar = null;
         playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
         playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
+        resetPlayerFootLocomotion();
         audio.exitCar();
         return;
       }
@@ -3091,6 +3215,7 @@
         player.y = wrapY(sy);
         playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
         playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
+        resetPlayerFootLocomotion();
         audio.exitCar();
         return;
       }
@@ -3113,6 +3238,7 @@
         player.inCar = best;
         playerUwX = nearestUnwToPoint(playerUwX, best.x, WORLD_W);
         playerUwY = nearestUnwToPoint(playerUwY, best.y, WORLD_H);
+        resetPlayerFootLocomotion();
         audio.enterCar();
         if (wasAi) ejectDriver(best);
         return;
@@ -3135,6 +3261,7 @@
         player.angle = db.ang;
         playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
         playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
+        resetPlayerFootLocomotion(BIKE_RUN_SPEED);
         audio.enterCar();
         return;
       }
@@ -3155,6 +3282,7 @@
           player.angle = bay.angle;
           playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
           playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
+          resetPlayerFootLocomotion(BIKE_RUN_SPEED);
           audio.enterCar();
           return;
         }
@@ -3178,7 +3306,28 @@
       return { dux, duy };
     }
 
-    function updatePlayerOnFoot(dt) {
+    function resetPlayerFootLocomotion(smBaseline = PLAYER_RUN_SPEED) {
+      player._footLastDispSpd = 0;
+      player._footStopHold = 0;
+      player._footSinceIntentOff = 0;
+      player._footNeedWarmup = false;
+      player._footWalkWarmup = 0;
+      player._footRunToSprint = 0;
+      player._footSprinting = false;
+      player._footSmSpeed = smBaseline;
+    }
+
+    /** Normalized move dir + analog magnitude (keyboard = 1 when moving). */
+    function getFootMoveInput() {
+      if (isMobile && touch.move.active) {
+        let mx = touch.move.vx, my = touch.move.vy;
+        const raw = Math.hypot(mx, my);
+        if (raw < MOVE_DEADZONE) return { vx: 0, vy: 0, len: 0, mag: 0 };
+        const mag = Math.min(1, (raw - MOVE_DEADZONE) / (1 - MOVE_DEADZONE));
+        mx /= raw;
+        my /= raw;
+        return { vx: mx, vy: my, len: 1, mag };
+      }
       let vx = 0, vy = 0;
       if (keys['w']) vy -= 1;
       if (keys['s']) vy += 1;
@@ -3186,14 +3335,76 @@
       if (keys['d']) vx += 1;
       const len = Math.hypot(vx, vy);
       if (len > 0) { vx /= len; vy /= len; }
+      return { vx, vy, len, mag: len > 0 ? 1 : 0 };
+    }
+
+    /**
+     * Walk / run / sprint momentum for on-foot and Lime bike (shared `_foot*` state; never both active).
+     */
+    function stepGroundLocomotionMomentum(dt, runSpeed, walkSpeed, sprintSpeed, stopDisp) {
+      const { vx, vy, len, mag } = getFootMoveInput();
+      const hasIntent = len > 0 && mag > 0.001;
+      const dispSpd = player._footLastDispSpd;
+      const runCommitted = hasIntent && mag >= FOOT_ANALOG_RUN_COMMIT;
+
+      if (hasIntent) player._footSinceIntentOff = 0;
+      else player._footSinceIntentOff += dt;
+
+      if (!hasIntent && dispSpd < stopDisp) player._footStopHold += dt;
+      else player._footStopHold = 0;
+
+      if (player._footStopHold >= FOOT_STOP_HOLD) {
+        player._footNeedWarmup = true;
+        player._footWalkWarmup = 0;
+        player._footRunToSprint = 0;
+        player._footSprinting = false;
+      }
+
+      if (hasIntent && player._footNeedWarmup) {
+        player._footWalkWarmup = FOOT_WALK_WARMUP_DUR;
+        player._footNeedWarmup = false;
+      }
+
+      if (player._footWalkWarmup > 0) {
+        if (hasIntent) player._footWalkWarmup = Math.max(0, player._footWalkWarmup - dt);
+      } else if (!player._footSprinting) {
+        if (hasIntent && runCommitted) {
+          player._footRunToSprint += dt;
+          if (player._footRunToSprint >= FOOT_SPRINT_BUILDUP) {
+            player._footSprinting = true;
+            player._footRunToSprint = 0;
+            spawnSprintWindGust(player.x, player.y, vx, vy);
+          }
+        } else if (!hasIntent && player._footSinceIntentOff >= FOOT_INTENT_COYOTE) {
+          player._footRunToSprint = 0;
+        }
+      }
+
+      let tier;
+      if (player._footWalkWarmup > 0) tier = walkSpeed;
+      else if (player._footSprinting) tier = runCommitted ? sprintSpeed : runSpeed;
+      else tier = runCommitted ? runSpeed : walkSpeed;
+
+      const targetSpeed = tier * mag;
+      const sm0 = player._footSmSpeed;
+      player._footSmSpeed = sm0 + (targetSpeed - sm0) * (1 - Math.exp(-FOOT_SMOOTH_RATE * dt));
+
+      return { vx, vy, len, mag };
+    }
+
+    function updatePlayerOnFoot(dt) {
+      const { vx, vy, len, mag } = stepGroundLocomotionMomentum(
+        dt, PLAYER_RUN_SPEED, PLAYER_WALK_SPEED, PLAYER_SPRINT_SPEED, FOOT_STOP_DISP);
+
       if (len > 0) {
         player.moveAngle = Math.atan2(vy, vx);
         player.walkPhase += dt * GTA1_PLAYER.walkPhaseRate;
       }
       player.walking = len > 0;
-      const { dux, duy } = tryMove(player, vx * player.speed * dt, vy * player.speed * dt);
+      const { dux, duy } = tryMove(player, vx * player._footSmSpeed * dt, vy * player._footSmSpeed * dt);
       playerUwX += dux;
       playerUwY += duy;
+      player._footLastDispSpd = Math.hypot(dux, duy) / Math.max(dt, 1e-6);
 
       // aim: mouse, or camera-relative arrow keys (same space→world idea as mouse from screen center)
       const wDir = aimWorldDirFromArrowKeys();
@@ -3225,6 +3436,10 @@
           firePlayerShot(ox, oy, player.angle);
           player.ammo--;
           player.shootCd = w.fireCd;
+          if (player._footSprinting) {
+            player._footSprinting = false;
+            player._footRunToSprint = 0;
+          }
           if (w === WEAPONS.shotgun) audio.shotgun();
           else if (w === WEAPONS.rifle) audio.rifle();
           else audio.shot();
@@ -3239,22 +3454,17 @@
     }
 
     function updatePlayerOnLimeBike(dt) {
-      const spd = LIME_BIKE_SPEED;
-      let vx = 0, vy = 0;
-      if (keys['w']) vy -= 1;
-      if (keys['s']) vy += 1;
-      if (keys['a']) vx -= 1;
-      if (keys['d']) vx += 1;
-      const len = Math.hypot(vx, vy);
-      if (len > 0) { vx /= len; vy /= len; }
+      const { vx, vy, len, mag } = stepGroundLocomotionMomentum(
+        dt, BIKE_RUN_SPEED, BIKE_WALK_SPEED, BIKE_SPRINT_SPEED, BIKE_STOP_DISP);
       if (len > 0) {
         player.moveAngle = Math.atan2(vy, vx);
         player.walkPhase += dt * 10;
       }
       player.walking = false;
-      const { dux, duy } = tryMove(player, vx * spd * dt, vy * spd * dt);
+      const { dux, duy } = tryMove(player, vx * player._footSmSpeed * dt, vy * player._footSmSpeed * dt);
       playerUwX += dux;
       playerUwY += duy;
+      player._footLastDispSpd = Math.hypot(dux, duy) / Math.max(dt, 1e-6);
       const wDir = aimWorldDirFromArrowKeys();
       if (wDir) {
         const twx = player.x + wDir.wx * 500;
@@ -3283,6 +3493,10 @@
           firePlayerShot(ox, oy, player.angle);
           player.ammo--;
           player.shootCd = w.fireCd;
+          if (player._footSprinting) {
+            player._footSprinting = false;
+            player._footRunToSprint = 0;
+          }
           if (w === WEAPONS.shotgun) audio.shotgun();
           else if (w === WEAPONS.rifle) audio.rifle();
           else audio.shot();
@@ -3671,6 +3885,7 @@
           player.inCar = null;
           playerUwX = nearestUnwToPoint(playerUwX, c.x, WORLD_W);
           playerUwY = nearestUnwToPoint(playerUwY, c.y, WORLD_H);
+          resetPlayerFootLocomotion();
         }
         return;
       }
@@ -3764,7 +3979,7 @@
           if (Math.abs(beforeSpeed) > 80) {
             other.hp -= Math.abs(beforeSpeed) * 0.1;
             other.playerBlame = true;
-            c.hp -= Math.abs(beforeSpeed) * 0.02;
+            c.hp -= Math.abs(beforeSpeed) * 0.02 * PLAYER_CAR_COLLISION_DMG_MULT;
             if (imprezaDrift) {
               c.vx *= 0.5;
               c.vy *= 0.5;
@@ -4200,6 +4415,65 @@
       c.aiTarget = choices[(Math.random() * choices.length) | 0];
     }
 
+    // --------- Road-following AI: yield + lane nudge (civilians + patrol police) ---------
+    const AI_FWD_CONE_MIN = 4;
+    const AI_FWD_LANE_K = 1.38;
+    const AI_FOLLOW_BUF = 40;
+    const AI_FOLLOW_GAIN = 1.08;
+    const AI_THREAT_MAX = 90;
+    const AI_PROBE_LAT = 0.88;
+    const AI_PROBE_FWD = [28, 48, 68];
+    const AI_BUILD_LOOK = [36, 68, 100];
+
+    /** Distance to obstacle ahead in forward cone, or null if not in lane / behind. */
+    function aiThreatInForwardCone(c, tx, ty, thw, thh) {
+      const fx = Math.cos(c.angle);
+      const fy = Math.sin(c.angle);
+      const dx = torusDelta1D(tx, c.x, WORLD_W);
+      const dy = torusDelta1D(ty, c.y, WORLD_H);
+      const forward = dx * fx + dy * fy;
+      if (forward < AI_FWD_CONE_MIN) return null;
+      const lat = Math.abs(-dx * fy + dy * fx);
+      const laneHalf = (c.hw + Math.max(thw, thh * 0.9)) * AI_FWD_LANE_K;
+      if (lat > laneHalf) return null;
+      const dist = Math.hypot(dx, dy);
+      if (dist > AI_THREAT_MAX) return null;
+      return dist;
+    }
+
+    /** Per-lane clearance 0..1 from forward samples (building + car-free). */
+    function aiProbeLaneClearance(c, fx, fy) {
+      const lx = -fy;
+      const ly = fx;
+      const lat = c.hh * AI_PROBE_LAT;
+      const hwP = c.hw * 0.48;
+      const hhP = c.hh * 0.48;
+      function score(offX, offY) {
+        let ok = 0;
+        for (let i = 0; i < AI_PROBE_FWD.length; i++) {
+          const f = AI_PROBE_FWD[i];
+          const px = wrapX(c.x + offX + fx * f);
+          const py = wrapY(c.y + offY + fy * f);
+          if (rectHitsCover(px, py, hwP, hhP)) continue;
+          let hit = false;
+          for (const o of cars) {
+            if (o === c || o.hp <= 0) continue;
+            if (torusDist(o.x, o.y, px, py) < 24) {
+              hit = true;
+              break;
+            }
+          }
+          if (!hit) ok++;
+        }
+        return ok / AI_PROBE_FWD.length;
+      }
+      return {
+        center: score(0, 0),
+        left: score(lx * lat, ly * lat),
+        right: score(-lx * lat, -ly * lat)
+      };
+    }
+
     function updatePoliceCar(c, dt) {
       const pos = getPlayerPos();
       const distToPlayer = torusDist(pos.x, pos.y, c.x, c.y);
@@ -4286,7 +4560,8 @@
           other.x = wrapX(other.x + nxv * push); other.y = wrapY(other.y + nyv * push);
           if (Math.abs(beforeSpeed) > 60) {
             const hittingPlayer = (other === player.inCar);
-            other.hp -= Math.abs(beforeSpeed) * (hittingPlayer ? 0.18 : 0.06);
+            const pcm = PLAYER_CAR_COLLISION_DMG_MULT;
+            other.hp -= Math.abs(beforeSpeed) * (hittingPlayer ? 0.18 * pcm : 0.06);
             c.hp   -= Math.abs(beforeSpeed) * (hittingPlayer ? 0.04 : 0.02);
             c.speed *= 0.5;
             if (hittingPlayer) camera.shake = Math.max(camera.shake, 8);
@@ -4329,35 +4604,83 @@
         aiPickNextTarget(c);
       }
 
-      // steer: rotate toward desired angle, rate-limited
+      const fx0 = Math.cos(c.angle);
+      const fy0 = Math.sin(c.angle);
+
+      // --- Forward threats: player + cars + buildings (for distance-based cap) ---
+      let minThreatDist = Infinity;
+      if (player.alive) {
+        if (player.inCar && player.inCar.hp > 0) {
+          const pc = player.inCar;
+          const td = aiThreatInForwardCone(c, pc.x, pc.y, pc.hw, pc.hh);
+          if (td != null) minThreatDist = Math.min(minThreatDist, td);
+        } else {
+          const td = aiThreatInForwardCone(c, player.x, player.y, player.hw, player.hh);
+          if (td != null) minThreatDist = Math.min(minThreatDist, td);
+        }
+      }
+      for (const other of cars) {
+        if (other === c || other.hp <= 0) continue;
+        const td = aiThreatInForwardCone(c, other.x, other.y, other.hw, other.hh);
+        if (td != null) minThreatDist = Math.min(minThreatDist, td);
+      }
+      for (let i = 0; i < AI_BUILD_LOOK.length; i++) {
+        const dist = AI_BUILD_LOOK[i];
+        const lx = c.x + fx0 * dist;
+        const ly = c.y + fy0 * dist;
+        if (rectHitsCover(lx, ly, c.hw * 0.52, c.hh * 0.52)) {
+          minThreatDist = Math.min(minThreatDist, dist);
+          break;
+        }
+      }
+
+      // --- Lane nudge: prefer side with more clearance when center is tight ---
+      const pr = aiProbeLaneClearance(c, fx0, fy0);
+      const centerTight = pr.center < 0.5;
+      if (typeof c._aiLaneNudge !== 'number' || !Number.isFinite(c._aiLaneNudge)) c._aiLaneNudge = 0;
+      if (!centerTight) {
+        c._aiLaneNudge *= Math.exp(-2.8 * dt);
+      } else {
+        const bias = pr.left - pr.right;
+        const targetN = Math.sign(bias) * Math.min(1, Math.abs(bias) * 1.25);
+        c._aiLaneNudge += (targetN - c._aiLaneNudge) * Math.min(1, 4.2 * dt);
+      }
+      c._aiLaneNudge = Math.max(-1, Math.min(1, c._aiLaneNudge));
+
+      // steer: rotate toward desired angle, rate-limited + lane bias
       const desired = Math.atan2(tdy, tdx);
-      let diff = desired - c.angle;
+      let diffPath = desired - c.angle;
+      while (diffPath > Math.PI) diffPath -= Math.PI * 2;
+      while (diffPath < -Math.PI) diffPath += Math.PI * 2;
+      const turnSharp = Math.abs(diffPath);
+      const nudgeMul = turnSharp > 1.2 ? 0.32 : (turnSharp > 0.65 ? 0.62 : 1);
+      let diff = diffPath + c._aiLaneNudge * 0.4 * nudgeMul;
       while (diff > Math.PI) diff -= Math.PI * 2;
       while (diff < -Math.PI) diff += Math.PI * 2;
+
       const turnRate = 2.6;
       const turnStep = Math.max(-turnRate * dt, Math.min(turnRate * dt, diff));
       c.angle += turnStep;
 
       // cruise speed drops as we need to turn more sharply; per-type base
       const specAi = carTypes[c.type] || carTypes.sedan;
-      const cruise = Math.max(50, specAi.aiCruise - Math.abs(diff) * 55);
-      const aiAccel = specAi.accel * 0.55;
-      if (c.speed < cruise) c.speed += aiAccel * dt;
-      else c.speed -= 80 * dt;
-
-      // brake if a car or building is right in front
-      const lookX = c.x + Math.cos(c.angle) * 38;
-      const lookY = c.y + Math.sin(c.angle) * 38;
-      let blocked = rectHitsCover(lookX, lookY, c.hw * 0.6, c.hh * 0.6);
-      if (!blocked) {
-        for (const other of cars) {
-          if (other === c || other.hp <= 0) continue;
-          if (torusDist(other.x, other.y, lookX, lookY) < 28) { blocked = true; break; }
+      const cruise = Math.max(50, specAi.aiCruise - Math.abs(diffPath) * 55);
+      let threatCap = cruise;
+      if (minThreatDist < AI_THREAT_MAX) {
+        threatCap = Math.max(0, (minThreatDist - AI_FOLLOW_BUF) * AI_FOLLOW_GAIN);
+        threatCap = Math.min(cruise, threatCap);
+        if (minThreatDist < 52) {
+          threatCap = Math.min(threatCap, Math.max(0, (minThreatDist - 22) * 1.2));
         }
       }
-      if (blocked) {
-        if (c.speed > 40) c.brakeFlash = 1;
-        c.speed = Math.max(0, c.speed - 320 * dt);
+      const cruiseCapped = Math.min(cruise, threatCap);
+      const aiAccel = specAi.accel * 0.55;
+      if (c.speed < cruiseCapped) c.speed += aiAccel * dt;
+      else c.speed -= 95 * dt;
+
+      if (c.speed > cruiseCapped + 12 && minThreatDist < AI_THREAT_MAX) {
+        if (c.speed > 35) c.brakeFlash = 1;
+        c.speed = Math.max(cruiseCapped, c.speed - 260 * dt);
       }
 
       carWallProcessSmooth(c, dt, false);
@@ -4416,7 +4739,8 @@
           c.x = wrapX(c.x - nxv * push); c.y = wrapY(c.y - nyv * push);
           other.x = wrapX(other.x + nxv * push); other.y = wrapY(other.y + nyv * push);
           if (Math.abs(beforeSpeed) > 60) {
-            other.hp -= Math.abs(beforeSpeed) * 0.05;
+            const pcm = (other === player.inCar) ? PLAYER_CAR_COLLISION_DMG_MULT : 1;
+            other.hp -= Math.abs(beforeSpeed) * 0.05 * pcm;
             c.speed *= 0.5;
           }
         }
@@ -4555,7 +4879,7 @@
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * dt; p.y += p.vy * dt;
-        const drag = p.exhaust ? 0.86 : 0.94;
+        const drag = p.exhaust ? 0.86 : (p.windGust ? 0.9 : 0.94);
         p.vx *= drag; p.vy *= drag;
         p.life -= dt;
         if (p.life <= 0) particles.splice(i, 1);
@@ -4772,6 +5096,8 @@
           player.alive = true;
           player.damageIdleTimer = 0;
           player.regenTickTimer = REGEN_INTERVAL;
+          resetPlayerFootLocomotion();
+          player._footNeedWarmup = true;
           for (let ri = 0; ri < 8; ri++) damageReticule.sector[ri] = 0;
           wanted = 0;
           // clear cops near spawn
@@ -5008,9 +5334,9 @@
         forEachTorus3VisibleDraw(cxw, cyw, halfW, halfH, 110, c.x, c.y, () => drawCar(c));
       }
 
-      // cycle hire: parked fleet + bay labels (under peds, over road cars)
-      drawLimeBaysParkedBikes(cxw, cyw, halfW, halfH);
+      // cycle hire: ground labels first, then bikes on top (under peds, over road cars)
       drawLimeHireLabels(cxw, cyw, halfW, halfH);
+      drawLimeBaysParkedBikes(cxw, cyw, halfW, halfH);
       drawDroppedLimeBikes(cxw, cyw, halfW, halfH);
 
       // draw peds (dead first, then alive)
@@ -5077,11 +5403,12 @@
           const t = Math.max(0, p.life / p.maxLife);
           ctx.save();
           ctx.globalCompositeOperation = 'lighter';
-          ctx.globalAlpha = Math.min(1, t * 1.05);
+          const wg = !!p.windGust;
+          ctx.globalAlpha = Math.min(1, (wg ? t * 1.25 : t * 1.05) * (wg ? 0.62 : 1));
           ctx.fillStyle = p.color;
           const m = Math.hypot(p.vx, p.vy) || 1e-6;
-          const w = 1.2 + 2.8 * t;
-          const h = 0.5 + 0.55 * t;
+          const w = wg ? (2.4 + 6.2 * t) : (1.2 + 2.8 * t);
+          const h = wg ? (0.28 + 0.38 * t) : (0.5 + 0.55 * t);
           ctx.translate(p.x, p.y);
           ctx.rotate(Math.atan2(p.vy, p.vx));
           ctx.fillRect(0, -h * 0.5, w, h);
@@ -5152,6 +5479,15 @@
     function initDebugCheatMenu() {
       const root = document.getElementById('debugCheatMenu');
       if (!root) return;
+      const closeBtn = document.getElementById('debugCheatClose');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          debugMapOverlay = false;
+          syncDebugCheatMenu();
+        });
+      }
       root.addEventListener('mousedown', e => e.stopPropagation());
       root.addEventListener('click', e => {
         e.stopPropagation();
@@ -6811,9 +7147,9 @@
       ctx.fillStyle = '#8d8d8d';
       ctx.fillRect(4.4, -2.8, 0.85, 5.4);
 
-      // Front basket (lime)
+      // Front basket (lime) — wider than tall (local px before LIME_BIKE_DRAW_SCALE)
       ctx.fillStyle = LIME;
-      ctx.fillRect(2.4, -1.0, 2.0, 0.95);
+      ctx.fillRect(3.45, -2.5, 2.95, 5.0);
 
       if (bMul < 1) ctx.filter = 'none';
       ctx.restore();
@@ -6850,7 +7186,8 @@
     function drawLimeHireLabels(cxw, cyw, halfW, halfH) {
       for (const bay of limeBikeBays) {
         const pOff = limeHireBayParkOffset(bay);
-        const lx = bay.x + pOff.x, ly = bay.y + pOff.y;
+        const lx = bay.x + pOff.x + (bay.kind === 'w' ? LIME_HIRE_LABEL_AWAY_FROM_ROAD : 0);
+        const ly = bay.y + pOff.y + (bay.kind === 'n' ? LIME_HIRE_LABEL_AWAY_FROM_ROAD : 0);
         forEachTorus3VisibleDraw(cxw, cyw, halfW, halfH, 60, lx, ly, () => {
           ctx.save();
           ctx.translate(lx, ly);
@@ -6876,19 +7213,24 @@
             ctx.fillText(oneLine, 0, by);
           } else {
             ctx.rotate(-Math.PI / 2);
-            ctx.font = 'bold 5px system-ui,Segoe UI,sans-serif';
+            const fontW = 'bold 5.5px system-ui,Segoe UI,sans-serif';
+            ctx.font = fontW;
             ctx.textAlign = 'center';
-            const wMax = Math.max(
-              ctx.measureText('CYCLE').width,
-              ctx.measureText('HIRE').width,
-              ctx.measureText('ONLY').width
-            );
+            const oneLineW = 'CYCLE HIRE ONLY';
+            const mW = ctx.measureText(oneLineW);
+            const byW = 2.5;
+            let thW = 5.5;
+            let topW = byW - 4.2;
+            if (mW.actualBoundingBoxAscent != null) {
+              thW = mW.actualBoundingBoxAscent + (mW.actualBoundingBoxDescent || 1.2);
+              topW = byW - mW.actualBoundingBoxAscent;
+            }
+            const twW = mW.width;
+            const padXW = 2.2, padYW = 1;
             ctx.fillStyle = 'rgba(32, 34, 30, 0.96)';
-            ctx.fillRect(-wMax * 0.5 - 2, -5.5, wMax + 4, 14);
+            ctx.fillRect(-twW * 0.5 - padXW, topW - padYW, twW + 2 * padXW, thW + 2 * padYW);
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillText('CYCLE', 0, -3);
-            ctx.fillText('HIRE', 0, 2);
-            ctx.fillText('ONLY', 0, 7);
+            ctx.fillText(oneLineW, 0, byW);
           }
           ctx.restore();
         });
@@ -7067,8 +7409,8 @@
     // --------- CONTINUOUS RESPAWN DIRECTOR ---------
     // Keeps civilian population topped up by spawning new peds / cars off-camera
     // as old ones die or get wrecked. Targets chosen for a "busy" feel.
-    const POP_TARGET_PEDS = 35;
-    const POP_TARGET_CARS = 18;
+    const POP_TARGET_PEDS = 48;
+    const POP_TARGET_CARS = 45;
     let respawnTimer = 0;
     function offCameraPedSpot() {
       for (let tries = 0; tries < 12; tries++) {
