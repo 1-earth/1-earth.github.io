@@ -620,7 +620,7 @@
 
   <div id="intro">
     <h1>KR // CITY</h1>
-    <h2>Surving is Winning</h2>
+    <h2>Surviving is Winning</h2>
     <div class="controls desktop-only"><b>WASD</b> &nbsp; move / drive</div>
     <div class="controls desktop-only"><b>MOUSE</b> &nbsp; aim</div>
     <div class="controls desktop-only"><b>CLICK</b> &nbsp; shoot</div>
@@ -702,7 +702,23 @@
       lowHpThreshold: 30,        // full-screen red + extra vignette while HP is below this
       lowHpTintMultiply: 0.38,  // max strength of the multiply red wash (scales with how low HP is)
       lowHpVignetteRed: 0.62,   // max extra edge dark red (0–1) at 0 HP
-      lowHpVignetteBlack: 0.2   // max extra edge black crushing at 0 HP
+      lowHpVignetteBlack: 0.2,  // max extra edge black crushing at 0 HP
+      // Warm sunset wash (screen space; runs after CA, before vignette + scanlines)
+      warmSunsetPeachMult: 0.3,   // scales radial peach gradient (0 = off, 2 = double)
+      warmSunsetOrangeMult: 0.6, // scales multiply + soft-light orange passes
+      warmSunsetCenterX: 0.52,
+      warmSunsetCenterY: 0.2,
+      warmSunsetInnerR: 0.06,   // fraction of min(W,H)
+      warmSunsetOuterR: 0.92,   // fraction of max(W,H)
+      warmSunsetPeach0: 'rgba(255, 226, 200, 0.1)',
+      warmSunsetPeach1: 'rgba(255, 210, 175, 0.04)',
+      warmSunsetPeach2: 'rgba(255, 195, 155, 0)',
+      warmSunsetMultiplyColor: '#c86838',
+      warmSunsetMultiplyAlpha: 0.072,
+      warmSunsetSoftLightColor: '#ff9a62',
+      warmSunsetSoftLightAlpha: 0.048,
+      // Full-frame contrast (copy-back via bufA). 1 = normal (skipped). ~1.35–1.55 reads “dramatic”.
+      postContrast: 1
     };
     // Offscreen buffers for post-fx (allocated lazily in applyChromaticAberration).
     const bufA = document.createElement('canvas');
@@ -1060,6 +1076,16 @@
         setTimeout(() => this.tone({ freq: 780, type: 'square', dur: 0.05, vol: 0.12 }), 40);
         setTimeout(() => this.tone({ freq: 540, type: 'square', dur: 0.05, vol: 0.12 }), 110);
       },
+      /** E-bike destroyed: electrical pop + light fizzle (no haptic, no world shake). */
+      limeBikeZap() {
+        if (!this.enabled) return;
+        this.noiseBurst({ dur: 0.055, vol: 0.16, lowpass: 6800 });
+        this.tone({ freq: 1100 + Math.random() * 500, type: 'square', dur: 0.02, vol: 0.1, slideTo: 180 });
+        setTimeout(() => {
+          this.tone({ freq: 160 + Math.random() * 100, type: 'sawtooth', dur: 0.045, vol: 0.07 });
+        }, 20);
+        this.noiseBurst({ dur: 0.14, vol: 0.05, lowpass: 1800 });
+      },
       explosion() {
         this.noiseBurst({ dur: 0.45, vol: 0.55, lowpass: 600 });
         this.tone({ freq: 90, type: 'sawtooth', dur: 0.4, vol: 0.3, slideTo: 40 });
@@ -1085,6 +1111,15 @@
         haptic([60, 40, 100]);
       },
       _tireScrub: null,
+      /** Short crack + pop for Impreza exhaust backfire (not full explosion). @param withHaptic off for AI traffic. */
+      imprezaBackfire(withHaptic = true) {
+        this.noiseBurst({ dur: 0.045, vol: 0.2, lowpass: 4800 });
+        this.tone({ freq: 190 + Math.random() * 70, type: 'square', dur: 0.04, vol: 0.14, slideTo: 95 });
+        setTimeout(() => {
+          this.tone({ freq: 100 + Math.random() * 30, type: 'sawtooth', dur: 0.032, vol: 0.11 });
+        }, 32);
+        if (withHaptic) haptic(6);
+      },
       /** 0 = off; 0-1 = dark low-mid noise (tire scrub) for Impreza lateral slip. */
       tireScrubSet(intensity) {
         if (!this.enabled) return;
@@ -1191,10 +1226,17 @@
     /** Bikes left on the ground (dismount or death). Pool at hire stands is never refilled. */
     const droppedLimeBikes = [];
     const LIME_BIKE_SPEED = 255; // bit under sedan maxFwd 280
+    /** Durable but lighter than cars (≈2 pistol hits). */
+    const LIME_BIKE_MAX_HP = 40;
+    /** Intermittent electric spark duration after a Lime is destroyed. */
+    const LIME_BIKE_WRECK_SPARK_DUR = 2;
+    const AIM_FORGIVE_LIME = 3;
+    const LIME_BIKE_HW = 5.5;
+    const LIME_BIKE_HH = 3.5;
     /** Visual scale for drawLimeParkedBike (hires, dropped, riding) */
     const LIME_BIKE_DRAW_SCALE = 2;
     const LIME = '#6bce00';
-    const LIME_DARK = '#1a1e14';
+    const LIME_DARK = '#2A3020';
     /** World offset from 2-tile centre toward the road: kind n = −Y, kind w = −X (bikes sit in painted slot, not on curb). */
     const LIME_BAY_PARK_TOWARD_ROAD = 16;
     function limeHireBayParkOffset(b) {
@@ -1323,11 +1365,183 @@
           const wy = 0.5 * (gya * TILE + TILE * 0.5 + gyb * TILE + TILE * 0.5);
           // 1–4 per bay (never 0): %5 could yield 0 so bays looked empty and E did nothing
           const n = 1 + (Math.imul(bxB, 13) + Math.imul(byB, 7)) % 4;
-          limeBikeBays.push({ x: wx, y: wy, angle: ang, n, kind, bx: bxB, by: byB });
+          const slots = [];
+          for (let si = 0; si < n; si++) {
+            slots.push({
+              hp: LIME_BIKE_MAX_HP, dead: false, gone: false, sparkT: 0, nextSp: 0, wreckAng: 0
+            });
+          }
+          limeBikeBays.push({ x: wx, y: wy, angle: ang, kind, bx: bxB, by: byB, slots });
         }
       }
     }
     applyLimeBikeBays();
+
+    function limeBayBikeWorldPos(bay, i) {
+      const rowAngle = bay.kind === 'n' ? 0 : Math.PI * 0.5;
+      const parkAngle = rowAngle + Math.PI * 0.5;
+      const pOff = limeHireBayParkOffset(bay);
+      const spread = 20;
+      const t = (i - (bay.slots.length - 1) * 0.5) * spread;
+      const ox = bay.x + pOff.x + Math.cos(rowAngle) * t;
+      const oy = bay.y + pOff.y + Math.sin(rowAngle) * t;
+      return { ox, oy, parkAngle };
+    }
+
+    function getPlayerLimeBikeTarget() {
+      if (!player.limeBike) return null;
+      if (player.limeBike.fromBay) {
+        return player.limeBike.fromBay.slots[player.limeBike.slotIndex];
+      }
+      return player.limeBike.bike;
+    }
+
+    function addLimeElectricBurst(x, y, big) {
+      const pal = ['#66e0ff', '#44c8ff', '#a0f8ff', '#e8ffff', '#88ccff'];
+      const n = big ? 22 : 8;
+      for (let k = 0; k < n; k++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = 80 + Math.random() * (big ? 260 : 140);
+        const maxL = 0.035 + Math.random() * 0.06;
+        particles.push({
+          x: x + (Math.random() - 0.5) * 4,
+          y: y + (Math.random() - 0.5) * 4,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp,
+          life: maxL,
+          maxLife: maxL,
+          size: 0.35 + Math.random() * 0.75,
+          color: pal[(Math.random() * pal.length) | 0],
+          spark: true
+        });
+      }
+    }
+
+    function dismountPlayerFromLimeBikeNoDamage() {
+      if (!player.limeBike) return;
+      const a = player.moveAngle;
+      const step = 18;
+      let sx = player.x + Math.cos(a + Math.PI / 2) * step;
+      let sy = player.y + Math.sin(a + Math.PI / 2) * step;
+      if (rectHitsCover(sx, sy, player.hw, player.hh)) {
+        sx = player.x + Math.cos(a - Math.PI / 2) * step;
+        sy = player.y + Math.sin(a - Math.PI / 2) * step;
+      }
+      player.x = wrapX(sx);
+      player.y = wrapY(sy);
+      playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
+      playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
+      player.limeBike = null;
+    }
+
+    function destroyLimeBikeAtPlayerPos() {
+      if (!player.limeBike) return;
+      const a = player.moveAngle;
+      const x = player.x;
+      const y = player.y;
+      if (player.limeBike.bike) {
+        const ob = player.limeBike.bike;
+        ob.x = x;
+        ob.y = y;
+        ob.ang = a;
+        Object.assign(ob, { hp: 0, dead: true, sparkT: LIME_BIKE_WRECK_SPARK_DUR, nextSp: 0.04 });
+        droppedLimeBikes.push(ob);
+      } else {
+        droppedLimeBikes.push({
+          x, y, ang: a, hp: 0, dead: true, sparkT: LIME_BIKE_WRECK_SPARK_DUR, nextSp: 0.04
+        });
+      }
+      addLimeElectricBurst(x, y, true);
+      audio.limeBikeZap();
+      dismountPlayerFromLimeBikeNoDamage();
+    }
+
+    function startLimeWrecked(slot, wx, wy, ang) {
+      if (!slot) return;
+      if (slot.dead) return;
+      slot.dead = true;
+      slot.sparkT = LIME_BIKE_WRECK_SPARK_DUR;
+      slot.nextSp = 0.04;
+      slot.wreckAng = ang;
+      addLimeElectricBurst(wx, wy, true);
+      audio.limeBikeZap();
+    }
+
+    function updateLimeBikeWreckSparks(dt) {
+      function tickLimeWreck(s, wx, wy) {
+        if (!s.dead) return;
+        if (s.sparkT == null || s.sparkT <= 0) return;
+        s.sparkT -= dt;
+        s.nextSp -= dt;
+        if (s.nextSp <= 0) {
+          addLimeElectricBurst(wx, wy, false);
+          s.nextSp = 0.12 + Math.random() * 0.32;
+        }
+        if (s.sparkT < 0) s.sparkT = 0;
+      }
+      for (const db of droppedLimeBikes) {
+        if (db.dead) tickLimeWreck(db, db.x, db.y);
+      }
+      for (const bay of limeBikeBays) {
+        if (!bay.slots) continue;
+        for (let j = 0; j < bay.slots.length; j++) {
+          const slot = bay.slots[j];
+          if (slot.gone || !slot.dead) continue;
+          const p = limeBayBikeWorldPos(bay, j);
+          tickLimeWreck(slot, p.ox, p.oy);
+        }
+      }
+    }
+
+    function tryLimeBulletHit(b) {
+      if (player.limeBike) {
+        const tMount = getPlayerLimeBikeTarget();
+        if (tMount && !tMount.dead) {
+          if (aabbTorusHit(
+            b.x, b.y, AIM_FORGIVE_LIME, AIM_FORGIVE_LIME,
+            player.x, player.y, player.hw, player.hh
+          )) {
+            if (tMount.hp == null) tMount.hp = LIME_BIKE_MAX_HP;
+            tMount.hp -= b.dmg;
+            if (tMount.hp <= 0) destroyLimeBikeAtPlayerPos();
+            return true;
+          }
+        }
+      }
+      for (let di = 0; di < droppedLimeBikes.length; di++) {
+        const db = droppedLimeBikes[di];
+        if (db.dead) continue;
+        if (aabbTorusHit(
+          b.x, b.y, AIM_FORGIVE_LIME, AIM_FORGIVE_LIME,
+          db.x, db.y, LIME_BIKE_HW, LIME_BIKE_HH
+        )) {
+          if (db.hp == null) db.hp = LIME_BIKE_MAX_HP;
+          db.hp -= b.dmg;
+          if (db.hp <= 0) {
+            const ang = db.ang;
+            startLimeWrecked(db, db.x, db.y, ang);
+          }
+          return true;
+        }
+      }
+      for (const bay of limeBikeBays) {
+        if (!bay.slots) continue;
+        for (let j = 0; j < bay.slots.length; j++) {
+          const slot = bay.slots[j];
+          if (slot.gone || slot.dead) continue;
+          const p = limeBayBikeWorldPos(bay, j);
+          if (aabbTorusHit(
+            b.x, b.y, AIM_FORGIVE_LIME, AIM_FORGIVE_LIME,
+            p.ox, p.oy, LIME_BIKE_HW, LIME_BIKE_HH
+          )) {
+            slot.hp -= b.dmg;
+            if (slot.hp <= 0) startLimeWrecked(slot, p.ox, p.oy, p.parkAngle);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
     // --------- TILE DECAL BAKING ---------
     // Deterministic pseudo-random based on tile coordinates + salt.
@@ -1382,22 +1596,41 @@
             const crossH = my < 2 && (mx === 2 || mx === 9); // crosswalk across E-W road
             if (!atInter && !crossV && !crossH) {
               if (mx === 0 && (y % 2 === 0)) {
-                d.push({ dx: TILE - 3, dy: TILE / 2 - 1, w: 4, h: 6, c: '#e8c230' });
+                d.push({ dx: TILE - 3, dy: TILE / 2 - 1, w: 4, h: 60, c: '#DBDBD3' });
               } else if (my === 0 && (x % 2 === 0)) {
-                d.push({ dx: TILE / 2 - 1, dy: TILE - 3, w: 6, h: 4, c: '#e8c230' });
+                d.push({ dx: TILE / 2 - 1, dy: TILE - 3, w: 60, h: 4, c: '#DBDBD3' });
               }
             }
-            // crosswalk (zebra stripes) — paint before cars drive over
+            // crosswalk (zebra stripes) — bars run parallel to traffic; half-tile gap toward junction
+            const crossGap = TILE * 0.5;
             if (crossV) {
+              let dy0 = 0;
+              let barH = TILE;
+              if (my === 2) {
+                dy0 = crossGap;
+                barH = TILE - crossGap;
+              } else if (my === 9) {
+                dy0 = 0;
+                barH = TILE - crossGap;
+              }
               for (let s = 0; s < 5; s++) {
-                const sy = (s + 0.5) * (TILE / 5) - 1;
-                d.push({ dx: 0, dy: sy, w: TILE, h: 2, c: 'rgba(230,230,220,0.85)' });
+                const sx = (s + 0.5) * (TILE / 2.1) - 1;
+                d.push({ dx: sx - 1, dy: dy0, w: 10, h: barH, c: 'rgba(230,230,220,0.55)' });
               }
             }
             if (crossH) {
+              let dx0 = 0;
+              let barW = TILE;
+              if (mx === 2) {
+                dx0 = crossGap;
+                barW = TILE - crossGap;
+              } else if (mx === 9) {
+                dx0 = 0;
+                barW = TILE - crossGap;
+              }
               for (let s = 0; s < 5; s++) {
-                const sx = (s + 0.5) * (TILE / 5) - 1;
-                d.push({ dx: sx, dy: 0, w: 2, h: TILE, c: 'rgba(230,230,220,0.85)' });
+                const sy = (s + 0.5) * (TILE / 2.1) - 1;
+                d.push({ dx: dx0, dy: sy, w: barW, h: 10, c: 'rgba(230,230,220,0.55)' });
               }
             }
           } else if (t === T_CARPARK) {
@@ -2029,7 +2262,7 @@
       speed: 160,
       hp: 100, maxHp: 100,
       inCar: null,
-      /** Riding Lime e-bike: `{ fromBay }` if hired from stand (`fromBay` ref); `{ fromBay: null }` if remounting a dropped bike. */
+      /** Lime e-bike: `{ fromBay, slotIndex }` from hire stand; `{ bike }` remounting a dropped bike object. */
       limeBike: null,
       shootCd: 0,
       weapon: 'pistol',              // 'pistol' | 'shotgun' | 'rifle'
@@ -2396,23 +2629,41 @@
         px = c.x + dx * (c.hh + 14);
         py = c.y + dy * (c.hh + 14);
       }
-      // fleeing direction: directly away from the car
-      const fleeAngle = Math.atan2(py - c.y, px - c.x);
-      peds.push({
-        x: px, y: py,
-        hw: 6, hh: 6,
-        angle: fleeAngle,
-        speed: 30 + Math.random() * 25,
-        fleeSpeed: 105 + Math.random() * 20,
-        hp: 20,
-        wanderTimer: 0,
-        fleeTimer: 4.5 + Math.random() * 1.5,
-        alive: true,
-        color: pedColors[(Math.random() * pedColors.length) | 0],
-        skin: randomSkin(),
-        hitFlash: 0
-      });
-      // bystanders witness a carjacking and panic too
+      if (c.isSwatVan && c.swatCargo > 0) {
+        const weapon = (c.swatWeapons && c.swatWeapons[0]) || 'rifle';
+        spawnSwatAt(px, py, weapon);
+        c.swatCargo--;
+        if (c.swatWeapons && c.swatWeapons.length) c.swatWeapons.shift();
+      } else if (c.isPolice) {
+        cops.push({
+          x: px, y: py,
+          hw: 7, hh: 7,
+          angle: 0,
+          speed: 70,
+          hp: 45,
+          shootCd: 0,
+          alive: true,
+          skin: randomSkin(),
+          hitFlash: 0,
+          muzzleTimer: 0
+        });
+      } else {
+        const fleeAngle = Math.atan2(py - c.y, px - c.x);
+        peds.push({
+          x: px, y: py,
+          hw: 6, hh: 6,
+          angle: fleeAngle,
+          speed: 30 + Math.random() * 25,
+          fleeSpeed: 105 + Math.random() * 20,
+          hp: 20,
+          wanderTimer: 0,
+          fleeTimer: 4.5 + Math.random() * 1.5,
+          alive: true,
+          color: pedColors[(Math.random() * pedColors.length) | 0],
+          skin: randomSkin(),
+          hitFlash: 0
+        });
+      }
       alertPeds(c.x, c.y, 180);
     }
 
@@ -2769,7 +3020,7 @@
         raiseWanted(2);
       }
       if (cp.isSwat) spawnWeaponDrop(cp.x, cp.y, cp.weapon);
-      if (byPlayer && Math.random() < 0.3) spawnHealthKitDrop(cp.x, cp.y);
+      if (Math.random() < 0.3) spawnHealthKitDrop(cp.x, cp.y);
       for (let i = 0; i < 10; i++) {
         const a = Math.random() * Math.PI * 2;
         particles.push({
@@ -2812,10 +3063,22 @@
         return;
       }
       if (player.limeBike) {
-        // Leave a static world bike; hire-stand `n` is not refilled
-        droppedLimeBikes.push({ x: player.x, y: player.y, ang: player.moveAngle });
+        if (player.limeBike.fromBay) {
+          const { fromBay, slotIndex } = player.limeBike;
+          const sl = fromBay.slots[slotIndex];
+          droppedLimeBikes.push({
+            x: player.x, y: player.y, ang: player.moveAngle,
+            hp: sl.hp, dead: false, sparkT: 0, nextSp: 0, wreckAng: 0
+          });
+        } else {
+          const b = player.limeBike.bike;
+          b.x = player.x;
+          b.y = player.y;
+          b.ang = player.moveAngle;
+          if (b.hp == null) b.hp = LIME_BIKE_MAX_HP;
+          droppedLimeBikes.push(b);
+        }
         player.limeBike = null;
-        // Step to the side of the bike: forward = travel direction (not aim)
         const a = player.moveAngle;
         const step = 18;
         let sx = player.x + Math.cos(a + Math.PI / 2) * step;
@@ -2857,13 +3120,15 @@
       let bestDb = -1, bbd = 40;
       for (let i = 0; i < droppedLimeBikes.length; i++) {
         const db = droppedLimeBikes[i];
+        if (db.dead) continue;
         const d2 = torusDist(db.x, db.y, player.x, player.y);
         if (d2 < bbd) { bbd = d2; bestDb = i; }
       }
       if (bestDb >= 0) {
         const db = droppedLimeBikes[bestDb];
         droppedLimeBikes.splice(bestDb, 1);
-        player.limeBike = { fromBay: null };
+        if (db.hp == null) db.hp = LIME_BIKE_MAX_HP;
+        player.limeBike = { bike: db };
         player.x = db.x;
         player.y = db.y;
         player.moveAngle = db.ang;
@@ -2874,10 +3139,15 @@
         return;
       }
       for (const bay of limeBikeBays) {
-        if (bay.n <= 0) continue;
+        if (!bay.slots) continue;
+        let pick = -1;
+        for (let j = 0; j < bay.slots.length; j++) {
+          if (!bay.slots[j].gone && !bay.slots[j].dead) { pick = j; break; }
+        }
+        if (pick < 0) continue;
         if (torusDist(bay.x, bay.y, player.x, player.y) < 50) {
-          bay.n -= 1;
-          player.limeBike = { fromBay: bay };
+          bay.slots[pick].gone = true;
+          player.limeBike = { fromBay: bay, slotIndex: pick };
           const pOff = limeHireBayParkOffset(bay);
           player.x = wrapX(bay.x + pOff.x);
           player.y = wrapY(bay.y + pOff.y);
@@ -3030,6 +3300,84 @@
       c.speed = c.vx * ca + c.vy * sa;
     }
 
+    /**
+     * Impreza backfire: red sparks + a little hot gas. opts.ai = no haptic, no screen shake, optional no sound.
+     */
+    function addImprezaExhaustBackfireBurst(c, opts) {
+      const o = opts || {};
+      const isAi = !!o.ai;
+      const sound = o.sound !== false;
+      const ca = Math.cos(c.angle);
+      const sa = Math.sin(c.angle);
+      // Rear bumper, offset to driver’s-left (single tip) — was 0.35 and read as centre.
+      const exhaustLeft = -5.5;
+      const ex = c.x - ca * (c.hw + 2.5) - sa * exhaustLeft;
+      const ey = c.y - sa * (c.hw + 2.5) + ca * exhaustLeft;
+      const backA = c.angle + Math.PI;
+      // Dense red/orange spark palette (not cream / yellow cloud)
+      const palSp = ['#ff1100', '#ff2200', '#ff3308', '#ff5520', '#ff0018', '#ff6622', '#ff4400'];
+      // Slight hot gas, darker orange (fewer, smaller than before)
+      const palGas = ['#ff5510', '#ff3308', '#cc2200', '#e63900'];
+      for (let pop = 0; pop < 2; pop++) {
+        const j = pop * 0.35;
+        const px = ex - ca * j * 1.05;
+        const py = ey - sa * j * 1.05;
+        const n = 2 + ((Math.random() * 3) | 0);
+        for (let i = 0; i < n; i++) {
+          const a = backA + (Math.random() - 0.5) * 0.85;
+          const sp = 60 + Math.random() * 120;
+          const maxL = 0.055 + Math.random() * 0.055;
+          particles.push({
+            x: px, y: py,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp,
+            life: maxL,
+            maxLife: maxL,
+            size: 0.9 + Math.random() * 1.1,
+            color: palGas[(Math.random() * palGas.length) | 0],
+            exhaust: true
+          });
+        }
+      }
+      const nSp = 16 + ((Math.random() * 9) | 0);
+      for (let i = 0; i < nSp; i++) {
+        const a = backA + (Math.random() - 0.5) * 1.1;
+        const sp = 180 + Math.random() * 300;
+        const maxL = 0.04 + Math.random() * 0.055;
+        particles.push({
+          x: ex + (Math.random() - 0.5) * 1.2,
+          y: ey + (Math.random() - 0.5) * 1.2,
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp,
+          life: maxL,
+          maxLife: maxL,
+          size: 0.5 + Math.random() * 0.75,
+          color: palSp[(Math.random() * palSp.length) | 0],
+          exhaust: true,
+          spark: true
+        });
+      }
+      if (sound) audio.imprezaBackfire(!isAi);
+      if (!isAi) camera.shake = Math.max(camera.shake, 0.75);
+    }
+
+    /** Civilian / patrol Impreza: same backfire as player, no haptic; SFX only when in earshot. */
+    function imprezaAiMaybeBackfire(c, dt) {
+      if (c.type !== 'impreza' || c.driver === 'player') return;
+      const fwd = c.speed;
+      c._imprezaExhaustCd = Math.max(0, (c._imprezaExhaustCd || 0) - dt);
+      if (c._imprezaExhaustCd <= 0 && c._imprezaPrevFwd != null) {
+        const dFwd = fwd - c._imprezaPrevFwd;
+        if (dFwd > 1.6 && fwd > 5 && Math.random() < 0.5) {
+          const p = getPlayerPos();
+          const inEar = torusDist(c.x, c.y, p.x, p.y) < 480;
+          addImprezaExhaustBackfireBurst(c, { ai: true, sound: inEar });
+          c._imprezaExhaustCd = 0.1 + Math.random() * 0.14;
+        }
+      }
+      c._imprezaPrevFwd = fwd;
+    }
+
     function imprezaClearDriftState(c) {
       if (!c) return;
       if (c.vx !== undefined && c.vy !== undefined) {
@@ -3038,6 +3386,8 @@
       delete c.vx;
       delete c.vy;
       delete c.driftSkidTimer;
+      delete c._imprezaPrevFwd;
+      delete c._imprezaExhaustCd;
       carWallClearSmooth(c);
     }
 
@@ -3291,6 +3641,22 @@
       }
       playerUwX += dux;
       playerUwY += duy;
+
+      ca = Math.cos(c.angle);
+      sa = Math.sin(c.angle);
+      const fwd = c.vx * ca + c.vy * sa;
+      c._imprezaExhaustCd = Math.max(0, (c._imprezaExhaustCd || 0) - dt);
+      if (keys['w'] && c._imprezaExhaustCd <= 0 && c._imprezaPrevFwd != null) {
+        const dFwd = fwd - c._imprezaPrevFwd;
+        // dFwd: per-frame forward delta after grip/steer—often 3–10 on pull, <2 near max speed.
+        // min fwd: was 22, which blocked all bursts while fwd was building (typical 0–22);
+        if (dFwd > 1.6 && fwd > 5 && Math.random() < 0.5) {
+          addImprezaExhaustBackfireBurst(c);
+          c._imprezaExhaustCd = 0.1 + Math.random() * 0.14;
+        }
+      }
+      c._imprezaPrevFwd = fwd;
+
       return beforeGround;
     }
 
@@ -3454,14 +3820,16 @@
       player.x = c.x; player.y = c.y;
     }
 
-    function fireBullet(x, y, angle, speed, dmg, fromPlayer, fromCop) {
+    function fireBullet(x, y, angle, speed, dmg, fromPlayer, fromCop, shooterCop) {
       bullets.push({
         x, y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         life: 1.2,
         dmg,
-        fromPlayer, fromCop
+        fromPlayer,
+        fromCop,
+        shooterCop: (fromCop && shooterCop) ? shooterCop : null
       });
     }
 
@@ -3504,6 +3872,13 @@
     // Bump these higher if you want easier aim, lower for more twitch skill.
     const AIM_FORGIVE_PED = 6; // peds / cops
     const AIM_FORGIVE_CAR = 4; // enemy cars
+    /** Law-enforcement rounds (`fromCop`): world damage + friendly fire vs cops/SWAT. */
+    const COP_BULLET = {
+      friendlyFireMult: 0.4,
+      vsPedMult: 1,
+      vsCarMult: 1,
+      playerVehicleMult: 0.5
+    };
 
     function updateBullets(dt) {
       for (let i = bullets.length - 1; i >= 0; i--) {
@@ -3563,23 +3938,54 @@
                 }
               }
             }
+            if (!hit && tryLimeBulletHit(b)) hit = true;
           } else if (b.fromCop) {
-            // hit player (on foot)
-            if (player.alive && !player.inCar) {
+            const pedDmg = b.dmg * COP_BULLET.vsPedMult;
+            const ffDmg = b.dmg * COP_BULLET.friendlyFireMult;
+            // peds → cops (friendly fire) → cars → Lime → player on foot
+            for (const pd of peds) {
+              if (!pd.alive) continue;
+              if (aabbTorusHit(b.x, b.y, AIM_FORGIVE_PED, AIM_FORGIVE_PED, pd.x, pd.y, pd.hw, pd.hh)) {
+                pd.hp -= pedDmg;
+                pd.hitFlash = FX.hitFlashTime;
+                if (pd.hp <= 0) killPed(pd, false);
+                hit = true;
+                break;
+              }
+            }
+            if (!hit) {
+              for (const cp of cops) {
+                if (!cp.alive) continue;
+                if (b.shooterCop && cp === b.shooterCop) continue;
+                if (aabbTorusHit(b.x, b.y, AIM_FORGIVE_PED, AIM_FORGIVE_PED, cp.x, cp.y, cp.hw, cp.hh)) {
+                  cp.hp -= ffDmg;
+                  cp.hitFlash = FX.hitFlashTime;
+                  if (cp.hp <= 0) killCop(cp, false);
+                  hit = true;
+                  break;
+                }
+              }
+            }
+            if (!hit) {
+              for (const c of cars) {
+                if (c.hp <= 0) continue;
+                if (aabbTorusHit(b.x, b.y, AIM_FORGIVE_CAR, AIM_FORGIVE_CAR, c.x, c.y, c.hw, c.hh)) {
+                  const mult = (player.inCar === c) ? COP_BULLET.playerVehicleMult : COP_BULLET.vsCarMult;
+                  c.hp -= b.dmg * mult;
+                  c.hitFlash = FX.hitFlashTime;
+                  hit = true;
+                  break;
+                }
+              }
+            }
+            if (!hit && tryLimeBulletHit(b)) hit = true;
+            if (!hit && player.alive && !player.inCar && !player.limeBike) {
               if (aabbTorusHit(b.x, b.y, 0, 0, player.x, player.y, player.hw + 2, player.hh + 2)) {
                 const from = {
                   x: b.x - b.vx * 0.22,
                   y: b.y - b.vy * 0.22
                 };
                 damagePlayer(b.dmg, { from });
-                hit = true;
-              }
-            }
-            // hit player car
-            if (!hit && player.inCar) {
-              const c = player.inCar;
-              if (aabbTorusHit(b.x, b.y, 0, 0, c.x, c.y, c.hw, c.hh)) {
-                c.hp -= b.dmg * 0.5;
                 hit = true;
               }
             }
@@ -3661,7 +4067,7 @@
               }
               // small base jitter on top so AI isn't laser-precise
               sp += (Math.random() - 0.5) * 0.06;
-              fireBullet(cp.x, cp.y, cp.angle + sp, wspec.speed, wspec.aiDmg, false, true);
+              fireBullet(cp.x, cp.y, cp.angle + sp, wspec.speed, wspec.aiDmg, false, true, cp);
             }
             cp.shootCd = wspec.aiFireCdMin + Math.random() * (wspec.aiFireCdMax - wspec.aiFireCdMin);
             cp.muzzleTimer = cp.weapon === 'shotgun' ? 0.1 : 0.05;
@@ -3669,7 +4075,7 @@
             else audio.swatRifle();
           } else {
             const spread = (Math.random() - 0.5) * 0.15;
-            fireBullet(cp.x, cp.y, cp.angle + spread, 480, 10, false, true);
+            fireBullet(cp.x, cp.y, cp.angle + spread, 480, 10, false, true, cp);
             cp.shootCd = 0.55 + Math.random() * 0.3;
             cp.muzzleTimer = 0.08;
             audio.copShot();
@@ -4024,6 +4430,8 @@
         c.aiPrev = -1;
         c.aiStuckTimer = 0;
       }
+
+      imprezaAiMaybeBackfire(c, dt);
     }
 
     function updateAiCars(dt) {
@@ -4147,7 +4555,8 @@
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx * dt; p.y += p.vy * dt;
-        p.vx *= 0.94; p.vy *= 0.94;
+        const drag = p.exhaust ? 0.86 : 0.94;
+        p.vx *= drag; p.vy *= drag;
         p.life -= dt;
         if (p.life <= 0) particles.splice(i, 1);
       }
@@ -4185,12 +4594,15 @@
       }
       if (!near) {
         for (const db of droppedLimeBikes) {
+          if (db.dead) continue;
           if (torusDist(db.x, db.y, player.x, player.y) < 40) { near = true; break; }
         }
       }
       if (!near) {
         for (const bay of limeBikeBays) {
-          if (bay.n > 0 && torusDist(bay.x, bay.y, player.x, player.y) < 50) { near = true; break; }
+          if (!bay.slots) continue;
+          if (!bay.slots.some(s => !s.gone && !s.dead)) continue;
+          if (torusDist(bay.x, bay.y, player.x, player.y) < 50) { near = true; break; }
         }
       }
       if (near) {
@@ -4323,7 +4735,19 @@
           player.inCar = null;
         }
         if (player.limeBike) {
-          droppedLimeBikes.push({ x: player.x, y: player.y, ang: player.moveAngle });
+          if (player.limeBike.fromBay) {
+            const { fromBay, slotIndex } = player.limeBike;
+            const sl = fromBay.slots[slotIndex];
+            droppedLimeBikes.push({
+              x: player.x, y: player.y, ang: player.moveAngle,
+              hp: sl.hp, dead: false, sparkT: 0, nextSp: 0, wreckAng: 0
+            });
+          } else {
+            const b = player.limeBike.bike;
+            b.x = player.x; b.y = player.y; b.ang = player.moveAngle;
+            if (b.hp == null) b.hp = LIME_BIKE_MAX_HP;
+            droppedLimeBikes.push(b);
+          }
           player.limeBike = null;
         }
         camera.shake = Math.max(camera.shake, 18);
@@ -4518,7 +4942,7 @@
           const my = ((y % ROWS) + ROWS) % ROWS;
           const t = map[my][mx];
           let col;
-          if (t === T_ROAD) col = '#27231f';       // warmer asphalt
+          if (t === T_ROAD) col = '#302E26';       // warmer asphalt
           else if (t === T_CARPARK) col = '#2a2d26';   // parking bay (asphalt, slightly cool)
           else if (t === T_BIKE_BAY) col = LIME_DARK;   // cycle hire
           else if (t === T_SIDEWALK) col = '#b0a694'; // warm concrete
@@ -4649,9 +5073,25 @@
       // particles
       for (const p of particles) {
         forEachTorus3VisibleDraw(cxw, cyw, halfW, halfH, 20 + p.size, p.x, p.y, () => {
-        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+        if (p.spark) {
+          const t = Math.max(0, p.life / p.maxLife);
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.globalAlpha = Math.min(1, t * 1.05);
+          ctx.fillStyle = p.color;
+          const m = Math.hypot(p.vx, p.vy) || 1e-6;
+          const w = 1.2 + 2.8 * t;
+          const h = 0.5 + 0.55 * t;
+          ctx.translate(p.x, p.y);
+          ctx.rotate(Math.atan2(p.vy, p.vx));
+          ctx.fillRect(0, -h * 0.5, w, h);
+          ctx.restore();
+        } else {
+        const a0 = p.exhaust ? 0.78 : 1;
+        ctx.globalAlpha = Math.max(0, p.life / p.maxLife) * a0;
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        }
         });
       }
       ctx.globalAlpha = 1;
@@ -4691,7 +5131,9 @@
       // During boot, post-fx is suppressed so the splash stays pristine.
       if (!boot.active) {
         applyChromaticAberration();
+        drawWarmSunsetOverlay();
         drawVignetteAndScanlines();
+        applyPostContrast();
       }
       // Minimap sits above post-fx so CRT grain doesn't fight the dots.
       drawMinimap();
@@ -4790,6 +5232,63 @@
         const sliceDx = (Math.random() - 0.5) * 24 * glitchDrive;
         ctx.drawImage(canvas, 0, sliceY, W, sliceH, sliceDx, sliceY, W, sliceH);
       }
+    }
+
+    /** Super-light peach radial + full-frame orange multiply + soft-light (golden hour). */
+    function drawWarmSunsetOverlay() {
+      const pm = FX.warmSunsetPeachMult;
+      const om = FX.warmSunsetOrangeMult;
+      if ((pm <= 0 || !isFinite(pm)) && (om <= 0 || !isFinite(om))) return;
+
+      const cx = W * FX.warmSunsetCenterX;
+      const cy = H * FX.warmSunsetCenterY;
+      const r0 = Math.min(W, H) * FX.warmSunsetInnerR;
+      const r1 = Math.max(W, H) * FX.warmSunsetOuterR;
+      if (pm > 0 && isFinite(pm)) {
+        const g = ctx.createRadialGradient(cx, cy, r0, cx, cy, r1);
+        g.addColorStop(0, FX.warmSunsetPeach0);
+        g.addColorStop(0.52, FX.warmSunsetPeach1);
+        g.addColorStop(1, FX.warmSunsetPeach2);
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = Math.max(0, pm);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+      }
+
+      if (om > 0 && isFinite(om)) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.globalAlpha = Math.max(0, FX.warmSunsetMultiplyAlpha * om);
+        ctx.fillStyle = FX.warmSunsetMultiplyColor;
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'soft-light';
+        ctx.globalAlpha = Math.max(0, FX.warmSunsetSoftLightAlpha * om);
+        ctx.fillStyle = FX.warmSunsetSoftLightColor;
+        ctx.fillRect(0, 0, W, H);
+        ctx.restore();
+      }
+    }
+
+    /** Snapshots the framebuffer and redraws with CSS-style contrast (punchy mids/highs). */
+    function applyPostContrast() {
+      const f = FX.postContrast;
+      if (f <= 1.001 || !isFinite(f)) return;
+      bufACtx.setTransform(1, 0, 0, 1, 0, 0);
+      bufACtx.filter = 'none';
+      bufACtx.clearRect(0, 0, W, H);
+      bufACtx.drawImage(canvas, 0, 0);
+      const pct = Math.min(260, Math.max(100, Math.round(f * 100)));
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.filter = `contrast(${pct}%)`;
+      ctx.drawImage(bufA, 0, 0);
+      ctx.filter = 'none';
+      ctx.restore();
     }
 
     // ---- Vignette + CRT scanlines ----
@@ -5155,22 +5654,49 @@
         ctx.fillRect(-c.hw, -c.hh, w, h);
       } else if (type === 'impreza' && !c.isPolice && !c.isSwatVan) {
         const b = IMPREZA_WR_BLUE;
-        const g = ctx.createLinearGradient(c.hw, -c.hh, -c.hw * 0.3, c.hh);
-        g.addColorStop(0, shade(b, 32));
-        g.addColorStop(0.2, shade(b, 10));
-        g.addColorStop(0.45, b);
-        g.addColorStop(0.52, shade(b, -22));
-        g.addColorStop(0.65, shade(b, 6));
-        g.addColorStop(1, shade(b, 26));
+        const g = ctx.createLinearGradient(c.hw * 1.05, -c.hh * 0.92, -c.hw * 0.5, c.hh * 1.02);
+        g.addColorStop(0, shade(b, 58));
+        g.addColorStop(0.14, shade(b, 26));
+        g.addColorStop(0.3, shade(b, 6));
+        g.addColorStop(0.44, b);
+        g.addColorStop(0.52, shade(b, -32));
+        g.addColorStop(0.64, shade(b, -10));
+        g.addColorStop(0.78, shade(b, 22));
+        g.addColorStop(1, shade(b, 42));
         ctx.fillStyle = g;
         ctx.fillRect(-c.hw, -c.hh, w, h);
-        // specular “shine”
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.fillRect(c.hw * 0.18 - 1, -c.hh * 0.6, 2, Math.max(2, h * 0.45));
-        ctx.fillStyle = 'rgba(220, 240, 255, 0.16)';
-        ctx.fillRect(c.hw * 0.1, -c.hh * 0.2, 1, h * 0.4);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillRect(-c.hw * 0.35, -c.hh * 0.1, 1, h * 0.3);
+        // clearcoat: broad soft-light sheen
+        ctx.save();
+        ctx.globalCompositeOperation = 'soft-light';
+        const coat = ctx.createLinearGradient(c.hw * 0.65, -c.hh * 0.88, -c.hw * 0.55, c.hh * 0.72);
+        coat.addColorStop(0, 'rgba(255,255,255,0.62)');
+        coat.addColorStop(0.22, 'rgba(210,240,255,0.35)');
+        coat.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+        coat.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = coat;
+        ctx.fillRect(-c.hw, -c.hh, w, h);
+        ctx.restore();
+        // hot specular streaks
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.38)';
+        ctx.fillRect(c.hw * 0.2, -c.hh * 0.68, 2.5, Math.max(3, h * 0.52));
+        ctx.fillStyle = 'rgba(220, 248, 255, 0.32)';
+        ctx.fillRect(c.hw * 0.1, -c.hh * 0.22, 1.6, h * 0.44);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.fillRect(-c.hw * 0.33, -c.hh * 0.06, 1.2, h * 0.34);
+        // hood glint
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const hx = c.hw * 0.36;
+        const hy = -c.hh * 0.34;
+        const glint = ctx.createRadialGradient(hx, hy, 0, hx, hy, c.hw * 0.62);
+        glint.addColorStop(0, 'rgba(255,255,255,0.55)');
+        glint.addColorStop(0.35, 'rgba(200,230,255,0.18)');
+        glint.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = glint;
+        ctx.beginPath();
+        ctx.rect(-c.hw, -c.hh, w, h);
+        ctx.fill();
+        ctx.restore();
       } else {
         ctx.fillStyle = c.color;
         ctx.fillRect(-c.hw, -c.hh, w, h);
@@ -5189,9 +5715,38 @@
         drawUKBattenburgStripes(ctx, roofX, roofY0, roofW, roofY1);
       } else {
         const baseRoof = (type === 'impreza' && !c.isSwatVan) ? IMPREZA_WR_BLUE : c.color;
-        const roofColor = c.isSwatVan ? '#0d0e12' : shade(baseRoof, -35);
-        ctx.fillStyle = roofColor;
+        if (type === 'impreza' && !c.isPolice && !c.isSwatVan) {
+          const rb = baseRoof;
+          const rg = ctx.createLinearGradient(roofX + roofW, roofY0, roofX, roofY1);
+          rg.addColorStop(0, shade(rb, 12));
+          rg.addColorStop(0.38, shade(rb, -34));
+          rg.addColorStop(0.58, shade(rb, -10));
+          rg.addColorStop(1, shade(rb, -30));
+          ctx.fillStyle = rg;
+        } else if (c.isSwatVan) {
+          const rb = '#0d0e12';
+          const rg = ctx.createLinearGradient(roofX + roofW, roofY0, roofX, roofY1);
+          rg.addColorStop(0, shade(rb, 28));
+          rg.addColorStop(0.36, shade(rb, -16));
+          rg.addColorStop(0.55, shade(rb, 20));
+          rg.addColorStop(1, shade(rb, -14));
+          ctx.fillStyle = rg;
+        } else {
+          ctx.fillStyle = shade(baseRoof, -35);
+        }
         ctx.fillRect(roofX, roofY0, roofW, h - 4);
+        if (c.isSwatVan) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'soft-light';
+          const coat = ctx.createLinearGradient(roofX + roofW, roofY0, roofX, roofY1);
+          coat.addColorStop(0, 'rgba(235,240,250,0.5)');
+          coat.addColorStop(0.32, 'rgba(160,170,190,0.28)');
+          coat.addColorStop(0.58, 'rgba(255,255,255,0.14)');
+          coat.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = coat;
+          ctx.fillRect(roofX, roofY0, roofW, h - 4);
+          ctx.restore();
+        }
       }
 
       // windshield (front edge of cabin)
@@ -5219,7 +5774,7 @@
         ctx.fillRect(hx0, yTop, hvw, yH);
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fillRect(hx0, yTop, 1, yH);
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
         ctx.fillRect(hx0 + hvw - 1, yTop + 1, 1, yH - 2);
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.fillRect(hx0 + 2, yTop + (yH >> 1) - 1, 1, 2);
@@ -5233,7 +5788,7 @@
         ctx.fillRect(wingX, wingY0, wingW, wingH);
         ctx.fillStyle = shade(b, -30);
         ctx.fillRect(wingX + 1, wingY0 + 1, wingW - 2, 1);
-        ctx.fillStyle = 'rgba(255,255,255,0.14)';
+        ctx.fillStyle = 'rgba(255,255,255,0.24)';
         ctx.fillRect(wingX + wingW - 1, wingY0 + 1, 1, wingH - 2);
       }
 
@@ -6212,8 +6767,10 @@
       ctx.restore();
     }
 
-    function drawLimeParkedBike(wx, wy, ang) {
+    function drawLimeParkedBike(wx, wy, ang, style) {
       // Top-down, +X = forward. Order: ground → wheels → white frame → seat → bars → basket
+      const wreck = !!(style && style.wreck);
+      const bMul = (style && style.dark != null) ? style.dark : 1;
       const W = { rear: -5.3, front: 5.3 };
       const tThin = 5.6;
       const tWide = 1.1;
@@ -6221,8 +6778,9 @@
 
       ctx.save();
       ctx.translate(wx, wy);
-      ctx.rotate(ang);
+      ctx.rotate(ang + (wreck ? Math.PI * 0.5 : 0));
       ctx.scale(LIME_BIKE_DRAW_SCALE, LIME_BIKE_DRAW_SCALE);
+      if (bMul < 1) ctx.filter = `brightness(${bMul})`;
 
       // Ground shadow under rear tyre
       ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -6257,24 +6815,23 @@
       ctx.fillStyle = LIME;
       ctx.fillRect(2.4, -1.0, 2.0, 0.95);
 
+      if (bMul < 1) ctx.filter = 'none';
       ctx.restore();
     }
     function drawLimeBaysParkedBikes(cxw, cyw, halfW, halfH) {
       for (const bay of limeBikeBays) {
-        if (bay.n <= 0) continue;
-        // Row of bikes runs along the *long* side of the 2-tile bay; each frame is
-        // perpendicular to that (like a rack) so they sit inside the dashed area.
-        // n = E–W pair of tiles: row E–W, parkAngle N–S. w = N–S pair: row N–S, parkAngle E–W.
-        const rowAngle = bay.kind === 'n' ? 0 : Math.PI * 0.5;
-        const parkAngle = rowAngle + Math.PI * 0.5;
-        const pOff = limeHireBayParkOffset(bay);
-        const spread = 20;
-        for (let i = 0; i < bay.n; i++) {
-          const t = (i - (bay.n - 1) * 0.5) * spread;
-          const ox = bay.x + pOff.x + Math.cos(rowAngle) * t;
-          const oy = bay.y + pOff.y + Math.sin(rowAngle) * t;
+        if (!bay.slots) continue;
+        for (let i = 0; i < bay.slots.length; i++) {
+          const slot = bay.slots[i];
+          if (slot.gone) continue;
+          const p = limeBayBikeWorldPos(bay, i);
+          const { ox, oy, parkAngle } = p;
           forEachTorus3VisibleDraw(cxw, cyw, halfW, halfH, 24, ox, oy, () => {
-            drawLimeParkedBike(ox, oy, parkAngle);
+            if (slot.dead) {
+              drawLimeParkedBike(ox, oy, parkAngle, { wreck: true, dark: 0.5 });
+            } else {
+              drawLimeParkedBike(ox, oy, parkAngle, null);
+            }
           });
         }
       }
@@ -6282,7 +6839,11 @@
     function drawDroppedLimeBikes(cxw, cyw, halfW, halfH) {
       for (const db of droppedLimeBikes) {
         forEachTorus3VisibleDraw(cxw, cyw, halfW, halfH, 24, db.x, db.y, () => {
-          drawLimeParkedBike(db.x, db.y, db.ang);
+          if (db.dead) {
+            drawLimeParkedBike(db.x, db.y, db.ang, { wreck: true, dark: 0.5 });
+          } else {
+            drawLimeParkedBike(db.x, db.y, db.ang, null);
+          }
         });
       }
     }
@@ -6295,12 +6856,12 @@
           ctx.translate(lx, ly);
           if (bay.kind === 'n') {
             ctx.rotate(0);
-            const fontN = 'bold 5.3px system-ui,Segoe UI,sans-serif';
+            const fontN = 'bold 5.5px system-ui,Segoe UI,sans-serif';
             ctx.font = fontN;
             ctx.textAlign = 'center';
             const oneLine = 'CYCLE HIRE ONLY';
             const m = ctx.measureText(oneLine);
-            const by = 20;
+            const by = 13;
             let th = 5.5;
             let top = by - 4.2;
             if (m.actualBoundingBoxAscent != null) {
@@ -6717,6 +7278,7 @@
         updateMuzzleFlashes(dt);
         updateWeaponDrops(dt);
         updateParticles(dt);
+        updateLimeBikeWreckSparks(dt);
         updateWantedSystem(dt);
         updateReload(dt);
         updateRegen(dt);
