@@ -1261,9 +1261,17 @@
     const T_ROAD = 0, T_SIDEWALK = 1, T_BUILDING = 2, T_GRASS = 3, T_CARPARK = 4, T_BIKE_BAY = 5;
     /** Treated as driveable + shoot-through like T_ROAD (no building collision). */
     function isRoadLikeTile(t) { return t === T_ROAD || t === T_CARPARK || t === T_BIKE_BAY; }
-    /** 50% of blocks, stable; raise salt to layer more decoration types. */
+    /** ~50% of blocks, stable; raise salt to layer more decoration types. */
     function blockWantsHalfDecor(bx, by, salt) {
       return ((bx * 73 + by * 29 + (salt | 0)) & 1) === 0;
+    }
+    /**
+     * Same density as blockWantsHalfDecor but NOT tied to (bx+by) parity.
+     * Lime carpark arm uses carArmN = (bx+by)&1; the old decor test forced only one bay kind.
+     */
+    function blockWantsLimeHireBay(bx, by, salt) {
+      const s = salt | 0;
+      return ((bx * 46 + by * 19 + s) & 1) === 0;
     }
     /** e-bike hire bays — { x, y, angle, n, kind: 'n'|'w' } (see applyLimeBikeBays) */
     const limeBikeBays = [];
@@ -1289,6 +1297,8 @@
     }
     /** Hire sign only: shift opposite `limeHireBayParkOffset` so text sits deeper on pavement (does not move bikes). */
     const LIME_HIRE_LABEL_AWAY_FROM_ROAD = 2;
+    /** Canvas-local baseline offset for “CYCLE HIRE ONLY”; same value for n and w so w’s −90° rotation matches buildingward distance. */
+    const LIME_HIRE_LABEL_BY = 13;
     const map = [];
     /** { x, y, angle } shuffled for initial non-AI spawn order; see applyCarparkBays. */
     const carparkSpawns = [];
@@ -1386,13 +1396,13 @@
     }
     applyCarparkBays();
 
-    // Hire bay on the *other* sidewalk arm from the car carpark (2 tiles) — 1/2 of building blocks (blockWantsHalfDecor).
+    // Hire bay on the *other* sidewalk arm from the car carpark (2 tiles) — ~1/2 of building blocks.
     function applyLimeBikeBays() {
       limeBikeBays.length = 0;
       for (let byB = 0; byB < 6; byB++) {
         for (let bxB = 0; bxB < 6; bxB++) {
           if (map[byB * 10 + 5][bxB * 10 + 5] !== T_BUILDING) continue;
-          if (!blockWantsHalfDecor(bxB, byB, 501)) continue;
+          if (!blockWantsLimeHireBay(bxB, byB, 501)) continue;
           const carArmN = (bxB * 47 + byB * 19) & 1; // 0 = carpark on N strip, 1 = on W
           let gxa, gya, gxb, gyb, ang, kind;
           if (carArmN === 0) {
@@ -7198,7 +7208,7 @@
             ctx.textAlign = 'center';
             const oneLine = 'CYCLE HIRE ONLY';
             const m = ctx.measureText(oneLine);
-            const by = 13;
+            const by = LIME_HIRE_LABEL_BY;
             let th = 5.5;
             let top = by - 4.2;
             if (m.actualBoundingBoxAscent != null) {
@@ -7218,7 +7228,7 @@
             ctx.textAlign = 'center';
             const oneLineW = 'CYCLE HIRE ONLY';
             const mW = ctx.measureText(oneLineW);
-            const byW = 2.5;
+            const byW = LIME_HIRE_LABEL_BY;
             let thW = 5.5;
             let topW = byW - 4.2;
             if (mW.actualBoundingBoxAscent != null) {
