@@ -1120,6 +1120,16 @@
         setTimeout(() => this.tone({ freq: 780, type: 'square', dur: 0.05, vol: 0.12 }), 40);
         setTimeout(() => this.tone({ freq: 540, type: 'square', dur: 0.05, vol: 0.12 }), 110);
       },
+      /** Player mounts a Lime (hire bay or remount dropped bike) — one-shot sample. */
+      limeBikeMount() {
+        try {
+          const a = new Audio('static/sound/limebikesoud.mp3');
+          a.volume = 0.9;
+          const p = a.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch (_) {}
+        haptic(12);
+      },
       /** E-bike destroyed: electrical pop + light fizzle (no haptic, no world shake). */
       limeBikeZap() {
         if (!this.enabled) return;
@@ -3620,7 +3630,7 @@
         playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
         playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
         resetPlayerFootLocomotion(BIKE_RUN_SPEED);
-        audio.enterCar();
+        audio.limeBikeMount();
         return;
       }
       for (const bay of limeBikeBays) {
@@ -3641,7 +3651,7 @@
           playerUwX = nearestUnwToPoint(playerUwX, player.x, WORLD_W);
           playerUwY = nearestUnwToPoint(playerUwY, player.y, WORLD_H);
           resetPlayerFootLocomotion(BIKE_RUN_SPEED);
-          audio.enterCar();
+          audio.limeBikeMount();
           return;
         }
       }
