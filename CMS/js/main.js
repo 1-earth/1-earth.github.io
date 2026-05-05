@@ -13,6 +13,7 @@ let mediaFilesToUpload = []; // For media dashboard: array of File objects
 let existingMediaFiles = []; // For media dashboard: array of {url, caption, filename, storagePath}
 let mediaUploadsInProgress = []; // [{file, progress, uploadTask, uploadedUrl, storagePath, error, isCompressed, isDone}]
 let draggedMediaPreviewItem = null;
+let pendingMediaUploadReturnContext = null;
 /** True after mousedown on gallery grip; dragstart on the row only proceeds when this is set. */
 let mediaReorderGripArmed = false;
 let isAdmin = false; // From custom claim
@@ -292,6 +293,25 @@ function getTargetUserId() {
     return currentUser ? currentUser.uid : null;
 }
 
+function setActiveDataType(dataType) {
+    selectedDataType = dataType;
+    document.querySelectorAll('.data-type-btn.active').forEach(btn => btn.classList.remove('active'));
+    const activeButton = document.querySelector(`.data-type-btn[data-type="${dataType}"]`);
+    if (activeButton) activeButton.classList.add('active');
+    ui.updateItemsListTitle(dataTypeListTitle(dataType));
+    ui.setNewItemButtonText(dataTypeCreateLabel(dataType));
+}
+
+function showDashboardInlineMessage(message) {
+    if (!dashboardContentEl || !message) return;
+    const target = dashboardContentEl.querySelector('.dashboard-main-content') || dashboardContentEl.firstElementChild || dashboardContentEl;
+    if (!target) return;
+    const notice = document.createElement('div');
+    notice.className = 'cms-inline-message';
+    notice.textContent = message;
+    target.insertAdjacentElement('afterbegin', notice);
+}
+
 async function populateAdminUserDropdown() {
     try { console.log('[AdminUI] populateAdminUserDropdown()'); } catch (e) {}
     if (!adminUserSelectEl) { console.warn('[AdminUI] adminUserSelectEl not found'); return; }
@@ -545,7 +565,7 @@ async function handleItemSelected(dataID) {
     }
 }
 
-async function handleCreateNewItem() {
+async function handleCreateNewItem(options = {}) {
     if (!currentUser || !selectedDataType) return;
     ui.showLoading(true);
     currentOpenItemDataID = null; // Important: indicates a new item
@@ -566,6 +586,9 @@ async function handleCreateNewItem() {
         } else if (selectedDataType === 'media') {
             ui.renderMediaDashboard(newId, null, targetUid);
             setupMediaDashboardControls(newId, null);
+            if (options.inlineMessage) {
+                showDashboardInlineMessage(options.inlineMessage);
+            }
         } else if (selectedDataType === 'blog') {
             ui.renderBlogDashboard(newId, null);
         } else if (selectedDataType === 'calendar') {
@@ -789,9 +812,9 @@ async function handleSaveText() {
     _saveItemToFirestore(itemData);
 }
 
-async function handleSaveBlog() {
+async function handleSaveBlog(options = {}) {
     const title = validateField('blogTitle', 'Page title');
-    if (!title) return;
+    if (!title) return false;
 
     const titleInput = document.getElementById('blogTitle');
     try {
@@ -799,12 +822,12 @@ async function handleSaveBlog() {
         const duplicateId = await fsService.findDuplicatePageTitle(targetUid, title, currentOpenItemDataID);
         if (duplicateId) {
             ui.displayErrorNearElement(titleInput, 'Another page already uses this title. Choose a different name.');
-            return;
+            return false;
         }
     } catch (err) {
         console.error('findDuplicatePageTitle:', err);
         ui.showPopup('Could not verify the title. Check your connection and try again.');
-        return;
+        return false;
     }
 
     const author = document.getElementById('blogAuthor').value.trim();
@@ -844,7 +867,7 @@ async function handleSaveBlog() {
         datePosted = firebase.firestore.Timestamp.fromDate(new Date(datePostedStr));
     } else {
         ui.displayErrorNearElement(document.getElementById('blogDatePosted'), "Date posted cannot be empty.");
-        return;
+        return false;
     }
 
     dashboardContentEl.querySelectorAll('.blog-block').forEach((blockEl) => {
@@ -855,14 +878,14 @@ async function handleSaveBlog() {
     if (invalidMediaLinkInput) {
         invalidMediaLinkInput.reportValidity();
         invalidMediaLinkInput.focus();
-        return;
+        return false;
     }
 
     // Collect all sections and blocks data
     const sections = collectBlogSectionsData();
     if (!sections || sections.length === 0) {
         ui.showPopup("Please add at least one section with content to this page.");
-        return;
+        return false;
     }
 
     const itemData = {
@@ -877,7 +900,7 @@ async function handleSaveBlog() {
         datePosted: datePosted,
         sections: sections,
     };
-    _saveItemToFirestore(itemData);
+    return _saveItemToFirestore(itemData, options);
 }
 
 function collectBlogSectionsData() {
@@ -1166,32 +1189,260 @@ function handleBlockTypeChange(target) {
     }
 }
 
+function createUploadReturnContext(kind, extra = {}) {
+    return {
+        kind,
+        pageId: currentOpenItemDataID,
+        ...extra
+    };
+}
+
+async function handleUploadNewMediaFromSelector(context) {
+    if (!context || !context.pageId) return;
+    const saved = await handleSaveBlog({ silent: true, reload: false });
+    if (!saved) return;
+
+    pendingMediaUploadReturnContext = context;
+    setActiveDataType('media');
+    await loadItemsForType('media');
+    await handleCreateNewItem({ inlineMessage: 'Page saved. Upload your new media here' });
+}
+
+function getPrimaryMediaUrl(selectedMedia) {
+    if (selectedMedia && selectedMedia.files && selectedMedia.files.length > 0) {
+        return selectedMedia.files[0].url || '';
+    }
+    return selectedMedia && selectedMedia.mediaURL ? selectedMedia.mediaURL : '';
+}
+
+function getPrimaryMediaType(selectedMedia) {
+    if (selectedMedia && selectedMedia.files && selectedMedia.files.length > 0) {
+        return selectedMedia.files[0].type || '';
+    }
+    return '';
+}
+
+function isImageMediaItem(selectedMedia) {
+    const type = getPrimaryMediaType(selectedMedia);
+    return !!(type && type.startsWith('image/'));
+}
+
+function createSelectedMediaPreviewHtml(selectedMedia, altText) {
+    const mediaURL = getPrimaryMediaUrl(selectedMedia);
+    const type = getPrimaryMediaType(selectedMedia);
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+    const isVideo = (type && type.startsWith('video/')) || videoExtensions.some(ext => mediaURL.toLowerCase().includes(ext));
+    const safeUrl = ui.escapeHTML(mediaURL);
+    const safeAlt = ui.escapeHTML(altText);
+
+    if (isVideo) {
+        return `<video src="${safeUrl}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
+    }
+    return `<img src="${safeUrl}" alt="${safeAlt}" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
+}
+
+async function applyMediaToBlock(blockEl, selectedMedia, existingMediaSettings = null) {
+    const mediaContainer = blockEl && blockEl.querySelector('.block-media-container');
+    if (!blockEl || !mediaContainer) return false;
+
+    const blockId = blockEl.dataset.blockId;
+    mediaContainer.innerHTML = `
+        <div class="media-content-preview" id="media-preview-${blockId}">
+            <div class="media-placeholder">Loading media...</div>
+        </div>
+        <div class="media-block-settings" id="media-settings-${blockId}" data-file-count="0"></div>
+        <button class="btn btn-sm btn-secondary select-media-btn">Change Media</button>
+    `;
+    mediaContainer.dataset.mediaId = selectedMedia.dataID;
+
+    const targetUid = getTargetUserId();
+    await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, targetUid, existingMediaSettings);
+    markPageDashboardDirty();
+    return true;
+}
+
+function applyFeaturedMedia(selectedMedia) {
+    const featuredMediaContainer = document.getElementById('featuredMediaContainer');
+    const posterImageContainer = document.getElementById('posterImageContainer');
+    const featuredMediaUrlInput = document.getElementById('blogFeaturedMediaUrl');
+    const mediaURL = getPrimaryMediaUrl(selectedMedia);
+
+    if (!featuredMediaContainer || !featuredMediaUrlInput || !mediaURL) return false;
+
+    featuredMediaUrlInput.value = mediaURL;
+    featuredMediaContainer.innerHTML = `
+        <div class="featured-media-preview">
+            ${createSelectedMediaPreviewHtml(selectedMedia, 'Featured Media')}
+        </div>
+        <button class="btn btn-sm btn-secondary select-featured-media-btn">Change Featured Media</button>
+    `;
+    if (posterImageContainer) {
+        posterImageContainer.style.display = 'block';
+    }
+    markPageDashboardDirty();
+    return true;
+}
+
+function applyPosterImage(selectedMedia) {
+    if (!isImageMediaItem(selectedMedia)) {
+        ui.showPopup('Please upload an image media item for the poster.');
+        return false;
+    }
+
+    const posterImageContainer = document.getElementById('posterImageContainer');
+    const posterImageInput = document.getElementById('blogFeaturedMediaPoster');
+    const posterURL = getPrimaryMediaUrl(selectedMedia);
+
+    if (!posterImageContainer || !posterImageInput || !posterURL) return false;
+
+    posterImageInput.value = posterURL;
+    const existingLabel = posterImageContainer.querySelector('label');
+    const existingHint = posterImageContainer.querySelector('.form-field-hint');
+    posterImageContainer.innerHTML = '';
+    if (existingLabel) posterImageContainer.appendChild(existingLabel);
+    if (existingHint) posterImageContainer.appendChild(existingHint);
+    posterImageContainer.insertAdjacentHTML('beforeend', `
+        <div class="poster-image-preview">
+            <img src="${ui.escapeHTML(posterURL)}" alt="Poster Image" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+        </div>
+        <button class="btn btn-sm btn-secondary select-poster-image-btn">Change Poster Image</button>
+    `);
+    markPageDashboardDirty();
+    return true;
+}
+
+function applyFeaturedMedia2(selectedMedia) {
+    const featuredMedia2Container = document.getElementById('featuredMedia2Container');
+    const posterImage2Container = document.getElementById('posterImage2Container');
+    const featuredMedia2UrlInput = document.getElementById('blogFeaturedMedia2Url');
+    const featuredMedia2PosterInput = document.getElementById('blogFeaturedMedia2Poster');
+    const featuredMedia2TypeInput = document.getElementById('blogFeaturedMedia2Type');
+    const clearBtn = document.querySelector('.clear-featured-media2-btn');
+    const detailsEl = document.querySelector('.blog-featured-media2-details');
+    const mediaURL = getPrimaryMediaUrl(selectedMedia);
+
+    if (!featuredMedia2Container || !featuredMedia2UrlInput || !mediaURL) return false;
+
+    featuredMedia2UrlInput.value = mediaURL;
+    if (featuredMedia2PosterInput) featuredMedia2PosterInput.value = '';
+    if (featuredMedia2TypeInput) featuredMedia2TypeInput.value = getPrimaryMediaType(selectedMedia);
+
+    featuredMedia2Container.innerHTML = `
+        <div class="featured-media-preview">
+            ${createSelectedMediaPreviewHtml(selectedMedia, 'Hero-only media')}
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary select-featured-media2-btn">Change hero-only media</button>
+    `;
+
+    if (posterImage2Container) {
+        posterImage2Container.style.display = 'block';
+        const existingLabel = posterImage2Container.querySelector('label');
+        const existingHint = posterImage2Container.querySelector('.form-field-hint');
+        posterImage2Container.innerHTML = '';
+        if (existingLabel) posterImage2Container.appendChild(existingLabel);
+        if (existingHint) posterImage2Container.appendChild(existingHint);
+        posterImage2Container.insertAdjacentHTML('beforeend', `
+            <div class="poster-image-placeholder">No poster selected</div>
+            <button type="button" class="btn btn-sm btn-primary select-poster-image2-btn">Select hero poster</button>
+        `);
+    }
+    if (clearBtn) clearBtn.disabled = false;
+    if (detailsEl) detailsEl.setAttribute('open', '');
+    markPageDashboardDirty();
+    return true;
+}
+
+function applyPosterImage2(selectedMedia) {
+    if (!isImageMediaItem(selectedMedia)) {
+        ui.showPopup('Please upload an image media item for the hero poster.');
+        return false;
+    }
+
+    const posterImage2Container = document.getElementById('posterImage2Container');
+    const posterImage2Input = document.getElementById('blogFeaturedMedia2Poster');
+    const posterURL = getPrimaryMediaUrl(selectedMedia);
+
+    if (!posterImage2Container || !posterImage2Input || !posterURL) return false;
+
+    posterImage2Input.value = posterURL;
+    const existingLabel = posterImage2Container.querySelector('label');
+    const existingHint = posterImage2Container.querySelector('.form-field-hint');
+    posterImage2Container.innerHTML = '';
+    if (existingLabel) posterImage2Container.appendChild(existingLabel);
+    if (existingHint) posterImage2Container.appendChild(existingHint);
+    posterImage2Container.insertAdjacentHTML('beforeend', `
+        <div class="poster-image-preview">
+            <img src="${ui.escapeHTML(posterURL)}" alt="Hero video poster" style="max-width: 200px; max-height: 100px; object-fit: cover;">
+        </div>
+        <button type="button" class="btn btn-sm btn-secondary select-poster-image2-btn">Change hero poster</button>
+    `);
+    markPageDashboardDirty();
+    return true;
+}
+
+async function applyMediaBlockVideoPoster(context, selectedMedia) {
+    if (!isImageMediaItem(selectedMedia)) {
+        ui.showPopup('Please upload an image media item for the video poster.');
+        return false;
+    }
+
+    const blockEl = document.querySelector(`[data-block-id="${context.blockId}"]`);
+    if (!blockEl || !context.mediaId) return false;
+
+    const posterURL = getPrimaryMediaUrl(selectedMedia);
+    const merged = context.mediaSettings || {};
+    merged.videoPosterUrl = posterURL;
+
+    const targetUid = getTargetUserId();
+    await ui.loadMediaIntoBlock(context.blockId, context.mediaId, targetUid, merged);
+    markPageDashboardDirty();
+    return true;
+}
+
+async function applyUploadedMediaReturnContext(context, selectedMedia) {
+    if (!context || !selectedMedia) return false;
+
+    setActiveDataType('blog');
+    await loadItemsForType('blog');
+    await handleItemSelected(context.pageId);
+    await new Promise(resolve => setTimeout(resolve, 80));
+
+    let applied = false;
+    if (context.kind === 'block') {
+        const blockEl = document.querySelector(`[data-block-id="${context.blockId}"]`);
+        applied = await applyMediaToBlock(blockEl, selectedMedia, context.mediaSettings || null);
+    } else if (context.kind === 'featured') {
+        applied = applyFeaturedMedia(selectedMedia);
+    } else if (context.kind === 'poster') {
+        applied = applyPosterImage(selectedMedia);
+    } else if (context.kind === 'featured2') {
+        applied = applyFeaturedMedia2(selectedMedia);
+    } else if (context.kind === 'poster2') {
+        applied = applyPosterImage2(selectedMedia);
+    } else if (context.kind === 'mediaBlockPoster') {
+        applied = await applyMediaBlockVideoPoster(context, selectedMedia);
+    }
+
+    if (applied) {
+        return handleSaveBlog({ silent: true, reload: false });
+    }
+    return false;
+}
+
 async function handleSelectMediaForBlock(target) {
     const blockEl = target.closest('.blog-block');
     if (!blockEl) return;
     
     try {
         const mediaItems = await getAvailableMediaItems();
+        const context = createUploadReturnContext('block', {
+            blockId: blockEl.dataset.blockId,
+            mediaSettings: ui.collectMediaBlockSettings(blockEl)
+        });
         ui.showMediaSelector(mediaItems, async (selectedMedia) => {
-            const mediaContainer = blockEl.querySelector('.block-media-container');
-            if (mediaContainer) {
-                const existingMediaSettings = ui.collectMediaBlockSettings(blockEl);
-                // Update the media container structure to match the expected format
-                const blockId = blockEl.dataset.blockId;
-                mediaContainer.innerHTML = `
-                    <div class="media-content-preview" id="media-preview-${blockId}">
-                        <div class="media-placeholder">Loading media...</div>
-                    </div>
-                    <div class="media-block-settings" id="media-settings-${blockId}" data-file-count="0"></div>
-                    <button class="btn btn-sm btn-secondary select-media-btn">Change Media</button>
-                `;
-                mediaContainer.dataset.mediaId = selectedMedia.dataID;
-                
-                // Load the actual media content
-                const targetUid = getTargetUserId();
-                await ui.loadMediaIntoBlock(blockId, selectedMedia.dataID, targetUid, existingMediaSettings);
-                markPageDashboardDirty();
-            }
+            await applyMediaToBlock(blockEl, selectedMedia, context.mediaSettings);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1201,63 +1452,11 @@ async function handleSelectMediaForBlock(target) {
 async function handleSelectFeaturedMedia(target) {
     try {
         const mediaItems = await getAvailableMediaItems();
+        const context = createUploadReturnContext('featured');
         ui.showMediaSelector(mediaItems, async (selectedMedia) => {
-            const featuredMediaContainer = document.getElementById('featuredMediaContainer');
-            const posterImageContainer = document.getElementById('posterImageContainer');
-            const featuredMediaUrlInput = document.getElementById('blogFeaturedMediaUrl');
-            
-            if (featuredMediaContainer && featuredMediaUrlInput) {
-                // Get the media URL from the files array (most likely location)
-                let mediaURL = '';
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    mediaURL = selectedMedia.files[0].url;
-                } else if (selectedMedia.mediaURL) {
-                    mediaURL = selectedMedia.mediaURL;
-                }
-                
-                featuredMediaUrlInput.value = mediaURL;
-                
-
-                
-                // Create appropriate preview element based on media type
-                let previewElement = '';
-                let isVideo = false;
-                
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    const firstFile = selectedMedia.files[0];
-                    isVideo = firstFile.type && firstFile.type.startsWith('video/');
-                    
-                    if (isVideo) {
-                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
-                    } else {
-                        previewElement = `<img src="${mediaURL}" alt="Featured Media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
-                    }
-                } else {
-                    // Fallback to URL-based detection
-                    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
-                    isVideo = videoExtensions.some(ext => mediaURL.toLowerCase().includes(ext));
-                    
-                    if (isVideo) {
-                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
-                    } else {
-                        previewElement = `<img src="${mediaURL}" alt="Featured Media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
-                    }
-                }
-                
-                // Update the container to show the selected media
-                featuredMediaContainer.innerHTML = `
-                    <div class="featured-media-preview">
-                        ${previewElement}
-                    </div>
-                    <button class="btn btn-sm btn-secondary select-featured-media-btn">Change Featured Media</button>
-                `;
-                
-                // Always show poster image selection (allow poster for images and videos)
-                if (posterImageContainer) {
-                    posterImageContainer.style.display = 'block';
-                }
-                markPageDashboardDirty();
-            }
+            applyFeaturedMedia(selectedMedia);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1275,38 +1474,11 @@ async function handleSelectPosterImage(target) {
             }
             return false;
         });
-        
+        const context = createUploadReturnContext('poster');
         ui.showMediaSelector(imageItems, async (selectedMedia) => {
-            const posterImageContainer = document.getElementById('posterImageContainer');
-            const posterImageInput = document.getElementById('blogFeaturedMediaPoster');
-            
-            if (posterImageContainer && posterImageInput) {
-                // Get the poster URL from the files array
-                let posterURL = '';
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    posterURL = selectedMedia.files[0].url;
-                } else if (selectedMedia.mediaURL) {
-                    posterURL = selectedMedia.mediaURL;
-                }
-                posterImageInput.value = posterURL;
-                
-                // Update the poster preview
-                const posterPreviewHtml = `
-                    <div class="poster-image-preview">
-                        <img src="${posterURL}" alt="Poster Image" style="max-width: 200px; max-height: 100px; object-fit: cover;">
-                    </div>
-                    <button class="btn btn-sm btn-secondary select-poster-image-btn">Change Poster Image</button>
-                `;
-                
-                // Find and update just the poster content within the container
-                const existingLabel = posterImageContainer.querySelector('label');
-                posterImageContainer.innerHTML = '';
-                if (existingLabel) {
-                    posterImageContainer.appendChild(existingLabel);
-                }
-                posterImageContainer.insertAdjacentHTML('beforeend', posterPreviewHtml);
-                markPageDashboardDirty();
-            }
+            applyPosterImage(selectedMedia);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1316,86 +1488,11 @@ async function handleSelectPosterImage(target) {
 async function handleSelectFeaturedMedia2(target) {
     try {
         const mediaItems = await getAvailableMediaItems();
+        const context = createUploadReturnContext('featured2');
         ui.showMediaSelector(mediaItems, async (selectedMedia) => {
-            const featuredMedia2Container = document.getElementById('featuredMedia2Container');
-            const posterImage2Container = document.getElementById('posterImage2Container');
-            const featuredMedia2UrlInput = document.getElementById('blogFeaturedMedia2Url');
-            const featuredMedia2PosterInput = document.getElementById('blogFeaturedMedia2Poster');
-            const featuredMedia2TypeInput = document.getElementById('blogFeaturedMedia2Type');
-            const clearBtn = document.querySelector('.clear-featured-media2-btn');
-            const detailsEl = document.querySelector('.blog-featured-media2-details');
-
-            if (featuredMedia2Container && featuredMedia2UrlInput) {
-                let mediaURL = '';
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    mediaURL = selectedMedia.files[0].url;
-                } else if (selectedMedia.mediaURL) {
-                    mediaURL = selectedMedia.mediaURL;
-                }
-
-                featuredMedia2UrlInput.value = mediaURL;
-                if (featuredMedia2PosterInput) {
-                    featuredMedia2PosterInput.value = '';
-                }
-                if (featuredMedia2TypeInput) {
-                    let typeVal = '';
-                    if (selectedMedia.files && selectedMedia.files.length > 0) {
-                        const firstFile = selectedMedia.files[0];
-                        if (firstFile.type) typeVal = firstFile.type;
-                    }
-                    featuredMedia2TypeInput.value = typeVal;
-                }
-
-                let previewElement = '';
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    const firstFile = selectedMedia.files[0];
-                    const isVideo = firstFile.type && firstFile.type.startsWith('video/');
-                    if (isVideo) {
-                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
-                    } else {
-                        previewElement = `<img src="${mediaURL}" alt="Hero-only media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
-                    }
-                } else {
-                    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
-                    const isVideo = videoExtensions.some(ext => mediaURL.toLowerCase().includes(ext));
-                    if (isVideo) {
-                        previewElement = `<video src="${mediaURL}" controls style="max-width: 200px; max-height: 100px; object-fit: cover;"></video>`;
-                    } else {
-                        previewElement = `<img src="${mediaURL}" alt="Hero-only media" style="max-width: 200px; max-height: 100px; object-fit: cover;">`;
-                    }
-                }
-
-                featuredMedia2Container.innerHTML = `
-                    <div class="featured-media-preview">
-                        ${previewElement}
-                    </div>
-                    <button type="button" class="btn btn-sm btn-secondary select-featured-media2-btn">Change hero-only media</button>
-                `;
-
-                if (posterImage2Container) {
-                    posterImage2Container.style.display = 'block';
-                    const existingLabel = posterImage2Container.querySelector('label');
-                    const existingHint = posterImage2Container.querySelector('.form-field-hint');
-                    posterImage2Container.innerHTML = '';
-                    if (existingLabel) {
-                        posterImage2Container.appendChild(existingLabel);
-                    }
-                    if (existingHint) {
-                        posterImage2Container.appendChild(existingHint);
-                    }
-                    posterImage2Container.insertAdjacentHTML('beforeend', `
-                        <div class="poster-image-placeholder">No poster selected</div>
-                        <button type="button" class="btn btn-sm btn-primary select-poster-image2-btn">Select hero poster</button>
-                    `);
-                }
-                if (clearBtn) {
-                    clearBtn.disabled = false;
-                }
-                if (detailsEl) {
-                    detailsEl.setAttribute('open', '');
-                }
-                markPageDashboardDirty();
-            }
+            applyFeaturedMedia2(selectedMedia);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1423,22 +1520,16 @@ async function handleSelectMediaBlockVideoPoster(target) {
             }
             return false;
         });
+        const context = createUploadReturnContext('mediaBlockPoster', {
+            blockId,
+            mediaId,
+            mediaSettings: ui.collectMediaBlockSettings(blockEl) || {}
+        });
 
         ui.showMediaSelector(imageItems, async (selectedMedia) => {
-            let posterURL = '';
-            if (selectedMedia.files && selectedMedia.files.length > 0) {
-                posterURL = selectedMedia.files[0].url;
-            } else if (selectedMedia.mediaURL) {
-                posterURL = selectedMedia.mediaURL;
-            }
-
-            let merged = ui.collectMediaBlockSettings(blockEl);
-            if (!merged) merged = {};
-            merged.videoPosterUrl = posterURL;
-
-            const targetUid = getTargetUserId();
-            await ui.loadMediaIntoBlock(blockId, mediaId, targetUid, merged);
-            markPageDashboardDirty();
+            await applyMediaBlockVideoPoster(context, selectedMedia);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1477,39 +1568,11 @@ async function handleSelectPosterImage2(target) {
             }
             return false;
         });
-
+        const context = createUploadReturnContext('poster2');
         ui.showMediaSelector(imageItems, async (selectedMedia) => {
-            const posterImage2Container = document.getElementById('posterImage2Container');
-            const posterImage2Input = document.getElementById('blogFeaturedMedia2Poster');
-
-            if (posterImage2Container && posterImage2Input) {
-                let posterURL = '';
-                if (selectedMedia.files && selectedMedia.files.length > 0) {
-                    posterURL = selectedMedia.files[0].url;
-                } else if (selectedMedia.mediaURL) {
-                    posterURL = selectedMedia.mediaURL;
-                }
-                posterImage2Input.value = posterURL;
-
-                const posterPreviewHtml = `
-                    <div class="poster-image-preview">
-                        <img src="${posterURL}" alt="Hero video poster" style="max-width: 200px; max-height: 100px; object-fit: cover;">
-                    </div>
-                    <button type="button" class="btn btn-sm btn-secondary select-poster-image2-btn">Change hero poster</button>
-                `;
-
-                const existingLabel = posterImage2Container.querySelector('label');
-                const existingHint = posterImage2Container.querySelector('.form-field-hint');
-                posterImage2Container.innerHTML = '';
-                if (existingLabel) {
-                    posterImage2Container.appendChild(existingLabel);
-                }
-                if (existingHint) {
-                    posterImage2Container.appendChild(existingHint);
-                }
-                posterImage2Container.insertAdjacentHTML('beforeend', posterPreviewHtml);
-                markPageDashboardDirty();
-            }
+            applyPosterImage2(selectedMedia);
+        }, {
+            onUploadNew: () => handleUploadNewMediaFromSelector(context)
         });
     } catch (error) {
         ui.showPopup('Error loading media: ' + error.message);
@@ -1904,28 +1967,48 @@ async function handleSaveCalendar() {
     _saveItemToFirestore(itemData);
 }
 
-async function _saveItemToFirestore(itemData) {
+async function _saveItemToFirestore(itemData, options = {}) {
     if (!currentUser || !currentOpenItemDataID) {
         ui.showPopup("Error: No item context to save.");
-        return;
+        return false;
     }
     ui.showLoading(true);
     try {
         const targetUid = getTargetUserId();
-        await fsService.saveItem(targetUid, currentOpenItemDataID, itemData);
+        const savedDataID = currentOpenItemDataID;
+        const previousTitle = currentItemDataCache ? currentItemDataCache.title : '';
+        await fsService.saveItem(targetUid, savedDataID, itemData);
+        currentItemDataCache = { ...itemData, dataID: savedDataID }; // Update cache
+        if (itemData.type === 'blog') {
+            clearPageDashboardDirty();
+        }
+
+        const shouldReload = options.reload !== false;
+        if (options.silent) {
+            if (shouldReload) {
+                await loadItemsForType(selectedDataType);
+                if (itemData.title !== previousTitle) {
+                    ui.updateDashboardTitle(`Edit: ${itemData.title}`);
+                }
+                await handleItemSelected(savedDataID);
+            }
+            return true;
+        }
+
         ui.showPopup(`${itemTypeDisplayName(itemData.type)} saved successfully!`, 'alert', () => {
             loadItemsForType(selectedDataType); // Refresh list in column 2
              // Update dashboard title if it was a new item or title changed
-            if (itemData.title !== (currentItemDataCache ? currentItemDataCache.title : '')) {
+            if (itemData.title !== previousTitle) {
                 ui.updateDashboardTitle(`Edit: ${itemData.title}`);
             }
             // Update the item in the list to reflect its saved state (e.g. if it was new)
-            handleItemSelected(currentOpenItemDataID); // Reload the saved item into dashboard
+            handleItemSelected(savedDataID); // Reload the saved item into dashboard
         });
-        currentItemDataCache = { ...itemData, dataID: currentOpenItemDataID }; // Update cache
+        return true;
     } catch (error) {
         console.error("Error saving item:", error);
         ui.showPopup("Error saving: " + error.message);
+        return false;
     } finally {
         ui.showLoading(false);
     }
@@ -3504,7 +3587,7 @@ function handleRemoveMediaFile(index, itemElement) {
 
 async function handleSaveMedia() {
     const title = validateField('mediaTitle', 'Collection Title');
-    if (!title) return;
+    if (!title) return false;
 
     const mediaType = document.getElementById('mediaTypeSelect').value;
     const itemDataID = currentOpenItemDataID; // This is the ID for the media item itself
@@ -3591,15 +3674,38 @@ async function handleSaveMedia() {
             files: uploadedFileDetails
         };
         if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
-        await _saveItemToFirestore(itemData);
+        const returnContext = pendingMediaUploadReturnContext;
+        const shouldReturnToPage = !!returnContext && uploadedFileDetails.length > 0;
+        if (returnContext && uploadedFileDetails.length === 0) {
+            ui.showPopup('Please add at least one media file before returning to the page.');
+            ui.showLoading(false);
+            return false;
+        }
+
+        const savedMedia = { dataID: itemDataID, ...itemData };
+        const saved = await _saveItemToFirestore(itemData, {
+            silent: shouldReturnToPage,
+            reload: !shouldReturnToPage
+        });
+        if (!saved) return false;
+
+        if (shouldReturnToPage) {
+            pendingMediaUploadReturnContext = null;
+            const applied = await applyUploadedMediaReturnContext(returnContext, savedMedia);
+            if (applied) {
+                ui.showPopup('New media uploaded and attached to the page.');
+            }
+        }
         // After save, re-render the media dashboard with the new state of files
         // The _saveItemToFirestore calls handleItemSelected which will re-render.
+        return true;
 
     } catch (error) {
         console.error("Error during media save/upload:", error);
         ui.showPopup("Error saving media: " + error.message);
         if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
         ui.showLoading(false);
+        return false;
     }
     // ui.showLoading(false) is called in _saveItemToFirestore's finally block
 }

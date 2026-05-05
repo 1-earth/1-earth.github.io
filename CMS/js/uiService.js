@@ -1725,7 +1725,10 @@ function createBlockContentHtml(blockId, blockType, content = '', mediaId = null
 }
 
 // --- MEDIA SELECTOR ---
-export function showMediaSelector(mediaItems, onSelect) {
+export function showMediaSelector(mediaItems, onSelect, options = {}) {
+    const uploadNewButtonHtml = typeof options.onUploadNew === 'function'
+        ? '<button type="button" class="btn btn-secondary upload-new-media-btn">Upload New Media</button>'
+        : '';
     const modalHtml = `
         <div class="media-selector-modal">
             <div class="modal-content">
@@ -1741,6 +1744,7 @@ export function showMediaSelector(mediaItems, onSelect) {
                             <option value="video">Videos</option>
                             <option value="photoGallery">Photo Galleries</option>
                         </select>
+                        ${uploadNewButtonHtml}
                     </div>
                     <div class="media-grid" id="mediaGrid">
                         ${mediaItems.length === 0 ? '<div class="no-media-message">No media items found. Upload media first.</div>' : ''}
@@ -1762,6 +1766,15 @@ export function showMediaSelector(mediaItems, onSelect) {
     // Set up event listeners
     const mediaGrid = document.getElementById('mediaGrid');
     const mediaTypeFilter = document.getElementById('mediaTypeFilter');
+    const uploadNewMediaBtn = document.querySelector('.media-selector-modal .upload-new-media-btn');
+    
+    if (uploadNewMediaBtn) {
+        uploadNewMediaBtn.addEventListener('click', () => {
+            const modal = uploadNewMediaBtn.closest('.media-selector-modal');
+            if (modal) modal.remove();
+            options.onUploadNew();
+        });
+    }
     
     mediaTypeFilter.addEventListener('change', (e) => {
         const filterType = e.target.value;

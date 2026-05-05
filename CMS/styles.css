@@ -888,6 +888,16 @@ body {
     margin: 0;
 }
 
+.cms-inline-message {
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border: 1px solid #b7d7ff;
+    border-radius: 6px;
+    background: #eef6ff;
+    color: #1f4f82;
+    font-weight: 600;
+}
+
 /* Page editor: collapsed Data ID */
 .data-id-disclosure {
     margin: 0 0 16px;
@@ -2227,6 +2237,10 @@ body {
 
 .media-filters {
     margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
 }
 
 .media-filters select {
