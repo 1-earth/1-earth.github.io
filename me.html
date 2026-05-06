@@ -6,6 +6,24 @@
     <title>George Symonds | Designer, Artist, Web Developer &amp; Producer</title>
     <link rel="icon" type="image/png" href="Portfolio/static/img/GSICON.png">
     <link rel="stylesheet" href="Portfolio/portfolio.css">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
+
+        body.loading-overlay-active {
+            overflow: hidden;
+        }
+    </style>
     <link rel="canonical" href="https://www.1-earth.world/me.html">
     <meta name="description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
     <meta name="author" content="George Symonds">
@@ -74,7 +92,13 @@
     </script>
 </head>
 
-<body>
+<body class="loading-overlay-active" aria-busy="true">
+    <div id="initial-loading-overlay" class="loading-overlay" role="status" aria-live="polite">
+        <div class="loading-overlay-content">
+            <img src="Portfolio/static/img/GSSpin-loading.gif" alt="Loading">
+            <div class="loading-overlay-text"><span class="loading-label">Loading Portfolio</span><span class="dots">.</span></div>
+        </div>
+    </div>
     <!-- Bouncing DVD Logo -->
     <div id="dvd-logo" class="dvd-logo">
         <img src="Portfolio/static/img/dvd-logo23.png" alt="DVD Logo" draggable="false">
@@ -671,18 +695,9 @@
             const target = document.getElementById('portfolio-sections');
             if (!target) return;
 
-            // Create overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'loading-overlay';
-            overlay.setAttribute('role', 'status');
-            overlay.setAttribute('aria-live', 'polite');
-            overlay.innerHTML = `
-                <div class="loading-overlay-content">
-                    <img src="Portfolio/static/img/GSSpin-loading.gif" alt="Loading">
-                    <div class="loading-overlay-text"><span class="loading-label">Loading Portfolio</span><span class="dots">.</span></div>
-                </div>
-            `;
-            document.body.appendChild(overlay);
+            const overlay = document.getElementById('initial-loading-overlay');
+            if (!overlay) return;
+
             document.body.classList.add('loading-overlay-active');
             document.body.setAttribute('aria-busy', 'true');
 
