@@ -717,6 +717,7 @@ section.interactive-globe-iframe iframe.interactive-globe-iframe {
   width: min(100%, 1240px);
   margin: 0 auto;
   padding: 5.5rem 2rem 6rem;
+  margin-top: -20px;
 }
 
 .home-production-values__intro {
