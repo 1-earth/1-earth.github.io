@@ -2270,7 +2270,7 @@ a {
     width: 100vw;
     height: 100vh;
     background: #000; /* Solid black */
-    z-index: 100000; /* Above site UI */
+    z-index: 2147483647; /* Above site UI */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2302,6 +2302,9 @@ a {
 /* Disable scroll while overlay is visible */
 body.loading-overlay-active {
     overflow: hidden;
+}
+body.loading-overlay-active > :not(#initial-loading-overlay) {
+    visibility: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -13,7 +13,7 @@
             width: 100vw;
             height: 100vh;
             background: #000;
-            z-index: 100000;
+            z-index: 2147483647;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -22,6 +22,10 @@
 
         body.loading-overlay-active {
             overflow: hidden;
+        }
+
+        body.loading-overlay-active > :not(#initial-loading-overlay) {
+            visibility: hidden;
         }
     </style>
     <link rel="canonical" href="https://www.1-earth.world/me.html">
