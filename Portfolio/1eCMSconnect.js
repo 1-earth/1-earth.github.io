@@ -699,6 +699,103 @@ const PORTFOLIO_CATEGORY_ORDER = [
 ];
 
 let allPortfolioPosts = [];
+const PORTFOLIO_CACHE_KEY = `portfolioPosts:${USER_ID}:v1`;
+const PORTFOLIO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24;
+
+function getCachedPortfolioPosts() {
+    try {
+        const cached = localStorage.getItem(PORTFOLIO_CACHE_KEY);
+        if (!cached) return null;
+
+        const parsed = JSON.parse(cached);
+        if (!parsed || !Array.isArray(parsed.posts)) return null;
+
+        const cachedAt = Number(parsed.cachedAt || 0);
+        if (!cachedAt || Date.now() - cachedAt > PORTFOLIO_CACHE_MAX_AGE_MS) {
+            return null;
+        }
+
+        return parsed.posts;
+    } catch (error) {
+        if (DEBUG) console.warn('Could not read portfolio cache:', error);
+        return null;
+    }
+}
+
+function setCachedPortfolioPosts(posts) {
+    try {
+        localStorage.setItem(PORTFOLIO_CACHE_KEY, JSON.stringify({
+            cachedAt: Date.now(),
+            posts
+        }));
+    } catch (error) {
+        if (DEBUG) console.warn('Could not save portfolio cache:', error);
+    }
+}
+
+function renderPortfolioPosts(blogPosts) {
+    const portfolioElement = document.getElementById('portfolio-sections');
+    if (!portfolioElement) return;
+
+    const allTags = new Set();
+    const allCategories = new Set();
+
+    blogPosts.forEach(blog => {
+        if (blog.tags) {
+            blog.tags.split(',').forEach(tag => {
+                const trimmedTag = tag.trim();
+                if (trimmedTag) allTags.add(trimmedTag);
+            });
+        }
+
+        if (blog.category) {
+            allCategories.add(blog.category);
+        }
+    });
+
+    updateFilterDropdowns(allTags, allCategories);
+
+    allPortfolioPosts = blogPosts;
+    portfolioElement.innerHTML = renderPortfolioSectionsForPosts(blogPosts);
+    syncPortfolioCardsAfterRender();
+    portfolioElement.classList.remove('loading');
+}
+
+async function fetchPortfolioPostsFromFirestore() {
+    const querySnapshot = await db.collection('users').doc(USER_ID)
+        .collection('items')
+        .where('type', '==', 'blog')
+        .orderBy('datePosted', 'desc')
+        .get();
+
+    if (querySnapshot.empty) return [];
+
+    const blogPosts = [];
+
+    // Collect all blog posts and normalize old/new media formats.
+    for (const doc of querySnapshot.docs) {
+        const blog = { id: doc.id, ...doc.data() };
+
+        if (!blog.excerpt && blog.sections) {
+            blog.excerpt = generateExcerpt(blog);
+        }
+
+        if (!blog.featuredMedia && blog.featuredImage) {
+            blog.featuredMedia = { url: blog.featuredImage };
+        }
+
+        if (!blog.featuredMedia && blog.sections) {
+            const fallbackImage = await getFirstMediaUrlFromSections(blog.sections);
+            if (fallbackImage) {
+                blog.featuredMedia = { url: fallbackImage };
+            }
+        }
+
+        blogPosts.push(blog);
+    }
+
+    return blogPosts;
+}
 
 // Function to load blog posts (updated for modular format)
 async function loadPortfolio() {
@@ -707,71 +804,34 @@ async function loadPortfolio() {
 
     if (DEBUG) console.log('Loading portfolio for user:', USER_ID);
 
-    try {
-        const querySnapshot = await db.collection('users').doc(USER_ID)
-            .collection('items')
-            .where('type', '==', 'blog')
-            .orderBy('datePosted', 'desc')
-            .get();
+    const cachedPosts = getCachedPortfolioPosts();
+    if (cachedPosts && cachedPosts.length > 0) {
+        renderPortfolioPosts(cachedPosts);
 
-        if (!querySnapshot.empty) {
-            const blogPosts = [];
-            const allTags = new Set();
-            const allCategories = new Set();
-            
-            // Collect all blog posts and extract unique tags/categories
-            for (const doc of querySnapshot.docs) {
-                const blog = { id: doc.id, ...doc.data() };
-                
-                // Generate excerpt if not provided
-                if (!blog.excerpt && blog.sections) {
-                    blog.excerpt = generateExcerpt(blog);
-                }
-                
-                // Handle backwards compatibility for featuredImage vs featuredMedia
-                if (!blog.featuredMedia && blog.featuredImage) {
-                    // Convert old format to new format
-                    blog.featuredMedia = { url: blog.featuredImage };
-                }
-                
-                // Only get fallback image if no featured media at all
-                if (!blog.featuredMedia && blog.sections) {
-                    const fallbackImage = await getFirstMediaUrlFromSections(blog.sections);
-                    if (fallbackImage) {
-                        blog.featuredMedia = { url: fallbackImage };
-                    }
-                }
-                
-                blogPosts.push(blog);
-                
-                // Collect tags for filtering
-                if (blog.tags) {
-                    blog.tags.split(',').forEach(tag => {
-                        const trimmedTag = tag.trim();
-                        if (trimmedTag) allTags.add(trimmedTag);
-                    });
-                }
-                
-                // Collect categories
-                if (blog.category) {
-                    allCategories.add(blog.category);
-                }
-            }
-            
-            // Update filter dropdowns
-            updateFilterDropdowns(allTags, allCategories);
-            
-            allPortfolioPosts = blogPosts;
-            portfolioElement.innerHTML = renderPortfolioSectionsForPosts(blogPosts);
-            syncPortfolioCardsAfterRender();
-            
+        fetchPortfolioPostsFromFirestore()
+            .then(blogPosts => {
+                if (blogPosts.length === 0) return;
+                setCachedPortfolioPosts(blogPosts);
+                renderPortfolioPosts(blogPosts);
+            })
+            .catch(error => {
+                console.error("Error refreshing portfolio cache:", error);
+            });
+        return;
+    }
+
+    try {
+        const blogPosts = await fetchPortfolioPostsFromFirestore();
+        if (blogPosts.length > 0) {
+            setCachedPortfolioPosts(blogPosts);
+            renderPortfolioPosts(blogPosts);
         } else {
             portfolioElement.innerHTML = '<div class="loading">No portfolio items found.</div>';
+            portfolioElement.classList.remove('loading');
         }
     } catch (error) {
         console.error("Error loading portfolio:", error);
         portfolioElement.innerHTML = '<div class="loading">Error loading portfolio.</div>';
-    } finally {
         portfolioElement.classList.remove('loading');
     }
 }
