@@ -793,6 +793,29 @@ video.card-image {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.blog-media-link,
+.slide-media-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+.blog-media-link:hover .blog-media-img,
+.slide-media-link:hover .slide-media {
+    filter: brightness(0.92);
+}
+
+.blog-media-frontend[style*="aspect-ratio"] {
+    overflow: hidden;
+}
+
+.blog-media-frontend[style*="aspect-ratio"] .blog-media-img,
+.blog-media-frontend[style*="aspect-ratio"] .blog-media-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .blog-media-caption {
     margin: 0px 0 0 0;
     /* font-style: italic; */
@@ -1540,7 +1563,7 @@ video.card-image {
     }
 
     .card-title {
-        font-size: 1rem;
+        font-size: 1.4rem;
     }
 
     .card-description {
@@ -2051,6 +2074,7 @@ a {
 /* Rotate + button into an x when expanded */
 .portfolio-section.expanded .expand-btn {
     transform: rotate(45deg);
+    color: #ff8c00;
 }
 
 /* Brief highlight pulse when expanding */
@@ -2172,8 +2196,10 @@ a {
     text-decoration: none;
     position: relative;
 }
-.modal-social-btn.use-image-icon::before { content: none !important; }
-.modal-social-btn.use-image-icon img { width: 24px; height: 24px; filter: brightness(0) invert(1); display: block; }
+.modal-social-btn.use-image-icon::before,
+.contact-social-btn.use-image-icon::before { content: none !important; }
+.modal-social-btn.use-image-icon img,
+.contact-social-btn.use-image-icon img { width: 24px; height: 24px; filter: brightness(0) invert(1); display: block; }
 .modal-social-btn[aria-label="Instagram"]::before {
     content: "\f16d";
     font-family: 'Font Awesome 5 Brands';

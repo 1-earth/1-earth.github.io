@@ -305,34 +305,123 @@ async function renderModularBlogContent(blog) {
     return blogContentHtml;
 }
 
-async function renderColumnGroup(columnGroup) {
+function escapeAttr(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+function sanitizeMediaLink(value) {
+    if (typeof value === 'string') return value.trim();
+    if (value && typeof value.url === 'string') return value.url.trim();
+    return '';
+}
+
+function isValidMediaLink(value) {
+    const trimmed = sanitizeMediaLink(value);
+    if (!trimmed) return false;
+    if (/^\s*javascript:/i.test(trimmed)) return false;
+    try {
+        const parsed = new URL(trimmed, window.location.origin);
+        const hasProtocol = /^[a-z][a-z0-9+.-]*:/i.test(trimmed);
+        if (!hasProtocol) return true;
+        return ['http:', 'https:', 'mailto:', 'tel:'].includes(parsed.protocol);
+    } catch (_) {
+        return false;
+    }
+}
+
+function normalizeMediaSettings(settings = {}, fileCount = 0) {
+    const source = settings || {};
+    const links = Array.isArray(source.imageLinks) ? source.imageLinks : [];
+    const normalizedLinks = [];
+    for (let i = 0; i < Math.max(fileCount, links.length); i += 1) {
+        normalizedLinks.push(sanitizeMediaLink(links[i]));
+    }
+
+    return {
+        showCaptions: source.showCaptions !== false,
+        clickAction: source.clickAction === 'link' ? 'link' : 'preview',
+        openLinksInNewTab: !!source.openLinksInNewTab,
+        imageLinks: fileCount > 0 ? normalizedLinks.slice(0, fileCount) : normalizedLinks,
+        galleryMinColumns: Number(source.galleryMinColumns) || 1,
+        galleryMaxColumns: Number(source.galleryMaxColumns) || 3,
+        aspectRatio: source.aspectRatio || null,
+        aspectRatioCustom: source.aspectRatioCustom || null,
+        videoPosterUrl: source.videoPosterUrl ? String(source.videoPosterUrl).trim() : ''
+    };
+}
+
+function mediaAspectStyle(settings) {
+    if (!settings || !settings.aspectRatio) return '';
+    let ratio = '';
+    if (settings.aspectRatio === 'custom' && settings.aspectRatioCustom) {
+        const w = Number(settings.aspectRatioCustom.w || settings.aspectRatioCustom.width);
+        const h = Number(settings.aspectRatioCustom.h || settings.aspectRatioCustom.height);
+        if (w > 0 && h > 0) ratio = `${w} / ${h}`;
+    } else if (String(settings.aspectRatio).includes(':')) {
+        ratio = String(settings.aspectRatio).replace(':', ' / ');
+    }
+    return ratio ? ` style="aspect-ratio:${escapeAttr(ratio)};"` : '';
+}
+
+function mediaGalleryStyle(settings) {
+    if (!settings) return '';
+    const minCols = Math.max(1, Math.min(6, Math.round(settings.galleryMinColumns || 1)));
+    const maxCols = Math.max(minCols, Math.min(6, Math.round(settings.galleryMaxColumns || 3)));
+    return ` style="--media-gallery-min-cols:${minCols}; --media-gallery-max-cols:${maxCols};"`;
+}
+
+function maybeWrapLinkedMedia(innerHtml, file, fileIndex, settings, className = 'blog-media-link') {
+    const link = settings && settings.clickAction === 'link' ? sanitizeMediaLink(settings.imageLinks[fileIndex]) : '';
+    const fileIsImage = file && file.type && file.type.startsWith('image/');
+    if (!fileIsImage || !isValidMediaLink(link)) return innerHtml;
+    const targetAttr = settings.openLinksInNewTab ? ' target="_blank" rel="noopener"' : '';
+    return `<a class="${className}" href="${escapeAttr(link)}"${targetAttr}>${innerHtml}</a>`;
+}
+
+function normalizeColumnGroupColumns(columnGroup) {
+    if (Array.isArray(columnGroup.columns) && columnGroup.columns.length > 0) {
+        return columnGroup.columns
+            .slice()
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map((column, index) => ({
+                id: column.id || `column_${index}`,
+                width: Number(column.width) || (100 / columnGroup.columns.length),
+                blocks: Array.isArray(column.blocks) ? column.blocks : [],
+                order: index
+            }));
+    }
+
     const leftRatio = columnGroup.columnRatio ? columnGroup.columnRatio.left : 50;
     const rightRatio = columnGroup.columnRatio ? columnGroup.columnRatio.right : 50;
-    
-    let columnGroupHtml = '<div class="blog-column-group-frontend">';
-    
-    // Left column - subtract half the gap (10px) to account for the 20px flex gap
-    columnGroupHtml += `<div class="blog-column-frontend blog-column-left" style="width: calc(${leftRatio}% - 10px);">`;
-    if (columnGroup.leftColumn && columnGroup.leftColumn.length > 0) {
-        const sortedLeftBlocks = columnGroup.leftColumn.sort((a, b) => (a.order || 0) - (b.order || 0));
-        for (const block of sortedLeftBlocks) {
+    return [
+        { id: 'left', width: leftRatio, blocks: columnGroup.leftColumn || [], order: 0 },
+        { id: 'right', width: rightRatio, blocks: columnGroup.rightColumn || [], order: 1 }
+    ];
+}
+
+async function renderColumnGroup(columnGroup) {
+    const columns = normalizeColumnGroupColumns(columnGroup);
+    let columnGroupHtml = `<div class="blog-column-group-frontend" style="--cms-column-count:${columns.length};">`;
+
+    for (let columnIndex = 0; columnIndex < columns.length; columnIndex += 1) {
+        const column = columns[columnIndex];
+        const width = Number(column.width) || (100 / columns.length);
+        const columnClass = columnIndex === 0 ? 'blog-column-left' : (columnIndex === 1 ? 'blog-column-right' : 'blog-column-extra');
+        columnGroupHtml += `<div class="blog-column-frontend ${columnClass}" style="width: calc(${width}% - 10px);">`;
+
+        const sortedBlocks = (column.blocks || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+        for (const block of sortedBlocks) {
             const blockContent = await getBlockContent(block);
             columnGroupHtml += `<div class="blog-block-frontend blog-block-column">${blockContent}</div>`;
         }
+
+        columnGroupHtml += '</div>';
     }
-    columnGroupHtml += '</div>';
-    
-    // Right column - subtract half the gap (10px) to account for the 20px flex gap
-    columnGroupHtml += `<div class="blog-column-frontend blog-column-right" style="width: calc(${rightRatio}% - 10px);">`;
-    if (columnGroup.rightColumn && columnGroup.rightColumn.length > 0) {
-        const sortedRightBlocks = columnGroup.rightColumn.sort((a, b) => (a.order || 0) - (b.order || 0));
-        for (const block of sortedRightBlocks) {
-            const blockContent = await getBlockContent(block);
-            columnGroupHtml += `<div class="blog-block-frontend blog-block-column">${blockContent}</div>`;
-        }
-    }
-    columnGroupHtml += '</div>';
-    
+
     columnGroupHtml += '</div>';
     return columnGroupHtml;
 }
@@ -367,7 +456,8 @@ async function getBlockContent(block) {
                     const mediaDoc = await db.collection('users').doc(USER_ID).collection('items').doc(block.mediaId).get();
                     if (mediaDoc.exists) {
                         const mediaData = mediaDoc.data();
-                        return renderMediaBlock(mediaData);
+                        const blockMediaSettings = block.mediaSettings || block.slideshowSettings || null;
+                        return renderMediaBlock(mediaData, blockMediaSettings);
                     }
                 } catch (error) {
                     console.error('Error loading media for block:', error);
@@ -381,31 +471,39 @@ async function getBlockContent(block) {
     }
 }
 
-function renderMediaBlock(mediaData) {
+function renderMediaBlock(mediaData, blockMediaSettings = null) {
     if (!mediaData.files || mediaData.files.length === 0) {
         return '<div class="blog-media-placeholder">No media files</div>';
     }
-    
+
+    const settings = normalizeMediaSettings(blockMediaSettings || {}, mediaData.files.length);
+    const aspectStyle = mediaAspectStyle(settings);
+    const galleryStyle = mediaGalleryStyle(settings);
+    const blockPosterAttr = settings.videoPosterUrl ? ` poster="${escapeAttr(settings.videoPosterUrl)}"` : '';
+
     // If only one file, render simple media block
     if (mediaData.files.length === 1) {
         const primaryFile = mediaData.files[0];
         const isImage = primaryFile.type && primaryFile.type.startsWith('image/');
         const isVideo = primaryFile.type && primaryFile.type.startsWith('video/');
         const isPdf = primaryFile.type === 'application/pdf' || (primaryFile.url && primaryFile.url.toLowerCase().endsWith('.pdf'));
-        
-        let mediaHtml = '<div class="blog-media-frontend">';
+        const safeUrl = escapeAttr(primaryFile.url);
+        const safeAlt = escapeAttr(primaryFile.caption || mediaData.title || 'Image');
+
+        let mediaHtml = `<div class="blog-media-frontend"${aspectStyle}>`;
         
         if (isImage) {
-            mediaHtml += `<img src="${primaryFile.url}" alt="${primaryFile.caption || mediaData.title || 'Image'}" class="blog-media-img">`;
+            const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" class="blog-media-img">`;
+            mediaHtml += maybeWrapLinkedMedia(imgHtml, primaryFile, 0, settings);
         } else if (isVideo) {
-            mediaHtml += `<video src="${primaryFile.url}" controls class="blog-media-video"></video>`;
+            mediaHtml += `<video src="${safeUrl}" controls class="blog-media-video"${blockPosterAttr}></video>`;
         } else if (isPdf) {
             mediaHtml += `
                 <div class="pdf-inline-embed">
-                    <iframe class="pdf-iframe" src="${primaryFile.url}#view=FitH" style="width:100%; height:400px; border:0;"></iframe>
+                    <iframe class="pdf-iframe" src="${safeUrl}#view=FitH" style="width:100%; height:400px; border:0;"></iframe>
                     <div class="pdf-controls">
-                        <a class="pdf-download" href="${primaryFile.url}" target="_blank" rel="noopener">Download</a>
-                        <button class="pdf-open-modal-btn" data-url="${primaryFile.url}" onclick="openPdfModal(this.getAttribute('data-url'))">Open</button>
+                        <a class="pdf-download" href="${safeUrl}" target="_blank" rel="noopener">Download</a>
+                        <button class="pdf-open-modal-btn" data-url="${safeUrl}" onclick="openPdfModal(this.getAttribute('data-url'))">Open</button>
                     </div>
                 </div>
             `;
@@ -414,7 +512,7 @@ function renderMediaBlock(mediaData) {
         }
         
         // Add caption if available
-        if (primaryFile.caption) {
+        if (settings.showCaptions && primaryFile.caption) {
             mediaHtml += `<p class="blog-media-caption">${primaryFile.caption}</p>`;
         }
         
@@ -424,9 +522,9 @@ function renderMediaBlock(mediaData) {
     
     // Multiple files - create slideshow
     const slideshowId = `slideshow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    let mediaHtml = '<div class="blog-media-frontend">';
+    let mediaHtml = `<div class="blog-media-frontend blog-media-gallery-frontend"${galleryStyle}>`;
     
-    mediaHtml += `<div class="media-slideshow" id="${slideshowId}">`;
+    mediaHtml += `<div class="media-slideshow" id="${slideshowId}"${aspectStyle}>`;
     
     // Add all slides
     mediaData.files.forEach((file, index) => {
@@ -434,20 +532,23 @@ function renderMediaBlock(mediaData) {
         const isVideo = file.type && file.type.startsWith('video/');
         const isPdf = file.type === 'application/pdf' || (file.url && file.url.toLowerCase().endsWith('.pdf'));
         const isActive = index === 0 ? 'active' : '';
+        const safeUrl = escapeAttr(file.url);
+        const safeAlt = escapeAttr(file.caption || mediaData.title || 'Image');
         
         mediaHtml += `<div class="slide ${isActive}" data-slide="${index}">`;
         
         if (isImage) {
-            mediaHtml += `<img src="${file.url}" alt="${file.caption || mediaData.title || 'Image'}" class="slide-media">`;
+            const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" class="slide-media">`;
+            mediaHtml += maybeWrapLinkedMedia(imgHtml, file, index, settings, 'slide-media-link');
         } else if (isVideo) {
-            mediaHtml += `<video src="${file.url}" controls class="slide-media"></video>`;
+            mediaHtml += `<video src="${safeUrl}" controls class="slide-media"></video>`;
         } else if (isPdf) {
             mediaHtml += `
                 <div class="pdf-inline-embed">
-                    <iframe class="pdf-iframe" src="${file.url}#view=FitH" style="width:100%; height:600px; border:0;"></iframe>
+                    <iframe class="pdf-iframe" src="${safeUrl}#view=FitH" style="width:100%; height:600px; border:0;"></iframe>
                     <div class="pdf-controls">
-                        <a class="pdf-download" href="${file.url}" target="_blank" rel="noopener">Download</a>
-                        <button class="pdf-open-modal-btn" data-url="${file.url}" onclick="openPdfModal(this.getAttribute('data-url'))">Open</button>
+                        <a class="pdf-download" href="${safeUrl}" target="_blank" rel="noopener">Download</a>
+                        <button class="pdf-open-modal-btn" data-url="${safeUrl}" onclick="openPdfModal(this.getAttribute('data-url'))">Open</button>
                     </div>
                 </div>
             `;
@@ -456,7 +557,7 @@ function renderMediaBlock(mediaData) {
         }
         
         // Add caption if available
-        if (file.caption) {
+        if (settings.showCaptions && file.caption) {
             mediaHtml += `<p class="slide-caption">${file.caption}</p>`;
         }
         
@@ -480,7 +581,9 @@ function renderMediaBlock(mediaData) {
     mediaHtml += '</div>'; // Close slideshow
     
     // Add gallery indicator
-    mediaHtml += `<p class="blog-media-gallery-indicator">Gallery (${mediaData.files.length} items)</p>`;
+    if (settings.showCaptions) {
+        mediaHtml += `<p class="blog-media-gallery-indicator">Gallery (${mediaData.files.length} items)</p>`;
+    }
     
     mediaHtml += '</div>'; // Close blog-media-frontend
     
@@ -587,6 +690,16 @@ function renderEmbedBlock(block) {
     }
 }
 
+const PORTFOLIO_CATEGORY_ORDER = [
+    'Design Portfolio',
+    'Photography',
+    'Videography',
+    'Computation',
+    'Research & Forward Thinking'
+];
+
+let allPortfolioPosts = [];
+
 // Function to load blog posts (updated for modular format)
 async function loadPortfolio() {
     const portfolioElement = document.getElementById('portfolio-sections');
@@ -623,7 +736,7 @@ async function loadPortfolio() {
                 
                 // Only get fallback image if no featured media at all
                 if (!blog.featuredMedia && blog.sections) {
-                    const fallbackImage = getFirstImageFromSectionsSync(blog.sections);
+                    const fallbackImage = await getFirstMediaUrlFromSections(blog.sections);
                     if (fallbackImage) {
                         blog.featuredMedia = { url: fallbackImage };
                     }
@@ -648,43 +761,9 @@ async function loadPortfolio() {
             // Update filter dropdowns
             updateFilterDropdowns(allTags, allCategories);
             
-            // Group posts by category
-            const categorizedPosts = groupPostsByCategory(blogPosts);
-            
-            // Define the desired category order
-            const categoryOrder = [
-                'Design Portfolio',
-                'Photography', 
-                'Videography',
-                'Computation',
-                'Research & Forward Thinking'
-            ];
-            
-            // Render portfolio sections in the specified order
-            let portfolioHtml = '';
-            
-            // First, render categories in the specified order
-            for (const category of categoryOrder) {
-                if (categorizedPosts[category]) {
-                    portfolioHtml += renderPortfolioSection(category, categorizedPosts[category]);
-                }
-            }
-            
-            // Then render any remaining categories that aren't in the predefined order
-            for (const [category, posts] of Object.entries(categorizedPosts)) {
-                if (!categoryOrder.includes(category)) {
-                    portfolioHtml += renderPortfolioSection(category, posts);
-                }
-            }
-            
-            portfolioElement.innerHTML = portfolioHtml;
-            
-            // Setup click handlers for cards
-            setupCardClickHandlers();
-            
-            // Ensure card videos autoplay on mobile
-            setupCardVideoAutoplayObserver();
-            findAndPrepareCardVideos(portfolioElement);
+            allPortfolioPosts = blogPosts;
+            portfolioElement.innerHTML = renderPortfolioSectionsForPosts(blogPosts);
+            syncPortfolioCardsAfterRender();
             
         } else {
             portfolioElement.innerHTML = '<div class="loading">No portfolio items found.</div>';
@@ -697,21 +776,103 @@ async function loadPortfolio() {
     }
 }
 
+function renderPortfolioSectionsForPosts(posts) {
+    if (!posts || posts.length === 0) {
+        return '<div class="loading">No portfolio items found for this filter.</div>';
+    }
+
+    const categorizedPosts = groupPostsByCategory(posts);
+    let portfolioHtml = '';
+    
+    // First, render categories in the specified order
+    for (const category of PORTFOLIO_CATEGORY_ORDER) {
+        if (categorizedPosts[category]) {
+            portfolioHtml += renderPortfolioSection(category, categorizedPosts[category]);
+        }
+    }
+    
+    // Then render any remaining categories that aren't in the predefined order
+    for (const [category, categoryPosts] of Object.entries(categorizedPosts)) {
+        if (!PORTFOLIO_CATEGORY_ORDER.includes(category)) {
+            portfolioHtml += renderPortfolioSection(category, categoryPosts);
+        }
+    }
+
+    return portfolioHtml;
+}
+
+function renderKeywordPortfolioSection(keywordLabel, posts) {
+    const cardsHtml = posts && posts.length
+        ? posts.map(post => renderPortfolioCard(post)).join('')
+        : '<div class="coming-soon">No work found for this filter.</div>';
+
+    return `
+        <section class="portfolio-section expanded keyword-results-section" id="${categoryToAnchorId(keywordLabel)}" data-category="${keywordLabel}">
+            <div class="section-header">
+                <h2 class="section-title">${keywordLabel}</h2>
+                <button class="expand-btn" aria-expanded="true">+</button>
+            </div>
+            <div class="cards-container">
+                <div class="cards-grid">
+                    ${cardsHtml}
+                </div>
+            </div>
+        </section>
+    `;
+}
+
+function syncPortfolioCardsAfterRender(expandAll = false) {
+    const portfolioElement = document.getElementById('portfolio-sections');
+    if (!portfolioElement) return;
+
+    allCards = Array.from(portfolioElement.querySelectorAll('.portfolio-card'));
+    setupCardClickHandlers();
+    setupCardVideoAutoplayObserver();
+    findAndPrepareCardVideos(portfolioElement);
+
+    const shouldExpand = expandAll || window.matchMedia('(max-width: 768px)').matches;
+    portfolioElement.querySelectorAll('.portfolio-section').forEach(section => {
+        const btn = section.querySelector('.expand-btn');
+        if (shouldExpand) {
+            section.classList.add('expanded');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        } else if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    });
+}
+
 function generateExcerpt(blog) {
     let textContent = '';
+
+    function collectTextFromItem(item) {
+        if (!item) return;
+        if ((item.type === 'body' || item.blockType === 'body') && item.content) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.content;
+            textContent += tempDiv.textContent || tempDiv.innerText || '';
+            return;
+        }
+
+        if (item.type === 'column-group') {
+            const columns = normalizeColumnGroupColumns(item);
+            for (const column of columns) {
+                const blocks = (column.blocks || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+                for (const block of blocks) {
+                    collectTextFromItem(block);
+                    if (textContent.length > 100) return;
+                }
+            }
+        }
+    }
     
     if (blog.sections && blog.sections.length > 0) {
         for (const section of blog.sections) {
             if (section.items || section.blocks) {
                 const items = section.items || section.blocks;
                 for (const item of items) {
-                    if ((item.type === 'body' || item.blockType === 'body') && item.content) {
-                        // Strip HTML tags and get plain text
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = item.content;
-                        textContent += tempDiv.textContent || tempDiv.innerText || '';
-                        if (textContent.length > 100) break;
-                    }
+                    collectTextFromItem(item);
+                    if (textContent.length > 100) break;
                 }
                 if (textContent.length > 100) break;
             }
@@ -719,6 +880,48 @@ function generateExcerpt(blog) {
     }
     
     return textContent.length > 100 ? textContent.substring(0, 100) + '...' : textContent;
+}
+
+async function getFirstMediaUrlFromSections(sections) {
+    if (!sections || sections.length === 0) return null;
+
+    async function getFromItem(item) {
+        if (!item) return null;
+        if ((item.type === 'media' || item.blockType === 'media') && item.mediaId) {
+            try {
+                const mediaDoc = await db.collection('users').doc(USER_ID)
+                    .collection('items').doc(item.mediaId).get();
+                if (mediaDoc.exists) {
+                    const mediaData = mediaDoc.data();
+                    if (mediaData.files && mediaData.files.length > 0) {
+                        return mediaData.files[0].url;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching media:', error);
+            }
+        }
+        if (item.type === 'column-group') {
+            const columns = normalizeColumnGroupColumns(item);
+            for (const column of columns) {
+                const blocks = (column.blocks || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+                for (const block of blocks) {
+                    const url = await getFromItem(block);
+                    if (url) return url;
+                }
+            }
+        }
+        return null;
+    }
+
+    for (const section of sections) {
+        const items = section.items || section.blocks || [];
+        for (const item of items) {
+            const url = await getFromItem(item);
+            if (url) return url;
+        }
+    }
+    return null;
 }
 
 // Optimized synchronous function to find first image without additional Firestore queries
@@ -1081,37 +1284,39 @@ function setupFiltering() {
 }
 
 function applyFilters() {
-    const keywordFilter = document.getElementById('keywordsFilter').value.toLowerCase();
-    const practiceFilter = document.getElementById('practiceFilter').value.toLowerCase();
-    
-    allCards.forEach(card => {
-        const tags = card.dataset.tags.toLowerCase();
-        const category = card.dataset.category.toLowerCase();
-        const content = card.dataset.content.toLowerCase();
-        
+    const portfolioElement = document.getElementById('portfolio-sections');
+    const keywordsFilter = document.getElementById('keywordsFilter');
+    const practiceFilterEl = document.getElementById('practiceFilter');
+    if (!portfolioElement || !keywordsFilter || !practiceFilterEl) return;
+
+    const keywordFilter = keywordsFilter.value.toLowerCase();
+    const practiceFilter = practiceFilterEl.value.toLowerCase();
+
+    const filteredPosts = allPortfolioPosts.filter(post => {
+        const tags = String(post.tags || '').toLowerCase();
+        const category = String(post.category || '').toLowerCase();
+        const content = String(post.excerpt || '').toLowerCase();
+
         const matchesKeyword = !keywordFilter || 
             tags.includes(keywordFilter) || 
             content.includes(keywordFilter);
             
         const matchesPractice = !practiceFilter || 
             category.includes(practiceFilter);
-        
-        const shouldShow = matchesKeyword && matchesPractice;
-        
-        card.style.display = shouldShow ? 'block' : 'none';
+
+        return matchesKeyword && matchesPractice;
     });
-    
-    // Hide empty sections
-    document.querySelectorAll('.portfolio-section').forEach(section => {
-        const visibleCards = section.querySelectorAll('.portfolio-card[style="display: block"], .portfolio-card:not([style*="display: none"])');
-        const hasComingSoon = section.querySelector('.coming-soon');
-        
-        if (visibleCards.length === 0 && !hasComingSoon) {
-            section.style.display = 'none';
-        } else {
-            section.style.display = 'block';
-        }
-    });
+
+    if (keywordFilter) {
+        const selectedOption = keywordsFilter.options[keywordsFilter.selectedIndex];
+        const keywordLabel = selectedOption ? selectedOption.textContent : keywordsFilter.value;
+        portfolioElement.innerHTML = renderKeywordPortfolioSection(keywordLabel, filteredPosts);
+        syncPortfolioCardsAfterRender(true);
+        return;
+    }
+
+    portfolioElement.innerHTML = renderPortfolioSectionsForPosts(filteredPosts);
+    syncPortfolioCardsAfterRender();
 }
 
 // Debug function (optional, can be removed for production)
@@ -1414,6 +1619,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupExpandToggles() {
     const container = document.getElementById('portfolio-sections');
     if (!container) return;
+
+    const isMobilePortfolio = window.matchMedia('(max-width: 768px)').matches;
+    if (isMobilePortfolio) {
+        container.querySelectorAll('.portfolio-section').forEach(section => {
+            section.classList.add('expanded');
+            const btn = section.querySelector('.expand-btn');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        });
+    }
 
     container.addEventListener('click', function(e) {
         const btn = e.target.closest('.expand-btn');

@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEORGE SYMONDS</title>
+    <title>George Symonds | Designer, Artist, Web Developer &amp; Producer</title>
     <link rel="icon" type="image/png" href="Portfolio/static/img/GSICON.png">
     <link rel="stylesheet" href="Portfolio/portfolio.css">
     <link rel="canonical" href="https://www.1-earth.world/me.html">
-    <meta name="description" content="Designer, artist, web developer, and producer — selected works and projects.">
+    <meta name="description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
     <meta name="author" content="George Symonds">
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="profile">
     <meta property="og:site_name" content="George Symonds Portfolio">
-    <meta property="og:title" content="George Symonds — Portfolio">
-    <meta property="og:description" content="Designer, artist, web developer, and producer — selected works and projects.">
+    <meta property="og:title" content="George Symonds | Designer, Artist, Web Developer &amp; Producer">
+    <meta property="og:description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
     <meta property="og:url" content="https://www.1-earth.world/me.html">
     <meta property="og:image" content="https://www.1-earth.world/Portfolio/static/img/GSICON.png">
     <meta property="og:image:alt" content="GS monogram icon">
@@ -24,10 +24,54 @@
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="George Symonds — Portfolio">
-    <meta name="twitter:description" content="Designer, artist, web developer, and producer — selected works and projects.">
+    <meta name="twitter:title" content="George Symonds | Designer, Artist, Web Developer &amp; Producer">
+    <meta name="twitter:description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
     <meta name="twitter:image" content="https://www.1-earth.world/Portfolio/static/img/GSICON.png">
     <meta name="twitter:image:alt" content="GS monogram icon">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://www.1-earth.world/#website",
+                "name": "George Symonds Portfolio",
+                "url": "https://www.1-earth.world/",
+                "publisher": {
+                    "@id": "https://www.1-earth.world/me.html#person"
+                }
+            },
+            {
+                "@type": "ProfilePage",
+                "@id": "https://www.1-earth.world/me.html#profile",
+                "url": "https://www.1-earth.world/me.html",
+                "name": "George Symonds | Designer, Artist, Web Developer and Producer",
+                "description": "George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.",
+                "isPartOf": {
+                    "@id": "https://www.1-earth.world/#website"
+                },
+                "mainEntity": {
+                    "@id": "https://www.1-earth.world/me.html#person"
+                }
+            },
+            {
+                "@type": "Person",
+                "@id": "https://www.1-earth.world/me.html#person",
+                "name": "George Symonds",
+                "url": "https://www.1-earth.world/me.html",
+                "image": "https://www.1-earth.world/Portfolio/static/img/GSICON.png",
+                "jobTitle": "Designer, Artist, Web Developer and Producer",
+                "description": "George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.",
+                "sameAs": [
+                    "https://www.instagram.com/georgesymonds_/",
+                    "https://www.tiktok.com/@gsymonds_/",
+                    "https://www.youtube.com/@georgesymonds007/",
+                    "https://kr-net.github.io/?profile=1"
+                ]
+            }
+        ]
+    }
+    </script>
 </head>
 
 <body>
@@ -98,7 +142,7 @@
         <h2>FIND OUT MORE</h2>
     </div>
 
-    <div class="about-me-title">
+    <div class="about-me-title" id="who-is-george-symonds">
         <h2>George Symonds </h2>
     </div>
     
@@ -148,6 +192,9 @@
                 </a>
                 <a class="contact-social-btn contact-social-ig" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
                     <img src="Portfolio/static/img/icon-instagram-white.svg" alt="Instagram">
+                </a>
+                <a class="contact-social-btn contact-social-tiktok use-image-icon" href="https://www.tiktok.com/@gsymonds_/" target="_blank" rel="noopener" aria-label="TikTok">
+                    <img src="Portfolio/static/img/tiktok.svg" alt="TikTok">
                 </a>
                 <a class="contact-social-btn contact-social-yt" href="https://www.youtube.com/@georgesymonds007" target="_blank" rel="noopener" aria-label="YouTube">
                     <img src="Portfolio/static/img/icon-youtube-white.svg" alt="YouTube">
@@ -560,7 +607,12 @@
         }
 
         dvdLogo.addEventListener('click', () => {
-            if (!modalOpen) openModal();
+            const target = document.getElementById('who-is-george-symonds') || document.querySelector('.about-me-section');
+            if (!target) return;
+            const header = document.querySelector('.portfolio-header');
+            const headerH = header ? header.getBoundingClientRect().height : 0;
+            const targetTop = window.scrollY + target.getBoundingClientRect().top - headerH - 12;
+            window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
         });
         closeBtn.addEventListener('click', closeModal);
         window.addEventListener('keydown', (e) => {

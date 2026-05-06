@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work - GEORGE SYMONDS</title>
+    <title>Selected Work | George Symonds Portfolio</title>
     <link rel="stylesheet" href="../portfolio.css">
     <script src="../scrollreveal.js"></script>
     <link rel="icon" type="image/png" href="../static/img/GSICON.png">
     <link rel="canonical" href="https://www.1-earth.world/Portfolio/work/">
-    <meta name="description" content="Selected work by George Symonds — case studies, process, and outcomes.">
+    <meta name="description" content="Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.">
     <meta name="author" content="George Symonds">
 
-    <meta property="og:type" content="article">
+    <meta property="og:type" content="website">
     <meta property="og:site_name" content="George Symonds Portfolio">
-    <meta property="og:title" content="Work — George Symonds">
-    <meta property="og:description" content="Selected work by George Symonds.">
+    <meta property="og:title" content="Selected Work | George Symonds Portfolio">
+    <meta property="og:description" content="Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.">
     <meta property="og:url" content="https://www.1-earth.world/Portfolio/work/">
     <meta property="og:image" content="https://www.1-earth.world/static/images/og-default.png">
     <meta property="og:image:alt" content="George Symonds portfolio">
@@ -24,9 +24,36 @@
     <meta property="og:image:height" content="630">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Work — George Symonds">
-    <meta name="twitter:description" content="Selected work by George Symonds.">
+    <meta name="twitter:title" content="Selected Work | George Symonds Portfolio">
+    <meta name="twitter:description" content="Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.">
     <meta name="twitter:image" content="https://www.1-earth.world/static/images/og-default.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "CollectionPage",
+                "@id": "https://www.1-earth.world/Portfolio/work/#collection",
+                "url": "https://www.1-earth.world/Portfolio/work/",
+                "name": "Selected Work | George Symonds Portfolio",
+                "description": "Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.",
+                "isPartOf": {
+                    "@id": "https://www.1-earth.world/#website"
+                },
+                "author": {
+                    "@id": "https://www.1-earth.world/me.html#person"
+                }
+            },
+            {
+                "@type": "Person",
+                "@id": "https://www.1-earth.world/me.html#person",
+                "name": "George Symonds",
+                "url": "https://www.1-earth.world/me.html",
+                "jobTitle": "Designer, Artist, Web Developer and Producer"
+            }
+        ]
+    }
+    </script>
 </head>
 
 <body>
@@ -430,18 +457,17 @@
                     (function updateSocialMeta(){
                         const title = work.title || 'Work - George Symonds';
                         const desc = (work.summary || work.subtitle || work.excerpt || '').toString().trim() || 'Selected work by George Symonds.';
-                        let image = null;
-                        try {
-                            if (work.sections && Array.isArray(work.sections)) {
-                                for (const section of work.sections) {
-                                    if (section && (section.type === 'media' || section.blockType === 'media')) {
-                                        if (section.files && section.files.length && section.files[0].url) { image = section.files[0].url; break; }
-                                        if (section.url) { image = section.url; break; }
-                                    }
-                                }
-                            }
-                        } catch(_) {}
+                        let image = work.featuredMedia && work.featuredMedia.url ? work.featuredMedia.url : null;
+                        if (!image && work.featuredImage) image = work.featuredImage;
                         if (!image && work.coverImageUrl) image = work.coverImageUrl;
+                        if (!image && typeof getFirstMediaUrlFromSections === 'function') {
+                            getFirstMediaUrlFromSections(work.sections).then((url) => {
+                                if (url) {
+                                    setTag('meta[property="og:image"]', 'content', url);
+                                    setTag('meta[name="twitter:image"]', 'content', url);
+                                }
+                            }).catch(() => {});
+                        }
                         if (!image) image = 'https://www.1-earth.world/static/images/og-default.png';
                         const path = typeof window.buildPortfolioWorkHref === 'function'
                             ? window.buildPortfolioWorkHref(work)
