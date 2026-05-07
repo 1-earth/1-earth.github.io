@@ -382,6 +382,122 @@ function maybeWrapLinkedMedia(innerHtml, file, fileIndex, settings, className = 
     return `<a class="${className}" href="${escapeAttr(link)}"${targetAttr}>${innerHtml}</a>`;
 }
 
+const portfolioGalleryStore = window.portfolioGalleryStore || {};
+window.portfolioGalleryStore = portfolioGalleryStore;
+
+function isImageMediaFile(file) {
+    const type = String((file && file.type) || '').toLowerCase();
+    const url = String((file && file.url) || '').split('?')[0].toLowerCase();
+    return type.startsWith('image/') || /\.(png|jpe?g|webp|gif|avif|svg)$/.test(url);
+}
+
+function isVideoMediaFile(file) {
+    const type = String((file && file.type) || '').toLowerCase();
+    const url = String((file && file.url) || '').split('?')[0].toLowerCase();
+    return type.startsWith('video/') || /\.(mp4|webm|ogg|mov|m4v|avi)$/.test(url);
+}
+
+function galleryColumnStyle(settings) {
+    const minCols = Math.max(1, Math.min(6, Math.round(settings.galleryMinColumns || 1)));
+    const maxCols = Math.max(minCols, Math.min(6, Math.round(settings.galleryMaxColumns || 3)));
+    const midCols = Math.max(minCols, Math.min(maxCols, Math.round((minCols + maxCols) / 2)));
+    return ` style="--portfolio-gallery-min-cols:${minCols}; --portfolio-gallery-mid-cols:${midCols}; --portfolio-gallery-max-cols:${maxCols};"`;
+}
+
+function buildPortfolioGalleryItems(files, fallbackTitle, settings) {
+    return (files || []).reduce((items, file, sourceIndex) => {
+        if (!file || !file.url) return items;
+        const isImage = isImageMediaFile(file);
+        const isVideo = isVideoMediaFile(file);
+        if (!isImage && !isVideo) return items;
+
+        items.push({
+            url: file.url,
+            thumb: file.poster || file.url,
+            caption: file.caption || '',
+            alt: file.caption || fallbackTitle || (isVideo ? 'Gallery video' : 'Gallery image'),
+            sourceIndex,
+            isVideo,
+            linkHref: sanitizeMediaLink(settings.imageLinks[sourceIndex] || '')
+        });
+        return items;
+    }, []);
+}
+
+function registerPortfolioGallery(items) {
+    const galleryId = `portfolio_gallery_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    portfolioGalleryStore[galleryId] = items;
+    return galleryId;
+}
+
+function renderPortfolioGalleryItemInner(item, settings) {
+    const aspectStyle = mediaAspectStyle(settings);
+    const cropClass = aspectStyle ? ' portfolio-gallery-item-crop--user' : '';
+    const cropOpen = `<div class="portfolio-gallery-item-crop${cropClass}"${aspectStyle}>`;
+    const mediaHtml = item.isVideo
+        ? `<video class="portfolio-gallery-item-media" src="${escapeAttr(item.url)}"${item.thumb && item.thumb !== item.url ? ` poster="${escapeAttr(item.thumb)}"` : ''} muted playsinline preload="metadata"></video>`
+        : `<img class="portfolio-gallery-item-media" loading="lazy" src="${escapeAttr(item.thumb)}" alt="${escapeAttr(item.alt)}">`;
+    const captionHtml = settings.showCaptions && item.caption
+        ? `<p class="portfolio-gallery-caption">${escapeAttr(item.caption)}</p>`
+        : '';
+
+    return `${cropOpen}${mediaHtml}</div>${captionHtml}`;
+}
+
+function renderPortfolioImageGallery(files, fallbackTitle, settings) {
+    const items = buildPortfolioGalleryItems(files, fallbackTitle, settings);
+    if (items.length === 0) {
+        return '<div class="blog-media-placeholder">Media preview not available</div>';
+    }
+
+    if (items.length === 1) {
+        const one = items[0];
+        const safeUrl = escapeAttr(one.url);
+        const safeAlt = escapeAttr(one.alt);
+        const aspectStyle = mediaAspectStyle(settings);
+        let singleHtml = `<div class="blog-media-frontend"${aspectStyle}>`;
+        if (one.isVideo) {
+            singleHtml += `<video src="${safeUrl}" controls class="blog-media-video"${one.thumb && one.thumb !== one.url ? ` poster="${escapeAttr(one.thumb)}"` : ''}></video>`;
+        } else {
+            const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" class="blog-media-img" loading="lazy">`;
+            singleHtml += maybeWrapLinkedMedia(imgHtml, files[one.sourceIndex], one.sourceIndex, settings);
+        }
+        if (settings.showCaptions && one.caption) {
+            singleHtml += `<p class="blog-media-caption">${escapeAttr(one.caption)}</p>`;
+        }
+        singleHtml += '</div>';
+        return singleHtml;
+    }
+
+    let mediaHtml = `<div class="blog-media-frontend blog-media-gallery-frontend">`;
+    const gridStyle = galleryColumnStyle(settings);
+
+    if (settings.clickAction === 'link') {
+        mediaHtml += `<div class="portfolio-gallery-grid"${gridStyle}>`;
+        items.forEach((item, index) => {
+            const targetAttr = settings.openLinksInNewTab ? ' target="_blank" rel="noopener"' : '';
+            if (isValidMediaLink(item.linkHref)) {
+                mediaHtml += `<a class="portfolio-gallery-item portfolio-gallery-link" href="${escapeAttr(item.linkHref)}"${targetAttr} aria-label="Open linked page for gallery item ${index + 1}">${renderPortfolioGalleryItemInner(item, settings)}</a>`;
+            } else {
+                mediaHtml += `<div class="portfolio-gallery-item portfolio-gallery-static">${renderPortfolioGalleryItemInner(item, settings)}</div>`;
+            }
+        });
+    } else {
+        const galleryId = registerPortfolioGallery(items);
+        mediaHtml += `<div class="portfolio-gallery-grid" data-portfolio-gallery-id="${galleryId}"${gridStyle}>`;
+        items.forEach((item, index) => {
+            mediaHtml += `<button class="portfolio-gallery-item portfolio-gallery-trigger" type="button" data-portfolio-gallery-id="${galleryId}" data-portfolio-gallery-index="${index}" aria-label="Open gallery item ${index + 1} of ${items.length}">${renderPortfolioGalleryItemInner(item, settings)}</button>`;
+        });
+    }
+
+    mediaHtml += '</div>';
+    if (settings.showCaptions) {
+        mediaHtml += `<p class="blog-media-gallery-indicator">Gallery (${items.length} items)</p>`;
+    }
+    mediaHtml += '</div>';
+    return mediaHtml;
+}
+
 function normalizeColumnGroupColumns(columnGroup) {
     if (Array.isArray(columnGroup.columns) && columnGroup.columns.length > 0) {
         return columnGroup.columns
@@ -478,7 +594,6 @@ function renderMediaBlock(mediaData, blockMediaSettings = null) {
 
     const settings = normalizeMediaSettings(blockMediaSettings || {}, mediaData.files.length);
     const aspectStyle = mediaAspectStyle(settings);
-    const galleryStyle = mediaGalleryStyle(settings);
     const blockPosterAttr = settings.videoPosterUrl ? ` poster="${escapeAttr(settings.videoPosterUrl)}"` : '';
 
     // If only one file, render simple media block
@@ -520,79 +635,7 @@ function renderMediaBlock(mediaData, blockMediaSettings = null) {
         return mediaHtml;
     }
     
-    // Multiple files - create slideshow
-    const slideshowId = `slideshow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    let mediaHtml = `<div class="blog-media-frontend blog-media-gallery-frontend"${galleryStyle}>`;
-    
-    mediaHtml += `<div class="media-slideshow" id="${slideshowId}"${aspectStyle}>`;
-    
-    // Add all slides
-    mediaData.files.forEach((file, index) => {
-        const isImage = file.type && file.type.startsWith('image/');
-        const isVideo = file.type && file.type.startsWith('video/');
-        const isPdf = file.type === 'application/pdf' || (file.url && file.url.toLowerCase().endsWith('.pdf'));
-        const isActive = index === 0 ? 'active' : '';
-        const safeUrl = escapeAttr(file.url);
-        const safeAlt = escapeAttr(file.caption || mediaData.title || 'Image');
-        
-        mediaHtml += `<div class="slide ${isActive}" data-slide="${index}">`;
-        
-        if (isImage) {
-            const imgHtml = `<img src="${safeUrl}" alt="${safeAlt}" class="slide-media">`;
-            mediaHtml += maybeWrapLinkedMedia(imgHtml, file, index, settings, 'slide-media-link');
-        } else if (isVideo) {
-            mediaHtml += `<video src="${safeUrl}" controls class="slide-media"></video>`;
-        } else if (isPdf) {
-            mediaHtml += `
-                <div class="pdf-inline-embed">
-                    <iframe class="pdf-iframe" src="${safeUrl}#view=FitH" style="width:100%; height:600px; border:0;"></iframe>
-                    <div class="pdf-controls">
-                        <a class="pdf-download" href="${safeUrl}" target="_blank" rel="noopener">Download</a>
-                        <button class="pdf-open-modal-btn" data-url="${safeUrl}" onclick="openPdfModal(this.getAttribute('data-url'))">Open</button>
-                    </div>
-                </div>
-            `;
-        } else {
-            mediaHtml += `<div class="blog-media-placeholder">Media preview not available</div>`;
-        }
-        
-        // Add caption if available
-        if (settings.showCaptions && file.caption) {
-            mediaHtml += `<p class="slide-caption">${file.caption}</p>`;
-        }
-        
-        mediaHtml += '</div>';
-    });
-    
-    // Add navigation arrows
-    mediaHtml += `
-        <button class="slideshow-arrow slideshow-arrow-left" onclick="changeSlide('${slideshowId}', -1)">&#8249;</button>
-        <button class="slideshow-arrow slideshow-arrow-right" onclick="changeSlide('${slideshowId}', 1)">&#8250;</button>
-    `;
-    
-    // Add slide indicators
-    mediaHtml += '<div class="slideshow-indicators">';
-    for (let i = 0; i < mediaData.files.length; i++) {
-        const activeClass = i === 0 ? 'active' : '';
-        mediaHtml += `<span class="indicator ${activeClass}" onclick="goToSlide('${slideshowId}', ${i})"></span>`;
-    }
-    mediaHtml += '</div>';
-    
-    mediaHtml += '</div>'; // Close slideshow
-    
-    // Add gallery indicator
-    if (settings.showCaptions) {
-        mediaHtml += `<p class="blog-media-gallery-indicator">Gallery (${mediaData.files.length} items)</p>`;
-    }
-    
-    mediaHtml += '</div>'; // Close blog-media-frontend
-    
-    // Initialize slideshow after DOM update
-    setTimeout(() => {
-        initializeSlideshow(slideshowId);
-    }, 100);
-    
-    return mediaHtml;
+    return renderPortfolioImageGallery(mediaData.files, mediaData.title || 'Gallery', settings);
 }
 
 // Lazy-load PDF.js and initialize any inline viewers within a container selector

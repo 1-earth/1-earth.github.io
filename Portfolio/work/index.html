@@ -97,6 +97,9 @@
                 <a class="contact-social-btn contact-social-ig" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
                     <img src="../static/img/icon-instagram-white.svg" alt="Instagram">
                 </a>
+                <a class="contact-social-btn contact-social-tiktok use-image-icon" href="https://www.tiktok.com/@gsymonds_/" target="_blank" rel="noopener" aria-label="TikTok">
+                    <img src="../static/img/tiktok.svg" alt="TikTok">
+                </a>
                 <a class="contact-social-btn contact-social-yt" href="https://www.youtube.com/@georgesymonds007" target="_blank" rel="noopener" aria-label="YouTube">
                     <img src="../static/img/icon-youtube-white.svg" alt="YouTube">
                 </a>
@@ -125,10 +128,228 @@
         </div>
     </footer>
 
+    <div class="portfolio-gallery-viewer" id="portfolio-gallery-viewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Gallery viewer">
+        <div class="portfolio-gallery-viewer-inner">
+            <button class="portfolio-gallery-viewer-close" type="button" aria-label="Close gallery">&times;</button>
+            <div class="portfolio-gallery-viewer-stage">
+                <button class="portfolio-gallery-viewer-nav portfolio-gallery-viewer-nav-prev" type="button" aria-label="Previous gallery item"></button>
+                <div class="portfolio-gallery-viewer-viewport" id="portfolio-gallery-viewer-viewport">
+                    <div class="portfolio-gallery-viewer-media">
+                        <img id="portfolio-gallery-viewer-image" src="" alt="">
+                        <video id="portfolio-gallery-viewer-video" class="portfolio-gallery-viewer-video" controls playsinline preload="metadata" style="display:none"></video>
+                    </div>
+                </div>
+                <button class="portfolio-gallery-viewer-nav portfolio-gallery-viewer-nav-next" type="button" aria-label="Next gallery item"></button>
+            </div>
+            <div class="portfolio-gallery-viewer-footer">
+                <p class="portfolio-gallery-viewer-caption" id="portfolio-gallery-viewer-caption"></p>
+                <div class="portfolio-gallery-viewer-thumbs" id="portfolio-gallery-viewer-thumbs" aria-label="Gallery thumbnails"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script src="../1eCMSconnect.js"></script>
+    <script>
+        (function(){
+            function createPortfolioGalleryViewer() {
+                const viewer = document.getElementById('portfolio-gallery-viewer');
+                const closeBtn = viewer ? viewer.querySelector('.portfolio-gallery-viewer-close') : null;
+                const prevBtn = viewer ? viewer.querySelector('.portfolio-gallery-viewer-nav-prev') : null;
+                const nextBtn = viewer ? viewer.querySelector('.portfolio-gallery-viewer-nav-next') : null;
+                const image = document.getElementById('portfolio-gallery-viewer-image');
+                const video = document.getElementById('portfolio-gallery-viewer-video');
+                const caption = document.getElementById('portfolio-gallery-viewer-caption');
+                const thumbs = document.getElementById('portfolio-gallery-viewer-thumbs');
+                const viewport = document.getElementById('portfolio-gallery-viewer-viewport');
+                if (!viewer || !closeBtn || !prevBtn || !nextBtn || !image || !video || !caption || !thumbs || !viewport) return null;
+
+                const state = {
+                    galleryId: '',
+                    index: 0,
+                    touchStartX: 0,
+                    returnFocusEl: null
+                };
+
+                function getItems() {
+                    return (window.portfolioGalleryStore && window.portfolioGalleryStore[state.galleryId]) || [];
+                }
+
+                function clearVideo() {
+                    try { video.pause(); } catch (_) {}
+                    video.removeAttribute('src');
+                    video.removeAttribute('poster');
+                    video.style.display = 'none';
+                    try { video.load(); } catch (_) {}
+                }
+
+                function renderThumbs(items) {
+                    thumbs.innerHTML = items.map((item, index) => {
+                        const activeClass = index === state.index ? ' is-active' : '';
+                        const thumbInner = item.isVideo && item.thumb === item.url
+                            ? '<span class="portfolio-gallery-viewer-thumb-video">VIDEO</span>'
+                            : `<img loading="lazy" src="${escapeHtml(item.thumb || item.url)}" alt="${escapeHtml(item.alt || 'Gallery thumbnail')}">`;
+                        return `<button class="portfolio-gallery-viewer-thumb${activeClass}" type="button" data-gallery-thumb-index="${index}" aria-label="Show gallery item ${index + 1}">${thumbInner}</button>`;
+                    }).join('');
+                    const activeThumb = thumbs.querySelector('.portfolio-gallery-viewer-thumb.is-active');
+                    if (activeThumb && activeThumb.scrollIntoView) {
+                        activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+                    }
+                }
+
+                function escapeHtml(value) {
+                    return String(value == null ? '' : value)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                }
+
+                function render() {
+                    const items = getItems();
+                    if (!items.length) return;
+                    const current = items[state.index];
+                    if (current.isVideo) {
+                        image.style.display = 'none';
+                        image.removeAttribute('src');
+                        image.alt = '';
+                        clearVideo();
+                        video.style.display = 'block';
+                        video.src = current.url;
+                        if (current.thumb && current.thumb !== current.url) {
+                            video.setAttribute('poster', current.thumb);
+                        }
+                    } else {
+                        clearVideo();
+                        image.style.display = '';
+                        image.src = current.url;
+                        image.alt = current.alt || 'Gallery image';
+                    }
+                    caption.textContent = current.caption || '';
+                    renderThumbs(items);
+                }
+
+                function open(galleryId, index, triggerEl) {
+                    const store = window.portfolioGalleryStore || {};
+                    if (!store[galleryId] || store[galleryId].length === 0) return;
+                    state.galleryId = galleryId;
+                    state.index = Number(index) || 0;
+                    state.returnFocusEl = triggerEl || document.activeElement;
+                    viewer.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('portfolio-gallery-viewer-open');
+                    render();
+                    requestAnimationFrame(() => {
+                        viewer.classList.add('is-open');
+                        closeBtn.focus();
+                    });
+                }
+
+                function close() {
+                    if (!viewer.classList.contains('is-open')) return;
+                    viewer.classList.remove('is-open');
+                    setTimeout(() => {
+                        if (viewer.classList.contains('is-open')) return;
+                        viewer.setAttribute('aria-hidden', 'true');
+                        document.body.classList.remove('portfolio-gallery-viewer-open');
+                        image.removeAttribute('src');
+                        image.alt = '';
+                        image.style.display = '';
+                        clearVideo();
+                        caption.textContent = '';
+                        thumbs.innerHTML = '';
+                        state.galleryId = '';
+                        state.index = 0;
+                        if (state.returnFocusEl && typeof state.returnFocusEl.focus === 'function') {
+                            state.returnFocusEl.focus();
+                        }
+                        state.returnFocusEl = null;
+                    }, 360);
+                }
+
+                function step(direction) {
+                    const items = getItems();
+                    if (!items.length) return;
+                    state.index = (state.index + direction + items.length) % items.length;
+                    render();
+                }
+
+                function goTo(index) {
+                    const items = getItems();
+                    const nextIndex = Number(index) || 0;
+                    if (!items.length || nextIndex < 0 || nextIndex >= items.length) return;
+                    state.index = nextIndex;
+                    render();
+                }
+
+                document.addEventListener('click', (event) => {
+                    const trigger = event.target.closest('.portfolio-gallery-trigger');
+                    if (!trigger) return;
+                    event.preventDefault();
+                    open(
+                        trigger.getAttribute('data-portfolio-gallery-id'),
+                        trigger.getAttribute('data-portfolio-gallery-index'),
+                        trigger
+                    );
+                });
+
+                closeBtn.addEventListener('click', close);
+                prevBtn.addEventListener('click', () => step(-1));
+                nextBtn.addEventListener('click', () => step(1));
+
+                viewer.addEventListener('click', (event) => {
+                    if (!viewer.classList.contains('is-open')) return;
+                    const target = event.target;
+                    if (!target || typeof target.closest !== 'function') return;
+                    if (target.closest('.portfolio-gallery-viewer-media')) return;
+                    if (target.closest('.portfolio-gallery-viewer-close')) return;
+                    if (target.closest('.portfolio-gallery-viewer-nav')) return;
+                    if (target.closest('.portfolio-gallery-viewer-thumbs')) return;
+                    close();
+                });
+
+                thumbs.addEventListener('click', (event) => {
+                    const thumb = event.target.closest('[data-gallery-thumb-index]');
+                    if (!thumb) return;
+                    event.stopPropagation();
+                    goTo(thumb.getAttribute('data-gallery-thumb-index'));
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (!viewer.classList.contains('is-open')) return;
+                    if (event.key === 'Escape') {
+                        close();
+                    } else if (event.key === 'ArrowLeft') {
+                        event.preventDefault();
+                        step(-1);
+                    } else if (event.key === 'ArrowRight') {
+                        event.preventDefault();
+                        step(1);
+                    }
+                });
+
+                viewport.addEventListener('touchstart', (event) => {
+                    if (!event.changedTouches || !event.changedTouches.length) return;
+                    state.touchStartX = event.changedTouches[0].clientX;
+                }, { passive: true });
+
+                viewport.addEventListener('touchend', (event) => {
+                    if (!event.changedTouches || !event.changedTouches.length) return;
+                    const deltaX = event.changedTouches[0].clientX - state.touchStartX;
+                    if (Math.abs(deltaX) < 40) return;
+                    step(deltaX > 0 ? -1 : 1);
+                }, { passive: true });
+
+                return { open, close };
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                window.portfolioGalleryViewer = createPortfolioGalleryViewer();
+            });
+        })();
+    </script>
     <script>
         (function(){
             try { if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; } } catch(_) {}
