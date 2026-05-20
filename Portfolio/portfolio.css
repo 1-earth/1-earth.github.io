@@ -1846,6 +1846,47 @@ body.portfolio-gallery-viewer-open {
     line-height: 1.35;
 }
 
+.portfolio-chat-bubble--typing p::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 1em;
+    margin-left: 2px;
+    border-right: 1px solid currentColor;
+    transform: translateY(2px);
+    animation: portfolio-chat-caret 0.8s steps(1) infinite;
+}
+
+@keyframes portfolio-chat-caret {
+    50% { opacity: 0; }
+}
+
+.portfolio-chat-glitch-text {
+    color: #ff8c00;
+    opacity: 0.72;
+    text-shadow: 0 0 8px rgba(0,0,255,0.45);
+    filter: blur(0.15px);
+    animation: portfolio-chat-glitch-flicker 0.26s steps(2) infinite;
+}
+
+@keyframes portfolio-chat-glitch-flicker {
+    0% {
+        color: #ff8c00;
+        opacity: 0.72;
+        text-shadow: 0 0 8px rgba(0,0,255,0.35);
+    }
+    50% {
+        color: #6f78ff;
+        opacity: 0.5;
+        text-shadow: 0 0 10px rgba(255,140,0,0.4);
+    }
+    100% {
+        color: #ff8c00;
+        opacity: 0.82;
+        text-shadow: 0 0 6px rgba(0,0,255,0.25);
+    }
+}
+
 .portfolio-chat-loading-bubble {
     display: inline-flex;
     align-items: center;
