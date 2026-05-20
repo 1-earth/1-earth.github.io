@@ -1719,8 +1719,8 @@ body.portfolio-gallery-viewer-open {
     color: #000;
     border: 0.5px solid #fff;
     border-radius: 50%;
-    width: 46px;
-    height: 46px;
+    width: 53px;
+    height: 53px;
     padding: 0;
     font-size: 0.95rem;
     font-weight: bold;
@@ -1807,7 +1807,71 @@ body.portfolio-gallery-viewer-open {
     color: #000;
 }
 
+.portfolio-chat-messages-wrap {
+    position: relative;
+    min-height: 210px;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.portfolio-chat-messages-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0.48) 100%),
+        linear-gradient(180deg, rgba(10,10,10,0.58) 0%, rgba(10,10,10,0.16) 32%, rgba(10,10,10,0.5) 100%);
+}
+
+.portfolio-chat-messages-wrap.is-glitching::after {
+    background:
+        linear-gradient(90deg, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.42) 45%, rgba(0,0,0,0.62) 100%),
+        linear-gradient(180deg, rgba(10,10,10,0.68) 0%, rgba(10,10,10,0.22) 32%, rgba(10,10,10,0.58) 100%);
+}
+
+.portfolio-chat-avatar-bg {
+    position: absolute;
+    z-index: 0;
+    left: -54px;
+    bottom: -30px;
+    width: 235px;
+    height: 280px;
+    opacity: 0.56;
+    filter: saturate(0.88) contrast(1) brightness(0.96);
+    pointer-events: none;
+}
+
+.portfolio-chat-avatar-bg.is-glitching {
+    animation: portfolio-chat-avatar-glitch 0.18s steps(2) infinite;
+    filter:
+        saturate(1.18)
+        contrast(1.18)
+        brightness(1.12)
+        drop-shadow(0 0 10px rgba(255,140,0,0.34))
+        drop-shadow(0 0 16px rgba(0,0,255,0.26));
+    opacity: 0.72;
+}
+
+@keyframes portfolio-chat-avatar-glitch {
+    0% {
+        transform: translate3d(0, 0, 0);
+    }
+    35% {
+        transform: translate3d(1.5px, -1px, 0);
+    }
+    65% {
+        transform: translate3d(-1px, 1px, 0);
+    }
+    100% {
+        transform: translate3d(0.5px, 0, 0);
+    }
+}
+
 .portfolio-chat-messages {
+    position: relative;
+    z-index: 2;
     min-height: 210px;
     max-height: 360px;
     overflow-y: auto;
@@ -1832,7 +1896,7 @@ body.portfolio-gallery-viewer-open {
     border: 0.5px solid rgba(255,255,255,0.25);
     border-radius: 18px;
     padding: 10px 12px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(34,34,34,0.58);
 }
 
 .portfolio-chat-message--user .portfolio-chat-bubble {
@@ -2020,7 +2084,7 @@ body.portfolio-gallery-viewer-open {
     }
 
     .portfolio-chat-messages {
-        max-height: 42vh;
+        max-height: 53vh;
     }
 }
 

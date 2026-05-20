@@ -6,6 +6,10 @@
     const MAX_TYPE_DURATION_MS = 2200;
     const MIN_TYPE_DURATION_MS = 350;
     const TYPE_MS_PER_CHAR = 10;
+    const AVATAR_DEFAULT_THETA_DEG = 260;
+    const AVATAR_DEFAULT_ORBIT = `${AVATAR_DEFAULT_THETA_DEG}deg 90deg 30m`;
+    const AVATAR_SPIN_DURATION_MS = 1400;
+    const AVATAR_GLITCH_CYCLE_MS = 520;
     const GLITCH_NORMAL_CHANCE = 0.18;
     const GLITCH_HIDDEN_LAYER_CHANCE = 0.68;
     const GLITCH_HOLD_MIN_MS = 360;
@@ -32,6 +36,11 @@
     let history = loadHistory();
     let elements = {};
     let assistantQueue = Promise.resolve();
+    let avatarShouldSpin = false;
+    let avatarSpinFrame = null;
+    let avatarSpinCycleStart = 0;
+    let avatarGlitchFrame = null;
+    let avatarGlitchCycleStart = 0;
 
     function loadHistory() {
         try {
@@ -186,8 +195,20 @@
         header.appendChild(titleWrap);
         header.appendChild(close);
 
+        const messagesWrap = createElement('div', 'portfolio-chat-messages-wrap');
+        const avatar = document.createElement('model-viewer');
+        avatar.className = 'portfolio-chat-avatar-bg';
+        avatar.src = 'Portfolio/static/3d/george.glb';
+        avatar.alt = '';
+        avatar.setAttribute('aria-hidden', 'true');
+        avatar.setAttribute('loading', 'lazy');
+        avatar.setAttribute('shadow-intensity', '0.65');
+        avatar.setAttribute('camera-orbit', AVATAR_DEFAULT_ORBIT);
+
         const messages = createElement('div', 'portfolio-chat-messages');
         messages.setAttribute('aria-live', 'polite');
+        messagesWrap.appendChild(avatar);
+        messagesWrap.appendChild(messages);
 
         const starters = createElement('div', 'portfolio-chat-starters');
         STARTERS.forEach((prompt) => {
@@ -212,7 +233,7 @@
         status.setAttribute('role', 'status');
 
         panel.appendChild(header);
-        panel.appendChild(messages);
+        panel.appendChild(messagesWrap);
         panel.appendChild(starters);
         panel.appendChild(form);
         panel.appendChild(status);
@@ -221,7 +242,7 @@
         root.appendChild(panel);
         document.body.appendChild(root);
 
-        elements = { root, backdrop, toggle, panel, close, messages, starters, form, input, submit, status };
+        elements = { root, backdrop, toggle, panel, close, messagesWrap, messages, avatar, starters, form, input, submit, status };
 
         toggle.addEventListener('click', () => setOpen(!isOpen));
         backdrop.addEventListener('click', () => setOpen(false));
@@ -362,29 +383,35 @@
     async function playTypingGlitch(textElement, phrase, characterDelay) {
         const glitch = createElement('span', 'portfolio-chat-glitch-text', '');
         const glitchText = ` ${phrase}`;
-        textElement.appendChild(glitch);
+        startAvatarGlitch();
 
-        for (let i = 0; i < glitchText.length; i += 1) {
-            glitch.textContent += glitchText.charAt(i);
-            elements.messages.scrollTop = elements.messages.scrollHeight;
-            await wait(Math.max(12, characterDelay * 0.8));
-        }
+        try {
+            textElement.appendChild(glitch);
 
-        await wait(randomBetween(GLITCH_HOLD_MIN_MS, GLITCH_HOLD_MAX_MS));
+            for (let i = 0; i < glitchText.length; i += 1) {
+                glitch.textContent += glitchText.charAt(i);
+                elements.messages.scrollTop = elements.messages.scrollHeight;
+                await wait(Math.max(12, characterDelay * 0.8));
+            }
 
-        while (glitch.textContent.length > 0) {
-            glitch.textContent = glitch.textContent.slice(0, -1);
-            elements.messages.scrollTop = elements.messages.scrollHeight;
-            await wait(18);
-        }
+            await wait(randomBetween(GLITCH_HOLD_MIN_MS, GLITCH_HOLD_MAX_MS));
 
-        if (glitch.parentNode) {
-            glitch.parentNode.removeChild(glitch);
+            while (glitch.textContent.length > 0) {
+                glitch.textContent = glitch.textContent.slice(0, -1);
+                elements.messages.scrollTop = elements.messages.scrollHeight;
+                await wait(18);
+            }
+        } finally {
+            if (glitch.parentNode) {
+                glitch.parentNode.removeChild(glitch);
+            }
+            stopAvatarGlitch();
         }
     }
 
     function showLoadingIndicator() {
         hideLoadingIndicator();
+        setAvatarLoading(true);
 
         const row = createElement('div', 'portfolio-chat-message portfolio-chat-message--assistant portfolio-chat-message--loading');
         row.setAttribute('aria-label', 'George is thinking');
@@ -407,6 +434,123 @@
             elements.loading.parentNode.removeChild(elements.loading);
         }
         elements.loading = null;
+        setAvatarLoading(false);
+    }
+
+    function setAvatarLoading(nextLoading) {
+        if (!elements.avatar) return;
+
+        if (nextLoading) {
+            startAvatarSpin();
+            return;
+        }
+
+        stopAvatarSpin();
+    }
+
+    function startAvatarSpin() {
+        if (!elements.avatar || shouldReduceMotion()) return;
+
+        avatarShouldSpin = true;
+        if (avatarSpinFrame) return;
+
+        avatarSpinCycleStart = 0;
+        avatarSpinFrame = window.requestAnimationFrame(runAvatarSpinCycle);
+    }
+
+    function stopAvatarSpin() {
+        avatarShouldSpin = false;
+        if (!avatarSpinFrame && elements.avatar) {
+            resetAvatarOrbit();
+        }
+    }
+
+    function resetAvatarOrbit() {
+        if (!elements.avatar) return;
+        elements.avatar.removeAttribute('auto-rotate');
+        elements.avatar.removeAttribute('rotation-per-second');
+        elements.avatar.setAttribute('camera-orbit', AVATAR_DEFAULT_ORBIT);
+    }
+
+    function runAvatarSpinCycle(timestamp) {
+        if (!elements.avatar) {
+            avatarSpinFrame = null;
+            avatarSpinCycleStart = 0;
+            return;
+        }
+
+        if (!avatarSpinCycleStart) {
+            avatarSpinCycleStart = timestamp;
+        }
+
+        const elapsed = timestamp - avatarSpinCycleStart;
+        const progress = Math.min(elapsed / AVATAR_SPIN_DURATION_MS, 1);
+        const theta = AVATAR_DEFAULT_THETA_DEG + (progress * 360);
+        elements.avatar.setAttribute('camera-orbit', `${theta}deg 90deg 30m`);
+
+        if (progress < 1) {
+            avatarSpinFrame = window.requestAnimationFrame(runAvatarSpinCycle);
+            return;
+        }
+
+        resetAvatarOrbit();
+        avatarSpinCycleStart = 0;
+
+        if (avatarShouldSpin) {
+            avatarSpinFrame = window.requestAnimationFrame(runAvatarSpinCycle);
+            return;
+        }
+
+        avatarSpinFrame = null;
+    }
+
+    function startAvatarGlitch() {
+        if (!elements.avatar || shouldReduceMotion()) return;
+
+        elements.avatar.classList.add('is-glitching');
+        if (elements.messagesWrap) {
+            elements.messagesWrap.classList.add('is-glitching');
+        }
+
+        if (avatarGlitchFrame) return;
+        avatarGlitchCycleStart = 0;
+        avatarGlitchFrame = window.requestAnimationFrame(runAvatarGlitchCycle);
+    }
+
+    function stopAvatarGlitch() {
+        if (elements.avatar) {
+            elements.avatar.classList.remove('is-glitching');
+        }
+        if (elements.messagesWrap) {
+            elements.messagesWrap.classList.remove('is-glitching');
+        }
+        if (avatarGlitchFrame) {
+            window.cancelAnimationFrame(avatarGlitchFrame);
+        }
+        avatarGlitchFrame = null;
+        avatarGlitchCycleStart = 0;
+        resetAvatarOrbit();
+    }
+
+    function runAvatarGlitchCycle(timestamp) {
+        if (!elements.avatar) {
+            avatarGlitchFrame = null;
+            avatarGlitchCycleStart = 0;
+            return;
+        }
+
+        if (!avatarGlitchCycleStart) {
+            avatarGlitchCycleStart = timestamp;
+        }
+
+        const elapsed = timestamp - avatarGlitchCycleStart;
+        const progress = (elapsed % AVATAR_GLITCH_CYCLE_MS) / AVATAR_GLITCH_CYCLE_MS;
+        const lurch = Math.sin(progress * Math.PI) * 86;
+        const twitch = Math.sin(elapsed * 0.09) * 7;
+        const snap = progress > 0.58 && progress < 0.7 ? -18 : 0;
+        const theta = AVATAR_DEFAULT_THETA_DEG + lurch + twitch + snap;
+        elements.avatar.setAttribute('camera-orbit', `${theta}deg 90deg 30m`);
+        avatarGlitchFrame = window.requestAnimationFrame(runAvatarGlitchCycle);
     }
 
     function hideLoadingAndStatus() {
