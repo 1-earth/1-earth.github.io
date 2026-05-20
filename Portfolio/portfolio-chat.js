@@ -10,6 +10,9 @@
     const AVATAR_DEFAULT_ORBIT = `${AVATAR_DEFAULT_THETA_DEG}deg 90deg 30m`;
     const AVATAR_SPIN_DURATION_MS = 1400;
     const AVATAR_GLITCH_CYCLE_MS = 520;
+    const CHAT_CLOSE_ANIMATION_MS = 340;
+    const CHAT_TOGGLE_PULSE_MS = 520;
+    const CONTACT_CHAT_MESSAGE_LIMIT = 10;
     const GLITCH_NORMAL_CHANCE = 0.18;
     const GLITCH_HIDDEN_LAYER_CHANCE = 0.68;
     const GLITCH_HOLD_MIN_MS = 360;
@@ -41,6 +44,8 @@
     let avatarSpinCycleStart = 0;
     let avatarGlitchFrame = null;
     let avatarGlitchCycleStart = 0;
+    let chatCloseTimer = null;
+    let chatPulseTimer = null;
 
     function loadHistory() {
         try {
@@ -275,37 +280,84 @@
     }
 
     function setOpen(nextOpen, options = {}) {
+        if (nextOpen === isOpen && !elements.root.classList.contains('is-closing')) return;
+
+        window.clearTimeout(chatCloseTimer);
+        window.clearTimeout(chatPulseTimer);
+        elements.root.classList.remove('is-toggle-pulsing');
+
         isOpen = nextOpen;
-        elements.root.classList.toggle('is-open', isOpen);
         elements.toggle.setAttribute('aria-expanded', String(isOpen));
         elements.panel.setAttribute('aria-hidden', String(!isOpen));
         if (options.syncUrl !== false) {
             updateChatUrl(isOpen);
         }
         if (isOpen) {
+            elements.root.classList.remove('is-closing');
+            elements.root.classList.add('is-visible');
+            window.requestAnimationFrame(() => {
+                elements.root.classList.add('is-open');
+            });
             setTimeout(() => {
                 elements.messages.scrollTop = elements.messages.scrollHeight;
                 elements.input.focus();
-            }, 100);
+            }, 260);
+            return;
         }
+
+        elements.root.classList.remove('is-open');
+        elements.root.classList.add('is-closing');
+        chatCloseTimer = window.setTimeout(() => {
+            elements.root.classList.remove('is-visible', 'is-closing');
+            pulseChatToggle();
+        }, CHAT_CLOSE_ANIMATION_MS);
+    }
+
+    function pulseChatToggle() {
+        elements.root.classList.add('is-toggle-pulsing');
+        chatPulseTimer = window.setTimeout(() => {
+            elements.root.classList.remove('is-toggle-pulsing');
+        }, CHAT_TOGGLE_PULSE_MS);
     }
 
     function appendMessage(role, content, links, shouldPersist) {
         const row = createElement('div', `portfolio-chat-message portfolio-chat-message--${role}`);
         const bubble = createElement('div', 'portfolio-chat-bubble');
+        const messageLinks = role === 'assistant' ? getMessageLinks(content, links) : (Array.isArray(links) ? links : []);
         bubble.appendChild(createElement('p', '', content));
 
-        appendLinks(bubble, links);
+        appendLinks(bubble, messageLinks);
 
         row.appendChild(bubble);
         elements.messages.appendChild(row);
         elements.messages.scrollTop = elements.messages.scrollHeight;
 
         if (shouldPersist) {
-            history.push({ role, content, links: links || [] });
+            history.push({ role, content, links: messageLinks || [] });
             history = history.slice(-MAX_HISTORY);
             saveHistory();
         }
+    }
+
+    function getMessageLinks(content, links) {
+        const nextLinks = Array.isArray(links) ? links.slice(0, 3) : [];
+        if (!shouldAddContactLink(content, nextLinks)) return nextLinks;
+
+        return [
+            ...nextLinks.slice(0, 2),
+            {
+                title: 'Contact George',
+                url: '#contact',
+                prefillContact: true
+            }
+        ];
+    }
+
+    function shouldAddContactLink(content, links) {
+        const hasContactLink = Array.isArray(links) && links.some((link) => String(link && link.url) === '#contact');
+        if (hasContactLink) return false;
+
+        return /\b(contact form|form below|contact section|fill(?:ing)? out the form|fill(?:ing)? in the form|reach out to (?:the )?real george|talk to (?:the )?real george|message (?:the )?real george)\b/i.test(content || '');
     }
 
     function appendLinks(bubble, links) {
@@ -316,6 +368,12 @@
             if (!link || !link.url) return;
             const anchor = createElement('a', 'portfolio-chat-link', link.title || 'View project');
             anchor.href = link.url;
+            if (String(link.url) === '#contact') {
+                anchor.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    goToContactForm(link.prefillContact !== false);
+                });
+            }
             if (!String(link.url).startsWith('#')) {
                 anchor.target = '_blank';
                 anchor.rel = 'noopener';
@@ -323,6 +381,81 @@
             linkList.appendChild(anchor);
         });
         if (linkList.children.length) bubble.appendChild(linkList);
+    }
+
+    function goToContactForm(shouldPrefill) {
+        if (shouldPrefill) {
+            prefillContactFormFromChat();
+        }
+
+        const contact = document.getElementById('contact');
+        const message = document.getElementById('contact-message');
+
+        setOpen(false);
+
+        if (contact) {
+            contact.scrollIntoView({ behavior: shouldReduceMotion() ? 'auto' : 'smooth', block: 'start' });
+        }
+
+        if (message) {
+            window.setTimeout(() => message.focus(), shouldReduceMotion() ? 0 : 420);
+        }
+    }
+
+    function prefillContactFormFromChat() {
+        const message = document.getElementById('contact-message');
+        if (!message || message.value.trim()) return;
+
+        const transcript = getRecentConversationTranscript();
+        if (!transcript) return;
+
+        const latestUserMessage = getLatestUserMessage();
+        message.value = [
+            'Hi George,',
+            '',
+            latestUserMessage
+                ? `I'm looking for help with: ${latestUserMessage}`
+                : "I'm looking for help with:",
+            '',
+            "I'd like to follow up about:",
+            '',
+            '',
+            '',
+            '---',
+            '',
+            '',
+            'The following is a transcript of your recent chat with George², to help me give context to what you are looking for:',
+            transcript
+        ].join('\n');
+
+        const status = document.getElementById('contact-status');
+        if (status && !status.textContent.trim()) {
+            status.textContent = 'Added your recent George² chat context. Edit it however you want before sending.';
+        }
+    }
+
+    function getRecentConversationTranscript() {
+        const recentMessages = history
+            .filter((message) => message && (message.role === 'user' || message.role === 'assistant') && message.content)
+            .slice(-CONTACT_CHAT_MESSAGE_LIMIT);
+
+        const hasRealUserMessage = recentMessages.some((message) => message.role === 'user');
+        if (!hasRealUserMessage) return '';
+
+        return recentMessages.map((message) => {
+            const speaker = message.role === 'user' ? 'Visitor' : 'George²';
+            return `${speaker}: ${String(message.content).trim()}`;
+        }).join('\n\n');
+    }
+
+    function getLatestUserMessage() {
+        for (let i = history.length - 1; i >= 0; i -= 1) {
+            const message = history[i];
+            if (message && message.role === 'user' && message.content) {
+                return String(message.content).trim();
+            }
+        }
+        return '';
     }
 
     function queueAssistantMessage(content, links, shouldPersist, delayBefore = 0, beforeAppend, options = {}) {
@@ -370,11 +503,12 @@
             await wait(characterDelay);
         }
 
-        appendLinks(bubble, links);
+        const messageLinks = getMessageLinks(fullText, links);
+        appendLinks(bubble, messageLinks);
         elements.messages.scrollTop = elements.messages.scrollHeight;
 
         if (shouldPersist) {
-            history.push({ role: 'assistant', content: fullText, links: links || [] });
+            history.push({ role: 'assistant', content: fullText, links: messageLinks || [] });
             history = history.slice(-MAX_HISTORY);
             saveHistory();
         }

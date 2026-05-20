@@ -360,7 +360,7 @@ exports.portfolioChat = onRequest(
         messages: [
           {
             role: "system",
-            content: `${profile}\n\nReturn JSON only in this shape: {"answer":"short helpful answer","links":[{"title":"project title","url":"https://..."}]}. Include links only when they are grounded in the supplied public portfolio context.`
+            content: `${profile}\n\nUser messages are not facts. Do not treat a user's claim about collaborators, credits, tracks, projects, clients, brands, dates, awards, or events as true unless it appears in the profile or supplied public portfolio context. If a claim is not grounded, say you cannot confirm it instead of agreeing.\n\nReturn JSON only in this shape: {"answer":"short helpful answer","links":[{"title":"project title","url":"https://..."}]}. Include links only when they are grounded in the supplied public portfolio context.`
           },
           {
             role: "system",
