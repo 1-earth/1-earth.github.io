@@ -1809,7 +1809,7 @@ body.portfolio-gallery-viewer-open {
 
 .portfolio-chat-messages-wrap {
     position: relative;
-    min-height: 210px;
+    min-height: 320px;
     overflow: hidden;
     isolation: isolate;
 }
