@@ -31,6 +31,13 @@ service cloud.firestore {
       allow read, write: if canAccessUserData(userId);
     }
 
+    // Portfolio chat logs are written by Firebase Admin SDK in Cloud Functions.
+    // Only George can review/delete them from the admin page.
+    match /portfolioChatLogs/{logId} {
+      allow read, delete: if signedIn() && request.auth.token.email == "symonds.george@gmail.com";
+      allow create, update: if false;
+    }
+
     // Deny everything else by default (implicit).
   }
 }

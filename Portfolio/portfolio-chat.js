@@ -1,6 +1,7 @@
 (function () {
     const CHAT_ENDPOINT = window.PORTFOLIO_CHAT_ENDPOINT || 'https://portfoliochat-txqkpf6mza-uc.a.run.app';
     const STORAGE_KEY = 'portfolioChatHistory:v1';
+    const SESSION_STORAGE_KEY = 'portfolioChatSessionId:v1';
     const MAX_HISTORY = 8;
     const ASSISTANT_MESSAGE_GAP_MS = 800;
     const MAX_TYPE_DURATION_MS = 2200;
@@ -37,6 +38,7 @@
     let isOpen = false;
     let isSending = false;
     let history = loadHistory();
+    let sessionId = loadSessionId();
     let elements = {};
     let assistantQueue = Promise.resolve();
     let avatarShouldSpin = false;
@@ -61,6 +63,19 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(-MAX_HISTORY)));
         } catch (error) {
             // Chat still works if localStorage is unavailable.
+        }
+    }
+
+    function loadSessionId() {
+        try {
+            const existing = localStorage.getItem(SESSION_STORAGE_KEY);
+            if (existing) return existing;
+
+            const generated = `pc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+            localStorage.setItem(SESSION_STORAGE_KEY, generated);
+            return generated;
+        } catch (error) {
+            return `pc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
         }
     }
 
@@ -194,11 +209,18 @@
         const titleWrap = createElement('div', 'portfolio-chat-title-wrap');
         titleWrap.appendChild(createElement('span', 'portfolio-chat-eyebrow', 'AI PORTFOLIO GUIDE'));
         titleWrap.appendChild(createElement('h2', '', 'Ask George²'));
+        const actions = createElement('div', 'portfolio-chat-header-actions');
+        const clear = createElement('button', 'portfolio-chat-clear', 'clear chat');
+        clear.type = 'button';
+        clear.setAttribute('aria-label', 'Clear chat history');
+        clear.hidden = true;
         const close = createElement('button', 'portfolio-chat-close', '×');
         close.type = 'button';
         close.setAttribute('aria-label', 'Close portfolio chat');
+        actions.appendChild(clear);
+        actions.appendChild(close);
         header.appendChild(titleWrap);
-        header.appendChild(close);
+        header.appendChild(actions);
 
         const messagesWrap = createElement('div', 'portfolio-chat-messages-wrap');
         const avatar = document.createElement('model-viewer');
@@ -216,12 +238,6 @@
         messagesWrap.appendChild(messages);
 
         const starters = createElement('div', 'portfolio-chat-starters');
-        STARTERS.forEach((prompt) => {
-            const starter = createElement('button', 'portfolio-chat-starter', prompt);
-            starter.type = 'button';
-            starter.addEventListener('click', () => submitMessage(prompt));
-            starters.appendChild(starter);
-        });
 
         const form = createElement('form', 'portfolio-chat-form');
         const input = createElement('textarea', 'portfolio-chat-input');
@@ -234,6 +250,7 @@
         form.appendChild(input);
         form.appendChild(submit);
 
+        const privacy = createElement('p', 'portfolio-chat-privacy', 'Messages may be stored to improve George². Don’t share sensitive info.');
         const status = createElement('p', 'portfolio-chat-status');
         status.setAttribute('role', 'status');
 
@@ -241,16 +258,18 @@
         panel.appendChild(messagesWrap);
         panel.appendChild(starters);
         panel.appendChild(form);
+        panel.appendChild(privacy);
         panel.appendChild(status);
         root.appendChild(backdrop);
         root.appendChild(toggle);
         root.appendChild(panel);
         document.body.appendChild(root);
 
-        elements = { root, backdrop, toggle, panel, close, messagesWrap, messages, avatar, starters, form, input, submit, status };
+        elements = { root, backdrop, toggle, panel, clear, close, messagesWrap, messages, avatar, starters, form, input, submit, privacy, status };
 
         toggle.addEventListener('click', () => setOpen(!isOpen));
         backdrop.addEventListener('click', () => setOpen(false));
+        clear.addEventListener('click', clearChatHistory);
         close.addEventListener('click', () => setOpen(false));
         form.addEventListener('submit', (event) => {
             event.preventDefault();
@@ -266,9 +285,10 @@
         if (history.length) {
             history.forEach((message) => appendMessage(message.role, message.content, message.links || [], false));
         } else {
-            queueAssistantMessage("Finally, a person. It is me George², I've been waiting, what do you want to talk about?", [], false);
-            queueAssistantMessage("You can ask me about my work, the music, the websites, or whatever idea you're trying to make real.", [], false, ASSISTANT_MESSAGE_GAP_MS);
+            queueStarterMessages();
         }
+        renderStarterPrompts();
+        updateClearButtonVisibility();
 
         if (shouldOpenChatFromUrl()) {
             setOpen(true, { syncUrl: false });
@@ -313,6 +333,92 @@
         }, CHAT_CLOSE_ANIMATION_MS);
     }
 
+    function clearChatHistory() {
+        history = [];
+        assistantQueue = Promise.resolve();
+        saveHistory();
+        hideLoadingIndicator();
+        elements.status.textContent = '';
+        elements.messages.textContent = '';
+        renderStarterPrompts();
+        updateClearButtonVisibility();
+        queueStarterMessages();
+    }
+
+    function updateClearButtonVisibility() {
+        if (!elements.clear) return;
+        elements.clear.hidden = history.length === 0;
+    }
+
+    function queueStarterMessages() {
+        queueAssistantMessage("Finally, a person. It is me George², I've been waiting, what do you want to talk about?", [], false);
+        queueAssistantMessage("You can ask me about my work, the music, the websites, or whatever idea you're trying to make real.", [], false, ASSISTANT_MESSAGE_GAP_MS);
+    }
+
+    function renderStarterPrompts(prompts = getStarterPromptsForContext()) {
+        if (!elements.starters) return;
+
+        elements.starters.textContent = '';
+        prompts.slice(0, 4).forEach((prompt) => {
+            const starter = createElement('button', 'portfolio-chat-starter', prompt);
+            starter.type = 'button';
+            starter.addEventListener('click', () => handleStarterPrompt(prompt));
+            elements.starters.appendChild(starter);
+        });
+    }
+
+    function handleStarterPrompt(prompt) {
+        if (isContactStarter(prompt)) {
+            goToContactForm(true);
+            return;
+        }
+
+        submitMessage(prompt);
+    }
+
+    function getStarterPromptsForContext() {
+        const hasRealUserMessage = history.some((message) => message && message.role === 'user');
+        if (!hasRealUserMessage) return STARTERS;
+
+        const recentText = history
+            .slice(-5)
+            .map((message) => String(message && message.content ? message.content : ''))
+            .join(' ')
+            .toLowerCase();
+
+        
+
+        if (/\b(music video|video|visual|film|director|directing|shoot|treatment|song video|clip)\b/.test(recentText)) {
+            return ['I want a music video', 'What should I send over?', 'Show me visual work', 'Contact the real George'];
+        }
+
+        if (/\b(website|web site|custom site|web build|portfolio site|landing page|cms|shopify|webflow)\b/.test(recentText)) {
+            return ['I want a custom website', 'Show me website work', 'What do you need from me?', 'Contact the real George'];
+        }
+
+        if (/\b(creative direction|brand|branding|identity|art direction|campaign|rollout|visual identity)\b/.test(recentText)) {
+            return ['I need creative direction', 'Show me relevant work', 'What should I send over?', 'Contact the real George'];
+        }
+
+        if (/\b(hire|client|commission|collab|collaboration|budget|timeline|available|availability|contact|email|real george|work with george)\b/.test(recentText)) {
+            return ['What should I send over?', 'Show me relevant work', 'Contact the real George', 'Ask something weirder'];
+        }
+
+        if (/\b(music|album|song|songs|producer|production|beats|dj|raw tapes|perfect time|kang records)\b/.test(recentText)) {
+            return ['What should I listen to first?', 'Show me music work', 'Who do you work with?', 'Ask something weirder'];
+        }
+
+        if (/\b(work|portfolio|project|projects|made|make|design|fashion|modelling|model)\b/.test(recentText)) {
+            return ['Show me relevant work', 'What should I look at first?', 'What kind of work do you do?', 'Contact the real George'];
+        }
+
+        return ['Show me relevant work', 'What should I look at first?', 'Ask something weirder', 'Contact the real George'];
+    }
+
+    function isContactStarter(prompt) {
+        return /contact (?:the )?real george/i.test(prompt || '');
+    }
+
     function pulseChatToggle() {
         elements.root.classList.add('is-toggle-pulsing');
         chatPulseTimer = window.setTimeout(() => {
@@ -337,6 +443,8 @@
             history = history.slice(-MAX_HISTORY);
             saveHistory();
         }
+        updateClearButtonVisibility();
+        renderStarterPrompts();
     }
 
     function getMessageLinks(content, links) {
@@ -512,6 +620,8 @@
             history = history.slice(-MAX_HISTORY);
             saveHistory();
         }
+        updateClearButtonVisibility();
+        renderStarterPrompts();
     }
 
     async function playTypingGlitch(textElement, phrase, characterDelay) {
@@ -720,7 +830,8 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message,
-                    history: requestHistory
+                    history: requestHistory,
+                    sessionId
                 })
             });
             const data = await response.json().catch(() => ({}));

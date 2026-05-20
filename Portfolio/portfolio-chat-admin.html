@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>George2 Chat Logs Admin</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --orange: #ff8c00;
+      --blue: #0000ff;
+      --panel: rgba(18,18,18,0.92);
+      --line: rgba(255,255,255,0.18);
+      --muted: rgba(255,255,255,0.62);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(255,140,0,0.18), transparent 34rem),
+        radial-gradient(circle at bottom right, rgba(0,0,255,0.16), transparent 28rem),
+        #050505;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .admin-shell {
+      width: min(1120px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.9;
+      letter-spacing: -0.07em;
+      text-transform: uppercase;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    button {
+      border: 0.5px solid rgba(255,255,255,0.7);
+      border-radius: 999px;
+      background: transparent;
+      color: #fff;
+      padding: 9px 13px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--orange);
+      color: #000;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: wait;
+    }
+
+    .admin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .status {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 0.5px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+    }
+
+    .log-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .session-group {
+      border: 0.5px solid rgba(255,255,255,0.24);
+      border-radius: 24px;
+      background: rgba(255,255,255,0.035);
+      overflow: hidden;
+    }
+
+    .session-group[open] {
+      background: rgba(255,255,255,0.055);
+    }
+
+    .session-summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .session-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .session-title {
+      display: grid;
+      gap: 6px;
+    }
+
+    .session-title strong {
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .session-preview {
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .session-toggle {
+      color: var(--orange);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .session-logs {
+      display: grid;
+      gap: 10px;
+      padding: 0 12px 12px;
+    }
+
+    .log-card {
+      border: 0.5px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.22);
+    }
+
+    .log-card__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border-bottom: 0.5px solid var(--line);
+    }
+
+    .log-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .pill {
+      border: 0.5px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .delete-btn {
+      border-color: rgba(255,120,120,0.7);
+      color: #ff9b9b;
+    }
+
+    .delete-btn:hover {
+      background: #ff5a5a;
+      color: #000;
+    }
+
+    .log-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .log-section {
+      min-width: 0;
+      padding: 14px;
+      border-right: 0.5px solid var(--line);
+    }
+
+    .log-section:last-child {
+      border-right: 0;
+    }
+
+    .log-section h2 {
+      margin: 0 0 8px;
+      color: var(--orange);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      color: rgba(255,255,255,0.9);
+      font: 0.9rem/1.42 Arial, Helvetica, sans-serif;
+    }
+
+    .links {
+      padding: 0 14px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .links a {
+      color: var(--orange);
+      border: 0.5px solid rgba(255,140,0,0.7);
+      border-radius: 999px;
+      padding: 5px 8px;
+      text-decoration: none;
+      font-size: 0.8rem;
+    }
+
+    .empty {
+      padding: 32px 18px;
+      border: 0.5px dashed var(--line);
+      border-radius: 22px;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .admin-header,
+      .log-card__top,
+      .session-summary {
+        display: block;
+      }
+
+      .admin-actions {
+        justify-content: flex-start;
+        margin-top: 14px;
+      }
+
+      .log-body {
+        grid-template-columns: 1fr;
+      }
+
+      .log-section {
+        border-right: 0;
+        border-bottom: 0.5px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <h1>George2 Logs</h1>
+        <p>Private admin view for recent portfolio chat exchanges.</p>
+      </div>
+      <div class="admin-actions">
+        <button id="sign-in" type="button">Sign in with Google</button>
+        <button id="refresh" type="button" hidden>Refresh</button>
+        <button id="sign-out" type="button" hidden>Sign out</button>
+      </div>
+    </header>
+
+    <p id="status" class="status">Checking login...</p>
+    <section id="logs" class="log-list" aria-live="polite"></section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    (function () {
+      var ADMIN_EMAIL = 'symonds.george@gmail.com';
+      var LOG_LIMIT = 80;
+      var firebaseConfig = {
+        apiKey: 'AIzaSyDj9pXEV7sAns4l7JeZ-s2VyZL0HccR9zQ',
+        authDomain: 'one-earth-cms.firebaseapp.com',
+        projectId: 'one-earth-cms',
+        storageBucket: 'one-earth-cms.firebasestorage.app',
+        messagingSenderId: '837110749040',
+        appId: '1:837110749040:web:553179c083167ab606a1b5'
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+
+      var auth = firebase.auth();
+      var db = firebase.firestore();
+      var signIn = document.getElementById('sign-in');
+      var signOut = document.getElementById('sign-out');
+      var refresh = document.getElementById('refresh');
+      var status = document.getElementById('status');
+      var logs = document.getElementById('logs');
+
+      function setStatus(message) {
+        status.textContent = message;
+      }
+
+      function setAuthedUi(isAllowed) {
+        signIn.hidden = isAllowed;
+        signOut.hidden = !isAllowed;
+        refresh.hidden = !isAllowed;
+      }
+
+      function escapeText(value) {
+        return String(value || '').replace(/[&<>"']/g, function (char) {
+          return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[char];
+        });
+      }
+
+      function formatDate(value) {
+        if (!value) return 'no timestamp';
+        var date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+        return Number.isNaN(date.getTime()) ? 'no timestamp' : date.toLocaleString();
+      }
+
+      function getDate(value) {
+        if (!value) return null;
+        var date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+
+      function formatHistory(history) {
+        if (!Array.isArray(history) || !history.length) return 'No previous history sent.';
+        return history.map(function (item) {
+          var role = item && item.role === 'assistant' ? 'George2' : 'Visitor';
+          return role + ': ' + (item && item.content ? item.content : '');
+        }).join('\n\n');
+      }
+
+      function renderLinks(links) {
+        if (!Array.isArray(links) || !links.length) return '';
+        return '<div class="links">' + links.map(function (link) {
+          if (!link || !link.url) return '';
+          return '<a href="' + escapeText(link.url) + '" target="_blank" rel="noopener">' + escapeText(link.title || link.url) + '</a>';
+        }).join('') + '</div>';
+      }
+
+      function renderLog(doc) {
+        var data = doc.data() || {};
+        var meta = [
+          formatDate(data.createdAt),
+          data.sessionId || 'no session',
+          data.origin || 'no origin'
+        ];
+
+        return '<article class="log-card" data-id="' + escapeText(doc.id) + '">' +
+          '<div class="log-card__top">' +
+            '<div class="log-meta">' + meta.map(function (item) {
+              return '<span class="pill">' + escapeText(item) + '</span>';
+            }).join('') + '</div>' +
+            '<button class="delete-btn" type="button" data-delete="' + escapeText(doc.id) + '">Delete</button>' +
+          '</div>' +
+          '<div class="log-body">' +
+            '<div class="log-section"><h2>User Message</h2><pre>' + escapeText(data.message) + '</pre></div>' +
+            '<div class="log-section"><h2>George2 Answer</h2><pre>' + escapeText(data.answer) + '</pre></div>' +
+            '<div class="log-section"><h2>Recent History</h2><pre>' + escapeText(formatHistory(data.history)) + '</pre></div>' +
+            '<div class="log-section"><h2>Matched Works</h2><pre>' + escapeText(formatMatchedWorks(data.matchedWorks)) + '</pre></div>' +
+          '</div>' +
+          renderLinks(data.links) +
+        '</article>';
+      }
+
+      function groupLogsBySession(docs) {
+        var grouped = {};
+
+        docs.forEach(function (doc) {
+          var data = doc.data() || {};
+          var sessionId = data.sessionId || 'unknown-session';
+          if (!grouped[sessionId]) {
+            grouped[sessionId] = {
+              id: sessionId,
+              docs: [],
+              latest: null,
+              origin: data.origin || ''
+            };
+          }
+
+          grouped[sessionId].docs.push(doc);
+
+          var createdAt = getDate(data.createdAt);
+          if (createdAt && (!grouped[sessionId].latest || createdAt > grouped[sessionId].latest)) {
+            grouped[sessionId].latest = createdAt;
+          }
+          if (!grouped[sessionId].origin && data.origin) {
+            grouped[sessionId].origin = data.origin;
+          }
+        });
+
+        return Object.keys(grouped)
+          .map(function (key) { return grouped[key]; })
+          .sort(function (a, b) {
+            var aTime = a.latest ? a.latest.getTime() : 0;
+            var bTime = b.latest ? b.latest.getTime() : 0;
+            return bTime - aTime;
+          });
+      }
+
+      function renderSessionGroup(group, index) {
+        var docs = group.docs.slice().sort(function (a, b) {
+          var aTime = getDate((a.data() || {}).createdAt);
+          var bTime = getDate((b.data() || {}).createdAt);
+          return (aTime ? aTime.getTime() : 0) - (bTime ? bTime.getTime() : 0);
+        });
+        var first = docs[0] && docs[0].data ? docs[0].data() : {};
+        var preview = first && first.message ? first.message : 'No first message logged.';
+        var latestLabel = group.latest ? group.latest.toLocaleString() : 'no timestamp';
+
+        return '<details class="session-group"' + (index === 0 ? ' open' : '') + '>' +
+          '<summary class="session-summary">' +
+            '<div class="session-title">' +
+              '<strong>Session ' + escapeText(shortSessionId(group.id)) + '</strong>' +
+              '<div class="log-meta">' +
+                '<span class="pill">' + docs.length + ' exchange' + (docs.length === 1 ? '' : 's') + '</span>' +
+                '<span class="pill">latest ' + escapeText(latestLabel) + '</span>' +
+                '<span class="pill">' + escapeText(group.origin || 'no origin') + '</span>' +
+              '</div>' +
+              '<div class="session-preview">' + escapeText(preview) + '</div>' +
+            '</div>' +
+            '<span class="session-toggle">open / close</span>' +
+          '</summary>' +
+          '<div class="session-logs">' + docs.map(renderLog).join('') + '</div>' +
+        '</details>';
+      }
+
+      function shortSessionId(sessionId) {
+        var value = String(sessionId || 'unknown');
+        return value.length > 18 ? value.slice(0, 18) + '...' : value;
+      }
+
+      function formatMatchedWorks(works) {
+        if (!Array.isArray(works) || !works.length) return 'No matched works logged.';
+        return works.map(function (work) {
+          return (work.title || 'Untitled') + (work.url ? '\n' + work.url : '');
+        }).join('\n\n');
+      }
+
+      async function loadLogs() {
+        setStatus('Loading logs...');
+        logs.innerHTML = '';
+
+        try {
+          var snapshot = await db.collection('portfolioChatLogs')
+            .orderBy('createdAt', 'desc')
+            .limit(LOG_LIMIT)
+            .get();
+
+          if (snapshot.empty) {
+            logs.innerHTML = '<div class="empty"><p>No logs yet.</p></div>';
+            setStatus('No logs found.');
+            return;
+          }
+
+          var groups = groupLogsBySession(snapshot.docs);
+          logs.innerHTML = groups.map(renderSessionGroup).join('');
+          setStatus('Showing latest ' + snapshot.size + ' logs across ' + groups.length + ' sessions.');
+        } catch (error) {
+          console.error(error);
+          setStatus('Could not load logs. Check Firestore rules for this admin email.');
+        }
+      }
+
+      async function deleteLog(id) {
+        if (!id || !window.confirm('Delete this chat log?')) return;
+        try {
+          await db.collection('portfolioChatLogs').doc(id).delete();
+          var card = logs.querySelector('[data-id="' + CSS.escape(id) + '"]');
+          if (card) card.remove();
+          setStatus('Deleted log.');
+        } catch (error) {
+          console.error(error);
+          setStatus('Could not delete log. Check Firestore delete rules.');
+        }
+      }
+
+      signIn.addEventListener('click', function () {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(function (error) {
+          console.error(error);
+          setStatus('Sign in failed.');
+        });
+      });
+
+      signOut.addEventListener('click', function () {
+        auth.signOut();
+      });
+
+      refresh.addEventListener('click', loadLogs);
+
+      logs.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-delete]');
+        if (button) deleteLog(button.getAttribute('data-delete'));
+      });
+
+      auth.onAuthStateChanged(function (user) {
+        logs.innerHTML = '';
+        if (!user) {
+          setAuthedUi(false);
+          setStatus('Sign in with Google to view logs.');
+          return;
+        }
+
+        if (user.email !== ADMIN_EMAIL) {
+          setAuthedUi(false);
+          setStatus('Signed in as ' + user.email + ', but this page is only for ' + ADMIN_EMAIL + '.');
+          return;
+        }
+
+        setAuthedUi(true);
+        setStatus('Signed in as ' + user.email + '.');
+        loadLogs();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -23,6 +23,7 @@ const RATE_LIMIT_MAX = 12;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_HISTORY_MESSAGES = 8;
 const MAX_CONTEXT_WORKS = 8;
+const MAX_SESSION_ID_LENGTH = 80;
 
 function getAllowedOrigins() {
   const configured = process.env.CHAT_ALLOWED_ORIGINS;
@@ -88,6 +89,11 @@ function sanitizeHistory(history) {
       return content ? { role, content } : null;
     })
     .filter(Boolean);
+}
+
+function sanitizeSessionId(value) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[^A-Za-z0-9_-]/g, "").slice(0, MAX_SESSION_ID_LENGTH);
 }
 
 function stripHtml(value) {
@@ -307,6 +313,27 @@ function parseModelResponse(content, works) {
   };
 }
 
+async function logChatExchange({ req, message, history, sessionId, result, works }) {
+  try {
+    await admin.firestore().collection("portfolioChatLogs").add({
+      sessionId: sessionId || null,
+      message,
+      history,
+      answer: result.answer || "",
+      links: result.links || [],
+      matchedWorks: works.slice(0, 3).map((work) => ({
+        id: work.id,
+        title: work.title,
+        url: work.url
+      })),
+      origin: req.get("origin") || "",
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    logger.warn("Portfolio chat logging failed", error);
+  }
+}
+
 exports.portfolioChat = onRequest(
   {
     region: "us-central1",
@@ -338,6 +365,7 @@ exports.portfolioChat = onRequest(
 
     const message = sanitizeMessage(req.body && req.body.message);
     const history = sanitizeHistory(req.body && req.body.history);
+    const sessionId = sanitizeSessionId(req.body && req.body.sessionId);
 
     if (!message) {
       res.status(400).json({ error: "Please send a message." });
@@ -373,11 +401,21 @@ exports.portfolioChat = onRequest(
 
       const content = completion.choices[0] && completion.choices[0].message && completion.choices[0].message.content;
       const result = parseModelResponse(content, works);
-
-      res.status(200).json({
+      const responsePayload = {
         answer: result.answer || "I could not shape an answer just now. Try asking about a project, medium, or collaboration idea.",
         links: result.links
+      };
+
+      await logChatExchange({
+        req,
+        message,
+        history,
+        sessionId,
+        result: responsePayload,
+        works
       });
+
+      res.status(200).json(responsePayload);
     } catch (error) {
       logger.error("Portfolio chat failed", error);
       res.status(500).json({ error: "The portfolio chat is having a moment. Please try again soon." });
