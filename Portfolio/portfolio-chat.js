@@ -49,6 +49,7 @@
     let avatarGlitchCycleStart = 0;
     let chatCloseTimer = null;
     let chatPulseTimer = null;
+    let pageScrollLock = null;
 
     function loadHistory() {
         try {
@@ -314,6 +315,7 @@
             updateChatUrl(isOpen);
         }
         if (isOpen) {
+            lockPageScroll();
             elements.root.classList.remove('is-closing');
             elements.root.classList.add('is-visible');
             window.requestAnimationFrame(() => {
@@ -326,12 +328,43 @@
             return;
         }
 
+        unlockPageScroll();
         elements.root.classList.remove('is-open');
         elements.root.classList.add('is-closing');
         chatCloseTimer = window.setTimeout(() => {
             elements.root.classList.remove('is-visible', 'is-closing');
             pulseChatToggle();
         }, CHAT_CLOSE_ANIMATION_MS);
+    }
+
+    function lockPageScroll() {
+        if (pageScrollLock) return;
+
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        pageScrollLock = {
+            scrollY,
+            position: document.body.style.position,
+            top: document.body.style.top,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow
+        };
+
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function unlockPageScroll() {
+        if (!pageScrollLock) return;
+
+        const scrollY = pageScrollLock.scrollY;
+        document.body.style.position = pageScrollLock.position;
+        document.body.style.top = pageScrollLock.top;
+        document.body.style.width = pageScrollLock.width;
+        document.body.style.overflow = pageScrollLock.overflow;
+        pageScrollLock = null;
+        window.scrollTo(0, scrollY);
     }
 
     function clearChatHistory() {

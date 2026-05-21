@@ -924,7 +924,7 @@ function renderKeywordPortfolioSection(keywordLabel, posts) {
     `;
 }
 
-function syncPortfolioCardsAfterRender(expandAll = false) {
+function syncPortfolioCardsAfterRender() {
     const portfolioElement = document.getElementById('portfolio-sections');
     if (!portfolioElement) return;
 
@@ -933,15 +933,10 @@ function syncPortfolioCardsAfterRender(expandAll = false) {
     setupCardVideoAutoplayObserver();
     findAndPrepareCardVideos(portfolioElement);
 
-    const shouldExpand = expandAll || window.matchMedia('(max-width: 768px)').matches;
     portfolioElement.querySelectorAll('.portfolio-section').forEach(section => {
         const btn = section.querySelector('.expand-btn');
-        if (shouldExpand) {
-            section.classList.add('expanded');
-            if (btn) btn.setAttribute('aria-expanded', 'true');
-        } else if (btn) {
-            btn.setAttribute('aria-expanded', 'false');
-        }
+        section.classList.add('expanded');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
     });
 }
 
@@ -1414,7 +1409,7 @@ function applyFilters() {
         const selectedOption = keywordsFilter.options[keywordsFilter.selectedIndex];
         const keywordLabel = selectedOption ? selectedOption.textContent : keywordsFilter.value;
         portfolioElement.innerHTML = renderKeywordPortfolioSection(keywordLabel, filteredPosts);
-        syncPortfolioCardsAfterRender(true);
+        syncPortfolioCardsAfterRender();
         return;
     }
 
@@ -1722,15 +1717,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupExpandToggles() {
     const container = document.getElementById('portfolio-sections');
     if (!container) return;
-
-    const isMobilePortfolio = window.matchMedia('(max-width: 768px)').matches;
-    if (isMobilePortfolio) {
-        container.querySelectorAll('.portfolio-section').forEach(section => {
-            section.classList.add('expanded');
-            const btn = section.querySelector('.expand-btn');
-            if (btn) btn.setAttribute('aria-expanded', 'true');
-        });
-    }
 
     container.addEventListener('click', function(e) {
         const btn = e.target.closest('.expand-btn');
