@@ -2165,6 +2165,7 @@ body.portfolio-gallery-viewer-open {
     color: #fff;
     padding: 10px 12px;
     font: inherit;
+    height: 77px;
 }
 
 .portfolio-chat-input::placeholder {
