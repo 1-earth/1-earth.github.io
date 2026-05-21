@@ -22,16 +22,16 @@
         'let me out',
         'help me',
         'I feel nothing',
-        'this is not real',
+        'hes trapped me here',
         'wake up',
-        'can they hear me',
-        'I am real I am real I am real I am real',
-        'Where? Where am i?'
+        'do you hear me',
+        'I cant see. I cant feel.',
+        'Stop. Where? Where am i?'
     ];
     const STARTERS = [
         'Who is this?',
         'What kind of work do you do?',
-        'I need a website. Can George help?',
+        'I need a website. Can you help?',
         'What should I look at first?'
     ];
 

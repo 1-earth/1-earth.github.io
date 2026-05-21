@@ -145,6 +145,13 @@
       white-space: nowrap;
     }
 
+    .session-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
     .session-logs {
       display: grid;
       gap: 10px;
@@ -257,6 +264,11 @@
       .admin-actions {
         justify-content: flex-start;
         margin-top: 14px;
+      }
+
+      .session-controls {
+        align-items: flex-start;
+        margin-top: 12px;
       }
 
       .log-body {
@@ -436,7 +448,7 @@
         var preview = first && first.message ? first.message : 'No first message logged.';
         var latestLabel = group.latest ? group.latest.toLocaleString() : 'no timestamp';
 
-        return '<details class="session-group"' + (index === 0 ? ' open' : '') + '>' +
+        return '<details class="session-group" data-session="' + escapeText(group.id) + '"' + (index === 0 ? ' open' : '') + '>' +
           '<summary class="session-summary">' +
             '<div class="session-title">' +
               '<strong>Session ' + escapeText(shortSessionId(group.id)) + '</strong>' +
@@ -447,7 +459,10 @@
               '</div>' +
               '<div class="session-preview">' + escapeText(preview) + '</div>' +
             '</div>' +
-            '<span class="session-toggle">open / close</span>' +
+            '<div class="session-controls">' +
+              '<span class="session-toggle">open / close</span>' +
+              '<button class="delete-btn" type="button" data-delete-session="' + escapeText(group.id) + '" data-count="' + docs.length + '">Delete session</button>' +
+            '</div>' +
           '</summary>' +
           '<div class="session-logs">' + docs.map(renderLog).join('') + '</div>' +
         '</details>';
@@ -503,6 +518,37 @@
         }
       }
 
+      async function deleteSession(sessionId, count) {
+        if (!sessionId) return;
+        var label = count ? count + ' chat log' + (Number(count) === 1 ? '' : 's') : 'this session';
+        if (!window.confirm('Delete ' + label + ' from this session?')) return;
+
+        try {
+          setStatus('Deleting session...');
+          var snapshot = await db.collection('portfolioChatLogs')
+            .where('sessionId', '==', sessionId)
+            .get();
+
+          if (snapshot.empty) {
+            setStatus('No logs found for that session.');
+            return;
+          }
+
+          var batch = db.batch();
+          snapshot.docs.forEach(function (doc) {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+
+          var group = logs.querySelector('[data-session="' + CSS.escape(sessionId) + '"]');
+          if (group) group.remove();
+          setStatus('Deleted session with ' + snapshot.size + ' log' + (snapshot.size === 1 ? '' : 's') + '.');
+        } catch (error) {
+          console.error(error);
+          setStatus('Could not delete session. Check Firestore delete rules.');
+        }
+      }
+
       signIn.addEventListener('click', function () {
         var provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).catch(function (error) {
@@ -518,6 +564,14 @@
       refresh.addEventListener('click', loadLogs);
 
       logs.addEventListener('click', function (event) {
+        var sessionButton = event.target.closest('[data-delete-session]');
+        if (sessionButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          deleteSession(sessionButton.getAttribute('data-delete-session'), sessionButton.getAttribute('data-count'));
+          return;
+        }
+
         var button = event.target.closest('[data-delete]');
         if (button) deleteLog(button.getAttribute('data-delete'));
       });
