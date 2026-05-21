@@ -2223,9 +2223,9 @@ body.portfolio-gallery-viewer-open {
     }
 
     .portfolio-chat-panel {
-        bottom: 30px;
+        bottom: 35px;
         width: calc(100vw - 24px);
-        max-height: calc(100vh - 87px);
+        max-height: calc(100vh - 82px);
     }
 
     .portfolio-chat-messages {

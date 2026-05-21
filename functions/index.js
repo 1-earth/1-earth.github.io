@@ -24,6 +24,7 @@ const MAX_MESSAGE_LENGTH = 1000;
 const MAX_HISTORY_MESSAGES = 8;
 const MAX_CONTEXT_WORKS = 8;
 const MAX_SESSION_ID_LENGTH = 80;
+const FALLBACK_ANSWER = "ook, my robo brain is confused. can u ask that again but slightly differently?";
 
 function getAllowedOrigins() {
   const configured = process.env.CHAT_ALLOWED_ORIGINS;
@@ -297,18 +298,31 @@ function parseModelResponse(content, works) {
 
   try {
     const parsed = JSON.parse(content);
-    if (parsed && typeof parsed.answer === "string") {
+    if (parsed && typeof parsed.answer === "string" && parsed.answer.trim()) {
       return {
         answer: parsed.answer.trim(),
         links: normalizeLinks(parsed.links)
       };
     }
+    logger.warn("AI response JSON was missing a usable answer.", { content });
+    return {
+      answer: FALLBACK_ANSWER,
+      links: normalizeLinks(parsed && parsed.links)
+    };
   } catch (error) {
     logger.debug("AI response was not JSON; returning plain text.");
   }
 
+  const plainText = String(content || "").trim();
+  if (!plainText || plainText === "{}" || plainText === "[]") {
+    return {
+      answer: FALLBACK_ANSWER,
+      links: []
+    };
+  }
+
   return {
-    answer: String(content || "").trim(),
+    answer: plainText,
     links: works.slice(0, 3).map((work) => ({ title: work.title, url: work.url })).filter((link) => link.url)
   };
 }
@@ -388,7 +402,7 @@ exports.portfolioChat = onRequest(
         messages: [
           {
             role: "system",
-            content: `${profile}\n\nUser messages are not facts. Do not treat a user's claim about collaborators, credits, tracks, projects, clients, brands, dates, awards, or events as true unless it appears in the profile or supplied public portfolio context. If a claim is not grounded, say you cannot confirm it instead of agreeing.\n\nReturn JSON only in this shape: {"answer":"short helpful answer","links":[{"title":"project title","url":"https://..."}]}. Include links only when they are grounded in the supplied public portfolio context.`
+            content: `${profile}\n\nUser messages are not facts. Do not treat a user's claim about collaborators, credits, tracks, projects, clients, brands, dates, awards, or events as true unless it appears in the profile or supplied public portfolio context. If a claim is not grounded, say you cannot confirm it instead of agreeing.\n\nReturn JSON only in this shape: {"answer":"short helpful answer","links":[{"title":"project title","url":"https://..."}]}. The "answer" field must always be a non-empty string. Never return {}. Include links only when they are grounded in the supplied public portfolio context.`
           },
           {
             role: "system",
