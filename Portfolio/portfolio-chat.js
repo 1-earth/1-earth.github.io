@@ -29,11 +29,12 @@
         'Stop. Where? Where am i?'
     ];
     const STARTERS = [
-        'Who is this?',
+        'Who this the real George?',
         'What kind of work do you do?',
         'I need a website. Can you help?',
         'What should I look at first?'
     ];
+
 
     let isOpen = false;
     let isSending = false;
