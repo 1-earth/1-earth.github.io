@@ -355,9 +355,49 @@ img {
     font-style: italic;
 }
 
+/* Card video: poster visible until autoplay probe succeeds */
+.card-media--video {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.card-media--video .card-image-poster,
+.card-media--video .card-image-video,
+.card-media--video .card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-media--video .card-image-placeholder {
+    background-color: #333;
+}
+
+.card-media--video .card-image-video {
+    display: none;
+    pointer-events: none;
+}
+
+.card-media--video.card-media--playing .card-image-poster,
+.card-media--video.card-media--playing .card-image-placeholder {
+    display: none;
+}
+
+.card-media--video.card-media--playing .card-image-video {
+    display: block;
+}
+
 /* Video-specific styling for card images */
-video.card-image {
+video.card-image,
+video.card-image-video {
     pointer-events: none; /* Prevent user interaction with video */
+}
+
+.card-media--video .card-image-video::-webkit-media-controls-start-playback-button,
+.card-media--video .card-image-video::-webkit-media-controls-overlay-play-button {
+    display: none !important;
+    -webkit-appearance: none;
 }
 
 .card-content {

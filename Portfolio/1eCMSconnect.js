@@ -928,6 +928,11 @@ function syncPortfolioCardsAfterRender() {
     const portfolioElement = document.getElementById('portfolio-sections');
     if (!portfolioElement) return;
 
+    if (cardVideoObserver) {
+        cardVideoObserver.disconnect();
+        cardVideoObserver = null;
+    }
+
     allCards = Array.from(portfolioElement.querySelectorAll('.portfolio-card'));
     setupCardClickHandlers();
     setupCardVideoAutoplayObserver();
@@ -1163,9 +1168,15 @@ function createCardMediaElement(featuredMedia, title) {
     const isVideo = videoExtensions.some(ext => mediaUrl.toLowerCase().includes(ext));
     
     if (isVideo) {
-        // Use poster attribute for instant loading, fallback to autoplay video
-        const posterAttr = posterUrl ? `poster="${posterUrl}"` : '';
-        return `<video src="${mediaUrl}" ${posterAttr} class="card-image" autoplay muted loop playsinline></video>`;
+        const safeUrl = escapeAttr(mediaUrl);
+        const safeTitle = escapeAttr(title || '');
+        const posterImg = posterUrl
+            ? `<img src="${escapeAttr(posterUrl)}" alt="${safeTitle}" class="card-image card-image-poster" loading="eager">`
+            : `<div class="card-image card-image-placeholder" aria-hidden="true"></div>`;
+        return `<div class="card-media card-media--video${posterUrl ? '' : ' card-media--no-poster'}" data-video-src="${safeUrl}">
+            ${posterImg}
+            <video class="card-image card-image-video" data-src="${safeUrl}" muted loop playsinline preload="metadata"></video>
+        </div>`;
     } else {
         return `<img src="${mediaUrl}" alt="${title}" class="card-image">`;
     }
@@ -1744,34 +1755,106 @@ function setupExpandToggles() {
     });
 }
 
-// --- Mobile autoplay enforcement for card videos ---
+// --- Card video: poster first, upgrade after autoplay probe ---
 let cardVideoObserver = null;
+
+function configureCardVideoElement(video) {
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.removeAttribute('controls');
+}
+
+function waitForCardVideoReady(video, timeoutMs = 8000) {
+    return new Promise((resolve, reject) => {
+        if (video.readyState >= 2) {
+            resolve();
+            return;
+        }
+        let settled = false;
+        const finish = (fn) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            video.removeEventListener('loadeddata', onReady);
+            video.removeEventListener('canplay', onReady);
+            video.removeEventListener('error', onError);
+            fn();
+        };
+        const onReady = () => finish(resolve);
+        const onError = () => finish(() => reject(new Error('video load failed')));
+        const timer = setTimeout(() => finish(() => reject(new Error('video load timeout'))), timeoutMs);
+        video.addEventListener('loadeddata', onReady);
+        video.addEventListener('canplay', onReady);
+        video.addEventListener('error', onError);
+    });
+}
+
+function unloadCardVideoElement(video) {
+    try { video.pause(); } catch (_e) {}
+    video.removeAttribute('src');
+    try { video.load(); } catch (_e) {}
+}
+
+async function probeAndUpgradeCardVideo(wrap) {
+    if (!wrap || wrap.dataset.videoAutoplayFailed === '1') return;
+    if (wrap.classList.contains('card-media--playing')) {
+        const playingVideo = wrap.querySelector('video.card-image-video');
+        if (playingVideo) {
+            try { await playingVideo.play(); } catch (_e) {}
+        }
+        return;
+    }
+    if (wrap.dataset.videoProbing === '1') return;
+
+    const video = wrap.querySelector('video.card-image-video');
+    if (!video) return;
+
+    const src = (video.dataset.src || wrap.dataset.videoSrc || '').trim();
+    if (!src) return;
+
+    wrap.dataset.videoProbing = '1';
+
+    try {
+        configureCardVideoElement(video);
+        if (!video.getAttribute('src')) {
+            video.setAttribute('src', src);
+            video.load();
+        }
+        await waitForCardVideoReady(video);
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+            await playPromise;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        if (video.paused) {
+            throw new Error('autoplay blocked');
+        }
+        wrap.classList.add('card-media--playing');
+    } catch (_e) {
+        wrap.dataset.videoAutoplayFailed = '1';
+        unloadCardVideoElement(video);
+    } finally {
+        delete wrap.dataset.videoProbing;
+    }
+}
 
 function setupCardVideoAutoplayObserver() {
     if (cardVideoObserver || !('IntersectionObserver' in window)) return;
     cardVideoObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            const video = entry.target;
-            if (!(video instanceof HTMLVideoElement)) return;
+        entries.forEach((entry) => {
+            const wrap = entry.target;
+            if (!wrap.classList || !wrap.classList.contains('card-media--video')) return;
             if (entry.isIntersecting) {
-                // Ensure attributes each time before playing
-                try {
-                    video.muted = true;
-                    video.loop = true;
-                    video.autoplay = true;
-                    video.playsInline = true;
-                    video.setAttribute('muted', '');
-                    video.setAttribute('playsinline', '');
-                    video.setAttribute('webkit-playsinline', '');
-                    video.removeAttribute('controls');
-                    video.preload = 'auto';
-                    const playPromise = video.play();
-                    if (playPromise && typeof playPromise.then === 'function') {
-                        playPromise.catch(() => {/* ignore autoplay rejections */});
-                    }
-                } catch (_e) {}
-            } else {
-                try { video.pause(); } catch (_e) {}
+                probeAndUpgradeCardVideo(wrap);
+            } else if (wrap.classList.contains('card-media--playing')) {
+                const video = wrap.querySelector('video.card-image-video');
+                if (video) {
+                    try { video.pause(); } catch (_e) {}
+                }
             }
         });
     }, { threshold: 0.25 });
@@ -1779,29 +1862,14 @@ function setupCardVideoAutoplayObserver() {
 
 function findAndPrepareCardVideos(root = document) {
     if (!root) return;
-    const selector = '.portfolio-card video.card-image, .related-work-card video.card-image';
-    const videos = Array.from(root.querySelectorAll(selector));
-    if (videos.length === 0) return;
+    const wraps = Array.from(root.querySelectorAll('.card-media--video'));
+    if (wraps.length === 0) return;
 
-    videos.forEach(video => {
-        try {
-            // Set critical attributes/properties early
-            video.muted = true;
-            video.loop = true;
-            video.autoplay = true;
-            video.playsInline = true;
-            video.setAttribute('muted', '');
-            video.setAttribute('playsinline', '');
-            video.setAttribute('webkit-playsinline', '');
-            video.removeAttribute('controls');
-            video.preload = 'auto';
-        } catch (_e) {}
-
+    wraps.forEach((wrap) => {
         if (cardVideoObserver) {
-            cardVideoObserver.observe(video);
+            cardVideoObserver.observe(wrap);
         } else {
-            // Fallback: attempt immediate play
-            try { video.play(); } catch (_e) {}
+            probeAndUpgradeCardVideo(wrap);
         }
     });
 }
