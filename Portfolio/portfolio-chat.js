@@ -493,6 +493,8 @@
         window.addEventListener('popstate', () => {
             setOpen(shouldOpenChatFromUrl(), { syncUrl: false });
         });
+
+        initContactFormHandoff();
     }
 
     function setOpen(nextOpen, options = {}) {
@@ -673,19 +675,19 @@
         
 
         if (/\b(music video|video|visual|film|director|directing|shoot|treatment|song video|clip)\b/.test(recentText)) {
-            return ['I want a custom website', 'I want a music video', 'Show me your visual work', 'Contact the real George'];
+            return ['I want a custom website', 'I want a music video', 'Show me your visual work', 'I want to contact the real George'];
         }
 
         if (/\b(website|web site|custom site|web build|portfolio site|landing page|cms|shopify|webflow)\b/.test(recentText)) {
-            return ['I want a custom website', 'Show me website work', 'What do you need from me?', 'Contact the real George'];
+            return ['I want a custom website', 'Show me website work', 'What do you need from me?', 'I want to contact the real George'];
         }
 
         if (/\b(creative direction|brand|branding|identity|art direction|campaign|rollout|visual identity)\b/.test(recentText)) {
-            return ['I need creative direction', 'Show me relevant work', 'What should I send over?', 'Contact the real George'];
+            return ['I need creative direction', 'Show me relevant work', 'What should I send over?', 'I want to contact the real George'];
         }
 
         if (/\b(hire|client|commission|collab|collaboration|budget|timeline|available|availability|contact|email|work with george)\b/.test(recentText)) {
-            return ['How can we start working together?', 'Show me relevant work', 'Contact the real George', 'How do you collaborate with clients?'];
+            return ['How can we start working together?', 'Show me relevant work', 'How do you collaborate with clients?', 'I want to contact the real George'];
         }
 
         if (/\b(music|album|song|songs|producer|production|beats|dj|raw tapes|perfect time|kang records)\b/.test(recentText)) {
@@ -693,10 +695,10 @@
         }
 
         if (/\b(work|portfolio|project|projects|made|make|design|fashion|modelling|model)\b/.test(recentText)) {
-            return ['Show me relevant work', 'What should I look at first?', 'What kind of work do you do?', 'Contact the real George'];
+            return ['Show me relevant work', 'What should I look at first?', 'What kind of work do you do?', 'I want to contact the real George'];
         }
 
-        return ['Show me relevant work', 'What you got coming up?', 'Why should I hire you?', 'Contact the real George'];
+        return ['Show me relevant work', 'What you got coming up?', 'Why should I hire you?', 'I want to contact the real George'];
     }
 
     function isContactStarter(prompt) {
@@ -781,9 +783,145 @@
         if (linkList.children.length) bubble.appendChild(linkList);
     }
 
+    function ensureContactComposeUi() {
+        const message = document.getElementById('contact-message');
+        if (!message || message.closest('.contact-compose')) return message;
+
+        const wrapper = createElement('div', 'contact-compose');
+        message.parentNode.insertBefore(wrapper, message);
+        wrapper.appendChild(message);
+        return message;
+    }
+
+    function getContactComposeWrapper() {
+        ensureContactComposeUi();
+        return document.querySelector('.contact-compose');
+    }
+
+    function clearContactChatContext() {
+        const context = document.getElementById('contact-chat-context');
+        if (context) context.remove();
+
+        const wrapper = getContactComposeWrapper();
+        if (wrapper) {
+            wrapper.classList.remove('is-highlighted', 'is-prefilled');
+        }
+
+        const message = document.getElementById('contact-message');
+        if (message) message.classList.remove('contact-message--prefilled');
+    }
+
+    function buildContactUserMessage(latestUserMessage) {
+        return [
+            'Hi George,',
+            '',
+            latestUserMessage
+                ? `I'm looking for help with: ${latestUserMessage}`
+                : "I'm looking for help with:",
+            '',
+            "I'd like to follow up about:",
+            '',
+            ''
+        ].join('\n');
+    }
+
+    function setContactCollaborationReason() {
+        const reason = document.getElementById('contact-reason');
+        if (!reason) return;
+        const collaborationOption = Array.from(reason.options).find((option) => option.value === 'Collaboration');
+        if (collaborationOption) reason.value = 'Collaboration';
+    }
+
+    function createOrUpdateContactContextBlock(transcript) {
+        const message = ensureContactComposeUi();
+        const wrapper = message.closest('.contact-compose');
+        if (!wrapper || !transcript) return;
+
+        let context = document.getElementById('contact-chat-context');
+        if (!context) {
+            context = createElement('details', 'contact-chat-context');
+            context.id = 'contact-chat-context';
+            const summary = createElement('summary', '', 'Chat context for George (included when you send)');
+            const body = createElement('pre', 'contact-chat-context__body');
+            body.id = 'contact-chat-context-body';
+            body.setAttribute('aria-readonly', 'true');
+            context.appendChild(summary);
+            context.appendChild(body);
+            wrapper.appendChild(context);
+        }
+
+        const body = document.getElementById('contact-chat-context-body');
+        if (body) body.textContent = transcript;
+    }
+
+    function highlightContactCompose() {
+        const wrapper = getContactComposeWrapper();
+        if (!wrapper || shouldReduceMotion()) return;
+
+        wrapper.classList.add('is-highlighted');
+        window.setTimeout(() => {
+            wrapper.classList.remove('is-highlighted');
+        }, 2800);
+    }
+
+    function focusContactMessageAtTop(message) {
+        if (!message) return;
+
+        const followUpMarker = "I'd like to follow up about:";
+        const markerIndex = message.value.indexOf(followUpMarker);
+        const caret = markerIndex >= 0 ? markerIndex + followUpMarker.length : 0;
+
+        message.scrollTop = 0;
+        if (typeof message.focus === 'function') {
+            try {
+                message.focus({ preventScroll: true });
+            } catch (error) {
+                message.focus();
+            }
+        }
+        message.setSelectionRange(caret, caret);
+        message.scrollTop = 0;
+    }
+
+    function mergeContactMessageForSubmit() {
+        const message = document.getElementById('contact-message');
+        const contextBody = document.getElementById('contact-chat-context-body');
+        if (!message) return '';
+
+        const userMessage = message.value.trim();
+        const transcript = contextBody ? contextBody.textContent.trim() : '';
+        if (!transcript) return userMessage;
+
+        return [
+            userMessage,
+            '',
+            '---',
+            '',
+            'The following is a transcript of your recent chat with George², to help give context to what you are looking for:',
+            transcript
+        ].join('\n');
+    }
+
+    function initContactFormHandoff() {
+        ensureContactComposeUi();
+        const form = document.getElementById('contact-form');
+        if (!form || form.dataset.chatHandoffBound === 'true') return;
+
+        form.dataset.chatHandoffBound = 'true';
+        form.addEventListener('submit', () => {
+            const message = document.getElementById('contact-message');
+            if (!message) return;
+            const merged = mergeContactMessageForSubmit();
+            if (merged) message.value = merged;
+        }, true);
+
+        form.addEventListener('reset', clearContactChatContext);
+    }
+
     function goToContactForm(shouldPrefill) {
+        let didPrefill = false;
         if (shouldPrefill) {
-            prefillContactFormFromChat();
+            didPrefill = prefillContactFormFromChat();
         }
 
         const contact = document.getElementById('contact');
@@ -796,40 +934,40 @@
         }
 
         if (message) {
-            window.setTimeout(() => message.focus(), shouldReduceMotion() ? 0 : 420);
+            const focusDelay = shouldReduceMotion() ? 0 : 460;
+            window.setTimeout(() => {
+                if (didPrefill) {
+                    focusContactMessageAtTop(message);
+                    return;
+                }
+                message.focus();
+            }, focusDelay);
         }
     }
 
     function prefillContactFormFromChat() {
-        const message = document.getElementById('contact-message');
-        if (!message || message.value.trim()) return;
+        const message = ensureContactComposeUi();
+        if (!message || message.value.trim()) return false;
 
         const transcript = getRecentConversationTranscript();
-        if (!transcript) return;
+        if (!transcript) return false;
 
         const latestUserMessage = getLatestUserMessage();
-        message.value = [
-            'Hi George,',
-            '',
-            latestUserMessage
-                ? `I'm looking for help with: ${latestUserMessage}`
-                : "I'm looking for help with:",
-            '',
-            "I'd like to follow up about:",
-            '',
-            '',
-            '',
-            '---',
-            '',
-            '',
-            'The following is a transcript of your recent chat with George², to help me give context to what you are looking for:',
-            transcript
-        ].join('\n');
+        message.value = buildContactUserMessage(latestUserMessage);
+        message.classList.add('contact-message--prefilled');
+        createOrUpdateContactContextBlock(transcript);
+        setContactCollaborationReason();
+
+        const wrapper = getContactComposeWrapper();
+        if (wrapper) wrapper.classList.add('is-prefilled');
+        highlightContactCompose();
 
         const status = document.getElementById('contact-status');
         if (status && !status.textContent.trim()) {
-            status.textContent = 'Added your recent George² chat context. Edit it however you want before sending.';
+            status.textContent = 'Your message is at the top — expand chat context below if you want to review it (it will be sent with your message).';
         }
+
+        return true;
     }
 
     function getRecentConversationTranscript() {

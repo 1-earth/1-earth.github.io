@@ -1715,8 +1715,78 @@ body.portfolio-gallery-viewer-open {
     opacity: 1;
     pointer-events: auto;
 }
-#contact-message{
-    min-height: 230px;
+.contact-compose {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contact-compose.is-highlighted #contact-message {
+    animation: contact-compose-highlight 2.8s ease-out;
+}
+
+@keyframes contact-compose-highlight {
+    0% {
+        border-color: #ff8c00;
+        box-shadow: 0 0 0 0 rgba(255,140,0,0.45);
+    }
+    18% {
+        box-shadow: 0 0 0 6px rgba(255,140,0,0.2);
+    }
+    100% {
+        border-color: #666;
+        box-shadow: none;
+    }
+}
+
+#contact-message,
+#contact-message.contact-message--prefilled {
+    min-height: 160px;
+    color: #fff;
+}
+
+.contact-chat-context {
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    overflow: hidden;
+}
+
+.contact-chat-context summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 10px 12px;
+    color: rgba(255,255,255,0.72);
+    font-size: 0.82rem;
+    line-height: 1.3;
+    user-select: none;
+}
+
+.contact-chat-context summary::-webkit-details-marker {
+    display: none;
+}
+
+.contact-chat-context summary::after {
+    content: " +";
+    color: #ff8c00;
+}
+
+.contact-chat-context[open] summary::after {
+    content: " −";
+}
+
+.contact-chat-context__body {
+    margin: 0;
+    padding: 0 12px 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: rgba(255,255,255,0.42);
+    font: inherit;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    -webkit-overflow-scrolling: touch;
 }
 .portfolio-chat-toggle {
     position: relative;
@@ -1892,7 +1962,8 @@ body.portfolio-gallery-viewer-open {
     .portfolio-chat-toggle,
     .portfolio-chat-messages,
     .portfolio-chat-starters,
-    .portfolio-chat-input {
+    .portfolio-chat-input,
+    .contact-compose.is-highlighted #contact-message {
         transition: opacity 0.12s ease, visibility 0.12s ease;
         animation: none !important;
         scroll-behavior: auto;
