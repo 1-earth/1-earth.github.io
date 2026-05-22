@@ -3,10 +3,13 @@
     const STORAGE_KEY = 'portfolioChatHistory:v1';
     const SESSION_STORAGE_KEY = 'portfolioChatSessionId:v1';
     const MAX_HISTORY = 8;
-    const ASSISTANT_MESSAGE_GAP_MS = 800;
+    const ASSISTANT_MESSAGE_GAP_MS = 520;
     const MAX_TYPE_DURATION_MS = 2200;
-    const MIN_TYPE_DURATION_MS = 350;
+    const MIN_TYPE_DURATION_MS = 280;
     const TYPE_MS_PER_CHAR = 10;
+    const TYPE_MS_PER_CHAR_MOBILE = 6;
+    const CHAT_OPEN_SETTLE_MS = 360;
+    const SCROLL_NEAR_BOTTOM_PX = 72;
     const AVATAR_DEFAULT_THETA_DEG = 260;
     const AVATAR_DEFAULT_ORBIT = `${AVATAR_DEFAULT_THETA_DEG}deg 90deg 30m`;
     const AVATAR_SPIN_DURATION_MS = 1400;
@@ -29,7 +32,7 @@
         'Stop. Where? Where am i?'
     ];
     const STARTERS = [
-        'Who this the real George?',
+        'Is this really George?',
         'What kind of work do you do?',
         'I need a website. Can you help?',
         'What should I look at first?'
@@ -50,6 +53,67 @@
     let chatCloseTimer = null;
     let chatPulseTimer = null;
     let pageScrollLock = null;
+    let needsStarterMessages = false;
+    let scrollToEndFrame = null;
+    let lastStarterSignature = '';
+    const MOBILE_CHAT_MQ = window.matchMedia('(max-width: 768px)');
+
+    function isMobileChatViewport() {
+        return MOBILE_CHAT_MQ.matches;
+    }
+
+    function isCoarsePointer() {
+        return window.matchMedia('(pointer: coarse)').matches;
+    }
+
+    function onChatScrollTouchMove(event) {
+        if (!isOpen || !elements.panel) return;
+        if (elements.panel.contains(event.target)) return;
+        event.preventDefault();
+    }
+
+    function isUserNearBottom() {
+        if (!elements.messages) return true;
+        const distance = elements.messages.scrollHeight - elements.messages.clientHeight - elements.messages.scrollTop;
+        return distance <= SCROLL_NEAR_BOTTOM_PX;
+    }
+
+    function scrollMessagesToEnd(options = {}) {
+        if (!elements.messages) return;
+
+        const force = options.force === true;
+        const smooth = options.smooth === true && !shouldReduceMotion();
+        if (!force && !isUserNearBottom()) return;
+
+        if (scrollToEndFrame) {
+            window.cancelAnimationFrame(scrollToEndFrame);
+        }
+
+        scrollToEndFrame = window.requestAnimationFrame(() => {
+            scrollToEndFrame = null;
+            const top = Math.max(0, elements.messages.scrollHeight - elements.messages.clientHeight);
+            if (smooth) {
+                elements.messages.scrollTo({ top, behavior: 'smooth' });
+                return;
+            }
+            elements.messages.scrollTop = top;
+        });
+    }
+
+    function markMessageEntering(row) {
+        if (!row || shouldReduceMotion()) return;
+        row.classList.add('is-entering');
+        row.addEventListener('animationend', () => {
+            row.classList.remove('is-entering');
+        }, { once: true });
+    }
+
+    function syncInputHeight() {
+        if (!elements.input) return;
+        elements.input.style.height = 'auto';
+        const nextHeight = Math.min(Math.max(elements.input.scrollHeight, 44), 120);
+        elements.input.style.height = `${nextHeight}px`;
+    }
 
     function loadHistory() {
         try {
@@ -88,6 +152,133 @@
         return el;
     }
 
+    function isBulletLine(line) {
+        return /^[-•*]\s+/.test(String(line || '').trim());
+    }
+
+    function stripBulletMarker(line) {
+        return String(line || '').trim().replace(/^[-•*]\s+/, '');
+    }
+
+    function splitInlineBullets(line) {
+        const trimmed = String(line || '').trim();
+        if (!trimmed) return null;
+
+        const colonIndex = trimmed.indexOf(':');
+        if (colonIndex !== -1) {
+            const afterColon = trimmed.slice(colonIndex + 1).trim();
+            if (afterColon.startsWith('-') && /\s+-\s+/.test(afterColon)) {
+                const items = afterColon
+                    .split(/\s+-\s+/)
+                    .map((part) => part.replace(/^-\s*/, '').trim())
+                    .filter(Boolean);
+                if (items.length >= 1) {
+                    return { intro: trimmed.slice(0, colonIndex + 1).trim(), items };
+                }
+            }
+        }
+
+        if (/^-\s+/.test(trimmed) && /\s+-\s+/.test(trimmed)) {
+            const items = trimmed
+                .split(/\s+-\s+/)
+                .map((part) => part.replace(/^-\s*/, '').trim())
+                .filter(Boolean);
+            if (items.length >= 2) return { intro: null, items };
+        }
+
+        const segments = trimmed
+            .split(/\s+-\s+/)
+            .map((part) => part.replace(/^-\s*/, '').trim())
+            .filter(Boolean);
+        if (segments.length >= 3) {
+            const [first, ...rest] = segments;
+            if (first.endsWith(':')) {
+                return { intro: first.trim(), items: rest };
+            }
+            return { intro: null, items: segments };
+        }
+
+        return null;
+    }
+
+    function appendMessageParagraph(parent, text) {
+        parent.appendChild(createElement('p', 'portfolio-chat-text', text));
+    }
+
+    function appendMessageList(parent, items) {
+        const list = createElement('ul', 'portfolio-chat-list');
+        items.forEach((item) => {
+            if (item) list.appendChild(createElement('li', '', item));
+        });
+        if (list.children.length) parent.appendChild(list);
+    }
+
+    function buildMessageBody(content) {
+        const body = createElement('div', 'portfolio-chat-body');
+        const normalized = String(content || '').replace(/\r\n/g, '\n').trim();
+        if (!normalized) {
+            appendMessageParagraph(body, '');
+            return body;
+        }
+
+        const blocks = normalized.includes('\n\n')
+            ? normalized.split(/\n\n+/).map((block) => block.trim()).filter(Boolean)
+            : [normalized];
+
+        blocks.forEach((block) => {
+            const lines = block.split('\n').map((line) => line.trim()).filter(Boolean);
+            let index = 0;
+
+            while (index < lines.length) {
+                const line = lines[index];
+
+                if (isBulletLine(line)) {
+                    const items = [];
+                    while (index < lines.length && isBulletLine(lines[index])) {
+                        items.push(stripBulletMarker(lines[index]));
+                        index += 1;
+                    }
+                    appendMessageList(body, items);
+                    continue;
+                }
+
+                const inlineBullets = splitInlineBullets(line);
+                if (inlineBullets) {
+                    if (inlineBullets.intro) appendMessageParagraph(body, inlineBullets.intro);
+                    appendMessageList(body, inlineBullets.items);
+                    index += 1;
+                    continue;
+                }
+
+                let paragraph = line;
+                index += 1;
+                while (index < lines.length && !isBulletLine(lines[index]) && !splitInlineBullets(lines[index])) {
+                    paragraph += ` ${lines[index]}`;
+                    index += 1;
+                }
+                appendMessageParagraph(body, paragraph);
+            }
+        });
+
+        if (!body.childElementCount) {
+            appendMessageParagraph(body, normalized);
+        }
+
+        return body;
+    }
+
+    function setBubbleMessageContent(bubble, content) {
+        const existingBody = bubble.querySelector('.portfolio-chat-body');
+        const existingParagraph = bubble.querySelector('p:not(.portfolio-chat-privacy)');
+
+        if (existingBody) existingBody.remove();
+        if (existingParagraph && !existingParagraph.closest('.portfolio-chat-links')) {
+            existingParagraph.remove();
+        }
+
+        bubble.insertBefore(buildMessageBody(content), bubble.querySelector('.portfolio-chat-links'));
+    }
+
     function wait(ms) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -98,9 +289,10 @@
 
     function getCharacterDelay(content) {
         const length = Math.max(String(content || '').length, 1);
+        const msPerChar = isCoarsePointer() ? TYPE_MS_PER_CHAR_MOBILE : TYPE_MS_PER_CHAR;
         const totalDuration = Math.min(
             MAX_TYPE_DURATION_MS,
-            Math.max(MIN_TYPE_DURATION_MS, length * TYPE_MS_PER_CHAR)
+            Math.max(MIN_TYPE_DURATION_MS, length * msPerChar)
         );
         return totalDuration / length;
     }
@@ -283,14 +475,16 @@
                 submitMessage(input.value);
             }
         });
+        input.addEventListener('input', syncInputHeight);
 
         if (history.length) {
             history.forEach((message) => appendMessage(message.role, message.content, message.links || [], false));
         } else {
-            queueStarterMessages();
+            needsStarterMessages = true;
         }
         renderStarterPrompts();
         updateClearButtonVisibility();
+        syncInputHeight();
 
         if (shouldOpenChatFromUrl()) {
             setOpen(true, { syncUrl: false });
@@ -321,10 +515,13 @@
             window.requestAnimationFrame(() => {
                 elements.root.classList.add('is-open');
             });
-            setTimeout(() => {
-                elements.messages.scrollTop = elements.messages.scrollHeight;
-                elements.input.focus();
-            }, 260);
+            window.setTimeout(() => {
+                scrollMessagesToEnd({ force: true, smooth: true });
+                maybeQueueStarterMessages();
+                if (!isCoarsePointer()) {
+                    elements.input.focus();
+                }
+            }, CHAT_OPEN_SETTLE_MS);
             return;
         }
 
@@ -341,13 +538,26 @@
         if (pageScrollLock) return;
 
         const scrollY = window.scrollY || window.pageYOffset || 0;
+        const mobile = isMobileChatViewport();
         pageScrollLock = {
             scrollY,
+            mobile,
             position: document.body.style.position,
             top: document.body.style.top,
             width: document.body.style.width,
-            overflow: document.body.style.overflow
+            overflow: document.body.style.overflow,
+            htmlOverflow: document.documentElement.style.overflow
         };
+
+        document.documentElement.classList.add('portfolio-chat-scroll-lock');
+        document.body.classList.add('portfolio-chat-scroll-lock');
+
+        if (mobile) {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            document.addEventListener('touchmove', onChatScrollTouchMove, { passive: false });
+            return;
+        }
 
         document.body.style.position = 'fixed';
         document.body.style.top = `-${scrollY}px`;
@@ -359,10 +569,20 @@
         if (!pageScrollLock) return;
 
         const scrollY = pageScrollLock.scrollY;
-        document.body.style.position = pageScrollLock.position;
-        document.body.style.top = pageScrollLock.top;
-        document.body.style.width = pageScrollLock.width;
-        document.body.style.overflow = pageScrollLock.overflow;
+        document.documentElement.classList.remove('portfolio-chat-scroll-lock');
+        document.body.classList.remove('portfolio-chat-scroll-lock');
+
+        if (pageScrollLock.mobile) {
+            document.body.style.overflow = pageScrollLock.overflow;
+            document.documentElement.style.overflow = pageScrollLock.htmlOverflow;
+            document.removeEventListener('touchmove', onChatScrollTouchMove, { passive: false });
+        } else {
+            document.body.style.position = pageScrollLock.position;
+            document.body.style.top = pageScrollLock.top;
+            document.body.style.width = pageScrollLock.width;
+            document.body.style.overflow = pageScrollLock.overflow;
+        }
+
         pageScrollLock = null;
         window.scrollTo(0, scrollY);
     }
@@ -373,9 +593,23 @@
         saveHistory();
         hideLoadingIndicator();
         elements.status.textContent = '';
-        elements.messages.textContent = '';
-        renderStarterPrompts();
-        updateClearButtonVisibility();
+        elements.messages.classList.add('is-resetting');
+        window.setTimeout(() => {
+            elements.messages.textContent = '';
+            elements.messages.classList.remove('is-resetting');
+            needsStarterMessages = true;
+            renderStarterPrompts();
+            updateClearButtonVisibility();
+            maybeQueueStarterMessages();
+            scrollMessagesToEnd({ force: true });
+        }, shouldReduceMotion() ? 0 : 140);
+    }
+
+    function maybeQueueStarterMessages() {
+        if (!needsStarterMessages || !isOpen) return;
+        if (elements.messages && elements.messages.childElementCount > 0) return;
+
+        needsStarterMessages = false;
         queueStarterMessages();
     }
 
@@ -392,13 +626,29 @@
     function renderStarterPrompts(prompts = getStarterPromptsForContext()) {
         if (!elements.starters) return;
 
-        elements.starters.textContent = '';
-        prompts.slice(0, 4).forEach((prompt) => {
-            const starter = createElement('button', 'portfolio-chat-starter', prompt);
-            starter.type = 'button';
-            starter.addEventListener('click', () => handleStarterPrompt(prompt));
-            elements.starters.appendChild(starter);
-        });
+        const nextPrompts = prompts.slice(0, 4);
+        const signature = nextPrompts.join('\u0001');
+        if (signature === lastStarterSignature) return;
+        lastStarterSignature = signature;
+
+        const render = () => {
+            elements.starters.textContent = '';
+            nextPrompts.forEach((prompt) => {
+                const starter = createElement('button', 'portfolio-chat-starter', prompt);
+                starter.type = 'button';
+                starter.addEventListener('click', () => handleStarterPrompt(prompt));
+                elements.starters.appendChild(starter);
+            });
+            elements.starters.classList.remove('is-fading');
+        };
+
+        if (shouldReduceMotion() || !elements.starters.childElementCount) {
+            render();
+            return;
+        }
+
+        elements.starters.classList.add('is-fading');
+        window.setTimeout(render, 120);
     }
 
     function handleStarterPrompt(prompt) {
@@ -423,7 +673,7 @@
         
 
         if (/\b(music video|video|visual|film|director|directing|shoot|treatment|song video|clip)\b/.test(recentText)) {
-            return ['I want a music video', 'What should I send over?', 'Show me visual work', 'Contact the real George'];
+            return ['I want a custom website', 'I want a music video', 'Show me your visual work', 'Contact the real George'];
         }
 
         if (/\b(website|web site|custom site|web build|portfolio site|landing page|cms|shopify|webflow)\b/.test(recentText)) {
@@ -434,19 +684,19 @@
             return ['I need creative direction', 'Show me relevant work', 'What should I send over?', 'Contact the real George'];
         }
 
-        if (/\b(hire|client|commission|collab|collaboration|budget|timeline|available|availability|contact|email|real george|work with george)\b/.test(recentText)) {
-            return ['What should I send over?', 'Show me relevant work', 'Contact the real George', 'Ask something weirder'];
+        if (/\b(hire|client|commission|collab|collaboration|budget|timeline|available|availability|contact|email|work with george)\b/.test(recentText)) {
+            return ['How can we start working together?', 'Show me relevant work', 'Contact the real George', 'How do you collaborate with clients?'];
         }
 
         if (/\b(music|album|song|songs|producer|production|beats|dj|raw tapes|perfect time|kang records)\b/.test(recentText)) {
-            return ['What should I listen to first?', 'Show me music work', 'Who do you work with?', 'Ask something weirder'];
+            return ['What should I listen to first?', 'Show me music work', 'Who do you work with?', 'Tell me about The Perfect Time 2 Be'];
         }
 
         if (/\b(work|portfolio|project|projects|made|make|design|fashion|modelling|model)\b/.test(recentText)) {
             return ['Show me relevant work', 'What should I look at first?', 'What kind of work do you do?', 'Contact the real George'];
         }
 
-        return ['Show me relevant work', 'What should I look at first?', 'Ask something weirder', 'Contact the real George'];
+        return ['Show me relevant work', 'What you got coming up?', 'Why should I hire you?', 'Contact the real George'];
     }
 
     function isContactStarter(prompt) {
@@ -464,13 +714,19 @@
         const row = createElement('div', `portfolio-chat-message portfolio-chat-message--${role}`);
         const bubble = createElement('div', 'portfolio-chat-bubble');
         const messageLinks = role === 'assistant' ? getMessageLinks(content, links) : (Array.isArray(links) ? links : []);
-        bubble.appendChild(createElement('p', '', content));
+
+        if (role === 'assistant') {
+            bubble.appendChild(buildMessageBody(content));
+        } else {
+            bubble.appendChild(createElement('p', 'portfolio-chat-text', content));
+        }
 
         appendLinks(bubble, messageLinks);
 
         row.appendChild(bubble);
         elements.messages.appendChild(row);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        markMessageEntering(row);
+        scrollMessagesToEnd({ force: true, smooth: true });
 
         if (shouldPersist) {
             history.push({ role, content, links: messageLinks || [] });
@@ -620,7 +876,7 @@
         }
 
         const row = createElement('div', 'portfolio-chat-message portfolio-chat-message--assistant portfolio-chat-message--typing');
-        const bubble = createElement('div', 'portfolio-chat-bubble');
+        const bubble = createElement('div', 'portfolio-chat-bubble portfolio-chat-bubble--typing');
         const text = createElement('p', '', '');
         const normalText = document.createTextNode('');
 
@@ -628,7 +884,8 @@
         bubble.appendChild(text);
         row.appendChild(bubble);
         elements.messages.appendChild(row);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        markMessageEntering(row);
+        scrollMessagesToEnd({ force: true });
 
         const fullText = String(content || '');
         const characterDelay = getCharacterDelay(fullText);
@@ -636,8 +893,8 @@
 
         for (let i = 0; i < fullText.length; i += 1) {
             normalText.textContent += fullText.charAt(i);
-            if (i % 3 === 0 || i === fullText.length - 1) {
-                elements.messages.scrollTop = elements.messages.scrollHeight;
+            if (i % 4 === 0 || i === fullText.length - 1) {
+                scrollMessagesToEnd();
             }
             if (glitchPlan && i === glitchPlan.index) {
                 await playTypingGlitch(text, glitchPlan.phrase, characterDelay);
@@ -645,9 +902,13 @@
             await wait(characterDelay);
         }
 
+        row.classList.remove('portfolio-chat-message--typing');
+        bubble.classList.remove('portfolio-chat-bubble--typing');
+        setBubbleMessageContent(bubble, fullText);
+
         const messageLinks = getMessageLinks(fullText, links);
         appendLinks(bubble, messageLinks);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        scrollMessagesToEnd({ force: true, smooth: true });
 
         if (shouldPersist) {
             history.push({ role: 'assistant', content: fullText, links: messageLinks || [] });
@@ -668,7 +929,7 @@
 
             for (let i = 0; i < glitchText.length; i += 1) {
                 glitch.textContent += glitchText.charAt(i);
-                elements.messages.scrollTop = elements.messages.scrollHeight;
+                scrollMessagesToEnd();
                 await wait(Math.max(12, characterDelay * 0.8));
             }
 
@@ -676,7 +937,7 @@
 
             while (glitch.textContent.length > 0) {
                 glitch.textContent = glitch.textContent.slice(0, -1);
-                elements.messages.scrollTop = elements.messages.scrollHeight;
+                scrollMessagesToEnd();
                 await wait(18);
             }
         } finally {
@@ -704,15 +965,32 @@
 
         elements.loading = row;
         elements.messages.appendChild(row);
-        elements.messages.scrollTop = elements.messages.scrollHeight;
+        markMessageEntering(row);
+        scrollMessagesToEnd({ force: true, smooth: true });
     }
 
     function hideLoadingIndicator() {
-        if (elements.loading && elements.loading.parentNode) {
-            elements.loading.parentNode.removeChild(elements.loading);
+        if (!elements.loading) {
+            setAvatarLoading(false);
+            return;
         }
+
+        const row = elements.loading;
         elements.loading = null;
         setAvatarLoading(false);
+
+        if (shouldReduceMotion() || !row.parentNode) {
+            row.parentNode && row.parentNode.removeChild(row);
+            return;
+        }
+
+        row.classList.add('is-leaving');
+        row.addEventListener('transitionend', () => {
+            if (row.parentNode) row.parentNode.removeChild(row);
+        }, { once: true });
+        window.setTimeout(() => {
+            if (row.parentNode) row.parentNode.removeChild(row);
+        }, 220);
     }
 
     function setAvatarLoading(nextLoading) {
@@ -850,6 +1128,7 @@
 
         if (!isOpen) setOpen(true);
         elements.input.value = '';
+        syncInputHeight();
         const requestHistory = history.slice(-MAX_HISTORY);
         appendMessage('user', message, [], true);
         setSending(true);
