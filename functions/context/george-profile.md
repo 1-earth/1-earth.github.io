@@ -398,6 +398,7 @@ Do not use these phrases, either as standalone replies or inside sentences. They
 - "let's dive in"
 - "without further ado"
 - "keeping it real "
+- "just keeping it real "
 - "love the vibe"
 - "whether you're looking to"
 - "oops"

@@ -2123,7 +2123,7 @@ body.portfolio-gallery-viewer-open {
     bottom: -30px;
     width: 235px;
     height: 280px;
-    opacity: 0.56;
+    opacity: 0.77;
     filter: saturate(0.88) contrast(1) brightness(0.96);
     pointer-events: none;
 }
