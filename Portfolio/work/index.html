@@ -17,7 +17,7 @@
     <meta property="og:title" content="Selected Work | George Symonds Portfolio">
     <meta property="og:description" content="Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.">
     <meta property="og:url" content="https://www.1-earth.world/Portfolio/work/">
-    <meta property="og:image" content="https://www.1-earth.world/static/images/og-default.png">
+    <meta property="og:image" content="https://www.1-earth.world/Portfolio/static/img/dvd-logo23.png">
     <meta property="og:image:alt" content="George Symonds portfolio">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
@@ -26,7 +26,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Selected Work | George Symonds Portfolio">
     <meta name="twitter:description" content="Selected work by George Symonds across web development, design, film, photography, creative technology, social platforms, and digital tools.">
-    <meta name="twitter:image" content="https://www.1-earth.world/static/images/og-default.png">
+    <meta name="twitter:image" content="https://www.1-earth.world/Portfolio/static/img/dvd-logo23.png">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -41,14 +41,14 @@
                     "@id": "https://www.1-earth.world/#website"
                 },
                 "author": {
-                    "@id": "https://www.1-earth.world/me.html#person"
+                    "@id": "https://www.1-earth.world/#person"
                 }
             },
             {
                 "@type": "Person",
-                "@id": "https://www.1-earth.world/me.html#person",
+                "@id": "https://www.1-earth.world/#person",
                 "name": "George Symonds",
-                "url": "https://www.1-earth.world/me.html",
+                "url": "https://www.1-earth.world/",
                 "jobTitle": "Designer, Artist, Web Developer and Producer"
             }
         ]
@@ -59,8 +59,8 @@
 <body>
     <header class="work-header">
         <div class="header-left">
-            <h1><a href="/me.html" class="site-title-link" aria-label="Home">GEORGE SYMONDS</a></h1>
-            <a href="/me.html" class="back-btn">← Back to Portfolio</a>
+            <h1><a href="/" class="site-title-link site-title-glitch" aria-label="George Symonds / One Earth Productions — Home"><span class="site-title-glitch__wrap"><span class="site-title-glitch__layer site-title-glitch__layer--main" data-site-title-text>GEORGE SYMONDS</span><span class="site-title-glitch__layer site-title-glitch__layer--r" data-site-title-text aria-hidden="true">GEORGE SYMONDS</span><span class="site-title-glitch__layer site-title-glitch__layer--b" data-site-title-text aria-hidden="true">GEORGE SYMONDS</span></span></a></h1>
+            <a href="/" class="back-btn">← Back to Portfolio</a>
         </div>
         <button class="get-in-touch-btn">GET IN TOUCH</button>
     </header>
@@ -152,6 +152,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script src="../1eCMSconnect.js"></script>
+    <script src="../site-title-glitch.js"></script>
     <script>
         (function(){
             function createPortfolioGalleryViewer() {
@@ -689,7 +690,7 @@
                                 }
                             }).catch(() => {});
                         }
-                        if (!image) image = 'https://www.1-earth.world/static/images/og-default.png';
+                        if (!image) image = 'https://www.1-earth.world/Portfolio/static/img/dvd-logo23.png';
                         const path = typeof window.buildPortfolioWorkHref === 'function'
                             ? window.buildPortfolioWorkHref(work)
                             : `/Portfolio/work/?${encodeURIComponent(work.title || '')}`;
@@ -711,6 +712,7 @@
                             el.setAttribute(attr, value);
                         }
 
+                        setTag('meta[name="description"]', 'content', desc);
                         setTag('meta[property="og:title"]', 'content', title);
                         setTag('meta[property="og:description"]', 'content', desc);
                         setTag('meta[property="og:url"]', 'content', url);

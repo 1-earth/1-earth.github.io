@@ -1,345 +1,756 @@
-<!--
-1EPRODUCTIONS
--->
 <!DOCTYPE html>
-<html lang="en-GB" class="no-js no-touch">
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MEMO APPROVED. PLATFORMING UK ARTISTS." />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>George Symonds | Designer, Artist, Web Developer &amp; Producer</title>
+    <link rel="icon" type="image/png" href="Portfolio/static/img/GSICON.png">
+    <link rel="stylesheet" href="Portfolio/portfolio.css">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 2147483647;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+        }
 
-  <title>1E</title>
+        body.loading-overlay-active {
+            overflow: hidden;
+        }
 
-  <script>
-    (function (de) {
-      de.className = de.className.replace("no-js", "js");
-    })(document.documentElement);
-  </script>
+        body.loading-overlay-active > :not(#initial-loading-overlay) {
+            visibility: hidden;
+        }
+    </style>
+    <link rel="canonical" href="https://www.1-earth.world/">
+    <meta name="description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
+    <meta name="author" content="George Symonds">
 
-  <link rel="stylesheet" href="static/styles/hubstylecool.css" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="George Symonds Portfolio">
+    <meta property="og:title" content="George Symonds | Designer, Artist, Web Developer &amp; Producer">
+    <meta property="og:description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
+    <meta property="og:url" content="https://www.1-earth.world/">
+    <meta property="og:image" content="https://www.1-earth.world/Portfolio/static/img/GSICON.png">
+    <meta property="og:image:alt" content="GS monogram icon">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
 
-  <link rel="icon" href="/1E PRODUCTIONS/img/1EICON.png" />
-
-  <link rel="preload"
-    href="https://fast.fonts.net/lt/1.css?apiType=css&amp;c=3efc039e-d6e4-4305-82b1-84cdd154d8f9&amp;fontids=5664093"
-    as="style" onload="this.onload=null;this.rel='stylesheet'" />
-
-
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="George Symonds | Designer, Artist, Web Developer &amp; Producer">
+    <meta name="twitter:description" content="George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.">
+    <meta name="twitter:image" content="https://www.1-earth.world/Portfolio/static/img/GSICON.png">
+    <meta name="twitter:image:alt" content="GS monogram icon">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://www.1-earth.world/#website",
+                "name": "George Symonds Portfolio",
+                "url": "https://www.1-earth.world/",
+                "publisher": {
+                    "@id": "https://www.1-earth.world/#person"
+                }
+            },
+            {
+                "@type": "ProfilePage",
+                "@id": "https://www.1-earth.world/#profile",
+                "url": "https://www.1-earth.world/",
+                "name": "George Symonds | Designer, Artist, Web Developer and Producer",
+                "description": "George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.",
+                "isPartOf": {
+                    "@id": "https://www.1-earth.world/#website"
+                },
+                "mainEntity": {
+                    "@id": "https://www.1-earth.world/#person"
+                }
+            },
+            {
+                "@type": "Person",
+                "@id": "https://www.1-earth.world/#person",
+                "name": "George Symonds",
+                "url": "https://www.1-earth.world/",
+                "image": "https://www.1-earth.world/Portfolio/static/img/GSICON.png",
+                "jobTitle": "Designer, Artist, Web Developer and Producer",
+                "description": "George Symonds is a designer, artist, web developer, and producer creating websites, visual systems, films, social platforms, and digital tools.",
+                "sameAs": [
+                    "https://www.instagram.com/georgesymonds_/",
+                    "https://www.tiktok.com/@gsymonds_/",
+                    "https://www.youtube.com/@georgesymonds007/",
+                    "https://kr-net.github.io/?profile=1"
+                ]
+            }
+        ]
+    }
+    </script>
 </head>
 
-<body class="home has-hero-takeover no-margin-top">
-  <header class="site-header">
-    <div class="bar">
-      <div class="wrap">
-        <a href="index.html" title="ONE EARTH">ONE EARTH</a>
-      </div>
+<body class="loading-overlay-active" aria-busy="true">
+    <div id="initial-loading-overlay" class="loading-overlay" role="status" aria-live="polite">
+        <div class="loading-overlay-content">
+            <img src="Portfolio/static/img/GSSpin-loading.gif" alt="Loading">
+            <div class="loading-overlay-text"><span class="loading-label">Loading Portfolio</span><span class="dots">.</span></div>
+        </div>
+    </div>
+    <!-- Bouncing DVD Logo -->
+    <div id="dvd-logo" class="dvd-logo">
+        <img src="Portfolio/static/img/dvd-logo23.png" alt="DVD Logo" draggable="false">
+    </div>
+    <!-- Modal Popup -->
+    <div id="welcome-modal" class="welcome-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            <h2>Welcome to my Portfolio</h2>
+            <p>Have a look around and see my work!<br><br>
+            My creative practice & skillset are diverse, but can be categorised by:</p>
+            <ul class="modal-list">
+                <li><a href="#design" class="modal-link">+ Design</a></li>
+                <li><a href="#photography" class="modal-link">+ Photography</a></li>
+                <li><a href="#videography" class="modal-link">+ Videography</a></li>
+                <li><a href="#computation" class="modal-link">+ Coding & Computation</a></li>
+                <li><a href="#research" class="modal-link">+ Research &amp; Forward Thinking</a></li>
+            </ul>
+            <p>My Socials:</p>
+            <!-- <p>Contact:<br>
+            <a href="mailto:symonds.george@gmail.com">symonds.george@gmail.com</a></p> -->
+            <div class="modal-socials">
+                <a class="modal-social-btn use-image-icon" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
+                    <img src="Portfolio/static/img/instagram.svg" alt="Instagram">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://www.tiktok.com/@gsymonds_/" target="_blank" rel="noopener" aria-label="Tiktok">
+                    <img src="Portfolio/static/img/tiktok.svg" alt="TikTok">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://www.youtube.com/@georgesymonds007/" target="_blank" rel="noopener" aria-label="YouTube">
+                    <img src="Portfolio/static/img/youtube.svg" alt="YouTube">
+                </a>
+                <a class="modal-social-btn use-image-icon" href="https://kr-net.github.io/?profile=1" target="_blank" rel="noopener" aria-label="KR">
+                    <img src="Portfolio/static/img/KRICON.png" alt="KR">
+                </a>
+            </div>
+            <div class="modal-credit">WEBSITE DESIGNED &amp; CODED BY GEORGE SYMONDS</div>
+        </div>
+        <div class="modal-circular-bg" id="modal-circular-bg"></div>
     </div>
 
-    <button class="welcome-button">WELCOME</button>
+    <!-- Header -->
+    <header class="portfolio-header">
+        <div class="header-left">
+            <h1><a href="/" class="site-title-link site-title-glitch" aria-label="George Symonds / One Earth Productions — Home"><span class="site-title-glitch__wrap"><span class="site-title-glitch__layer site-title-glitch__layer--main" data-site-title-text>ONE EARTH PRODUCTIONS ℗</span><span class="site-title-glitch__layer site-title-glitch__layer--r" data-site-title-text aria-hidden="true">ONE EARTH PRODUCTIONS ℗</span><span class="site-title-glitch__layer site-title-glitch__layer--b" data-site-title-text aria-hidden="true">ONE EARTH PRODUCTIONS ℗</span></span></a></h1>
+            <div class="filter-section">
+                <span class="filter-label">FILTER BY:</span>
+                <select id="keywordsFilter" class="filter-dropdown">
+                    <option value="">KEYWORDS</option>
+                </select>
+                <select id="practiceFilter" class="filter-dropdown">
+                    <option value="">PRACTICE</option>
+                </select>
+                <button class="feeling-lucky-btn" id="feeling-lucky-btn">I'M FEELING LUCKY</button>
+            </div>
+        </div>
+        <button class="get-in-touch-btn">GET IN TOUCH</button>
+    </header>
 
-    <div class="top-left-links">
-      <a href="">ONE EARTH</a>
+    <!-- Portfolio Sections -->
+    <main class="portfolio-container">
+        <div id="portfolio-sections" class="loading">Loading portfolio...</div>
+    </main>
+
+    <div class="find-out-more-title">
+        <h2>ABOUT</h2>
     </div>
 
-    <div class="mission-text">
-      <h2>
-        EMPOWERING POSITIVITY.<br>BUILDING COMMUNITY.<br>UNITING CHANGE.
-      </h2>
+    <div class="about-me-title" id="who-is-george-symonds">
+        <h2>George Symonds </h2>
+    </div>
+    
+    <div class="about-me-section">
+
+        
+
+
+
+        <div class="about-me-text">
+            <!-- <h2>WHO IS GEORGE SYMONDS</h2> -->
+            <p class="about-me-text-p">I'm a designer, artist, web developer, and producer ➡ always in progress. My creative practice centres on community. I work to translate ideas and stories into public-facing outcomes that are authentic and purposeful.
+            <br>
+            <br>
+            My practice is driven by a diverse set of skills and a core belief in using design as a tool to create things that matter. I could go on about my beliefs, values, and methods, but in short: I apply design across different mediums to create solutions. Whether it's building a social platform for artists, directing documentaries on urban change, or creating my own CMS to empower my clients, my work is about giving form to ideas and bringing them to life in the real world.
+            <br>
+            <br>
+            Have a look around and see what I mean. Feel free to reach out. 👽</p>
+        </div>
+        <div class="about-me-3d-container">
+            <div class="threedanchor">
+                <div class="threedposition">
+                    <model-viewer id="reveal" loading="lazy" src="Portfolio/static/3d/george.glb" camera-controls
+                    touch-action="pan-y" alt="GEORGE3D" shadow-intensity="1" auto-rotate ar camera-orbit="230deg 90deg 30m">
+                    </model-viewer>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+
+    <!-- Footer -->
+    <footer class="portfolio-footer">
+        <!-- Contact Me Section -->
+        <div class="contact-me-title">
+            <h2>Contact Me</h2>
+        </div>
+    <div class="contact-me-section" id="contact">
+        
+        <div class="contact-text">
+            <!-- <h2>CONTACT ME</h2> -->
+            <p class="contact-text-p">I'm always open to work, collaborations, talks, and new ideas. Tell me a bit about what you’re working on and how I can help, and I’ll get back to you soon.</p>
+            <div class="contact-socials">
+                <a class="contact-social-btn contact-social-kr" href="https://kr-net.github.io/?profile=1" target="_blank" rel="noopener" aria-label="KR">
+                    <img src="Portfolio/static/img/KRICON.png" alt="KR">
+                </a>
+                <a class="contact-social-btn contact-social-ig" href="https://www.instagram.com/georgesymonds_/" target="_blank" rel="noopener" aria-label="Instagram">
+                    <img src="Portfolio/static/img/icon-instagram-white.svg" alt="Instagram">
+                </a>
+                <a class="contact-social-btn contact-social-tiktok use-image-icon" href="https://www.tiktok.com/@gsymonds_/" target="_blank" rel="noopener" aria-label="TikTok">
+                    <img src="Portfolio/static/img/tiktok.svg" alt="TikTok">
+                </a>
+                <a class="contact-social-btn contact-social-yt" href="https://www.youtube.com/@georgesymonds007" target="_blank" rel="noopener" aria-label="YouTube">
+                    <img src="Portfolio/static/img/icon-youtube-white.svg" alt="YouTube">
+                </a>
+            </div>
+        </div>
+        <div class="contact-form-container">
+            <form id="contact-form" action="https://formspree.io/f/xwpnpgwg" method="POST" novalidate>
+                <input type="text" id="contact-name" name="name" placeholder="Name" required>
+                <input type="email" id="contact-email" name="email" placeholder="Email" required>
+                <select id="contact-reason" name="reason" required>
+                    <option value="" disabled selected>Reason for inquiry</option>
+                    <option value="Collaboration">Collaboration</option>
+                    <option value="Speaking/Workshop">Speaking/Workshop</option>
+                    <option value="Press">Press</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="contact-message" name="message" placeholder="Your message" rows="6" required></textarea>
+                <!-- Honeypot (spam trap) -->
+                <input type="text" id="contact-gotcha" name="_gotcha" class="contact-honeypot" tabindex="-1" autocomplete="nope" aria-hidden="true" hidden>
+                <button type="submit" id="contact-submit">Send</button>
+                <div id="contact-status" class="contact-status" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+    </div>
+        <!-- Footer Text -->
+        <div class="footer-text">
+            <p>Website Designed & Developed by George Symonds 🌐 <a href="https://1-earth.world" target="_blank">ONE EARTH PRODUCTIONS</a></p>  
+        </div>
+        
+    </footer>
+
+    <!-- Fixed Music Play Button (Desktop only) -->
+    <div class="music-fab" id="music-fab" aria-live="polite">
+        <button class="music-btn" id="music-btn" type="button" aria-pressed="false" aria-label="Play my music">
+            <span class="music-left" id="music-left">PLAY</span>
+            <span class="music-icon" aria-hidden="true">
+                <span class="icon-play"></span>
+                <span class="icon-pause"></span>
+            </span>
+            <span class="music-right" id="music-right">
+                <span class="music-right-label" id="music-right-label">MY MUSIC</span>
+                <span class="music-ticker" id="music-ticker">
+                    <span class="music-ticker-inner">UNRELEASED - 7 Days - George Symonds (feat. Jesse Ayo, Macz Payne, Vicky Kosasie) • UNRELEASED - 7 Days - George Symonds (feat. Jesse Ayo, Macz Payne, Vicky Kosasie) • </span>
+                </span>
+            </span>
+        </button>
+        <button class="music-close" id="music-close" aria-label="Close music control">×</button>
+        <audio id="site-audio" src="Portfolio/static/7-days.mp3" preload="none"></audio>
     </div>
 
-  </header>
+    <!-- Mobile-only floating GET IN TOUCH button -->
+    <button class="get-in-touch-fab" id="get-in-touch-fab" type="button">GET IN TOUCH</button>
 
-  <main role="main">
-
-
-    <section class="fixed-video">
-      <video width="300px" height="300px" autoplay muted playsinline>
-        <source src="static/videos/introanimation23-hevc-safari.mp4" type='video/mp4; codecs="hvc1"'>
-        <source src="static/videos/introanimation23-vp9-chrome.webm" type='video/webm'>
-        Your browser does not support the video tag.
-      </video>
-
-      <img src="static/images/images/earth2.png" alt="EARTH" class="centered-image2">
-
-
-      <!-- Buttons that appear after 3 seconds -->
-      <div class="video-overlay-buttons">
-        <a href="network.html" target="_blank">
-          <button class="overlay-button">COMMUNITY PLATFORM</button>
-        </a>
-        <a href="/1E PRODUCTIONS/index.html" target="_blank">
-          <button class="overlay-button">DESIGN & PRODUCTION</button>
-        </a>
-      </div>
-    </section>
-
-
-
-
-    <section class="hero-takeover" style="opacity: 0">
-      <div class="jumbo-wordmark">
-
-      </div>
-
-      <div class="carousel-wrapper">
-        <a class="slide fullscreen is-selected" href="" data-mods="white-ui">
-          <div class="media loopback">
-            <video src="/static/videos/loopback2.mp4" poster="" preload="none" muted loop playsinline
-              style="object-position: 50% 50%" data-video-manager-ignore></video>
-          </div>
-
-          <script>
-            window.addEventListener("load", function () {
-              setTimeout(function () {
-                document.querySelector(".media").classList.add("fade-in");
-              }, 2000); // 2-second delay before fading in
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <!-- <model-viewer> web component -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+    <script nomodule src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer-legacy.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="Portfolio/1eCMSconnect.js"></script>
+    <script src="Portfolio/site-title-glitch.js"></script>
+    <script src="Portfolio/portfolio-chat.js"></script>
+    <script>
+        (function(){
+            const form = document.getElementById('contact-form');
+            if (!form) return;
+            const status = document.getElementById('contact-status');
+            const submitBtn = document.getElementById('contact-submit');
+            const honeypot = document.getElementById('contact-gotcha');
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                status.textContent = '';
+                if (honeypot && honeypot.value) {
+                    // spam - silently succeed
+                    status.textContent = 'Thanks! I\'ll get back to you soon.';
+                    form.reset();
+                    return;
+                }
+                if (!form.reportValidity()) {
+                    return;
+                }
+                submitBtn.disabled = true;
+                const original = submitBtn.textContent;
+                submitBtn.textContent = 'Sending…';
+                try {
+                    const formData = new FormData(form);
+                    const res = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        headers: { 'Accept': 'application/json' },
+                        body: formData
+                    });
+                    if (res.ok) {
+                        status.textContent = 'Thanks — I\'ll be in touch soon.';
+                        form.reset();
+                    } else {
+                        let message = 'Sorry, there was a problem submitting your form.';
+                        try {
+                            const data = await res.json();
+                            if (data && data.errors) {
+                                message = data.errors.map(e => e.message).join(', ');
+                            }
+                        } catch (_) {}
+                        status.textContent = message;
+                    }
+                } catch (err) {
+                    status.textContent = 'Network error. Please try again.';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = original;
+                }
             });
-          </script>
-        </a>
+        })();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.get-in-touch-btn');
+            const fabBtn = document.getElementById('get-in-touch-fab');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.getElementById('contact');
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            if (fabBtn) {
+                fabBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.getElementById('contact');
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+            const luckyBtn = document.getElementById('feeling-lucky-btn');
+            if (luckyBtn) {
+                luckyBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // wait until cards exist
+                    const chooseRandom = () => {
+                        const cards = Array.from(document.querySelectorAll('.portfolio-card'));
+                        if (cards.length === 0) {
+                            setTimeout(chooseRandom, 150);
+                            return;
+                        }
+                        const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                        const postSlug = randomCard && (randomCard.dataset.postSlug || randomCard.getAttribute('data-post-slug'));
+                        if (postSlug && typeof window.buildPortfolioWorkHref === 'function') {
+                            window.location.href = window.buildPortfolioWorkHref(postSlug, { lucky: true });
+                        }
+                    };
+                    chooseRandom();
+                });
+            }
+        });
+    </script>
+    <script>
+        // Music button controller
+        document.addEventListener('DOMContentLoaded', function() {
+            const fab = document.getElementById('music-fab');
+            const btn = document.getElementById('music-btn');
+            const closeBtn = document.getElementById('music-close');
+            const audio = document.getElementById('site-audio');
+            const left = document.getElementById('music-left');
+            const label = document.getElementById('music-right-label');
+            const ticker = document.getElementById('music-ticker');
 
-        <button class="hero-takeover-button next" type="button" aria-label="Next">
+            if (!fab || !btn || !audio) return;
 
-        </button>
+            // Appear after 2 seconds
+            setTimeout(() => { fab.classList.add('visible'); }, 2000);
 
-        <button class="hero-takeover-button prev" type="button" aria-label="Previous">
+            // Ensure starting state each visit
+            function setIdleUI() {
+                btn.classList.remove('is-playing');
+                btn.setAttribute('aria-pressed', 'false');
+                left.textContent = 'PLAY';
+                label.style.display = 'inline-block';
+                ticker.style.display = 'none';
+            }
 
-        </button>
-      </div>
-    </section>
+            function setPlayingUI() {
+                btn.classList.add('is-playing');
+                btn.setAttribute('aria-pressed', 'true');
+                left.textContent = 'PLAYING';
+                label.style.display = 'none';
+                ticker.style.display = 'inline-block';
+            }
 
+            setIdleUI();
+            audio.volume = 1.0; // 100%
+            audio.loop = false; // stop at end
 
-    <div class="hero-takeover-spacer"></div>
+            btn.addEventListener('click', async () => {
+                try {
+                    if (audio.paused) {
+                        await audio.play();
+                        setPlayingUI();
+                        btn.setAttribute('aria-label', 'Pause my music');
+                    } else {
+                        audio.pause();
+                        setIdleUI();
+                        btn.setAttribute('aria-label', 'Play my music');
+                    }
+                } catch (e) {
+                    // Autoplay policy may block until user gesture
+                }
+            });
 
-    <div id="hero-section" class="hero-takeover-layer">
+            audio.addEventListener('ended', () => {
+                setIdleUI();
+                btn.setAttribute('aria-label', 'Play my music');
+            });
 
-
-      <div id="contact" class="extrainfo no-border">
-
-
-        <div class="page-builder">
-
-          <div class="media type-video inset">
-
-            <h1 class="section-title welcome-scroll">
-              <img src="static/images/icons/down2.png" alt="Icon" class="section-icon"> WHO WE ARE
-            </h1>
-
-            <div id="landingcontent" class=" copy cms">
-              <p>1EARTH is a design & production agency. </p>
-
-              <p class="copy2">We collaborate with initiatives and companies that want to drive purposeful change and create lasting impact.</p>
-            </div>
-
-            <h1 class="section-title welcome-scroll">
-              <img src="static/images/icons/down2.png" alt="Icon" class="section-icon"> OUR MISSION
-            </h1>
-
-            <div class="lead">
-              <div class="jumbo-title no-border underline2">
-                <h2>EMPOWER POSITIVE COMMUNITY CHANGE</h2>
-              </div>
-            </div>
-
-
-            <h1 class="section-title welcome-scroll">
-              <img src="static/images/icons/down2.png" alt="Icon" class="section-icon"> WHY?
-            </h1>
-
-            
-
-            <div class="lead">
-              <div class="jumbo-title no-border">
-                <p class="copy2">
-                  We believe this world needs change—a new standard where everyone truly benefits from what business creates.<br><br>
-
-                  The systems that govern our lives are not made for us, and have become unbalanced, prioritising profit over people and we’re stuck unable to fully thrive.<br><br>
-                  
-                  We believe this can change. Together, by fostering collaboration, we can set the new status quo of what businesses should be - a force for collective good.
-                  </p>
+            closeBtn.addEventListener('click', () => {
+                if (!audio.paused) audio.pause();
+                setIdleUI();
+                fab.classList.remove('visible');
+                fab.style.display = 'none';
+            });
+        });
+    </script>
+    
+    <!-- DVD Logo Bouncing Script -->
+    <script>
+        class DVDLogo {
+            constructor() {
+                this.logo = document.getElementById('dvd-logo');
+                this.width = 100;
+                this.height = 50;
                 
-              </div>
-            </div>
+                // CRT color palette
+                this.colors = [
+                    '#ffff00', // Yellow
+                    '#00ff00', // Green
+                    '#ff8000', // Orange
+                    '#ff0080', // Magenta
+                    '#8000ff', // Purple
+                    '#0080ff', // Blue
+                    '#00ffff', // Cyan
+                    '#ff4040', // Red
+                    '#40ff40', // Lime
+                    '#4040ff', // Royal Blue
+                    '#ff40ff', // Hot Pink
+                    '#40ffff'  // Aqua
+                ];
+                
+                this.currentColorIndex = 0;
+                
+                // Starting position (top-left)
+                this.x = 0;
+                this.y = 0;
+                
+                // 135 degrees = bottom-right direction
+                // Convert to radians and calculate velocity components
+                const angle = 135 * (Math.PI / 180);
+                this.speed = 1; // Gentle float speed
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+                
+                this.init();
+            }
+            
+            init() {
+                this.logo.style.backgroundColor = this.colors[this.currentColorIndex];
+                this.logo.addEventListener('click', () => this.randomizeDirection());
+                this.animate();
+            }
+            
+            getDocumentBounds() {
+                const docWidth = window.innerWidth;
+                const docHeight = window.innerHeight;
+                return {
+                    width: docWidth,
+                    height: docHeight
+                };
+            }
+            
+            changeColor() {
+                this.currentColorIndex = (this.currentColorIndex + 1) % this.colors.length;
+                this.logo.style.backgroundColor = this.colors[this.currentColorIndex];
+            }
+            
+            randomizeDirection() {
+                const angle = Math.random() * 2 * Math.PI;
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+            }
+            
+            animate() {
+                const bounds = this.getDocumentBounds();
+                const maxX = bounds.width - this.width;
+                const maxY = bounds.height - this.height;
+                
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Check for edge bounces and change color
+                if (this.x <= 0 || this.x >= maxX) {
+                    this.vx = -this.vx;
+                    this.x = Math.max(0, Math.min(maxX, this.x));
+                    this.changeColor(); // Change color on edge hit
+                }
 
-            <section class="panel">
-              <h1 class="section-title">
-                <img src="static/images/icons/down2.png" alt="Icon" class="section-icon">HOW
-              </h1>
+                if (this.y <= 0 || this.y >= maxY) {
+                    this.vy = -this.vy;
+                    this.y = Math.max(0, Math.min(maxY, this.y));
+                    this.changeColor(); // Change color on edge hit
+                }
+                
+                // Apply position
+                this.logo.style.left = this.x + 'px';
+                this.logo.style.top = this.y + 'px';
+                
+                // Continue animation
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // Initialize DVD logo when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            new DVDLogo();
+        });
+    </script>
+    
+    <!-- Modal open/close logic with circular animation -->
+    <script>
+        const dvdLogo = document.getElementById('dvd-logo');
+        const modal = document.getElementById('welcome-modal');
+        const modalBg = document.getElementById('modal-circular-bg');
+        const closeBtn = document.getElementById('modal-close-btn');
+        let modalOpen = false;
 
-              <div class="lead">
-                <div class="jumbo-title no-border">
-                  <h2>We use design to build new environments of shared collective growth. We:</h2>
-                </div>
-              </div>
+        function getLogoCenter() {
+            const rect = dvdLogo.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        }
 
-              <div class="copy cms">
-                <p>
-                  <!-- <em>to inspire and support those who are making a difference.</em> -->
+        function scrollToSectionWhenReady(targetId, maxWait = 2000) {
+            const start = Date.now();
+            function tryScroll() {
+                const target = document.getElementById(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else if (Date.now() - start < maxWait) {
+                    setTimeout(tryScroll, 100);
+                }
+            }
+            tryScroll();
+        }
 
-                  • Network & connect people<br>
-                  • Platform interactions<br>
-                  • Share new ideas<br>
-                  • Translate core values into meaningful solutions<br>
-                  <br>
-                  At 1EARTH, our mission comes to life through 2 key branches:
-                </p>
-              </div>
-              <div class="boxes">
+        // Use event delegation for modal links
+        modal.addEventListener('click', function(e) {
+            const link = e.target.closest('.modal-link');
+            if (link) {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').replace('#', '');
+                closeModal();
+                setTimeout(() => {
+                    scrollToSectionWhenReady(targetId);
+                }, 550);
+            }
+        });
 
+        function openModal() {
+            const { x, y } = getLogoCenter();
+            // Get the current background color of the DVD logo
+            let dvdColor = window.getComputedStyle(dvdLogo).backgroundColor;
+            // Convert rgb to rgba with alpha 0.85
+            if (dvdColor.startsWith('rgb(')) {
+                dvdColor = dvdColor.replace('rgb(', 'rgba(').replace(')', ',0.55)');
+            } else if (dvdColor.startsWith('rgba(')) {
+                dvdColor = dvdColor.replace(/,\s*([\d.]+)\)$/, ',0.55)');
+            }
+            modalBg.style.background = 'rgba(10,10,10,0.55)';
+            // modalBg.style.background = dvdColor;
 
-                <div class="box cms">
+            modalBg.style.backdropFilter = 'blur(12px)';
+            modalBg.style.webkitBackdropFilter = 'blur(12px)';
+            modal.style.display = 'block';
+            modalBg.style.clipPath = `circle(0px at ${x}px ${y}px)`;
+            modal.classList.add('animating');
+            setTimeout(() => {
+                modalBg.style.clipPath = `circle(150vw at ${x}px ${y}px)`;
+            }, 10);
+            setTimeout(() => {
+                modal.classList.remove('animating');
+                modal.classList.add('active');
+            }, 500);
+            modalOpen = true;
+        }
 
-                  <h2>THE 1EARTH NETWORK </h2>
-                  <p>A community outreach tool designed to connect, visualise, and empower those creating meaningful
-                    impact in their fields. [read more...]<br /></p>
-                </div>
+        function closeModal() {
+            const { x, y } = getLogoCenter();
+            modal.classList.add('animating');
+            modalBg.style.clipPath = `circle(0px at ${x}px ${y}px)`;
+            setTimeout(() => {
+                modal.classList.remove('active');
+                modal.classList.remove('animating');
+                modal.style.display = 'none';
+            }, 500);
+            modalOpen = false;
+        }
 
+        dvdLogo.addEventListener('click', () => {
+            const target = document.getElementById('who-is-george-symonds') || document.querySelector('.about-me-section');
+            if (!target) return;
+            const header = document.querySelector('.portfolio-header');
+            const headerH = header ? header.getBoundingClientRect().height : 0;
+            const targetTop = window.scrollY + target.getBoundingClientRect().top - headerH - 12;
+            window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+        });
+        closeBtn.addEventListener('click', closeModal);
+        window.addEventListener('keydown', (e) => {
+            if (modalOpen && (e.key === 'Escape' || e.key === 'Esc')) closeModal();
+        });
+    </script>
+    
+    <!-- Header Scroll Behavior -->
+    <script>
+        class HeaderController {
+            constructor() {
+                this.header = document.querySelector('.portfolio-header');
+                this.lastScrollY = window.scrollY;
+                this.scrollThreshold = 5; // Minimum scroll distance to trigger hide/show
+                
+                this.init();
+            }
+            
+            init() {
+                window.addEventListener('scroll', this.handleScroll.bind(this));
+            }
+            
+            handleScroll() {
+                const currentScrollY = window.scrollY;
+                const scrollDifference = currentScrollY - this.lastScrollY;
+                
+                // Only trigger if scroll difference exceeds threshold
+                if (Math.abs(scrollDifference) < this.scrollThreshold) {
+                    return;
+                }
+                
+                // Hide header when scrolling down, show when scrolling up
+                if (scrollDifference > 0 && currentScrollY > 100) {
+                    // Scrolling down - hide header
+                    this.header.classList.add('header-hidden');
+                } else if (scrollDifference < 0) {
+                    // Scrolling up - show header
+                    this.header.classList.remove('header-hidden');
+                }
+                
+                this.lastScrollY = currentScrollY;
+            }
+        }
+        
+        // Initialize header controller when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            new HeaderController();
+        });
+    </script>
+    <script>
+        // Full-page loading overlay: shows until #portfolio-sections loses 'loading'
+        document.addEventListener('DOMContentLoaded', function() {
+            const MIN_VISIBLE_MS = 400;
+            const DOT_STEP_MS = 300;
+            const STILL_LOADING_MS = 15000;
+            const target = document.getElementById('portfolio-sections');
+            if (!target) return;
 
-                <div class="box cms">
+            const overlay = document.getElementById('initial-loading-overlay');
+            if (!overlay) return;
 
+            document.body.classList.add('loading-overlay-active');
+            document.body.setAttribute('aria-busy', 'true');
 
+            const labelEl = overlay.querySelector('.loading-label');
+            const dotsEl = overlay.querySelector('.dots');
+            let dotState = 1;
+            const dotTimer = setInterval(() => {
+                dotState = dotState % 3 + 1;
+                dotsEl.textContent = '.'.repeat(dotState);
+            }, DOT_STEP_MS);
 
-                  <h2>1EARTH PRODUCTIONS</h2>
-                  <p>Our design and production agency works 1 to 1 with initiatives & companies to develop their
-                    potential in driving purposeful change through what they do [read more...]</p>
-                </div>
+            const stillTimer = setTimeout(() => {
+                if (labelEl) labelEl.textContent = 'Still loading';
+            }, STILL_LOADING_MS);
 
-              </div>
+            const showStart = performance.now();
 
-          </div>
-        </div>
-      </div>
-  </main>
+            function hideOverlay() {
+                const elapsed = performance.now() - showStart;
+                const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                    setTimeout(() => {
+                        clearInterval(dotTimer);
+                        clearTimeout(stillTimer);
+                        overlay.remove();
+                        document.body.classList.remove('loading-overlay-active');
+                        document.body.removeAttribute('aria-busy');
+                    }, 350);
+                }, wait);
+            }
 
-  <footer class="site-footer">
-    <div class="top">
-      <a href="#top" class="scroll-anchor">BACK TO TOP</a>
-    </div>
+            // If it's already not loading, hide quickly after min duration
+            if (!target.classList.contains('loading')) {
+                hideOverlay();
+                return;
+            }
 
-    <div class="bar">
-      <div class="col links-1">
-
-
-
-        <p><br /></p>
-        <p>
-
-        </p>
-        <p>
-
-          <!-- <span>LONDON</span> -->
-
-          <br /><br />
-        </p>
-      </div>
-
-      <div class="col">
-
-        <ul class="social-icons">
-          <li>
-            <a href="https://www.instagram.com/memo.approved/" target="_blank" rel="noopener">
-              <img src="/MEMOAPPROVED/img/icon-instagram-white.svg" width="35" height="35" alt="Instagram" />
-            </a>
-          </li>
-
-          <!-- <li>
-              <a
-                href="https://www.youtube.com/@memoapproved307"
-                target="_blank"
-                rel="noopener"
-              >
-                <img
-                  src="img/icon-youtube-white.svg"
-                  width="35"
-                  height="35"
-                  alt="Youtube"
-                />
-              </a>
-            </li> -->
-
-
-        </ul>
-
-        <div class="links-2">
-          <p>
-            FOLLOW US TO STAY
-            <a href="https://www.instagram.com/memo.approved/" target="_blank" rel="noreferrer noopener">UP TO
-              DATE<br /></a>
-          </p>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-
-
-  <script src="/MEMOAPPROVED/js/build/bundle.min%EF%B9%96v=1683212362.js"></script>
-  <!-- <script src="js/vendor/naughty-browser%EF%B9%96v=1611337895.js" defer></script> -->
-  <script src="/MEMOAPPROVED/cpresources/db0da77b/script%EF%B9%96v=1683212373.js"></script>
-
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('scrollLink').addEventListener('click', function (event) {
-        event.preventDefault();  // Prevent default anchor click behavior
-
-        const targetSection = document.querySelector(this.getAttribute('href'));  // Get the target section
-
-        // Check if it's mobile (using a typical breakpoint, e.g., 768px)
-        const isMobile = window.innerWidth <= 768;
-        const yOffset = isMobile ? -50 : -80;  // Offset by 50px for mobile, 80px for desktop
-
-        const yPosition = targetSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-        window.scrollTo({ top: yPosition, behavior: 'smooth' });  // Scroll to the adjusted position
-      });
-    });
-  </script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      document.getElementById('scrollLink2').addEventListener('click', function (event) {
-        event.preventDefault();  // Prevent default anchor click behavior
-
-        const targetSection = document.querySelector(this.getAttribute('href'));  // Get the target section
-
-        // Check if it's mobile (using a typical breakpoint, e.g., 768px)
-        const isMobile = window.innerWidth <= 768;
-        const yOffset = isMobile ? -40 : -65;  // Offset by 50px for mobile, 80px for desktop
-
-        const yPosition = targetSection.getBoundingClientRect().top + window.pageYOffset + yOffset;
-
-        window.scrollTo({ top: yPosition, behavior: 'smooth' });  // Scroll to the adjusted position
-      });
-    });
-
-    window.addEventListener("load", function () {
-      // Trigger the scale-up animation for the image after the page loads
-      setTimeout(function () {
-        document.querySelector(".centered-image2").classList.add("scale-up");
-      }, 1000); // 1-second delay before starting the scale-up animation
-
-
-      // Add fade-in class to all elements after 1 second
-      setTimeout(function () {
-        document.querySelector(".mission-text").classList.add("fade-in");
-        document.querySelector(".welcome-button").classList.add("fade-in");
-        document.querySelector(".top-left-links").classList.add("fade-in");
-      }, 1000); // 1-second delay before fading in
-
-      // Scroll to hero section when "Welcome" button is clicked
-      document.querySelector(".welcome-button").addEventListener("click", function () {
-        document.querySelector("#hero-section").scrollIntoView({ behavior: "smooth" });
-      });
-
-      document.querySelector(".welcome-scroll").addEventListener("click", function () {
-        document.querySelector("#hero-section").scrollIntoView({ behavior: "smooth" });
-      });
-
-    });
-
-  </script>
-
+            // Observe class changes to detect when 'loading' is removed
+            const obs = new MutationObserver(() => {
+                if (!target.classList.contains('loading')) {
+                    obs.disconnect();
+                    hideOverlay();
+                }
+            });
+            obs.observe(target, { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
 </body>
-
-</html>
+</html> 

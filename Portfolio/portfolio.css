@@ -523,6 +523,162 @@ video.card-image-video {
 .site-title-link { color: inherit; text-decoration: none; }
 .site-title-link:hover { text-decoration: underline; }
 
+/* Site title glitch — ONE EARTH PRODUCTIONS ℗ ↔ GEORGE SYMONDS */
+.site-title-glitch {
+    display: inline-block;
+}
+
+.site-title-glitch__wrap {
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+    vertical-align: bottom;
+}
+
+.site-title-glitch__layer {
+    display: block;
+    white-space: nowrap;
+}
+
+.site-title-glitch__layer--main {
+    position: relative;
+    z-index: 2;
+}
+
+.site-title-glitch__layer--r,
+.site-title-glitch__layer--b {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    pointer-events: none;
+    opacity: 0;
+    mix-blend-mode: screen;
+}
+
+.site-title-glitch__layer--r {
+    color: #ff4444;
+    transform: translateX(-1px);
+}
+
+.site-title-glitch__layer--b {
+    color: #4466ff;
+    transform: translateX(1px);
+}
+
+.site-title-glitch:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--r {
+    animation: site-title-idle-r 4.2s steps(2) infinite;
+}
+
+.site-title-glitch:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--b {
+    animation: site-title-idle-b 4.6s steps(2) infinite;
+}
+
+.site-title-glitch:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--main {
+    animation: site-title-idle-main 5.8s steps(2) infinite;
+}
+
+.site-title-glitch.is-swapping:not(.is-reduced-motion) .site-title-glitch__layer--main {
+    animation: site-title-swap-main 0.09s steps(2) 4;
+}
+
+.site-title-glitch.is-swapping:not(.is-reduced-motion) .site-title-glitch__layer--r {
+    animation: site-title-swap-r 0.07s steps(2) 5;
+    opacity: 0.55;
+}
+
+.site-title-glitch.is-swapping:not(.is-reduced-motion) .site-title-glitch__layer--b {
+    animation: site-title-swap-b 0.08s steps(2) 5;
+    opacity: 0.55;
+}
+
+.site-title-glitch.is-hover:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--r {
+    animation: site-title-hover-r 0.14s steps(2) infinite;
+    opacity: 0.62;
+}
+
+.site-title-glitch.is-hover:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--b {
+    animation: site-title-hover-b 0.16s steps(2) infinite;
+    opacity: 0.62;
+}
+
+.site-title-glitch.is-hover:not(.is-reduced-motion):not(.is-paused) .site-title-glitch__layer--main {
+    animation: site-title-hover-main 0.18s steps(2) infinite;
+}
+
+.site-title-glitch.is-paused .site-title-glitch__layer,
+.site-title-glitch.is-reduced-motion .site-title-glitch__layer--r,
+.site-title-glitch.is-reduced-motion .site-title-glitch__layer--b {
+    animation: none !important;
+    opacity: 0 !important;
+    transform: none !important;
+}
+
+.site-title-glitch.is-reduced-motion .site-title-glitch__layer--main {
+    animation: none !important;
+    transition: opacity 0.52s ease;
+}
+
+.site-title-glitch.is-reduced-motion.is-reduced-swapping .site-title-glitch__layer--main {
+    opacity: 0.2;
+}
+
+@keyframes site-title-idle-r {
+    0%, 88%, 100% { opacity: 0; transform: translateX(-1px); }
+    90%, 94% { opacity: 0.22; transform: translateX(-2px); }
+    92% { opacity: 0.12; transform: translateX(-3px); }
+}
+
+@keyframes site-title-idle-b {
+    0%, 86%, 100% { opacity: 0; transform: translateX(1px); }
+    88%, 92% { opacity: 0.2; transform: translateX(2px); }
+    90% { opacity: 0.1; transform: translateX(3px); }
+}
+
+@keyframes site-title-idle-main {
+    0%, 96%, 100% { opacity: 1; transform: none; }
+    97% { opacity: 0.88; transform: translateX(0.5px); }
+    98% { opacity: 0.96; transform: translateX(-0.5px); }
+}
+
+@keyframes site-title-swap-main {
+    0% { opacity: 1; transform: none; }
+    50% { opacity: 0.55; transform: translateX(1px); }
+    100% { opacity: 1; transform: translateX(-1px); }
+}
+
+@keyframes site-title-swap-r {
+    0% { transform: translate(-4px, 0); opacity: 0.7; }
+    50% { transform: translate(-1px, 1px); opacity: 0.35; }
+    100% { transform: translate(-5px, -1px); opacity: 0.65; }
+}
+
+@keyframes site-title-swap-b {
+    0% { transform: translate(4px, 0); opacity: 0.7; }
+    50% { transform: translate(1px, -1px); opacity: 0.35; }
+    100% { transform: translate(5px, 1px); opacity: 0.65; }
+}
+
+@keyframes site-title-hover-r {
+    0% { transform: translate(-3px, 0); opacity: 0.75; clip-path: inset(0 0 45% 0); }
+    50% { transform: translate(-5px, 1px); opacity: 0.45; clip-path: inset(55% 0 0 0); }
+    100% { transform: translate(-2px, -1px); opacity: 0.7; clip-path: inset(20% 0 30% 0); }
+}
+
+@keyframes site-title-hover-b {
+    0% { transform: translate(3px, 0); opacity: 0.75; clip-path: inset(55% 0 0 0); }
+    50% { transform: translate(5px, -1px); opacity: 0.45; clip-path: inset(0 0 45% 0); }
+    100% { transform: translate(2px, 1px); opacity: 0.7; clip-path: inset(30% 0 20% 0); }
+}
+
+@keyframes site-title-hover-main {
+    0% { opacity: 1; transform: none; }
+    33% { opacity: 0.82; transform: translateX(-0.5px); }
+    66% { opacity: 0.94; transform: translateX(0.5px); }
+    100% { opacity: 1; transform: none; }
+}
+
 .back-btn {
     display: inline-block;
     /* margin-top: 10px; */
