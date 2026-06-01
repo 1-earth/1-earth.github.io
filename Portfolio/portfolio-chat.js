@@ -32,7 +32,7 @@
         'Stop. Where? Where am i?'
     ];
     const STARTERS = [
-        'Is this really George?',
+        'Hello',
         'What kind of work do you do?',
         'I need a website. Can you help?',
         'What should I look at first?'
