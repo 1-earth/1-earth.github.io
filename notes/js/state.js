@@ -1,0 +1,26 @@
+// Single mutable object — required because ES module namespace imports are read-only.
+export const state = {
+  data: { folders: [], notes: [] },
+  activeFolderId: null,
+  activeNoteId: null,
+  sortOrder: 'modified',
+  saveTimer: null,
+  cloudSaveInFlight: false,
+  cloudSaveQueued: false,
+  lastCloudSavedAt: null,
+  folderModalMode: 'create',
+  editingFolderId: null,
+  isApplyingHistory: false,
+  undoGroupNoteId: null,
+  undoGroupSnapshot: null,
+  undoGroupTimer: null,
+  dragPayload: null,
+  selectedImageWrap: null,
+  selectedEmbedWrap: null,
+  imageResizeState: null,
+  savedEditorRange: null,
+  undoStacks: {},
+  redoStacks: {},
+  mobileView: 'sidebar',
+  authUser: null
+};

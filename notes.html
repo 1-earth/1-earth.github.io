@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes</title>
+  <link rel="icon" href="notes/static/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="notes/static/img/favicon.png">
+  <link rel="stylesheet" href="notes/styles.css">
+</head>
+<body>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <span>Loading notes…</span>
+  </div>
+
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <img src="notes/static/img/WHITEKRLOGO.png" alt="logo" class="logoimg">
+      <!-- <h1>Notes</h1>  -->
+      <div class="sidebar-section-label">Folders</div>
+      <ul class="folder-list" id="folderList"></ul>
+      <div class="auth-bar" id="authBar">
+        <span class="auth-user hidden" id="authUserLabel"></span>
+        <button class="btn btn-secondary auth-btn" type="button" id="authBtn">Sign in with Google</button>
+      </div>
+      <div class="sidebar-actions">
+        <button class="btn btn-secondary" type="button" id="addFolderBtn">+ New folder</button>
+        <button class="btn btn-secondary" type="button" id="exportBtn">Export JSON</button>
+        <button class="btn btn-secondary" type="button" id="importBtn">Import JSON</button>
+      </div>
+    </aside>
+
+    <section class="note-list-panel">
+      <div class="panel-header">
+        <div class="panel-header-row">
+          <button type="button" class="mobile-back-btn" id="noteListBackBtn" aria-label="Back to folders">←</button>
+          <h2 id="currentFolderName">General</h2>
+          <div class="sort-dropdown" id="sortDropdown">
+            <button
+              type="button"
+              class="sort-dropdown-trigger"
+              id="sortTrigger"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="sortMenu"
+              aria-label="Sort notes"
+            >
+              <span class="sort-dropdown-marquee-wrap" id="sortMarqueeWrap">
+                <span class="sort-dropdown-track">
+                  <span class="sort-dropdown-label" id="sortLabel">Modified</span>
+                  <span class="sort-dropdown-label sort-dropdown-label-copy" id="sortLabelCopy" aria-hidden="true"></span>
+                </span>
+              </span>
+            </button>
+            <ul class="sort-dropdown-menu hidden" id="sortMenu" role="listbox" aria-label="Sort notes"></ul>
+          </div>
+        </div>
+        <input type="search" class="search-box" id="searchBox" placeholder="Search notes…">
+        <button type="button" class="btn btn-primary" id="newNoteBtn">+ New note</button>
+      </div>
+      <ul class="note-list" id="noteList"></ul>
+    </section>
+
+    <main class="editor-panel">
+      <div class="editor-toolbar">
+        <button type="button" class="mobile-back-btn" id="editorBackBtn" aria-label="Back to notes">←</button>
+        <div class="folder-dropdown" id="moveFolderDropdown">
+          <button
+            type="button"
+            class="folder-dropdown-trigger"
+            id="moveFolderTrigger"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="moveFolderMenu"
+            aria-label="Move note to folder"
+            disabled
+          >
+            <span class="folder-dropdown-marquee-wrap" id="moveFolderMarqueeWrap">
+              <span class="folder-dropdown-track">
+                <span class="folder-dropdown-label" id="moveFolderLabel">—</span>
+                <span class="folder-dropdown-label folder-dropdown-label-copy" id="moveFolderLabelCopy" aria-hidden="true"></span>
+              </span>
+            </span>
+          </button>
+          <ul class="folder-dropdown-menu hidden" id="moveFolderMenu" role="listbox" aria-label="Folders"></ul>
+        </div>
+        <span class="save-status" id="saveStatus">Ready</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" id="deleteNoteBtn" disabled>Delete</button>
+      </div>
+      <div class="in-note-search hidden" id="inNoteSearch" role="search">
+        <input type="search" class="in-note-search-input" id="inNoteSearchInput" placeholder="Find in note…" aria-label="Find in note">
+        <span class="in-note-search-count" id="inNoteSearchCount" aria-live="polite"></span>
+        <button type="button" class="in-note-search-btn" id="inNoteSearchPrev" aria-label="Previous match">↑</button>
+        <button type="button" class="in-note-search-btn" id="inNoteSearchNext" aria-label="Next match">↓</button>
+        <button type="button" class="in-note-search-btn in-note-search-close" id="inNoteSearchClose" aria-label="Close find">✕</button>
+      </div>
+      <div class="editor-placeholder" id="editorPlaceholder">Select a note or create a new one</div>
+      <div class="editor-body hidden" id="editorBody">
+        <input type="text" class="title-input" id="titleInput" placeholder="Note title">
+        <div class="note-metadata" id="noteMetadata"></div>
+        <div class="format-toolbar" id="formatToolbar">
+          <button type="button" class="format-btn" data-format="bold" title="Bold">B</button>
+          <button type="button" class="format-btn" data-format="italic" title="Italic"><em>I</em></button>
+          <button type="button" class="format-btn" data-format="strike" title="Strikethrough"><s>S</s></button>
+          <button type="button" class="format-btn" data-format="h1" title="Heading 1">H1</button>
+          <button type="button" class="format-btn" data-format="h2" title="Heading 2">H2</button>
+          <button type="button" class="format-btn" data-format="link" title="Link">Link</button>
+          
+          <button type="button" class="format-btn" data-format="bullet" title="Bullet list">• List</button>
+          <button type="button" class="format-btn" data-format="numbered" title="Numbered list">1. List</button>
+          <button type="button" class="format-btn" data-format="checkbox" title="Checkbox">☐ Task</button>
+          <div class="add-dropdown" id="addDropdown">
+            <button
+              type="button"
+              class="format-btn add-dropdown-trigger"
+              id="addDropdownTrigger"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="addDropdownMenu"
+              aria-label="Add to note"
+              disabled
+            >+ Add</button>
+            <ul class="add-dropdown-menu hidden" id="addDropdownMenu" role="menu" aria-label="Add to note"></ul>
+          </div>
+          <button type="button" class="format-btn" data-format="clear" title="Clear formatting">Clear Format</button>
+        </div>
+        <div class="content-input" id="contentInput" contenteditable="true" data-placeholder="Start writing…"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="folderModal">
+    <div class="modal">
+      <h3 id="folderModalTitle">New folder</h3>
+      <input type="text" id="folderNameInput" placeholder="Folder name" maxlength="40">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="folderModalCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="folderModalSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="confirmModal">
+    <div class="modal">
+      <h3 id="confirmModalTitle">Delete note?</h3>
+      <p class="modal-message" id="confirmModalMessage"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="confirmModalCancel">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmModalConfirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="undo-toast hidden" id="undoToast" role="status" aria-live="polite">
+    <span class="undo-toast-message" id="undoToastMessage">Note deleted</span>
+    <button type="button" class="btn btn-ghost undo-toast-btn" id="undoToastBtn">Undo</button>
+    <span class="undo-toast-timer" id="undoToastTimer"></span>
+  </div>
+
+  <div class="modal-overlay hidden" id="embedModal">
+    <div class="modal modal-wide">
+      <h3>Insert embed</h3>
+      <p class="modal-hint">Paste iframe or full embed code (https URLs only). Size comes from the embed code.</p>
+      <textarea id="embedCodeInput" placeholder="<iframe src=&quot;https://...&quot; ...></iframe>"></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="embedModalCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="embedModalInsert">Insert</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="importFileInput" accept=".json,application/json" hidden>
+  <input type="file" id="imageFileInput" accept="image/*" hidden multiple>
+
+  <script type="module" src="notes/js/init.js"></script>
+</body>
+</html>
