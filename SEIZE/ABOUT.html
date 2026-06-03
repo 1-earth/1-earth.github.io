@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEIZE — Magazine</title>
+    <title>SEIZE — About</title>
     <link rel="icon" href="static/media/LOGOicon.jpg" type="image/jpeg">
     <link rel="stylesheet" href="/static/css/mainstyles.css">
 </head>
 <body>
 
-    <div id="canvas-container" aria-hidden="true"></div>
-
     <div class="page-shell">
         <div class="site-top">
             <header class="site-header">
                 <nav aria-label="Primary">
-                    <a class="logo-link" href="#">
+                    <a class="logo-link" href="index.html">
                         <img src="static/media/LOGOtrans.png" width="120" height="40" alt="SEIZE">
                     </a>
 
                     <ul class="nav-links">
                         <li><a href="#">Shop</a></li>
-                        <li><a href="ABOUT.html">About</a></li>
+                        <li><a href="ABOUT.html" aria-current="page">About</a></li>
                         <li><a href="#">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
@@ -37,7 +35,7 @@
                             <a class="icon-btn icon-btn--search" href="#" aria-label="Search">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="M14 14l7 7"/></svg>
                             </a>
-                            <a class="icon-btn icon-btn--ig icon-btn--ig" href="#" aria-label="Instagram">
+                            <a class="icon-btn icon-btn--ig" href="#" aria-label="Instagram">
                                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.35" fill="none"/></svg>
                             </a>
                             <a class="icon-btn icon-btn--email" href="#" aria-label="Email">
@@ -50,7 +48,7 @@
                 <div class="mobile-panel" id="mobile-panel" aria-hidden="true">
                     <ul class="nav-links">
                         <li><a href="#">Shop</a></li>
-                        <li><a href="ABOUT.html">About</a></li>
+                        <li><a href="ABOUT.html" aria-current="page">About</a></li>
                         <li><a href="#">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
@@ -69,116 +67,76 @@
             </header>
 
             <div class="announcement-wrap">
-            <section class="announcement" aria-label="Announcement">
-                <p class="visually-hidden">Issue 3: Connect. Out now.</p>
-                <div class="marquee" aria-hidden="true">
-                    <div class="marquee__track">
-                        <div class="marquee__group">
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                        </div>
-                        <div class="marquee__group" aria-hidden="true">
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
-                            <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                <section class="announcement" aria-label="Announcement">
+                    <p class="visually-hidden">Issue 3: Connect. Out now.</p>
+                    <div class="marquee" aria-hidden="true">
+                        <div class="marquee__track">
+                            <div class="marquee__group">
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                            </div>
+                            <div class="marquee__group" aria-hidden="true">
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                                <span class="marquee__item">Issue 3: Connect. Out now.</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
             </div>
         </div>
         <div class="site-top-spacer" aria-hidden="true"></div>
 
-        <section class="hero" aria-label="Featured video">
-            <div class="hero-video-shell">
-                <video
-                    class="hero-video"
-                    autoplay
-                    muted
-                    loop
-                    playsinline
-                    preload="auto"
-                    poster="static/media/videoposter.jpg">
-                    <source src="static/media/welcomevideo.mp4" type="video/mp4">
-                </video>
-                <!-- <p class="hero-placeholder">Quinby's video</p> -->
-                <noscript>
-                    <div class="hero-noscript-wrap">
-                        <img class="hero-noscript-fallback" src="static/media/videoposter.jpg" alt="">
-                    </div>
-                </noscript>
-            </div>
-        </section>
+        <main class="about-page" aria-label="About">
+            <section class="about-section about-section--mission">
+                <h1 class="about-section__title">Our Mission <span class="about-section__subtitle">“one long sentence”</span></h1>
 
-        <section class="issues" aria-label="Magazine issues">
-            <div class="issues__grid">
-                <article class="issue-card">
-                    <div class="issue-card__cover">
-                        <video
-                            class="issue-card__video"
-                            autoplay
-                            muted
-                            loop
-                            playsinline
-                            preload="auto"
-                            poster="static/media/issue1poster.jpg">
-                            <source src="static/media/issue1.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="issue-card__caption">
-                        <p class="issue-card__number">Issue 1</p>
-                        <p class="issue-card__title">Imposter Syndrome</p>
-                    </div>
-                </article>
+                <div class="about-mission__grid">
+                    <div class="about-mission__media" aria-hidden="true"></div>
 
-                <article class="issue-card">
-                    <div class="issue-card__cover">
-                        <video
-                            class="issue-card__video"
-                            autoplay
-                            muted
-                            loop
-                            playsinline
-                            preload="auto"
-                            poster="static/media/issue2poster.jpg">
-                            <source src="static/media/issue2.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                    <div class="issue-card__caption">
-                        <p class="issue-card__number">Issue 2</p>
-                        <p class="issue-card__title">Sell Out</p>
-                    </div>
-                </article>
+                    <div class="about-mission__content">
+                        <p class="about-mission__text">Founded while we were still students, SEIZE began as a “fake it till you make it” project and has grown into a platform for unfiltered perspectives from emerging artists navigating London’s creative scene.</p>
 
-                <article class="issue-card">
-                    <div class="issue-card__cover">
-                        <video
-                            class="issue-card__video"
-                            autoplay
-                            muted
-                            loop
-                            playsinline
-                            preload="auto"
-                            poster="static/media/issue3poster.jpg">
-                            <source src="static/media/issue3.mp4" type="video/mp4">
-                        </video>
+                        <div class="about-stores">
+                            <h2 class="about-stores__heading">Find us in stores (confirm availability)</h2>
+                            <ul class="about-stores__list">
+                                <li><strong>London:</strong><br>MagCulture<br>Charlotte Street News<br>Taco!<br>Soho Good News.<br><br></li>
+                                <li><strong>Manchester:</strong><br>UNITOM.<br><br></li>
+                                <li><strong>Paris:</strong><br>Cahiere Central<br>MottoBooks.<br><br></li>
+                                <li><strong>Berlin:</strong><br>MottoBooks.<br><br></li>
+                                <li><strong>Amsterdam:</strong><br>Athenaeum Boekhande.<br><br></li>
+                                <li><strong>NYC:</strong><br>…</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="issue-card__caption">
-                        <p class="issue-card__number">Issue 3</p>
-                        <p class="issue-card__title">Connect</p>
-                    </div>
-                </article>
-            </div>
-        </section>
+                </div>
+            </section>
 
-        <div class="scroll-container">
-            <div class="trigger-zone"></div>
-            <div class="trigger-zone" id="snap-trigger"></div>
-            <div class="trigger-zone"></div>
-        </div>
+            <section class="about-section about-section--team">
+                <h2 class="about-section__title">Our Team</h2>
+
+                <div class="about-team__grid">
+                    <article class="about-team__member">
+                        <div class="about-team__photo">
+                            <span class="about-team__photo-label">childhood pic</span>
+                        </div>
+                        <p class="about-team__name">NB</p>
+                    </article>
+
+                    <article class="about-team__member">
+                        <div class="about-team__photo">
+                            <span class="about-team__photo-label">childhood pic</span>
+                        </div>
+                        <p class="about-team__name">LS</p>
+                    </article>
+                </div>
+
+                <p class="about-team__role">co-founders</p>
+            </section>
+        </main>
 
         <section class="forms-section" aria-label="Contact forms">
             <div class="forms-section__grid">
@@ -305,10 +263,6 @@
         </footer>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
     <script>
         (function () {
             var forms = document.querySelectorAll(".forms-section .site-form");
@@ -337,90 +291,6 @@
             window.addEventListener("resize", function () {
                 if (window.innerWidth >= 860) setOpen(false);
             });
-        })();
-
-        (function () {
-            function refreshHeroMediaClass() {
-                var shell = document.querySelector(".hero-video-shell");
-                var vid = document.querySelector(".hero-video");
-                if (!shell || !vid) return;
-                var attrSrc = vid.getAttribute("src");
-                var hasSrc = !!(attrSrc && attrSrc.trim());
-                var hasChildSource = false;
-                var sources = vid.querySelectorAll("source");
-                for (var i = 0; i < sources.length; i++) {
-                    var s = sources[i].getAttribute("src");
-                    if (s && s.trim()) {
-                        hasChildSource = true;
-                        break;
-                    }
-                }
-                shell.classList.toggle("hero-has-media", hasSrc || hasChildSource);
-            }
-
-            function playHeroVideo() {
-                var vid = document.querySelector(".hero-video");
-                if (!vid) return;
-                var playPromise = vid.play();
-                if (playPromise && typeof playPromise.catch === "function") {
-                    playPromise.catch(function () {});
-                }
-            }
-
-            document.addEventListener("DOMContentLoaded", function () {
-                refreshHeroMediaClass();
-                playHeroVideo();
-            });
-
-            var vidEl = document.querySelector(".hero-video");
-            if (vidEl) {
-                vidEl.addEventListener("canplay", playHeroVideo);
-                if (typeof MutationObserver !== "undefined") {
-                    var mo = new MutationObserver(refreshHeroMediaClass);
-                    mo.observe(vidEl, {
-                        attributes: true,
-                        attributeFilter: ["src"],
-                        childList: true,
-                        subtree: true
-                    });
-                }
-            }
-        })();
-
-        (function () {
-            var issueVideos = document.querySelectorAll(".issue-card__video");
-            if (!issueVideos.length) return;
-
-            function playVideo(vid) {
-                var playPromise = vid.play();
-                if (playPromise && typeof playPromise.catch === "function") {
-                    playPromise.catch(function () {});
-                }
-            }
-
-            issueVideos.forEach(function (vid) {
-                vid.addEventListener("canplay", function () {
-                    playVideo(vid);
-                });
-            });
-
-            document.addEventListener("DOMContentLoaded", function () {
-                issueVideos.forEach(playVideo);
-            });
-
-            if (typeof IntersectionObserver !== "undefined") {
-                var observer = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (entry) {
-                        if (entry.isIntersecting) {
-                            playVideo(entry.target);
-                        }
-                    });
-                }, { threshold: 0.2 });
-
-                issueVideos.forEach(function (vid) {
-                    observer.observe(vid);
-                });
-            }
         })();
 
         (function () {
@@ -494,98 +364,6 @@
             });
             updateHeaderScroll();
         })();
-
-        gsap.registerPlugin(ScrollTrigger);
-
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            document.documentElement.clientWidth / window.innerHeight,
-            0.1,
-            1000
-        );
-        camera.position.z = 5;
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-
-        function resizeRenderer() {
-            var w = document.documentElement.clientWidth;
-            var h = window.innerHeight;
-            renderer.setSize(w, h, false);
-            renderer.domElement.style.width = "100%";
-            renderer.domElement.style.height = "100%";
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-        }
-
-        resizeRenderer();
-        document.getElementById("canvas-container").appendChild(renderer.domElement);
-
-        const vertexShader = `
-            varying vec2 vUv;
-            uniform float uBend;
-            void main() {
-                vUv = uv;
-                vec3 pos = position;
-                pos.z += sin(uv.x * 3.14) * uBend * 2.0;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-            }
-        `;
-
-        const fragmentShader = `
-            varying vec2 vUv;
-            uniform sampler2D uTexture;
-            void main() {
-                gl_FragColor = texture2D(uTexture, vUv);
-            }
-        `;
-
-        const texture = new THREE.TextureLoader().load("texture.jpg");
-        const geometry = new THREE.PlaneGeometry(3, 4.24, 32, 32);
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms: { uTexture: { value: texture }, uBend: { value: 0 } },
-            side: THREE.DoubleSide
-        });
-
-        const paper = new THREE.Mesh(geometry, material);
-        paper.position.set(-2, -8, -2);
-        paper.rotation.set(0.5, -0.5, 0.2);
-        scene.add(paper);
-
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: ".scroll-container",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1.5
-            }
-        });
-
-        tl.to(paper.position, { x: 0, y: 0, z: 1.5, duration: 1 })
-            .to(paper.rotation, { x: 0, y: 0, z: 0, duration: 1 }, "<")
-            .to(paper.material.uniforms.uBend, { value: 0.5, duration: 0.5 }, 0)
-            .to(paper.material.uniforms.uBend, { value: 0, duration: 0.5 }, 0.5)
-            .to(paper.position, { y: 0, duration: 0.5 })
-            .to(paper.position, { x: 2, y: 8, z: -2, duration: 1 })
-            .to(paper.rotation, { x: -0.5, y: 0.5, z: -0.2, duration: 1 }, "<");
-
-        function animate() {
-            renderer.render(scene, camera);
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        window.addEventListener("resize", function () {
-            resizeRenderer();
-            ScrollTrigger.refresh();
-        });
-
-        window.addEventListener("load", function () {
-            ScrollTrigger.refresh();
-        });
     </script>
 </body>
 </html>
