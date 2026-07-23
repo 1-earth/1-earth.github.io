@@ -44,14 +44,16 @@ export function applyEditMode() {
     dom.addFolderBtnEl,
     dom.importBtnEl,
     dom.deleteNoteBtnEl,
-    dom.addDropdownTriggerEl
+    dom.addDropdownTriggerEl,
+    dom.formatSheetTriggerEl,
+    dom.editorMoreTriggerEl
   ];
 
   editButtons.forEach(btn => {
     if (btn) btn.disabled = !editable;
   });
 
-  dom.formatToolbarEl.querySelectorAll('[data-format]').forEach(btn => {
+  document.querySelectorAll('#formatToolbar [data-format], #formatSheet [data-format]').forEach(btn => {
     btn.disabled = !editable;
   });
 

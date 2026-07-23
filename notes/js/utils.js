@@ -31,7 +31,8 @@ export function escapeHtml(str) {
 export function isModalOpen() {
   return !dom.folderModalEl.classList.contains('hidden') ||
     !dom.embedModalEl.classList.contains('hidden') ||
-    !dom.confirmModalEl.classList.contains('hidden');
+    !dom.confirmModalEl.classList.contains('hidden') ||
+    (dom.formatSheetEl && !dom.formatSheetEl.classList.contains('hidden'));
 }
 
 export function formatLastSaved(iso) {

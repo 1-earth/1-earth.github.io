@@ -1,5 +1,6 @@
 import * as dom from './dom.js';
 import { state } from './state.js';
+import { closeFormatSheet } from './format-sheet.js';
 
 export const MOBILE_BREAKPOINT = 768;
 const SWIPE_EDGE_PX = 40;
@@ -18,6 +19,7 @@ function applyMobileViewClasses() {
 
 export function setMobileView(view) {
   if (!isMobileLayout()) return;
+  if (view !== 'editor') closeFormatSheet();
   state.mobileView = view;
   applyMobileViewClasses();
 }
@@ -76,7 +78,8 @@ function setupSwipeBack(panelEl, onBack) {
 function isModalOpen() {
   return !dom.folderModalEl.classList.contains('hidden') ||
     !dom.embedModalEl.classList.contains('hidden') ||
-    !dom.confirmModalEl.classList.contains('hidden');
+    !dom.confirmModalEl.classList.contains('hidden') ||
+    (dom.formatSheetEl && !dom.formatSheetEl.classList.contains('hidden'));
 }
 
 export function initMobileNav() {

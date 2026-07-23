@@ -3,7 +3,7 @@ import * as dom from './dom.js';
 import { state } from './state.js';
 import {
   getActiveNote, getFolderById, getDefaultFolderId, isAllNotesView,
-  ensureDataOrders, sortNotes, canDragNotes, maybeAutoTitle, getWordCount
+  ensureDataOrders, sortNotes, canDragNotes, maybeAutoTitle
 } from './data.js';
 import { escapeHtml, formatDate, formatDateTime, setSaveStatus, uid } from './utils.js';
 import { htmlToPlainText, htmlToPreviewText } from './html.js';
@@ -15,6 +15,7 @@ import {
 import { isMobileLayout, navigateToEditor, navigateToList, navigateToSidebar } from './mobile.js';
 import { renderFolderDropdown, renderSortDropdown } from './custom-dropdown.js';
 import { renderAddDropdown } from './add-dropdown.js';
+import { renderEditorMoreMenu } from './editor-more-menu.js';
 import { showConfirm, showUndoToast } from './confirm.js';
 import { closeInNoteSearch } from './in-note-search.js';
 import { canEdit, applyEditMode } from './auth.js';
@@ -117,9 +118,8 @@ export function renderNoteMetadata() {
     dom.noteMetadataEl.textContent = '';
     return;
   }
-  const words = getWordCount(note.content);
   dom.noteMetadataEl.textContent =
-    `Created ${formatDateTime(note.createdAt)} · Edited ${formatDateTime(note.updatedAt)} · ${words} word${words === 1 ? '' : 's'}`;
+    `Created ${formatDateTime(note.createdAt)} · Edited ${formatDateTime(note.updatedAt)}`;
 }
 
 export function renderFolders() {
@@ -251,6 +251,7 @@ export function renderMoveFolderSelect() {
   dom.deleteNoteBtnEl.disabled = !note;
   renderFolderDropdown();
   renderAddDropdown();
+  renderEditorMoreMenu();
 }
 
 export function renderEditor() {

@@ -18,6 +18,8 @@ import {
 import { initConfirmModal } from './confirm.js';
 import { initInNoteSearch, openInNoteSearch } from './in-note-search.js';
 import { initAddDropdown } from './add-dropdown.js';
+import { initFormatSheet } from './format-sheet.js';
+import { initEditorMoreMenu } from './editor-more-menu.js';
 import { initAuth, applyEditMode, canEdit } from './auth.js';
 
 document.getElementById('newNoteBtn').addEventListener('click', createNote);
@@ -133,6 +135,8 @@ initMobileNav();
 initFolderDropdown();
 initSortDropdown();
 initAddDropdown();
+initFormatSheet();
+initEditorMoreMenu({ onDeleteNote: deleteActiveNote });
 initConfirmModal();
 initInNoteSearch();
 

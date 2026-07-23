@@ -1134,7 +1134,10 @@ export function updateFormatToolbar() {
   const sel = window.getSelection();
   const inEditor = !!(sel?.rangeCount && sel.anchorNode && dom.contentInputEl.contains(sel.anchorNode));
 
-  dom.formatToolbarEl.querySelectorAll('[data-format]').forEach(btn => {
+  const formatButtons = document.querySelectorAll(
+    '#formatToolbar [data-format], #formatSheet [data-format]'
+  );
+  formatButtons.forEach(btn => {
     const format = btn.dataset.format;
     const togglable = ['bold', 'italic', 'strike', 'h1', 'h2', 'bullet', 'numbered', 'checkbox'].includes(format);
     btn.classList.toggle('active', inEditor && togglable && isFormatActive(format));
