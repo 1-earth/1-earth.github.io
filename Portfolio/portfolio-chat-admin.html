@@ -158,6 +158,101 @@
       padding: 0 12px 12px;
     }
 
+    .session-chatlog {
+      display: grid;
+      gap: 14px;
+      padding: 0 14px 16px;
+    }
+
+    .chat-exchange {
+      display: grid;
+      gap: 9px;
+      padding: 12px;
+      border: 0.5px solid var(--line);
+      border-radius: 20px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .exchange-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .exchange-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .chat-turn {
+      display: grid;
+      gap: 5px;
+      width: min(84%, 760px);
+    }
+
+    .chat-turn--visitor {
+      justify-self: end;
+      text-align: right;
+    }
+
+    .chat-turn--george {
+      justify-self: start;
+    }
+
+    .chat-speaker {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .chat-bubble {
+      border: 0.5px solid var(--line);
+      border-radius: 18px;
+      padding: 11px 12px;
+      background: rgba(255,255,255,0.055);
+      text-align: left;
+    }
+
+    .chat-turn--visitor .chat-bubble {
+      background: var(--blue);
+      border-color: rgba(255,255,255,0.56);
+    }
+
+    .chat-turn--george .chat-bubble {
+      border-color: rgba(255,140,0,0.38);
+      background: rgba(24,24,24,0.94);
+    }
+
+    .exchange-details {
+      border: 0.5px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.035);
+      overflow: hidden;
+    }
+
+    .exchange-details summary {
+      padding: 8px 10px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      list-style: none;
+    }
+
+    .exchange-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .exchange-details pre {
+      padding: 0 10px 10px;
+      color: rgba(255,255,255,0.72);
+      font-size: 0.8rem;
+    }
+
     .log-card {
       border: 0.5px solid var(--line);
       border-radius: 22px;
@@ -232,10 +327,10 @@
     }
 
     .links {
-      padding: 0 14px 14px;
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+      margin-top: 10px;
     }
 
     .links a {
@@ -278,6 +373,27 @@
       .log-section {
         border-right: 0;
         border-bottom: 0.5px solid var(--line);
+      }
+
+      .session-chatlog {
+        padding: 0 10px 12px;
+      }
+
+      .exchange-meta {
+        display: block;
+      }
+
+      .exchange-actions {
+        margin-top: 8px;
+      }
+
+      .chat-turn {
+        width: 100%;
+      }
+
+      .chat-turn--visitor {
+        width: 92%;
+        margin-left: auto;
       }
     }
   </style>
@@ -378,28 +494,35 @@
         }).join('') + '</div>';
       }
 
-      function renderLog(doc) {
+      function renderChatExchange(doc, index) {
         var data = doc.data() || {};
-        var meta = [
-          formatDate(data.createdAt),
-          data.sessionId || 'no session',
-          data.origin || 'no origin'
-        ];
+        var exchangeLabel = 'Exchange ' + (index + 1);
+        var timestamp = formatDate(data.createdAt);
+        var matchedWorks = formatMatchedWorks(data.matchedWorks);
+        var history = formatHistory(data.history);
 
-        return '<article class="log-card" data-id="' + escapeText(doc.id) + '">' +
-          '<div class="log-card__top">' +
-            '<div class="log-meta">' + meta.map(function (item) {
-              return '<span class="pill">' + escapeText(item) + '</span>';
-            }).join('') + '</div>' +
-            '<button class="delete-btn" type="button" data-delete="' + escapeText(doc.id) + '">Delete</button>' +
+        return '<article class="chat-exchange" data-id="' + escapeText(doc.id) + '">' +
+          '<div class="exchange-meta">' +
+            '<div class="log-meta">' +
+              '<span class="pill">' + escapeText(exchangeLabel) + '</span>' +
+              '<span class="pill">' + escapeText(timestamp) + '</span>' +
+            '</div>' +
+            '<div class="exchange-actions">' +
+              '<button class="delete-btn" type="button" data-delete="' + escapeText(doc.id) + '">Delete exchange</button>' +
+            '</div>' +
           '</div>' +
-          '<div class="log-body">' +
-            '<div class="log-section"><h2>User Message</h2><pre>' + escapeText(data.message) + '</pre></div>' +
-            '<div class="log-section"><h2>George2 Answer</h2><pre>' + escapeText(data.answer) + '</pre></div>' +
-            '<div class="log-section"><h2>Recent History</h2><pre>' + escapeText(formatHistory(data.history)) + '</pre></div>' +
-            '<div class="log-section"><h2>Matched Works</h2><pre>' + escapeText(formatMatchedWorks(data.matchedWorks)) + '</pre></div>' +
+          '<div class="chat-turn chat-turn--visitor">' +
+            '<div class="chat-speaker">Visitor</div>' +
+            '<div class="chat-bubble"><pre>' + escapeText(data.message || '') + '</pre></div>' +
           '</div>' +
-          renderLinks(data.links) +
+          '<div class="chat-turn chat-turn--george">' +
+            '<div class="chat-speaker">George²</div>' +
+            '<div class="chat-bubble"><pre>' + escapeText(data.answer || '') + '</pre>' + renderLinks(data.links) + '</div>' +
+          '</div>' +
+          '<details class="exchange-details">' +
+            '<summary>Stored context + matched works</summary>' +
+            '<pre>Recent history sent to AI:\n\n' + escapeText(history) + '\n\nMatched works:\n\n' + escapeText(matchedWorks) + '</pre>' +
+          '</details>' +
         '</article>';
       }
 
@@ -464,7 +587,7 @@
               '<button class="delete-btn" type="button" data-delete-session="' + escapeText(group.id) + '" data-count="' + docs.length + '">Delete session</button>' +
             '</div>' +
           '</summary>' +
-          '<div class="session-logs">' + docs.map(renderLog).join('') + '</div>' +
+          '<div class="session-chatlog">' + docs.map(renderChatExchange).join('') + '</div>' +
         '</details>';
       }
 
@@ -506,15 +629,19 @@
       }
 
       async function deleteLog(id) {
-        if (!id || !window.confirm('Delete this chat log?')) return;
+        if (!id || !window.confirm('Delete this exchange?')) return;
         try {
           await db.collection('portfolioChatLogs').doc(id).delete();
-          var card = logs.querySelector('[data-id="' + CSS.escape(id) + '"]');
-          if (card) card.remove();
-          setStatus('Deleted log.');
+          var exchange = logs.querySelector('[data-id="' + CSS.escape(id) + '"]');
+          var group = exchange ? exchange.closest('.session-group') : null;
+          if (exchange) exchange.remove();
+          if (group && !group.querySelector('[data-id]')) {
+            group.remove();
+          }
+          setStatus('Deleted exchange.');
         } catch (error) {
           console.error(error);
-          setStatus('Could not delete log. Check Firestore delete rules.');
+          setStatus('Could not delete exchange. Check Firestore delete rules.');
         }
       }
 

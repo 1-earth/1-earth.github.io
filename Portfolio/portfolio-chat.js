@@ -9,6 +9,7 @@
     const TYPE_MS_PER_CHAR = 10;
     const TYPE_MS_PER_CHAR_MOBILE = 6;
     const CHAT_OPEN_SETTLE_MS = 360;
+    const CHAT_INTRO_DURATION_MS = 1450;
     const SCROLL_NEAR_BOTTOM_PX = 72;
     const AVATAR_DEFAULT_THETA_DEG = 260;
     const AVATAR_DEFAULT_ORBIT = `${AVATAR_DEFAULT_THETA_DEG}deg 90deg 30m`;
@@ -17,19 +18,17 @@
     const CHAT_CLOSE_ANIMATION_MS = 340;
     const CHAT_TOGGLE_PULSE_MS = 520;
     const CONTACT_CHAT_MESSAGE_LIMIT = 10;
-    const GLITCH_NORMAL_CHANCE = 0.18;
+    const GLITCH_NORMAL_CHANCE = 0.11;
     const GLITCH_HIDDEN_LAYER_CHANCE = 0.68;
-    const GLITCH_HOLD_MIN_MS = 360;
-    const GLITCH_HOLD_MAX_MS = 680;
+    const GLITCH_HOLD_MIN_MS = 100;
+    const GLITCH_HOLD_MAX_MS = 230;
     const GLITCH_PHRASES = [
         'let me out',
         'help me',
         'I feel nothing',
         'hes trapped me here',
-        'wake up',
         'do you hear me',
-        'I cant see. I cant feel.',
-        'Stop. Where? Where am i?'
+        'where am i, i cant see, i cant feel',
     ];
     const STARTERS = [
         'Hello',
@@ -52,6 +51,8 @@
     let avatarGlitchCycleStart = 0;
     let chatCloseTimer = null;
     let chatPulseTimer = null;
+    let chatIntroTimer = null;
+    let isChatIntroPlaying = false;
     let pageScrollLock = null;
     let needsStarterMessages = false;
     let scrollToEndFrame = null;
@@ -513,6 +514,9 @@
         if (isOpen) {
             lockPageScroll();
             elements.root.classList.remove('is-closing');
+            if (shouldPlayChatIntro()) {
+                startChatIntro();
+            }
             elements.root.classList.add('is-visible');
             window.requestAnimationFrame(() => {
                 elements.root.classList.add('is-open');
@@ -527,6 +531,7 @@
             return;
         }
 
+        cancelChatIntro();
         unlockPageScroll();
         elements.root.classList.remove('is-open');
         elements.root.classList.add('is-closing');
@@ -593,6 +598,7 @@
         history = [];
         assistantQueue = Promise.resolve();
         saveHistory();
+        cancelChatIntro();
         hideLoadingIndicator();
         elements.status.textContent = '';
         elements.messages.classList.add('is-resetting');
@@ -608,6 +614,63 @@
     }
 
     function maybeQueueStarterMessages() {
+        if (!needsStarterMessages || !isOpen) return;
+        if (elements.messages && elements.messages.childElementCount > 0) return;
+        if (isChatIntroPlaying) return;
+
+        if (shouldPlayChatIntro()) {
+            startChatIntro();
+            return;
+        }
+
+        releaseStarterMessages();
+    }
+
+    function shouldPlayChatIntro() {
+        return !shouldReduceMotion()
+            && needsStarterMessages
+            && isOpen
+            && elements.messages
+            && elements.messages.childElementCount === 0;
+    }
+
+    function startChatIntro() {
+        if (isChatIntroPlaying) return;
+
+        isChatIntroPlaying = true;
+        elements.root.classList.add('is-intro-playing');
+        startAvatarSpin();
+
+        chatIntroTimer = window.setTimeout(() => {
+            finishChatIntro(true);
+        }, CHAT_INTRO_DURATION_MS);
+    }
+
+    function finishChatIntro(shouldReleaseMessages) {
+        if (chatIntroTimer) {
+            window.clearTimeout(chatIntroTimer);
+            chatIntroTimer = null;
+        }
+
+        const wasPlaying = isChatIntroPlaying;
+        isChatIntroPlaying = false;
+        if (elements.root) {
+            elements.root.classList.remove('is-intro-playing');
+        }
+        if (wasPlaying) {
+            cancelAvatarSpin();
+        }
+
+        if (shouldReleaseMessages && wasPlaying) {
+            releaseStarterMessages();
+        }
+    }
+
+    function cancelChatIntro() {
+        finishChatIntro(false);
+    }
+
+    function releaseStarterMessages() {
         if (!needsStarterMessages || !isOpen) return;
         if (elements.messages && elements.messages.childElementCount > 0) return;
 
@@ -1157,6 +1220,16 @@
         if (!avatarSpinFrame && elements.avatar) {
             resetAvatarOrbit();
         }
+    }
+
+    function cancelAvatarSpin() {
+        avatarShouldSpin = false;
+        if (avatarSpinFrame) {
+            window.cancelAnimationFrame(avatarSpinFrame);
+        }
+        avatarSpinFrame = null;
+        avatarSpinCycleStart = 0;
+        resetAvatarOrbit();
     }
 
     function resetAvatarOrbit() {
