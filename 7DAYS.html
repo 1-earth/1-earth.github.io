@@ -148,7 +148,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            min-width: 0;§
+            min-width: 0;
             font-size: 1.05rem;
         }
 
@@ -157,6 +157,22 @@
             height: 32px;
             object-fit: contain;
             flex-shrink: 0;
+        }
+
+        .youtube-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 24px;
+            flex-shrink: 0;
+            background: #ff0033;
+            border-radius: 6px;
+        }
+
+        .youtube-icon img {
+            width: 22px;
+            height: 16px;
         }
 
         .stream-play {
@@ -242,12 +258,24 @@
     </header> -->
 
     <main class="release">
+        
         <img class="cover" src="Portfolio/static/img/7-days-cover.jpg" width="800" height="800" alt="7 Days cover art. George Symonds, Vicky Kosasie, Jesse Ayo and Macz Payne.">
-        <!-- <h1>7 Days</h1>
+        <!-- <h1>LISTEN TO </h1>
         <p class="artist">George Symonds, Vicky Kosasie, Jesse Ayo &amp; Macz Payne</p>
-        <p class="feat">ft. Vicky Kosasie, Jesse Ayo &amp; Macz Payne</p> -->
-
+        <p class="feat">ft. Vicky Kosasie, Jesse Ayo &amp; Macz Payne</p> 
+ -->
         <ul class="streams">
+            <li>
+                <a class="stream-link" href="https://www.youtube.com/watch?v=bTXHBBtAm1U" target="_blank" rel="noopener noreferrer">
+                    <span class="stream-brand">
+                        <span class="youtube-icon" aria-hidden="true">
+                            <img src="Portfolio/static/img/icon-youtube-white.svg" alt="" width="22" height="16">
+                        </span>
+                        YouTube
+                    </span>
+                    <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                </a>
+            </li>
             <li>
                 <a class="stream-link" href="https://open.spotify.com/track/2EOpFscOAIZfkYIcB74ZYo" target="_blank" rel="noopener noreferrer">
                     <span class="stream-brand">
