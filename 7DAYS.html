@@ -76,14 +76,14 @@
         .release {
             width: min(100% - 32px, 480px);
             margin: 0 auto;
-            padding: 92px 0 48px;
+            padding: 52px 0 48px;
             text-align: center;
             position: relative;
             z-index: 2;
         }
 
         .cover {
-            width: min(78%, 280px);
+            width: min(78%, 200px);
             height: auto;
             display: block;
             margin: 0 auto 28px;
@@ -159,20 +159,14 @@
             flex-shrink: 0;
         }
 
-        .youtube-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 24px;
-            flex-shrink: 0;
-            background: #ff0033;
-            border-radius: 6px;
-        }
-
-        .youtube-icon img {
-            width: 22px;
-            height: 16px;
+        .youtube-video {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            border: 0.5px solid #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
 
         .stream-play {
@@ -228,7 +222,7 @@
 
         @media (max-width: 768px) {
             .release {
-                padding-top: 108px;
+                padding-top: 78px;
             }
 
             .release h1 {
@@ -266,15 +260,7 @@
  -->
         <ul class="streams">
             <li>
-                <a class="stream-link" href="https://www.youtube.com/watch?v=bTXHBBtAm1U" target="_blank" rel="noopener noreferrer">
-                    <span class="stream-brand">
-                        <span class="youtube-icon" aria-hidden="true">
-                            <img src="Portfolio/static/img/icon-youtube-white.svg" alt="" width="22" height="16">
-                        </span>
-                        YouTube
-                    </span>
-                    <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
-                </a>
+                <iframe class="youtube-video" width="560" height="315" src="https://www.youtube.com/embed/bTXHBBtAm1U?si=8TobIfPiHiFndw_v" title="7 Days — YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </li>
             <li>
                 <a class="stream-link" href="https://open.spotify.com/track/2EOpFscOAIZfkYIcB74ZYo" target="_blank" rel="noopener noreferrer">
@@ -307,7 +293,7 @@
     </main>
 
     <footer class="release-footer">
-        <p>Website Designed &amp; Developed by 🌐 <a href="/">ONE EARTH PRODUCTIONS</a></p>
+        <p>Website by 🌐 <a href="/">ONE EARTH PRODUCTIONS</a></p>
     </footer>
 
     <script src="Portfolio/site-title-glitch.js"></script>
