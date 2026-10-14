@@ -76,17 +76,25 @@
         .release {
             width: min(100% - 32px, 480px);
             margin: 0 auto;
-            padding: 52px 0 48px;
+            padding: 23px 0 48px;
             text-align: center;
             position: relative;
             z-index: 2;
         }
 
+        .kr-logo {
+            display: block;
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            margin: 0 auto 24px;
+        }
+
         .cover {
-            width: min(78%, 200px);
+            width: min(78%, 100px);
             height: auto;
             display: block;
-            margin: 0 auto 28px;
+            margin: 0 auto 78px;
         }
 
         .release h1 {
@@ -222,7 +230,7 @@
 
         @media (max-width: 768px) {
             .release {
-                padding-top: 78px;
+                padding-top: 23px;
             }
 
             .release h1 {
@@ -252,7 +260,7 @@
     </header> -->
 
     <main class="release">
-        
+        <img class="kr-logo" src="Portfolio/static/img/KRICON.png" width="56" height="56" alt="KR">
         <img class="cover" src="Portfolio/static/img/7-days-cover.jpg" width="800" height="800" alt="7 Days cover art. George Symonds, Vicky Kosasie, Jesse Ayo and Macz Payne.">
         <!-- <h1>LISTEN TO </h1>
         <p class="artist">George Symonds, Vicky Kosasie, Jesse Ayo &amp; Macz Payne</p>
