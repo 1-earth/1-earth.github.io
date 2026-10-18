@@ -18,9 +18,9 @@
                     </a>
 
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="index.html#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html" aria-current="page">Studio</a></li>
                     </ul>
 
@@ -47,9 +47,9 @@
 
                 <div class="mobile-panel" id="mobile-panel" aria-hidden="true">
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="index.html#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html" aria-current="page">Studio</a></li>
                     </ul>
                     <div class="mobile-icons">
@@ -117,14 +117,14 @@
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="pitch">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Pitch / Article</span>
+                                    <span class="form-check__text">Words</span>
                                 </label>
                             </li>
                             <li>
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="visual">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Visual Art / Photography</span>
+                                    <span class="form-check__text">Visuals</span>
                                 </label>
                             </li>
                             <li>
@@ -146,7 +146,7 @@
                 </form>
 
                 <form class="site-form" action="#" method="post">
-                    <h2 class="site-form__title">Join <br>the Team</h2>
+                    <h2 class="site-form__title">Join <br>the SEIZE Team</h2>
 
                     <div class="form-row form-row--split">
                         <div class="form-field">
@@ -176,7 +176,7 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label" for="join-about">Tell us why you want to join the team and what you do</label>
+                        <label class="form-label" for="join-about">Tell us a bit about you and why you want to join the team</label>
                         <textarea class="form-input form-input--area" id="join-about" name="about" rows="5"></textarea>
                     </div>
 
@@ -194,7 +194,6 @@
                     <li><a href="STUDIO.html">STUDIO</a></li>
                     <li><a href="#">INSTAGRAM</a></li>
                     <li><a href="#">EMAIL</a></li>
-                    <li><a href="#">Memo Approved</a></li>
                 </ul>
             </nav>
             <p class="site-footer__credit">
@@ -226,6 +225,10 @@
 
             toggle.addEventListener("click", function () {
                 setOpen(!document.body.classList.contains("menu-open"));
+            });
+
+            panel.addEventListener("click", function (event) {
+                if (event.target.closest("a")) setOpen(false);
             });
 
             window.addEventListener("resize", function () {

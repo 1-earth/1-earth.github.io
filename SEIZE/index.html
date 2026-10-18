@@ -20,9 +20,9 @@
                     </a>
 
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
 
@@ -49,9 +49,9 @@
 
                 <div class="mobile-panel" id="mobile-panel" aria-hidden="true">
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
                     <div class="mobile-icons">
@@ -115,7 +115,7 @@
 
         <section class="issues" aria-label="Magazine issues">
             <div class="issues__grid">
-                <article class="issue-card">
+                <a class="issue-card" href="https://www.1-earth.world" aria-label="View Issue 1: Imposter Syndrome">
                     <div class="issue-card__cover">
                         <video
                             class="issue-card__video"
@@ -132,9 +132,9 @@
                         <p class="issue-card__number">Issue 1</p>
                         <p class="issue-card__title">Imposter Syndrome</p>
                     </div>
-                </article>
+                </a>
 
-                <article class="issue-card">
+                <a class="issue-card" href="https://www.1-earth.world" aria-label="View Issue 2: Sell Out">
                     <div class="issue-card__cover">
                         <video
                             class="issue-card__video"
@@ -151,9 +151,9 @@
                         <p class="issue-card__number">Issue 2</p>
                         <p class="issue-card__title">Sell Out</p>
                     </div>
-                </article>
+                </a>
 
-                <article class="issue-card">
+                <a class="issue-card" href="https://www.1-earth.world" aria-label="View Issue 3: Connect">
                     <div class="issue-card__cover">
                         <video
                             class="issue-card__video"
@@ -170,7 +170,7 @@
                         <p class="issue-card__number">Issue 3</p>
                         <p class="issue-card__title">Connect</p>
                     </div>
-                </article>
+                </a>
             </div>
         </section>
 
@@ -180,7 +180,7 @@
             <div class="trigger-zone"></div>
         </div>
 
-        <section class="forms-section" aria-label="Contact forms">
+        <section class="forms-section" id="contribute" aria-label="Contact forms">
             <div class="forms-section__grid">
                 <form class="site-form" action="#" method="post">
                     <h2 class="site-form__title">Contribute to <BR>the Magazine</h2>
@@ -219,14 +219,14 @@
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="pitch">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Pitch / Article</span>
+                                    <span class="form-check__text">Words</span>
                                 </label>
                             </li>
                             <li>
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="visual">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Visual Art / Photography</span>
+                                    <span class="form-check__text">Visuals</span>
                                 </label>
                             </li>
                             <li>
@@ -248,7 +248,7 @@
                 </form>
 
                 <form class="site-form" action="#" method="post">
-                    <h2 class="site-form__title">Join <br>the Team</h2>
+                    <h2 class="site-form__title">Join <br>the SEIZE Team</h2>
 
                     <div class="form-row form-row--split">
                         <div class="form-field">
@@ -278,7 +278,7 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label" for="join-about">Tell us why you want to join the team and what you do</label>
+                        <label class="form-label" for="join-about">Tell us a bit about you and why you want to join the team</label>
                         <textarea class="form-input form-input--area" id="join-about" name="about" rows="5"></textarea>
                     </div>
 
@@ -296,7 +296,6 @@
                     <li><a href="STUDIO.html">STUDIO</a></li>
                     <li><a href="#">INSTAGRAM</a></li>
                     <li><a href="#">EMAIL</a></li>
-                    <li><a href="#">Memo Approved</a></li>
                 </ul>
             </nav>
             <p class="site-footer__credit">
@@ -332,6 +331,10 @@
 
             toggle.addEventListener("click", function () {
                 setOpen(!document.body.classList.contains("menu-open"));
+            });
+
+            panel.addEventListener("click", function (event) {
+                if (event.target.closest("a")) setOpen(false);
             });
 
             window.addEventListener("resize", function () {
@@ -443,6 +446,7 @@
             function updateSiteTopHeight() {
                 var height = siteTop.offsetHeight;
                 document.documentElement.style.setProperty("--site-top-h", height + "px");
+                document.documentElement.style.setProperty("--sticky-header-h", header.offsetHeight + "px");
                 if (spacer) {
                     spacer.style.height = height + "px";
                 }
@@ -497,21 +501,23 @@
 
         gsap.registerPlugin(ScrollTrigger);
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(
-            75,
-            document.documentElement.clientWidth / window.innerHeight,
-            0.1,
-            1000
-        );
+        var canvasContainer = document.getElementById("canvas-container");
+        var scrollContainer = document.querySelector(".scroll-container");
+        var planeWidth = 3;
+        var planeHeight = 3 * (3300 / 2550);
+        var paperTimeline;
+        var paper;
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
         camera.position.z = 5;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
         function resizeRenderer() {
-            var w = document.documentElement.clientWidth;
-            var h = window.innerHeight;
+            var w = canvasContainer.clientWidth || document.documentElement.clientWidth;
+            var h = canvasContainer.clientHeight || window.innerHeight;
             renderer.setSize(w, h, false);
             renderer.domElement.style.width = "100%";
             renderer.domElement.style.height = "100%";
@@ -520,9 +526,9 @@
         }
 
         resizeRenderer();
-        document.getElementById("canvas-container").appendChild(renderer.domElement);
+        canvasContainer.appendChild(renderer.domElement);
 
-        const vertexShader = `
+        var vertexShader = `
             varying vec2 vUv;
             uniform float uBend;
             void main() {
@@ -533,7 +539,7 @@
             }
         `;
 
-        const fragmentShader = `
+        var fragmentShader = `
             varying vec2 vUv;
             uniform sampler2D uTexture;
             void main() {
@@ -541,36 +547,150 @@
             }
         `;
 
-        const texture = new THREE.TextureLoader().load("texture.jpg");
-        const geometry = new THREE.PlaneGeometry(3, 4.24, 32, 32);
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms: { uTexture: { value: texture }, uBend: { value: 0 } },
-            side: THREE.DoubleSide
-        });
+        function getPaperMetrics() {
+            resizeRenderer();
+            var viewportH = window.innerHeight;
+            var canvasHeight = canvasContainer.clientHeight || viewportH;
+            var header = document.querySelector(".site-header");
+            var headerHeight = header ? header.offsetHeight : 0;
+            var extraPx = Math.max(0, (canvasHeight - viewportH) / 2);
+            var readingZ = 1.5;
+            var distance = camera.position.z - readingZ;
+            var visibleHeight = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
+            var visibleWidth = visibleHeight * camera.aspect;
+            var pxToWorld = visibleHeight / canvasHeight;
+            var viewportTop = visibleHeight / 2 - extraPx * pxToWorld;
+            var viewportBottom = -visibleHeight / 2 + extraPx * pxToWorld;
+            var headerWorld = headerHeight * pxToWorld;
+            var usableTop = viewportTop - headerWorld;
+            var usableBottom = viewportBottom;
+            var usableHeight = Math.max(usableTop - usableBottom, visibleHeight * 0.4);
+            var widthRatio = window.matchMedia("(max-width: 700px)").matches ? 1 : 0.9;
+            var paperScale = (visibleWidth * widthRatio) / planeWidth;
+            var paperWorldHeight = planeHeight * paperScale;
+            var overflowWorld = Math.max(0, paperWorldHeight - usableHeight);
+            var overflowPixels = overflowWorld / pxToWorld;
+            var foldDistance = viewportH;
+            var readingDistance = overflowPixels > 0 ? overflowPixels : viewportH * 0.35;
+            var topY = usableTop - paperWorldHeight / 2;
+            var bottomY = usableBottom + paperWorldHeight / 2;
 
-        const paper = new THREE.Mesh(geometry, material);
-        paper.position.set(-2, -8, -2);
-        paper.rotation.set(0.5, -0.5, 0.2);
-        scene.add(paper);
-
-        const tl = gsap.timeline({
-            scrollTrigger: {
-                trigger: ".scroll-container",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1.5
+            if (overflowWorld === 0) {
+                topY = bottomY = (usableTop + usableBottom) / 2;
             }
-        });
 
-        tl.to(paper.position, { x: 0, y: 0, z: 1.5, duration: 1 })
-            .to(paper.rotation, { x: 0, y: 0, z: 0, duration: 1 }, "<")
-            .to(paper.material.uniforms.uBend, { value: 0.5, duration: 0.5 }, 0)
-            .to(paper.material.uniforms.uBend, { value: 0, duration: 0.5 }, 0.5)
-            .to(paper.position, { y: 0, duration: 0.5 })
-            .to(paper.position, { x: 2, y: 8, z: -2, duration: 1 })
-            .to(paper.rotation, { x: -0.5, y: 0.5, z: -0.2, duration: 1 }, "<");
+            return {
+                visibleWidth: visibleWidth,
+                usableHeight: usableHeight,
+                scale: paperScale,
+                topY: topY,
+                bottomY: bottomY,
+                foldDistance: foldDistance,
+                readingDistance: readingDistance
+            };
+        }
+
+        function buildPaperTimeline() {
+            if (!paper || !scrollContainer) return;
+
+            var metrics = getPaperMetrics();
+            var foldDistance = metrics.foldDistance;
+            var readingDistance = metrics.readingDistance;
+
+            if (paperTimeline) {
+                if (paperTimeline.scrollTrigger) paperTimeline.scrollTrigger.kill();
+                paperTimeline.kill();
+            }
+
+            paper.scale.setScalar(metrics.scale);
+            paper.position.set(-metrics.visibleWidth, metrics.topY - metrics.usableHeight, -2);
+            paper.rotation.set(0.5, -0.5, 0.2);
+            paper.material.uniforms.uBend.value = 0;
+
+            paperTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: scrollContainer,
+                    start: "top top",
+                    end: function () {
+                        return "+=" + (foldDistance * 2 + readingDistance);
+                    },
+                    pin: true,
+                    scrub: 1.5,
+                    invalidateOnRefresh: true
+                }
+            });
+
+            paperTimeline
+                .to(paper.position, {
+                    x: 0,
+                    y: metrics.topY,
+                    z: 1.5,
+                    duration: foldDistance,
+                    ease: "power2.out"
+                })
+                .to(paper.rotation, {
+                    x: 0,
+                    y: 0,
+                    z: 0,
+                    duration: foldDistance,
+                    ease: "power2.out"
+                }, "<")
+                .to(paper.material.uniforms.uBend, {
+                    value: 0.5,
+                    duration: foldDistance * 0.5
+                }, 0)
+                .to(paper.material.uniforms.uBend, {
+                    value: 0,
+                    duration: foldDistance * 0.5
+                }, foldDistance * 0.5)
+                .to(paper.position, {
+                    y: metrics.bottomY,
+                    duration: readingDistance,
+                    ease: "none"
+                })
+                .to(paper.position, {
+                    x: metrics.visibleWidth,
+                    y: metrics.bottomY + metrics.usableHeight,
+                    z: -2,
+                    duration: foldDistance,
+                    ease: "power2.in"
+                })
+                .to(paper.rotation, {
+                    x: -0.5,
+                    y: 0.5,
+                    z: -0.2,
+                    duration: foldDistance,
+                    ease: "power2.in"
+                }, "<")
+                .to(paper.material.uniforms.uBend, {
+                    value: 0.5,
+                    duration: foldDistance * 0.5
+                }, "<")
+                .to(paper.material.uniforms.uBend, {
+                    value: 0,
+                    duration: foldDistance * 0.5
+                }, foldDistance + readingDistance + foldDistance * 0.5);
+        }
+
+        function createPaper(texture) {
+            if (texture.image && texture.image.width && texture.image.height) {
+                planeHeight = planeWidth * (texture.image.height / texture.image.width);
+            }
+
+            var material = new THREE.ShaderMaterial({
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader,
+                uniforms: { uTexture: { value: texture }, uBend: { value: 0 } },
+                side: THREE.DoubleSide
+            });
+
+            paper = new THREE.Mesh(new THREE.PlaneGeometry(planeWidth, planeHeight, 32, 32), material);
+            scene.add(paper);
+            buildPaperTimeline();
+            ScrollTrigger.refresh();
+        }
+
+        new THREE.TextureLoader().load("letter.jpg", createPaper);
 
         function animate() {
             renderer.render(scene, camera);
@@ -578,12 +698,18 @@
         }
         animate();
 
+        var resizeFrame;
         window.addEventListener("resize", function () {
-            resizeRenderer();
-            ScrollTrigger.refresh();
+            cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(function () {
+                resizeRenderer();
+                buildPaperTimeline();
+                ScrollTrigger.refresh();
+            });
         });
 
         window.addEventListener("load", function () {
+            buildPaperTimeline();
             ScrollTrigger.refresh();
         });
     </script>

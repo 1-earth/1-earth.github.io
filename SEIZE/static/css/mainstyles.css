@@ -29,12 +29,13 @@ body {
 /* WebGL sits behind page content; visible once hero / opaque layers scroll away */
 #canvas-container {
     position: fixed;
-    top: 0;
+    top: 50%;
     left: 0;
     width: 100%;
     max-width: 100%;
-    height: 100vh;
-    height: 100svh;
+    height: 240vh;
+    height: 240svh;
+    transform: translateY(-50%);
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
@@ -73,8 +74,8 @@ body {
 }
 
 .site-top.is-nav-hidden {
-    transform: translate3d(0, calc(-1 * var(--site-top-h, 120px)), 0);
-    pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    pointer-events: auto;
 }
 
 .site-top-spacer {
@@ -133,7 +134,7 @@ body {
 
 .logo-link img {
     margin:10px;
-    height: 60px;
+    height: 53px;
     width: auto;
     display: block;
 }
@@ -491,14 +492,22 @@ noscript .hero-noscript-wrap {
     flex-direction: column;
     align-items: center;
     gap: clamp(0.75rem, 2vw, 1.25rem);
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .issue-card__cover {
     width: 100%;
     aspect-ratio: 3 / 4.2;
     background: var(--hero-gray);
+    /* border: 2px solid transparent; */
     overflow: hidden;
     position: relative;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.2s ease,
+                box-shadow 0.28s ease;
 }
 
 .issue-card__video {
@@ -506,10 +515,40 @@ noscript .hero-noscript-wrap {
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .issue-card__caption {
     text-align: center;
+    transition: color 0.2s ease, transform 0.28s ease;
+}
+
+.issue-card:hover,
+.issue-card:focus-visible {
+    transform: translateY(-10px);
+}
+
+.issue-card:hover .issue-card__cover,
+.issue-card:focus-visible .issue-card__cover {
+    transform: rotate(-1deg) scale(1.015);
+    border-color: var(--pink);
+    box-shadow: 10px 12px 0 var(--pink);
+}
+
+.issue-card:hover .issue-card__video,
+.issue-card:focus-visible .issue-card__video {
+    transform: scale(1.04);
+}
+
+.issue-card:hover .issue-card__caption,
+.issue-card:focus-visible .issue-card__caption {
+    color: var(--pink);
+    transform: translateY(4px);
+}
+
+.issue-card:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 8px;
 }
 
 .issue-card__number,
@@ -530,10 +569,31 @@ noscript .hero-noscript-wrap {
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .issue-card,
+    .issue-card__cover,
+    .issue-card__video,
+    .issue-card__caption {
+        transition: none;
+    }
+
+    .issue-card:hover,
+    .issue-card:focus-visible,
+    .issue-card:hover .issue-card__cover,
+    .issue-card:focus-visible .issue-card__cover,
+    .issue-card:hover .issue-card__video,
+    .issue-card:focus-visible .issue-card__video,
+    .issue-card:hover .issue-card__caption,
+    .issue-card:focus-visible .issue-card__caption {
+        transform: none;
+    }
+}
+
 /* Scroll stage — transparent so canvas reads through */
 .scroll-container {
     position: relative;
-    height: 300vh;
+    height: 100vh;
+    height: 100svh;
     background: transparent;
 }
 
@@ -566,7 +626,11 @@ noscript .hero-noscript-wrap {
     color: var(--white);
     width: 100%;
     max-width: 100%;
-    padding: clamp(3rem, 8vw, 5rem) clamp(1.25rem, 4vw, 3rem);
+    padding: clamp(1rem, 2vw, 5rem) clamp(1.25rem, 4vw, 3rem);
+}
+
+#contribute {
+    scroll-margin-top: calc(var(--site-top-h, 120px) + 0.2rem);
 }
 
 .forms-section__grid {
@@ -614,7 +678,7 @@ noscript .hero-noscript-wrap {
     border: none;
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 1rem;
 }
 
 .form-label {
@@ -658,6 +722,7 @@ noscript .hero-noscript-wrap {
     display: flex;
     flex-direction: column;
     gap: 0.55rem;
+    margin-top: 0.6rem;
 }
 
 .form-check {
@@ -692,7 +757,7 @@ noscript .hero-noscript-wrap {
 }
 
 .form-check__input:checked + .form-check__box {
-    background: var(--white);
+    background: var(--pink);
 }
 
 .form-check__text {
@@ -797,6 +862,146 @@ noscript .hero-noscript-wrap {
     color: var(--pink);
 }
 
+/* Shop page */
+.shop-page {
+    min-height: calc(100vh - var(--site-top-h, 120px));
+    min-height: calc(100svh - var(--site-top-h, 120px));
+    background: var(--black);
+    color: var(--white);
+    padding: clamp(3rem, 7vw, 6rem) clamp(1.25rem, 5vw, 4rem);
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.shop-card {
+    display: block;
+    min-width: 0;
+    color: var(--white);
+    text-decoration: none;
+}
+
+a.shop-card {
+    cursor: pointer;
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.shop-card__image-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 25 / 32;
+    overflow: hidden;
+    background: var(--hero-gray);
+    /* border: 2px solid transparent; */
+    transition: border-color 0.2s ease, box-shadow 0.28s ease;
+}
+
+.shop-card__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.shop-card__details {
+    padding-top: 0.8rem;
+    transition: color 0.2s ease, transform 0.28s ease;
+}
+
+.shop-card__title,
+.shop-card__price {
+    margin: 0;
+    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.shop-card__status {
+    position: absolute;
+    z-index: 2;
+    top: 9%;
+    right: 0;
+    min-width: 48%;
+    padding: 0.8rem 1rem;
+    background: var(--pink);
+    color: var(--black);
+    font-size: clamp(0.75rem, 1.3vw, 1rem);
+    font-weight: 900;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.shop-card--sold-out {
+    cursor: not-allowed;
+}
+
+a.shop-card:hover,
+a.shop-card:focus-visible {
+    transform: translateY(-10px);
+}
+
+a.shop-card:hover .shop-card__image-wrap,
+a.shop-card:focus-visible .shop-card__image-wrap {
+    border-color: var(--pink);
+    box-shadow: 10px 12px 0 var(--pink);
+}
+
+a.shop-card:hover .shop-card__image,
+a.shop-card:focus-visible .shop-card__image {
+    transform: scale(1.035);
+}
+
+a.shop-card:hover .shop-card__details,
+a.shop-card:focus-visible .shop-card__details {
+    color: var(--pink);
+    transform: translateY(4px);
+}
+
+a.shop-card:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 8px;
+}
+
+@media (max-width: 820px) {
+    .shop-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 540px) {
+    .shop-grid {
+        grid-template-columns: 1fr;
+        max-width: 360px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    a.shop-card,
+    .shop-card__image,
+    .shop-card__details {
+        transition: none;
+    }
+
+    a.shop-card:hover,
+    a.shop-card:focus-visible,
+    a.shop-card:hover .shop-card__image,
+    a.shop-card:focus-visible .shop-card__image,
+    a.shop-card:hover .shop-card__details,
+    a.shop-card:focus-visible .shop-card__details {
+        transform: none;
+    }
+}
+
 .visually-hidden {
     position: absolute;
     width: 1px;
@@ -889,6 +1094,19 @@ noscript .hero-noscript-wrap {
     padding: clamp(2.5rem, 7vw, 5rem) clamp(1.25rem, 4vw, 3rem);
 }
 
+.map {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    /* padding: 0 clamp(1.25rem, 4vw, 3rem); */
+}
+
+.map img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
 .about-section--team {
     padding-top: clamp(1rem, 3vw, 2rem);
     padding-bottom: clamp(3rem, 8vw, 6rem);
@@ -939,6 +1157,14 @@ noscript .hero-noscript-wrap {
     width: 100%;
     aspect-ratio: 1;
     background: var(--hero-gray);
+    overflow: hidden;
+}
+
+.about-mission__media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .about-mission__text {
@@ -993,6 +1219,14 @@ noscript .hero-noscript-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+}
+
+.about-team__photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .about-team__photo-label {

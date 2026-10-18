@@ -18,9 +18,9 @@
                     </a>
 
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html" aria-current="page">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="index.html#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
 
@@ -47,9 +47,9 @@
 
                 <div class="mobile-panel" id="mobile-panel" aria-hidden="true">
                     <ul class="nav-links">
-                        <li><a href="#">Shop</a></li>
+                        <li><a href="SHOP.html">Shop</a></li>
                         <li><a href="ABOUT.html" aria-current="page">About</a></li>
-                        <li><a href="#">Contribute</a></li>
+                        <li><a href="index.html#contribute">Contribute</a></li>
                         <li><a href="STUDIO.html">Studio</a></li>
                     </ul>
                     <div class="mobile-icons">
@@ -95,12 +95,14 @@
                 <h1 class="about-section__title">Our Mission <span class="about-section__subtitle">“one long sentence”</span></h1>
 
                 <div class="about-mission__grid">
-                    <div class="about-mission__media" aria-hidden="true"></div>
+                    <div class="about-mission__media">
+                        <img src="static/media/PHOTO-NEXTTOMANIFESTO.jpg" alt="A SEIZE event and exhibition">
+                    </div>
 
                     <div class="about-mission__content">
-                        <p class="about-mission__text">Founded while we were still students, SEIZE began as a “fake it till you make it” project and has grown into a platform for unfiltered perspectives from emerging artists navigating London’s creative scene.</p>
+                        <p class="about-mission__text">SEIZE is an independent arts and culture magazine reporting from the sharp edges of the young creative scene. Founded on the principle of “fake it til you make it,” it has since grown into a platform for emerging artists to share their work and unfiltered perspectives on the cultural landscape.</p>
 
-                        <div class="about-stores">
+                        <!-- <div class="about-stores">
                             <h2 class="about-stores__heading">Find us in stores (confirm availability)</h2>
                             <ul class="about-stores__list">
                                 <li><strong>London:</strong><br>MagCulture<br>Charlotte Street News<br>Taco!<br>Soho Good News.<br><br></li>
@@ -110,9 +112,12 @@
                                 <li><strong>Amsterdam:</strong><br>Athenaeum Boekhande.<br><br></li>
                                 <li><strong>NYC:</strong><br>…</li>
                             </ul>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
+            </section>
+            <section class="map">
+                <img src="static/media/map.jpg" alt="Map of stores in which SEIZE is available">
             </section>
 
             <section class="about-section about-section--team">
@@ -121,16 +126,16 @@
                 <div class="about-team__grid">
                     <article class="about-team__member">
                         <div class="about-team__photo">
-                            <span class="about-team__photo-label">childhood pic</span>
+                            <img src="static/media/BABY-NAT.jpg" alt="Nataliya Belova as a child">
                         </div>
-                        <p class="about-team__name">NB</p>
+                        <p class="about-team__name">Nataliya Belova</p>
                     </article>
 
                     <article class="about-team__member">
                         <div class="about-team__photo">
-                            <span class="about-team__photo-label">childhood pic</span>
+                            <img src="static/media/BABY-LUCY.jpg" alt="Lucinda Siegler as a child">
                         </div>
-                        <p class="about-team__name">LS</p>
+                        <p class="about-team__name">Lucinda Siegler</p>
                     </article>
                 </div>
 
@@ -177,14 +182,14 @@
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="pitch">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Pitch / Article</span>
+                                    <span class="form-check__text">Words</span>
                                 </label>
                             </li>
                             <li>
                                 <label class="form-check">
                                     <input class="form-check__input" type="checkbox" name="submitting" value="visual">
                                     <span class="form-check__box" aria-hidden="true"></span>
-                                    <span class="form-check__text">Visual Art / Photography</span>
+                                    <span class="form-check__text">Visuals</span>
                                 </label>
                             </li>
                             <li>
@@ -206,7 +211,7 @@
                 </form>
 
                 <form class="site-form" action="#" method="post">
-                    <h2 class="site-form__title">Join <br>the Team</h2>
+                    <h2 class="site-form__title">Join <br>the SEIZE Team</h2>
 
                     <div class="form-row form-row--split">
                         <div class="form-field">
@@ -236,7 +241,7 @@
                     </div>
 
                     <div class="form-field">
-                        <label class="form-label" for="join-about">Tell us why you want to join the team and what you do</label>
+                        <label class="form-label" for="join-about">Tell us a bit about you and why you want to join the team</label>
                         <textarea class="form-input form-input--area" id="join-about" name="about" rows="5"></textarea>
                     </div>
 
@@ -254,7 +259,6 @@
                     <li><a href="STUDIO.html">STUDIO</a></li>
                     <li><a href="#">INSTAGRAM</a></li>
                     <li><a href="#">EMAIL</a></li>
-                    <li><a href="#">Memo Approved</a></li>
                 </ul>
             </nav>
             <p class="site-footer__credit">
@@ -286,6 +290,10 @@
 
             toggle.addEventListener("click", function () {
                 setOpen(!document.body.classList.contains("menu-open"));
+            });
+
+            panel.addEventListener("click", function (event) {
+                if (event.target.closest("a")) setOpen(false);
             });
 
             window.addEventListener("resize", function () {
