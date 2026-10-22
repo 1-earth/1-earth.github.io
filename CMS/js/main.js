@@ -34,6 +34,11 @@ function dataTypeListTitle(dataType) {
     return `${base} items`;
 }
 
+function dataTypeHeading(dataType) {
+    const labels = { text: 'Text', media: 'Media', blog: 'Pages', calendar: 'Calendar' };
+    return labels[dataType] || dataTypeListTitle(dataType);
+}
+
 function dataTypeCreateLabel(dataType) {
     const labels = { text: 'Text', media: 'Media', blog: 'Page', calendar: 'Calendar' };
     return labels[dataType] || (dataType ? dataType.charAt(0).toUpperCase() + dataType.slice(1) : 'Item');
@@ -70,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuthModule(handleUserSignedIn, handleUserSignedOut);
     setupEventListeners();
     initColumnResizing();
+    syncMobileCmsLayout();
 });
 
 async function handleUserSignedIn(user) {
@@ -122,6 +128,7 @@ async function handleUserSignedIn(user) {
                 try { console.log(`Editing as: ${effectiveUserEmail || effectiveUserId}`); } catch (e) {}
                 currentOpenItemDataID = null;
                 currentItemDataCache = null;
+                closeMobileEditorView();
                 if (selectedDataType) {
                     loadItemsForType(selectedDataType);
                 }
@@ -171,19 +178,45 @@ function setupEventListeners() {
         });
     }
 
+    const mobileBackBtn = document.getElementById('mobileBackToListBtn');
+    if (mobileBackBtn) {
+        mobileBackBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            requestLeaveMobileEditor();
+        });
+    }
+
+    const mobileHomeBackBtn = document.getElementById('mobileBackToHomeBtn');
+    if (mobileHomeBackBtn) {
+        mobileHomeBackBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            returnToMobileHome();
+        });
+    }
+
+    const mobileMq = window.matchMedia(CMS_MOBILE_MQ);
+    if (mobileMq.addEventListener) {
+        mobileMq.addEventListener('change', syncMobileCmsLayout);
+    } else if (mobileMq.addListener) {
+        mobileMq.addListener(syncMobileCmsLayout);
+    }
+
     if (dataTypesNav) {
         dataTypesNav.addEventListener('click', (e) => {
-            if (e.target.classList.contains('data-type-btn')) {
+            const typeBtn = e.target.closest('.data-type-btn');
+            if (typeBtn) {
                 if (!currentUser) { ui.showPopup("Please wait, authenticating..."); return; }
 
                 document.querySelectorAll('.data-type-btn.active').forEach(btn => btn.classList.remove('active'));
-                e.target.classList.add('active');
+                typeBtn.classList.add('active');
 
-                selectedDataType = e.target.dataset.type;
+                selectedDataType = typeBtn.dataset.type;
                 currentOpenItemDataID = null; // Clear open item when changing type
                 currentItemDataCache = null;
+                closeMobileEditorView();
+                syncMobileNavState();
 
-                ui.updateItemsListTitle(dataTypeListTitle(selectedDataType));
+                ui.updateItemsListTitle(isMobileCmsLayout() ? dataTypeHeading(selectedDataType) : dataTypeListTitle(selectedDataType));
                 ui.setNewItemButtonText(dataTypeCreateLabel(selectedDataType));
                 const pickPhrase = selectedDataType === 'blog'
                     ? 'Select a page or create a new one.'
@@ -198,7 +231,10 @@ function setupEventListeners() {
         createNewItemBtn.addEventListener('click', handleCreateNewItem);
     }
 
-    document.addEventListener('click', () => {
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.block-more-menu-wrap')) {
+            closeBlockMoreMenus();
+        }
         if (!itemsListUl) return;
         itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
         itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
@@ -274,9 +310,12 @@ function setupEventListeners() {
     });
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && itemsListUl) {
-            itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
-            itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+        if (e.key === 'Escape') {
+            closeBlockMoreMenus();
+            if (itemsListUl) {
+                itemsListUl.querySelectorAll('.items-list-dropdown').forEach((el) => { el.hidden = true; });
+                itemsListUl.querySelectorAll('.items-list-menu-trigger').forEach((b) => { b.setAttribute('aria-expanded', 'false'); });
+            }
         }
         if ((e.metaKey || e.ctrlKey) && e.key === 's') {
             const saveBlogBtn = document.getElementById('saveBlogBtn');
@@ -293,13 +332,129 @@ function getTargetUserId() {
     return currentUser ? currentUser.uid : null;
 }
 
+const CMS_MOBILE_MQ = '(max-width: 1024px)';
+
+function isMobileCmsLayout() {
+    return window.matchMedia(CMS_MOBILE_MQ).matches;
+}
+
+function closeBlockMoreMenus() {
+    document.querySelectorAll('.block-more-menu-wrap.is-open').forEach((el) => el.classList.remove('is-open'));
+    document.querySelectorAll('.block-more-menu-trigger').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+}
+
+function updateMobileBackButtonLabel() {
+    const backBtn = document.getElementById('mobileBackToListBtn');
+    if (!backBtn) return;
+    const labels = { text: 'Text', media: 'Media', blog: 'Pages', calendar: 'Calendar' };
+    const name = labels[selectedDataType] || 'List';
+    backBtn.textContent = '← ' + name;
+}
+
+function initMobileDashboardChrome() {
+    if (!dashboardContentEl) return;
+    const sidebar = dashboardContentEl.querySelector('.blog-dashboard .dashboard-sidebar');
+    if (sidebar && !sidebar.querySelector('.cms-mobile-settings-toggle')) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'cms-mobile-settings-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.textContent = 'Page settings';
+        sidebar.insertBefore(toggle, sidebar.firstChild);
+    }
+}
+
+function openMobileEditorView() {
+    document.body.classList.add('cms-mobile-editor-open');
+    updateMobileBackButtonLabel();
+    const backBtn = document.getElementById('mobileBackToListBtn');
+    if (backBtn) backBtn.hidden = !isMobileCmsLayout();
+    initMobileDashboardChrome();
+    syncMobileNavState();
+    if (isMobileCmsLayout()) {
+        window.scrollTo(0, 0);
+    }
+}
+
+function closeMobileEditorView() {
+    document.body.classList.remove('cms-mobile-editor-open');
+    const backBtn = document.getElementById('mobileBackToListBtn');
+    if (backBtn) backBtn.hidden = true;
+    closeBlockMoreMenus();
+    syncMobileNavState();
+}
+
+function syncMobileNavState() {
+    const browsing = isMobileCmsLayout() && !!selectedDataType && !document.body.classList.contains('cms-mobile-editor-open');
+    document.body.classList.toggle('cms-mobile-browsing', browsing);
+    const homeBack = document.getElementById('mobileBackToHomeBtn');
+    if (homeBack) homeBack.hidden = !browsing;
+}
+
+function returnToMobileHome() {
+    selectedDataType = null;
+    currentOpenItemDataID = null;
+    currentItemDataCache = null;
+    mediaFilesToUpload = [];
+    existingMediaFiles = [];
+    document.querySelectorAll('.data-type-btn.active').forEach((btn) => btn.classList.remove('active'));
+    ui.updateItemsListTitle('Select Data Type');
+    ui.hideNewItemButton();
+    if (itemsListUl) {
+        itemsListUl.innerHTML = '<li class="placeholder-text">Select a data type to see items.</li>';
+    }
+    ui.clearDashboard('Select a data type from the left.');
+    closeMobileEditorView();
+    if (isMobileCmsLayout()) window.scrollTo(0, 0);
+}
+
+function requestLeaveMobileEditor() {
+    const leave = () => {
+        clearPageDashboardDirty();
+        closeMobileEditorView();
+        currentOpenItemDataID = null;
+        currentItemDataCache = null;
+        mediaFilesToUpload = [];
+        existingMediaFiles = [];
+        const pickPhrase = selectedDataType === 'blog'
+            ? 'Select a page or create a new one.'
+            : (selectedDataType ? `Select a ${selectedDataType} item or create a new one.` : 'Select a data type from the left.');
+        ui.clearDashboard(pickPhrase);
+        ui.setActiveItemInList(null);
+        if (isMobileCmsLayout()) window.scrollTo(0, 0);
+    };
+    if (pageEditorHasUnsavedChanges) {
+        ui.showPopup('You have unsaved changes. Leave without saving?', 'confirm', leave);
+        return;
+    }
+    leave();
+}
+
+function syncMobileCmsLayout() {
+    restoreColumnWidths();
+    if (!isMobileCmsLayout()) {
+        const backBtn = document.getElementById('mobileBackToListBtn');
+        if (backBtn) backBtn.hidden = true;
+        const homeBack = document.getElementById('mobileBackToHomeBtn');
+        if (homeBack) homeBack.hidden = true;
+        document.body.classList.remove('cms-mobile-browsing');
+        return;
+    }
+    if (currentOpenItemDataID && dashboardContentEl && dashboardContentEl.querySelector('.dashboard-section')) {
+        openMobileEditorView();
+    } else {
+        closeMobileEditorView();
+    }
+}
+
 function setActiveDataType(dataType) {
     selectedDataType = dataType;
     document.querySelectorAll('.data-type-btn.active').forEach(btn => btn.classList.remove('active'));
     const activeButton = document.querySelector(`.data-type-btn[data-type="${dataType}"]`);
     if (activeButton) activeButton.classList.add('active');
-    ui.updateItemsListTitle(dataTypeListTitle(dataType));
+    ui.updateItemsListTitle(isMobileCmsLayout() ? dataTypeHeading(dataType) : dataTypeListTitle(dataType));
     ui.setNewItemButtonText(dataTypeCreateLabel(dataType));
+    syncMobileNavState();
 }
 
 function showDashboardInlineMessage(message) {
@@ -459,6 +614,7 @@ function handleDeleteBlogFromList(dataID) {
                     currentOpenItemDataID = null;
                     currentItemDataCache = null;
                     ui.clearDashboard();
+                    closeMobileEditorView();
                 }
                 ui.showPopup('Page deleted successfully!', 'alert', () => {
                     loadItemsForType(selectedDataType);
@@ -491,6 +647,7 @@ function handleDeleteMediaFromList(dataID) {
                     mediaFilesToUpload = [];
                     existingMediaFiles = [];
                     ui.clearDashboard();
+                    closeMobileEditorView();
                 }
                 ui.showPopup('Media deleted successfully!', 'alert', () => {
                     loadItemsForType(selectedDataType);
@@ -549,6 +706,7 @@ async function handleItemSelected(dataID) {
                 ui.renderCalendarDashboard(item.dataID, item);
             }
              ui.setActiveItemInList(dataID); // Ensure list reflects selection
+             openMobileEditorView();
         } else {
             console.error("Document not found:", dataID);
             ui.showPopup("Error: Item not found. It may have been deleted.");
@@ -594,6 +752,7 @@ async function handleCreateNewItem(options = {}) {
         } else if (selectedDataType === 'calendar') {
             ui.renderCalendarDashboard(newId, null);
         }
+        openMobileEditorView();
     } catch (error) {
         console.error("Error preparing new item:", error);
         ui.showPopup("Error preparing new item: " + error.message);
@@ -650,6 +809,30 @@ function setupMediaImageLightbox() {
 }
 
 function handleDashboardActions(e) {
+    const moreTrigger = e.target.closest('.block-more-menu-trigger');
+    if (moreTrigger) {
+        e.preventDefault();
+        e.stopPropagation();
+        const wrap = moreTrigger.closest('.block-more-menu-wrap');
+        const willOpen = wrap && !wrap.classList.contains('is-open');
+        closeBlockMoreMenus();
+        if (wrap && willOpen) {
+            wrap.classList.add('is-open');
+            moreTrigger.setAttribute('aria-expanded', 'true');
+        }
+        return;
+    }
+
+    const settingsToggle = e.target.closest('.cms-mobile-settings-toggle');
+    if (settingsToggle) {
+        const sidebar = settingsToggle.closest('.dashboard-sidebar');
+        if (sidebar) {
+            const open = sidebar.classList.toggle('cms-settings-open');
+            settingsToggle.setAttribute('aria-expanded', String(open));
+        }
+        return;
+    }
+
     const copyIdBtn = e.target.closest('.data-id-copy-btn');
     if (copyIdBtn && copyIdBtn.dataset.copyText != null) {
         const text = String(copyIdBtn.dataset.copyText);
@@ -694,10 +877,10 @@ function handleDashboardActions(e) {
     else if (e.target.classList.contains('move-section-down-btn')) handleMoveBlogSection(e.target, 'down');
 
     // Blog Block Management
-    else if (e.target.classList.contains('remove-block-btn')) handleRemoveBlogBlock(e.target);
+    else if (e.target.classList.contains('remove-block-btn')) { closeBlockMoreMenus(); handleRemoveBlogBlock(e.target); }
     else if (e.target.classList.contains('move-block-up-btn')) handleMoveBlogBlock(e.target, 'up');
     else if (e.target.classList.contains('move-block-down-btn')) handleMoveBlogBlock(e.target, 'down');
-    else if (e.target.classList.contains('duplicate-block-btn')) handleDuplicateBlogBlock(e.target);
+    else if (e.target.classList.contains('duplicate-block-btn')) { closeBlockMoreMenus(); handleDuplicateBlogBlock(e.target); }
     else if (e.target.classList.contains('select-media-btn')) handleSelectMediaForBlock(e.target);
     else if (e.target.classList.contains('select-featured-media-btn')) handleSelectFeaturedMedia(e.target);
     else if (e.target.classList.contains('select-poster-image-btn')) handleSelectPosterImage(e.target);
@@ -708,7 +891,7 @@ function handleDashboardActions(e) {
     else if (e.target.classList.contains('clear-media-block-video-poster-btn')) handleClearMediaBlockVideoPoster(e.target);
     // Legacy support
     else if (e.target.classList.contains('select-featured-image-btn')) handleSelectFeaturedMedia(e.target);
-    else if (e.target.classList.contains('layout-toggle-btn')) handleBlockLayoutToggle(e.target);
+    else if (e.target.classList.contains('layout-toggle-btn')) { closeBlockMoreMenus(); handleBlockLayoutToggle(e.target); }
     
     // Embed Block Management  
     else if (e.target.classList.contains('embed-retry-btn')) handleEmbedRetry(e.target);
@@ -775,7 +958,14 @@ function handleDashboardActions(e) {
             return;
         }
         const btn = e.target.closest('button');
-        if (btn && btn.id !== 'saveBlogBtn' && btn.id !== 'deleteBlogBtn') {
+        if (
+            btn &&
+            btn.id !== 'saveBlogBtn' &&
+            btn.id !== 'deleteBlogBtn' &&
+            !btn.classList.contains('block-more-menu-trigger') &&
+            !btn.classList.contains('cms-mobile-settings-toggle') &&
+            btn.id !== 'mobileBackToListBtn'
+        ) {
             markPageDashboardDirty();
         }
     }
@@ -2043,6 +2233,7 @@ async function handleDeleteItem(itemType) {
                     currentOpenItemDataID = null;
                     currentItemDataCache = null;
                     ui.clearDashboard();
+                    closeMobileEditorView();
                     loadItemsForType(selectedDataType); // Refresh list
                 });
             } catch (error) {
@@ -3769,8 +3960,24 @@ function initResize(e) {
     document.addEventListener('mouseup', stopResize);
 }
 
-// Restore column widths from localStorage on page load
+function clearColumnWidthStyles() {
+    ['dataTypesNav', 'itemsListSection'].forEach((columnId) => {
+        const column = document.getElementById(columnId);
+        if (column) {
+            column.style.flexBasis = '';
+            column.style.width = '';
+        }
+    });
+}
+
+// Restore column widths from localStorage on page load (desktop only).
+// Mobile layout must ignore these inline widths or the home grid stays ~160px.
 function restoreColumnWidths() {
+    if (isMobileCmsLayout()) {
+        clearColumnWidthStyles();
+        return;
+    }
+
     const columns = ['dataTypesNav', 'itemsListSection'];
     
     columns.forEach(columnId => {

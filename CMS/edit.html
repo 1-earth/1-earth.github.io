@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Edit Content - CMS</title>
     <link rel="icon" type="image/png" href="static/img/1ELOGOblack.png">
     <link rel="stylesheet" href="styles.css">
@@ -57,10 +57,14 @@
         <!-- Column 1: Data Types -->
         <nav class="column data-types-column" id="dataTypesNav">
             <h2>Data Types</h2>
-            <button class="btn data-type-btn" data-type="text">Text</button>
-            <button class="btn data-type-btn" data-type="media">Media</button>
-            <button class="btn data-type-btn" data-type="blog">Pages</button>
-            <button class="btn data-type-btn" data-type="calendar">Calendar</button>
+            <div class="cms-mobile-home-intro">
+                <h2>What do you want to edit?</h2>
+                <p>Choose a category to open your content.</p>
+            </div>
+            <button class="btn data-type-btn" data-type="text">Text<span class="data-type-mobile-hint">Titles and copy</span></button>
+            <button class="btn data-type-btn" data-type="media">Media<span class="data-type-mobile-hint">Photos, video, PDFs</span></button>
+            <button class="btn data-type-btn" data-type="blog">Pages<span class="data-type-mobile-hint">Site pages and posts</span></button>
+            <button class="btn data-type-btn" data-type="calendar">Calendar<span class="data-type-mobile-hint">Events and dates</span></button>
         </nav>
         
         <!-- Resize Handle 1 -->
@@ -69,8 +73,8 @@
         <!-- Column 2: Items List -->
         <section class="column items-list-column" id="itemsListSection">
             <div class="items-list-header">
+                <button type="button" id="mobileBackToHomeBtn" class="btn cms-mobile-home-back" hidden>← Home</button>
                 <h2 id="itemsListTitle">Select Data Type</h2>
-                
             </div>
             <ul id="itemsList" class="items-list">
                 <!-- Populated by JS -->
@@ -86,18 +90,14 @@
 
         <!-- Column 3: Dashboard -->
         <main class="column dashboard-column" id="dashboardSection">
-            <h2 id="dashboardTitle">Dashboard</h2>
+            <div class="dashboard-heading">
+                <button type="button" id="mobileBackToListBtn" class="btn cms-mobile-back" hidden>← Back</button>
+                <h2 id="dashboardTitle">Dashboard</h2>
+            </div>
             <div id="dashboardContent">
                 <p class="placeholder-text">Select an item or create a new one.</p>
             </div>
         </main>
-    </div>
-
-    <div id="orientationOverlay" class="orientation-overlay" style="display: none;">
-        <div class="orientation-content">
-            <h2>Rotate your device</h2>
-            <p>Please rotate your phone to landscape for the best editing experience.</p>
-        </div>
     </div>
 
     <div id="mediaImageLightbox" class="media-image-lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Fullscreen image preview">
@@ -107,27 +107,5 @@
 
     <script src="firebase-config.js"></script>
     <script type="module" src="js/main.js"></script>
-    <script>
-        (function() {
-            function isMobile() {
-                return /Mobi|Android/i.test(navigator.userAgent) || window.innerWidth <= 768;
-            }
-            function updateOrientationOverlay() {
-                var overlay = document.getElementById('orientationOverlay');
-                if (!overlay) return;
-                var isPortrait = window.matchMedia('(orientation: portrait)').matches;
-                if (isMobile() && isPortrait) {
-                    overlay.style.display = 'flex';
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    overlay.style.display = 'none';
-                    document.body.style.overflow = '';
-                }
-            }
-            window.addEventListener('DOMContentLoaded', updateOrientationOverlay);
-            window.addEventListener('resize', updateOrientationOverlay);
-            window.addEventListener('orientationchange', updateOrientationOverlay);
-        })();
-    </script>
 </body>
 </html>

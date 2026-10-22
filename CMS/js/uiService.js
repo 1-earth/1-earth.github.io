@@ -1593,11 +1593,18 @@ export function createBlogBlockHtml(blockId, blockType, content = '', mediaId = 
                     </select>
                 </div>
                 <div class="block-controls">
-                    <button class="btn btn-sm btn-secondary layout-toggle-btn">${layout === 'full' ? 'Split Layout' : 'Full Width'}</button>
-                    <button class="btn btn-sm btn-secondary duplicate-block-btn">Duplicate</button>
-                    <button class="btn btn-sm btn-danger remove-block-btn">Remove</button>
-                    <button class="btn btn-sm move-block-up-btn">↑</button>
-                    <button class="btn btn-sm move-block-down-btn">↓</button>
+                    <div class="block-more-menu-wrap">
+                        <button type="button" class="block-more-menu-trigger" aria-label="Block options" aria-haspopup="true" aria-expanded="false">
+                            <svg class="block-more-menu-trigger-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                        <div class="block-more-menu">
+                            <button type="button" class="btn btn-sm btn-secondary layout-toggle-btn">${layout === 'full' ? 'Split Layout' : 'Full Width'}</button>
+                            <button type="button" class="btn btn-sm btn-secondary duplicate-block-btn">Duplicate</button>
+                            <button type="button" class="btn btn-sm btn-danger remove-block-btn">Remove</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm move-block-up-btn">↑</button>
+                    <button type="button" class="btn btn-sm move-block-down-btn">↓</button>
                 </div>
             </div>
             <div class="block-content">
