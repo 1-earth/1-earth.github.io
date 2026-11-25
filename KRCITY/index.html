@@ -773,27 +773,52 @@
     body.mobile #left-panels {
       bottom: 8px;
       left: 8px;
-      right: 8px;
+      right: auto;
       width: auto;
-      max-width: 280px;
+      max-width: min(280px, calc(100% - 16px));
       z-index: 18;
+      align-items: flex-start;
     }
     body.mobile #controls-panel {
       display: none !important;
     }
     body.mobile #mp-panel {
-      display: none;
-      width: 100%;
+      display: block !important;
+      width: auto;
+      max-width: 100%;
       max-height: calc(100% - 46px);
       overflow-y: auto;
       touch-action: auto;
+      font-size: 11px;
+      box-shadow: 3px 4px 0 rgba(42, 34, 27, 0.25);
+    }
+    body.mobile #mp-header {
+      padding: 4px 7px;
+      gap: 4px;
+    }
+    body.mobile #mp-title {
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      gap: 4px;
+    }
+    body.mobile #mp-title .mp-icon {
+      width: 10px;
+      height: 10px;
+    }
+    body.mobile #mp-badge {
+      font-size: 8px;
+      padding: 0 3px;
+    }
+    body.mobile #mp-toggle {
+      font-size: 11px;
+    }
+    body.mobile #mp-panel:not(.collapsed),
+    body.mobile #mp-panel.mobile-open {
+      width: min(260px, calc(100vw - 36px));
     }
     body.mobile #mp-qr-canvas {
       width: 108px;
       height: 108px;
-    }
-    body.mobile #mp-panel.mobile-open {
-      display: block;
     }
 
     /* Bottom 40% console faceplate */
@@ -2055,6 +2080,134 @@
       }
     }
 
+    // Shared distance falloff for proximity beds / one-shots (squared curve).
+    function attenByDistance(x, y, minDist, maxDist) {
+      const dist = Math.hypot(x - player.x, y - player.y);
+      if (dist <= minDist) return 1;
+      if (dist >= maxDist) return 0;
+      const t = 1 - (dist - minDist) / Math.max(1, maxDist - minDist);
+      return t * t;
+    }
+
+    // Layered dramatic car boom (Web Audio only). Call with world x/y.
+    const EXPLODE_SFX = {
+      minDist: 40,
+      maxDist: 520,
+      boomVol: 1.15,
+      crackVol: 0.85,
+      tailVol: 0.55,
+      nearShakeBoost: 0.22
+    };
+
+    function playExplosionSfx(x, y) {
+      const atten = attenByDistance(x, y, EXPLODE_SFX.minDist, EXPLODE_SFX.maxDist);
+      if (atten < 0.03) return;
+      unlockSfx();
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      const when = ctx.currentTime + 0.001;
+      const duck = getSfxDuckMul();
+      const master = Math.max(0.0001, SFX.masterVolume * duck * atten);
+      const pitch = sfxPitchJitter();
+
+      try {
+        // Deep boom
+        const boom = ctx.createOscillator();
+        boom.type = 'sine';
+        boom.frequency.setValueAtTime(68 * pitch, when);
+        boom.frequency.exponentialRampToValueAtTime(28 * pitch, when + 0.45);
+        const boomGain = ctx.createGain();
+        boomGain.gain.setValueAtTime(0.0001, when);
+        boomGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, master * EXPLODE_SFX.boomVol),
+          when + 0.02
+        );
+        boomGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.55);
+        boom.connect(boomGain);
+        boomGain.connect(ctx.destination);
+        boom.start(when);
+        boom.stop(when + 0.6);
+
+        // Mid body thud
+        const thud = ctx.createOscillator();
+        thud.type = 'triangle';
+        thud.frequency.setValueAtTime(120 * pitch, when);
+        thud.frequency.exponentialRampToValueAtTime(40 * pitch, when + 0.22);
+        const thudGain = ctx.createGain();
+        thudGain.gain.setValueAtTime(0.0001, when);
+        thudGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, master * 0.7),
+          when + 0.01
+        );
+        thudGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.28);
+        thud.connect(thudGain);
+        thudGain.connect(ctx.destination);
+        thud.start(when);
+        thud.stop(when + 0.32);
+      } catch (_) {}
+
+      try {
+        // Sharp crack / debris burst
+        const crackDur = 0.22;
+        const crackFrames = Math.max(1, Math.floor(ctx.sampleRate * crackDur));
+        const crackBuf = ctx.createBuffer(1, crackFrames, ctx.sampleRate);
+        const crackData = crackBuf.getChannelData(0);
+        for (let i = 0; i < crackFrames; i++) {
+          const env = Math.pow(1 - i / crackFrames, 1.6);
+          crackData[i] = (Math.random() * 2 - 1) * env;
+        }
+        const crackSrc = ctx.createBufferSource();
+        crackSrc.buffer = crackBuf;
+        crackSrc.playbackRate.value = pitch;
+        const crackBp = ctx.createBiquadFilter();
+        crackBp.type = 'bandpass';
+        crackBp.frequency.value = 1400 * pitch;
+        crackBp.Q.value = 0.9;
+        const crackGain = ctx.createGain();
+        crackGain.gain.setValueAtTime(Math.max(0.0001, master * EXPLODE_SFX.crackVol), when);
+        crackGain.gain.exponentialRampToValueAtTime(0.0001, when + crackDur);
+        crackSrc.connect(crackBp);
+        crackBp.connect(crackGain);
+        crackGain.connect(ctx.destination);
+        crackSrc.start(when);
+        crackSrc.stop(when + crackDur + 0.02);
+      } catch (_) {}
+
+      try {
+        // Fire / debris rumble tail
+        const tailDur = 0.95;
+        const tailFrames = Math.max(1, Math.floor(ctx.sampleRate * tailDur));
+        const tailBuf = ctx.createBuffer(1, tailFrames, ctx.sampleRate);
+        const tailData = tailBuf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < tailFrames; i++) {
+          const white = Math.random() * 2 - 1;
+          last = (last + 0.02 * white) / 1.02;
+          const env = Math.pow(1 - i / tailFrames, 0.7);
+          tailData[i] = last * 3.4 * env;
+        }
+        const tailSrc = ctx.createBufferSource();
+        tailSrc.buffer = tailBuf;
+        const tailLp = ctx.createBiquadFilter();
+        tailLp.type = 'lowpass';
+        tailLp.frequency.setValueAtTime(900, when);
+        tailLp.frequency.exponentialRampToValueAtTime(180, when + tailDur);
+        const tailGain = ctx.createGain();
+        tailGain.gain.setValueAtTime(0.0001, when);
+        tailGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, master * EXPLODE_SFX.tailVol),
+          when + 0.05
+        );
+        tailGain.gain.exponentialRampToValueAtTime(0.0001, when + tailDur);
+        tailSrc.connect(tailLp);
+        tailLp.connect(tailGain);
+        tailGain.connect(ctx.destination);
+        tailSrc.start(when);
+        tailSrc.stop(when + tailDur + 0.02);
+      } catch (_) {}
+    }
+
     ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
       window.addEventListener(evt, unlockSfx, { capture: true, once: true });
     });
@@ -2663,20 +2816,29 @@
       updateRadioMuteUi();
     }
 
-    // --- CONTINUOUS CAR ENGINE / DRIFT (under radio) ---
+    // --- CONTINUOUS CAR ENGINES / AMBIENT TRAFFIC / DRIFT (under radio) ---
+    // Local cabin + capped proximity pool for civ / police / other players.
     const DRIVE_SFX = {
       master: 0.125,
+      ambientMaster: 0.1,
       mobileMul: 0.85,
+      cabinOtherMul: 0.72,
       idleHz: 52,
       maxHz: 158,
+      policeHzMul: 0.92,
       revPitchMul: 0.84,
       rumble: 0.28,
       driftMaster: 0.2,
+      sirenVol: 0.09,
       proxMinDist: 50,
       proxMaxDist: 380,
-      refMaxSpeed: 7.2
+      refMaxSpeed: 7.2,
+      moveThreshold: 0.28,
+      maxAmbientVoices: 5
     };
     const driveVoices = new Map();
+    let sharedBrownLoop = null;
+    let sharedWhiteLoop = null;
 
     function makeLoopNoiseBuffer(ctx, seconds, brown) {
       const len = Math.max(1, Math.floor(ctx.sampleRate * seconds));
@@ -2695,6 +2857,15 @@
       return buffer;
     }
 
+    function getSharedLoopNoise(ctx, brown) {
+      if (brown) {
+        if (!sharedBrownLoop) sharedBrownLoop = makeLoopNoiseBuffer(ctx, 1.5, true);
+        return sharedBrownLoop;
+      }
+      if (!sharedWhiteLoop) sharedWhiteLoop = makeLoopNoiseBuffer(ctx, 1.2, false);
+      return sharedWhiteLoop;
+    }
+
     function createDriveVoice() {
       const ctx = ensureSfxContext();
       if (!ctx) return null;
@@ -2710,7 +2881,7 @@
       osc2.connect(oscGain);
 
       const rumbleSrc = ctx.createBufferSource();
-      rumbleSrc.buffer = makeLoopNoiseBuffer(ctx, 1.5, true);
+      rumbleSrc.buffer = getSharedLoopNoise(ctx, true);
       rumbleSrc.loop = true;
       const rumbleFilter = ctx.createBiquadFilter();
       rumbleFilter.type = 'lowpass';
@@ -2728,7 +2899,7 @@
       rumbleGain.connect(bodyLp);
 
       const driftSrc = ctx.createBufferSource();
-      driftSrc.buffer = makeLoopNoiseBuffer(ctx, 1.2, false);
+      driftSrc.buffer = getSharedLoopNoise(ctx, false);
       driftSrc.loop = true;
       const driftBp = ctx.createBiquadFilter();
       driftBp.type = 'bandpass';
@@ -2762,8 +2933,44 @@
         driftBp,
         driftGain,
         master,
+        sirenOsc: null,
+        sirenLfo: null,
+        sirenGain: null,
         alive: true
       };
+    }
+
+    function ensureSirenOnVoice(voice) {
+      if (!voice || voice.sirenGain) return;
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      const sirenOsc = ctx.createOscillator();
+      sirenOsc.type = 'sawtooth';
+      sirenOsc.frequency.value = 880;
+      const sirenLfo = ctx.createOscillator();
+      sirenLfo.type = 'sine';
+      sirenLfo.frequency.value = 1.35;
+      const lfoDepth = ctx.createGain();
+      lfoDepth.gain.value = 220;
+      sirenLfo.connect(lfoDepth);
+      lfoDepth.connect(sirenOsc.frequency);
+      const sirenFilter = ctx.createBiquadFilter();
+      sirenFilter.type = 'bandpass';
+      sirenFilter.frequency.value = 1100;
+      sirenFilter.Q.value = 1.1;
+      const sirenGain = ctx.createGain();
+      sirenGain.gain.value = 0;
+      sirenOsc.connect(sirenFilter);
+      sirenFilter.connect(sirenGain);
+      sirenGain.connect(voice.master);
+      const t = ctx.currentTime + 0.01;
+      try {
+        sirenOsc.start(t);
+        sirenLfo.start(t);
+      } catch (_) {}
+      voice.sirenOsc = sirenOsc;
+      voice.sirenLfo = sirenLfo;
+      voice.sirenGain = sirenGain;
     }
 
     function getDriveVoice(id) {
@@ -2775,28 +2982,6 @@
       return voice;
     }
 
-    function stopDriveVoice(id, quick) {
-      const voice = driveVoices.get(id);
-      if (!voice) return;
-      const ctx = sfxCtx;
-      if (ctx) {
-        const t = ctx.currentTime;
-        try {
-          voice.master.gain.cancelScheduledValues(t);
-          voice.master.gain.setTargetAtTime(0, t, quick ? 0.02 : 0.08);
-          voice.driftGain.gain.setTargetAtTime(0, t, 0.05);
-        } catch (_) {}
-      }
-      if (quick) {
-        driveVoices.delete(id);
-        voice.alive = false;
-        try {
-          voice.osc1.stop();
-          voice.osc2.stop();
-        } catch (_) {}
-      }
-    }
-
     function applyDriveVoice(id, state) {
       const voice = state.active ? getDriveVoice(id) : driveVoices.get(id);
       if (!voice || !voice.alive) return;
@@ -2806,25 +2991,29 @@
       const deathMul = SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
       const mobileMul = isMobile ? DRIVE_SFX.mobileMul : 1;
       const atten = state.atten != null ? state.atten : 1;
+      const volScale = state.volScale != null ? state.volScale : 1;
 
       let vol = 0;
       if (state.active) {
-        const load = Math.max(state.throttle || 0, (state.speedRatio || 0) * 0.42);
-        vol = DRIVE_SFX.master * mobileMul * deathMul * atten *
-          (0.2 + 0.8 * load) *
+        const load = Math.max(state.throttle || 0, (state.speedRatio || 0) * 0.55);
+        // Speed-led: nearly silent when barely rolling, louder as they move.
+        const speedGate = Math.max(0, Math.min(1, (state.speedRatio || 0) / 0.12));
+        vol = DRIVE_SFX.master * volScale * mobileMul * deathMul * atten *
+          speedGate * (0.18 + 0.82 * load) *
           (state.reverse ? 0.92 : 1);
       }
-      voice.master.gain.setTargetAtTime(Math.max(0, Math.min(0.35, vol)), now, 0.06);
+      voice.master.gain.setTargetAtTime(Math.max(0, Math.min(0.35, vol)), now, 0.07);
 
       const speedRatio = Math.max(0, Math.min(1, state.speedRatio || 0));
       const throttle = Math.max(0, Math.min(1, state.throttle || 0));
       let hz = DRIVE_SFX.idleHz + (DRIVE_SFX.maxHz - DRIVE_SFX.idleHz) * Math.pow(speedRatio, 0.82);
       hz *= 1 + throttle * 0.2;
+      if (state.police) hz *= DRIVE_SFX.policeHzMul;
       if (state.reverse) hz *= DRIVE_SFX.revPitchMul;
       voice.osc1.frequency.setTargetAtTime(hz, now, 0.05);
       voice.osc2.frequency.setTargetAtTime(hz * 1.007, now, 0.05);
       voice.bodyLp.frequency.setTargetAtTime(
-        300 + speedRatio * 560 + throttle * 220,
+        (state.police ? 340 : 300) + speedRatio * 560 + throttle * 220,
         now,
         0.06
       );
@@ -2844,39 +3033,61 @@
         driftAmt *= driftAmt;
       }
       voice.driftGain.gain.setTargetAtTime(
-        DRIVE_SFX.driftMaster * driftAmt * deathMul * atten * mobileMul,
+        DRIVE_SFX.driftMaster * driftAmt * deathMul * atten * mobileMul * volScale,
         now,
         0.04
       );
       voice.driftBp.frequency.setTargetAtTime(750 + slipT * 1600 + speedRatio * 200, now, 0.05);
+
+      const wantSiren = !!(state.active && state.siren && atten > 0.04);
+      if (wantSiren) ensureSirenOnVoice(voice);
+      if (voice.sirenGain) {
+        const sirenLevel = wantSiren
+          ? DRIVE_SFX.sirenVol * deathMul * mobileMul * atten * volScale *
+            (0.55 + 0.45 * speedRatio)
+          : 0;
+        voice.sirenGain.gain.setTargetAtTime(Math.max(0, Math.min(0.2, sirenLevel)), now, 0.1);
+      }
     }
 
     function driveAudioAtten(x, y) {
-      const dist = Math.hypot(x - player.x, y - player.y);
-      if (dist <= DRIVE_SFX.proxMinDist) return 1;
-      if (dist >= DRIVE_SFX.proxMaxDist) return 0;
-      const t = 1 - (dist - DRIVE_SFX.proxMinDist) /
-        Math.max(1, DRIVE_SFX.proxMaxDist - DRIVE_SFX.proxMinDist);
-      return t * t;
+      return attenByDistance(x, y, DRIVE_SFX.proxMinDist, DRIVE_SFX.proxMaxDist);
+    }
+
+    function policeSirensAudible() {
+      try {
+        if (typeof policeCarsHunting !== 'undefined' && policeCarsHunting) return true;
+        if (typeof getMaxWantedLevel === 'function') return getMaxWantedLevel() > 0;
+        return !!(typeof wantedLevel === 'number' && wantedLevel > 0);
+      } catch (_) {
+        return !!(typeof wantedLevel === 'number' && wantedLevel > 0);
+      }
+    }
+
+    function estimateVehicleThrottle(entity, absSp) {
+      const prev = entity._audioPrevAbs != null ? entity._audioPrevAbs : absSp;
+      const accel = absSp - prev;
+      entity._audioPrevAbs = absSp;
+      const speedRatio = Math.min(1, absSp / DRIVE_SFX.refMaxSpeed);
+      return Math.max(0, Math.min(1, accel * 14 + speedRatio * 0.4));
     }
 
     function updateDriveAudio() {
-      if (!sfxUnlocked && !(player.mode === 'driving' && activeVehicle && !activeVehicle.isBike)) {
-        // Still allow fade-out of existing voices
-      } else {
-        unlockSfx();
-      }
+      const localDriving = !wasted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike;
+      if (!sfxUnlocked && !localDriving && driveVoices.size === 0) return;
+      if (localDriving || (vehicles && vehicles.length)) unlockSfx();
 
       const heard = new Set();
       const refMax = DRIVE_SFX.refMaxSpeed;
+      const sirensOn = policeSirensAudible();
+      const cabinDuck = localDriving ? DRIVE_SFX.cabinOtherMul : 1;
+      const ambientScale = (DRIVE_SFX.ambientMaster / DRIVE_SFX.master) * cabinDuck;
 
-      // Local player car
-      if (
-        !wasted &&
-        player.mode === 'driving' &&
-        activeVehicle &&
-        !activeVehicle.isBike
-      ) {
+      // Local player cabin
+      if (localDriving) {
         const absSp = Math.abs(player.speed);
         applyDriveVoice('local', {
           active: true,
@@ -2885,31 +3096,35 @@
           reverse: !!player.audioReverse,
           slip: player.audioSlip || 0,
           drifting: !!player.drifting,
-          atten: 1
+          atten: 1,
+          volScale: 1,
+          police: !!(activeVehicle && activeVehicle.isPoliceCar),
+          siren: !!(activeVehicle && activeVehicle.isPoliceCar && sirensOn)
         });
         heard.add('local');
       } else if (driveVoices.has('local')) {
         applyDriveVoice('local', { active: false });
       }
 
-      // Other players' cars (distance-attenuated)
+      // Collect nearby moving cars (civ AI, police, other players).
+      const candidates = [];
+      const claimedVehicleIds = new Set();
+      if (localDriving && activeVehicle) claimedVehicleIds.add(activeVehicle.id);
+
       if (net.players && net.players.size) {
         net.players.forEach(rp => {
           if (!rp || rp.wasted || rp.mode !== 'driving' || !rp.vehicleId) return;
           const v = vehicles.find(item => item.id === rp.vehicleId);
           if (!v || v.isBike || v.dead) return;
-          const atten = driveAudioAtten(v.x, v.y);
-          if (atten < 0.02) {
-            if (driveVoices.has(rp.id)) applyDriveVoice(rp.id, { active: false });
-            return;
-          }
+          claimedVehicleIds.add(v.id);
           const signedSp = rp.speed != null ? rp.speed : (v.speed || 0);
           const absSp = Math.abs(signedSp);
-          const prev = rp._audioPrevAbs != null ? rp._audioPrevAbs : absSp;
-          const accel = absSp - prev;
-          rp._audioPrevAbs = absSp;
-          const speedRatio = Math.min(1, absSp / refMax);
-          const throttle = Math.max(0, Math.min(1, accel * 14 + speedRatio * 0.4));
+          if (absSp < DRIVE_SFX.moveThreshold) return;
+          const dist = Math.hypot(v.x - player.x, v.y - player.y);
+          if (dist > DRIVE_SFX.proxMaxDist) return;
+          const atten = driveAudioAtten(v.x, v.y);
+          if (atten < 0.02) return;
+          const throttle = estimateVehicleThrottle(rp, absSp);
           let motion = Math.hypot(rp.vx || 0, rp.vy || 0);
           let velAng = motion > 0.12 ? Math.atan2(rp.vy, rp.vx) : null;
           if (motion < 0.12) {
@@ -2924,17 +3139,61 @@
           const slip = velAng != null && motion > 0.08
             ? Math.abs(shortestAngleDiff(velAng, travel))
             : 0;
-          applyDriveVoice(rp.id, {
-            active: true,
-            speedRatio,
-            throttle,
-            reverse: signedSp < -0.12,
-            slip,
-            drifting: slip > 0.18 && speedRatio > 0.35,
-            atten
+          candidates.push({
+            id: 'rp:' + rp.id,
+            dist,
+            state: {
+              active: true,
+              speedRatio: Math.min(1, absSp / refMax),
+              throttle,
+              reverse: signedSp < -0.12,
+              slip,
+              drifting: slip > 0.18 && absSp > 1.2,
+              atten,
+              volScale: ambientScale,
+              police: !!v.isPoliceCar,
+              siren: !!(v.isPoliceCar && sirensOn)
+            }
           });
-          heard.add(rp.id);
         });
+      }
+
+      for (let i = 0; i < vehicles.length; i++) {
+        const v = vehicles[i];
+        if (!v || v.dead || v.isBike || claimedVehicleIds.has(v.id)) continue;
+        if (v === activeVehicle) continue;
+        const absSp = Math.abs(v.speed || 0);
+        if (absSp < DRIVE_SFX.moveThreshold) continue;
+        if (v.parked && absSp < 0.5) continue;
+        const dist = Math.hypot(v.x - player.x, v.y - player.y);
+        if (dist > DRIVE_SFX.proxMaxDist) continue;
+        const atten = driveAudioAtten(v.x, v.y);
+        if (atten < 0.02) continue;
+        const throttle = estimateVehicleThrottle(v, absSp);
+        candidates.push({
+          id: 'veh:' + v.id,
+          dist,
+          state: {
+            active: true,
+            speedRatio: Math.min(1, absSp / refMax),
+            throttle,
+            reverse: (v.speed || 0) < -0.12,
+            slip: 0,
+            drifting: !!v.drifting,
+            atten,
+            volScale: ambientScale * (v.isPoliceCar ? 1.05 : 0.92),
+            police: !!v.isPoliceCar,
+            siren: !!(v.isPoliceCar && sirensOn)
+          }
+        });
+      }
+
+      candidates.sort((a, b) => a.dist - b.dist);
+      const cap = DRIVE_SFX.maxAmbientVoices;
+      for (let i = 0; i < candidates.length && i < cap; i++) {
+        const c = candidates[i];
+        applyDriveVoice(c.id, c.state);
+        heard.add(c.id);
       }
 
       driveVoices.forEach((_, id) => {
@@ -6172,22 +6431,22 @@
     function spawnExplosionFx(x, y) {
       wreckFx.push({
         type: 'flash',
-        x, y, z: 10,
-        life: 11,
-        maxLife: 11
+        x, y, z: 12,
+        life: 14,
+        maxLife: 14
       });
-      for (let i = 0; i < 16 && wreckFx.length < 70; i++) {
+      for (let i = 0; i < 24 && wreckFx.length < 90; i++) {
         const a = Math.random() * Math.PI * 2;
-        const s = 1.1 + Math.random() * 2.6;
+        const s = 1.25 + Math.random() * 3.1;
         wreckFx.push({
           type: 'boom',
           x, y,
-          z: 6 + Math.random() * 4,
+          z: 6 + Math.random() * 6,
           vx: Math.cos(a) * s,
           vy: Math.sin(a) * s,
-          vz: 0.7 + Math.random() * 1.7,
-          life: 14 + Math.floor(Math.random() * 10),
-          maxLife: 24
+          vz: 0.85 + Math.random() * 2.0,
+          life: 16 + Math.floor(Math.random() * 12),
+          maxLife: 28
         });
       }
     }
@@ -6214,6 +6473,8 @@
         ejectGuestFromCar(net.players.get(vehicle.driverId), vehicle);
       }
       spawnExplosionFx(vehicle.x, vehicle.y);
+      playExplosionSfx(vehicle.x, vehicle.y);
+      applyDriveVoice('veh:' + vehicle.id, { active: false });
       spawnScorchMark(vehicle.x, vehicle.y, vehicle.radius || 18, false);
       if (net.role === 'host') {
         netBroadcast({ t: 'fx_boom', x: vehicle.x, y: vehicle.y, r: vehicle.radius || 18 });
@@ -6242,7 +6503,9 @@
       }
       if (playerDist < SHAKE.blastNear) {
         const falloff = 1 - playerDist / SHAKE.blastNear;
-        addCameraShake(SHAKE.bigBlast * (0.4 + 0.6 * falloff));
+        addCameraShake(
+          SHAKE.bigBlast * (0.45 + 0.7 * falloff) + EXPLODE_SFX.nearShakeBoost * falloff
+        );
         // Skip if death haptic already played for a fatal blast.
         if (!wasted) haptic(HAPTIC.explodeNear);
       }
@@ -10687,11 +10950,14 @@
         renderMpPlayersList();
       } else if (msg.t === 'fx_boom') {
         spawnExplosionFx(msg.x, msg.y);
+        playExplosionSfx(msg.x, msg.y);
         spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
         const dist = Math.hypot(player.x - msg.x, player.y - msg.y);
         if (dist < SHAKE.blastNear) {
           const falloff = 1 - dist / SHAKE.blastNear;
-          addCameraShake(SHAKE.bigBlast * (0.4 + 0.6 * falloff));
+          addCameraShake(
+            SHAKE.bigBlast * (0.45 + 0.7 * falloff) + EXPLODE_SFX.nearShakeBoost * falloff
+          );
         }
       } else if (msg.t === 'fx_corpse') {
         spawnCorpse({
@@ -10878,12 +11144,10 @@
     const mpToggle = document.getElementById('mp-toggle');
     const controlsHeader = document.getElementById('controls-header');
     const controlsToggle = document.getElementById('controls-toggle');
-    if (!isMobile) {
-      mpPanel.classList.add('collapsed');
-      if (mpToggle) {
-        mpToggle.textContent = '+';
-        mpToggle.title = 'Expand panel';
-      }
+    mpPanel.classList.add('collapsed');
+    if (mpToggle) {
+      mpToggle.textContent = '+';
+      mpToggle.title = 'Expand panel';
     }
     if (controlsHeader && controlsToggle && controlsPanelEl) {
       controlsHeader.addEventListener('click', () => {
@@ -11626,8 +11890,12 @@
 
       mpHeader.addEventListener('click', () => {
         const collapsed = mpPanel.classList.toggle('collapsed');
+        if (isMobile) mpPanel.classList.toggle('mobile-open', !collapsed);
         mpToggle.textContent = collapsed ? '+' : '−';
         mpToggle.title = collapsed ? 'Expand panel' : 'Collapse panel';
+        if (isMobile && typeof updateMobileHudAndControls === 'function') {
+          updateMobileHudAndControls();
+        }
       });
 
       mpHostBtn.addEventListener('click', () => {
@@ -12116,9 +12384,10 @@
       bindMobileTap(mobileMpBtnEl, () => {
         const willOpen = !mpPanel.classList.contains('mobile-open');
         mpPanel.classList.toggle('mobile-open', willOpen);
-        if (willOpen) {
-          mpPanel.classList.remove('collapsed');
-          mpToggle.textContent = '−';
+        mpPanel.classList.toggle('collapsed', !willOpen);
+        if (mpToggle) {
+          mpToggle.textContent = willOpen ? '−' : '+';
+          mpToggle.title = willOpen ? 'Collapse panel' : 'Expand panel';
         }
         haptic(10);
         updateMobileHudAndControls();
