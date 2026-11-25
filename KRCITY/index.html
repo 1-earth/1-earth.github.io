@@ -1403,7 +1403,7 @@
     }
 
     const billboardImage = new Image();
-    billboardImage.src = 'KR.png';
+    billboardImage.src = 'static/img/KR.png';
     const billboards = [];
 
     function isStreetTile(r, c) {
@@ -1856,6 +1856,21 @@
 
     function getSfxDuckMul() {
       return SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+    }
+
+    let bikeHopAudio = null;
+    function playBikeHopSound() {
+      try {
+        if (!bikeHopAudio) {
+          bikeHopAudio = new Audio('static/sound/limebikesoud.mp3');
+          bikeHopAudio.preload = 'auto';
+        }
+        bikeHopAudio.pause();
+        bikeHopAudio.currentTime = 0;
+        bikeHopAudio.volume = Math.max(0, Math.min(1, 0.55 * getSfxDuckMul()));
+        const p = bikeHopAudio.play();
+        if (p && p.catch) p.catch(() => {});
+      } catch (_) {}
     }
 
     function playSfx(name) {
@@ -4100,6 +4115,7 @@
           player.vx = 0;
           player.vy = 0;
           player.drifting = false;
+          playBikeHopSound();
           debugDrive('enter-bike', { dist: nearestVehicle.distance });
           return;
         }
@@ -8897,7 +8913,7 @@
       lastDrawAt: 0,
       moveThresh: 12,
       angleThresh: 0.07,
-      heartbeatMs: 450
+      heartbeatMs: 225
     };
 
     function drawMinimapIfNeeded() {
@@ -9821,6 +9837,7 @@
           player.vx = 0;
           player.vy = 0;
           player.drifting = false;
+          playBikeHopSound();
         } else {
           if (msg.carClass && v.carClass !== msg.carClass) {
             assignCarClass(v, msg.carClass, true);
