@@ -104,10 +104,19 @@
       0%, 100% { color: #d4b56e; text-shadow: none; }
       50% { color: #f0d48a; text-shadow: 0 0 8px rgba(212, 181, 110, 0.55); }
     }
-    #minimap-container {
+    #minimap-stack {
       position: absolute;
       top: 15px;
       right: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 12;
+      pointer-events: none;
+    }
+    #minimap-container {
+      position: relative;
       width: 160px;
       height: 160px;
       border: 2px solid #b7a78e;
@@ -115,6 +124,7 @@
       border-radius: 50%;
       overflow: hidden;
       box-shadow: 5px 6px 0 rgba(42, 34, 27, 0.25);
+      flex-shrink: 0;
     }
     #minimap {
       display: block;
@@ -122,11 +132,93 @@
       height: 160px;
       border-radius: 50%;
     }
+    #radio-label {
+      max-width: 168px;
+      padding: 3px 8px;
+      font-size: 9px;
+      letter-spacing: 1.2px;
+      text-align: center;
+      color: #ead8ae;
+      background: rgba(43, 38, 31, 0.88);
+      border: 1px solid #6a5d48;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #radio-label.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #radioMuteBtn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      /* align-self: flex-end; */
+      gap: 2px;
+      pointer-events: auto;
+      width: 46px;
+      height: 46px;
+      padding: 0;
+      margin: 0;
+      border-radius: 50%;
+      border: 2px solid #b7a78e;
+      background: rgba(43, 38, 31, 0.94);
+      box-shadow: 3px 4px 0 rgba(42, 34, 27, 0.25);
+      color: #ead8ae;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      appearance: none;
+      -webkit-appearance: none;
+      font: inherit;
+      line-height: 0;
+      transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    }
+    #radioMuteBtn.in-car {
+      display: inline-flex;
+    }
+    #radioMuteBtn:active {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 3px 0 rgba(42, 34, 27, 0.22);
+    }
+    #radioMuteBtn.muted {
+      color: #e47a6c;
+      border-color: #a86a5a;
+      background: rgba(55, 28, 24, 0.94);
+    }
+    #radioMuteBtn .radio-btn-icon {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      display: block;
+    }
+    #radioMuteBtn .radio-btn-radio {
+      width: 16px;
+      height: 16px;
+    }
+    #radioMuteBtn .radio-btn-sound,
+    #radioMuteBtn .radio-btn-mute {
+      width: 18px;
+      height: 18px;
+    }
+    #radioMuteBtn .radio-btn-sound {
+      display: none;
+    }
+    #radioMuteBtn.muted .radio-btn-mute {
+      display: none;
+    }
+    #radioMuteBtn.muted .radio-btn-sound {
+      display: block;
+    }
     #wasted-overlay {
       display: none;
       position: absolute;
       inset: 0;
-      background: rgba(70, 8, 8, 0.62);
+      background: transparent;
       align-items: center;
       justify-content: center;
       flex-direction: column;
@@ -140,6 +232,16 @@
       text-transform: uppercase;
       text-shadow: 4px 5px 0 rgba(20, 4, 4, 0.55);
       margin: 0;
+      opacity: 0;
+      transform: scale(0.82);
+    }
+    #wasted-overlay.show-text h2 {
+      animation: wasted-text-in 0.55s ease-out forwards;
+    }
+    @keyframes wasted-text-in {
+      0% { opacity: 0; transform: scale(0.82); letter-spacing: 18px; }
+      60% { opacity: 1; transform: scale(1.04); letter-spacing: 8px; }
+      100% { opacity: 1; transform: scale(1); letter-spacing: 10px; }
     }
     #mp-panel {
       position: absolute;
@@ -171,11 +273,21 @@
       display: none;
     }
     #mp-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       color: #c8573f;
       font-weight: bold;
       letter-spacing: 1px;
       text-transform: uppercase;
       font-size: 12px;
+    }
+    #mp-title .mp-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      display: block;
+      color: #fff;
     }
     #mp-header-right {
       display: flex;
@@ -453,31 +565,7 @@
 
     /* ---------- MOBILE LAYOUT — KR·BOY (60% screen / 40% console) ---------- */
     .mobile-only { display: none; }
-    #pad, #paused-overlay { display: none; }
-
-    #paused-overlay {
-      position: absolute;
-      inset: 0;
-      align-items: center;
-      justify-content: center;
-      background: rgba(10, 8, 6, 0.72);
-      z-index: 19;
-      pointer-events: none;
-    }
-    #paused-overlay.show {
-      display: flex;
-    }
-    #paused-overlay span {
-      font-size: 36px;
-      letter-spacing: 12px;
-      color: #e9dec8;
-      text-shadow:
-        3px 3px 0 #2a2217,
-        0 0 18px rgba(233, 222, 200, 0.45);
-      padding: 12px 24px;
-      border: 1px solid rgba(233, 222, 200, 0.35);
-      background: rgba(40, 30, 20, 0.45);
-    }
+    #pad { display: none; }
 
     /* Cream injection-moulded plastic chassis (Rams-style, copied from KR·BOY) */
     body.mobile {
@@ -536,9 +624,12 @@
     body.mobile #mobile-ammo-label.reloading {
       color: #e47a6c;
     }
-    body.mobile #minimap-container {
+    body.mobile #minimap-stack {
       top: 8px;
       right: 8px;
+      gap: 6px;
+    }
+    body.mobile #minimap-container {
       width: 104px;
       height: 104px;
       box-shadow: 3px 4px 0 rgba(42, 34, 27, 0.25);
@@ -546,6 +637,29 @@
     body.mobile #minimap {
       width: 104px;
       height: 104px;
+    }
+    body.mobile #radioMuteBtn {
+      width: 40px;
+      height: 40px;
+      box-shadow: 2px 3px 0 rgba(42, 34, 27, 0.25);
+    }
+    body.mobile #radioMuteBtn .radio-btn-icon {
+      width: 13px;
+      height: 13px;
+    }
+    body.mobile #radioMuteBtn .radio-btn-radio {
+      width: 14px;
+      height: 14px;
+    }
+    body.mobile #radioMuteBtn .radio-btn-sound,
+    body.mobile #radioMuteBtn .radio-btn-mute {
+      width: 16px;
+      height: 16px;
+    }
+    body.mobile #radio-label {
+      max-width: 112px;
+      font-size: 8px;
+      letter-spacing: 1px;
     }
     body.mobile #wasted-overlay h2 {
       font-size: 46px;
@@ -761,20 +875,24 @@
     }
     #interactBtn.available {
       opacity: 1;
-      border-color: #8f3a2a;
+      color: #fff4e8;
+      border-color: #6f2217;
+      text-shadow: 0 1px 0 rgba(60, 10, 8, 0.45);
+      background:
+        radial-gradient(circle at 50% 28%, #f08a72 0%, #d44a38 42%, #9e2418 100%);
       box-shadow:
-        0 3px 0 #8c7f68,
-        0 5px 10px rgba(40, 30, 15, 0.38),
-        0 0 0 2px rgba(200, 87, 63, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        inset 0 -3px 6px rgba(140, 120, 90, 0.28);
+        0 3px 0 #6f2217,
+        0 5px 12px rgba(90, 20, 12, 0.45),
+        0 0 0 2px rgba(212, 74, 56, 0.4),
+        inset 0 1px 0 rgba(255, 210, 190, 0.55),
+        inset 0 -3px 6px rgba(90, 15, 10, 0.35);
     }
     #interactBtn.available:active {
-      background: radial-gradient(circle at 50% 30%, #e9dec8 0%, #c2b596 100%);
+      background: radial-gradient(circle at 50% 30%, #d44a38 0%, #8a1e14 100%);
       box-shadow:
-        0 1px 0 #8c7f68,
-        0 2px 4px rgba(40, 30, 15, 0.35),
-        inset 0 2px 4px rgba(40, 30, 15, 0.3);
+        0 1px 0 #6f2217,
+        0 2px 4px rgba(90, 20, 12, 0.4),
+        inset 0 2px 4px rgba(40, 10, 8, 0.4);
       transform: translateY(2px);
     }
     #interactBtn.hint-pulse.available {
@@ -783,19 +901,19 @@
     @keyframes enter-btn-pulse {
       0%, 100% {
         box-shadow:
-          0 3px 0 #8c7f68,
-          0 5px 10px rgba(40, 30, 15, 0.38),
-          0 0 0 2px rgba(200, 87, 63, 0.35),
-          inset 0 1px 0 rgba(255, 255, 255, 0.95),
-          inset 0 -3px 6px rgba(140, 120, 90, 0.28);
+          0 3px 0 #6f2217,
+          0 5px 12px rgba(90, 20, 12, 0.45),
+          0 0 0 2px rgba(212, 74, 56, 0.4),
+          inset 0 1px 0 rgba(255, 210, 190, 0.55),
+          inset 0 -3px 6px rgba(90, 15, 10, 0.35);
       }
       50% {
         box-shadow:
-          0 3px 0 #8c7f68,
-          0 5px 10px rgba(40, 30, 15, 0.38),
-          0 0 0 4px rgba(200, 87, 63, 0.55),
-          inset 0 1px 0 rgba(255, 255, 255, 0.95),
-          inset 0 -3px 6px rgba(140, 120, 90, 0.28);
+          0 3px 0 #6f2217,
+          0 5px 12px rgba(90, 20, 12, 0.45),
+          0 0 0 5px rgba(232, 90, 70, 0.65),
+          inset 0 1px 0 rgba(255, 210, 190, 0.55),
+          inset 0 -3px 6px rgba(90, 15, 10, 0.35);
       }
     }
 
@@ -843,7 +961,7 @@
       50% { transform: translateY(-4px); }
     }
 
-    /* Bottom bar: Rams drilled-dot speakers + MP & PAUSE cream pills */
+    /* Bottom bar: Rams drilled-dot speakers + MP cream pill */
     .jj-bottom {
       flex: 0 0 auto;
       display: flex;
@@ -894,10 +1012,11 @@
       padding-right: 12px;
     }
     #mobileMpBtn .mp-icon {
-      width: 11px;
-      height: 11px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
       display: block;
+      color: #69b3a2;
     }
     #mobileMpBtn .mp-label {
       letter-spacing: 2px;
@@ -981,7 +1100,12 @@
     </div>
     <div id="mp-panel">
       <div id="mp-header">
-        <span id="mp-title">Multiplayer</span>
+        <span id="mp-title">
+          <svg class="mp-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M8.5 11a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5zm7 0a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5zM3.75 19.25c0-2.85 2.4-4.75 4.75-4.75h.5c.55 0 1.08.1 1.57.28A5.4 5.4 0 0 0 9.5 17.1v2.15H3.75zm7.5 0V17.2c0-1.55.95-2.95 2.4-3.5.55.2 1.14.3 1.75.3h.5c2.35 0 4.75 1.9 4.75 4.75H11.25z"/>
+          </svg>
+          Multiplayer
+        </span>
         <span id="mp-header-right">
           <span id="mp-badge">Solo</span>
           <button id="mp-toggle" type="button" title="Toggle panel">−</button>
@@ -1023,14 +1147,25 @@
         <div id="mp-status">P2P WebRTC · Host or join a code</div>
       </div>
     </div>
-    <div id="minimap-container">
-      <canvas id="minimap" width="160" height="160"></canvas>
+    <div id="minimap-stack">
+      <div id="minimap-container">
+        <canvas id="minimap" width="160" height="160"></canvas>
+      </div>
+      <div id="radio-label" aria-live="polite"></div>
+      <button id="radioMuteBtn" type="button" aria-label="Mute radio" aria-pressed="false" title="Mute radio (M)">
+        <svg class="radio-btn-icon radio-btn-radio" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M4.8 7.2 16.6 3.5l.7 2.1L7.2 8.7H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7.3a2 2 0 0 1 1.8-2zm3.7 6.3a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm6 1.2h4.2v2.4H14.5z"/>
+        </svg>
+        <svg class="radio-btn-icon radio-btn-sound" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M11.2 5.2 6.8 9H3.5v6H6.8l4.4 3.8V5.2zm2.9 3.1a4.6 4.6 0 0 1 0 7.4l1.5 1.5a6.7 6.7 0 0 0 0-10.4l-1.5 1.5zm2.7-2.8a8.6 8.6 0 0 1 0 13l1.5 1.5c4.1-3.2 4.1-12.8 0-16l-1.5 1.5z"/>
+        </svg>
+        <svg class="radio-btn-icon radio-btn-mute" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M11.2 5.2 6.8 9H3.5v6H6.8l4.4 3.8V5.2zm10.1.6-1.4-1.4-3.2 3.2-1.5-1.5-1.4 1.4 1.5 1.5-1.5 1.5 1.4 1.4 1.5-1.5 3.2 3.2 1.4-1.4-3.2-3.2 3.2-3.2z"/>
+        </svg>
+      </button>
     </div>
     <div id="wasted-overlay">
       <h2>Wasted</h2>
-    </div>
-    <div id="paused-overlay">
-      <span>PAUSED</span>
     </div>
   </div>
 
@@ -1076,7 +1211,6 @@
           </svg>
           <span class="mp-label">MP</span>
         </button>
-        <button id="mobilePauseBtn" class="jj-pill" type="button">PAUSE</button>
         <div class="jj-speaker right" aria-hidden="true"></div>
       </div>
     </div>
@@ -1154,6 +1288,12 @@
 
     // Ped visual size + camera zoom (tune here; collision radius stays unchanged).
     const PED_SCALE = 0.8;
+    // Shared combat / bump radii (larger = easier to hit & collide).
+    const HITBOX = {
+      player: 6.5,
+      ped: 5.5,
+      bike: 7
+    };
     const CAMERA_ZOOM_DESKTOP = 1.35;
     const CAMERA_ZOOM_MOBILE = 0.96;
     const CAMERA_ZOOM_LERP = 0.12;
@@ -1174,6 +1314,15 @@
       bobAmp: 0.01,
       cyNudge: 0.028
     };
+    const DEATH_CAM = {
+      zoomMul: 2.2,
+      easeInMs: 1100,
+      textAtMs: 1200,
+      totalMs: 3800,
+      audioDuck: 0.12
+    };
+    const CORPSE_LIFE_MS = 10000;
+    const SCORCH_LIFE_MS = 10000;
 
     // Tile Types: 0 = Park, 1 = Road, 2-4 = Buildings, 5 = Pavement
     const BUILDING_HEIGHTS = { 0: 0, 1: 0, 2: 40, 3: 80, 4: 130, 5: 0 };
@@ -1327,7 +1476,7 @@
     const PLAYER_REGEN_HP_PER_SEC = 6;
     const PLAYER_REGEN_DELAY_TICKS = Math.round(PLAYER_REGEN_DELAY_SEC * 120);
     const PLAYER_REGEN_PER_TICK = PLAYER_REGEN_HP_PER_SEC / 120;
-    const PLAYER_WALK_DRIVE = { maxSpeed: 7, accel: 0.06, driveRadius: 10 };
+    const PLAYER_WALK_DRIVE = { maxSpeed: 7, accel: 0.06, driveRadius: 13 };
 
     // Steer acceleration: fraction of this frame's full turn speed added per frame
     // while a turn key is held. At 60fps: 0.05 ≈ 0.33s to full, 0.10 ≈ 0.17s, 1 = instant.
@@ -1400,8 +1549,8 @@
         playerHealth: PLAYER_CAR_MAX_HEALTH,
         maxSpeed: 7,
         accel: 0.06,
-        radius: 13,
-        driveRadius: 10,
+        radius: 17,
+        driveRadius: 13,
         cruiseMin: 1.5,
         cruiseSpan: 0.8,
         driftEnter: 0.48,
@@ -1421,8 +1570,8 @@
         playerHealth: 130,
         maxSpeed: 5.4,
         accel: 0.042,
-        radius: 16,
-        driveRadius: 12,
+        radius: 20,
+        driveRadius: 15,
         cruiseMin: 1.15,
         cruiseSpan: 0.55,
         driftEnter: 0.60,
@@ -1442,8 +1591,8 @@
         playerHealth: 65,
         maxSpeed: 8.6,
         accel: 0.082,
-        radius: 12,
-        driveRadius: 9,
+        radius: 15,
+        driveRadius: 12,
         cruiseMin: 2.0,
         cruiseSpan: 0.8,
         driftEnter: 0.40,
@@ -1485,8 +1634,8 @@
       walkPhase: 0,
       travelAngle: 34 * (Math.PI / 180),
       moveAmount: 0,
-      radius: 4,
-      driveRadius: 10,
+      radius: HITBOX.player,
+      driveRadius: PLAYER_WALK_DRIVE.driveRadius,
       hp: PLAYER_MAX_HP,
       hitCooldown: 0,
       blastCooldown: 0,
@@ -1571,6 +1720,7 @@
     const SFX = {
       masterVolume: 0.2,
       pitchVariance: 0.07,
+      deathDuck: false,
       sounds: {
         shoot: {
           type: 'square',
@@ -1611,6 +1761,15 @@
           freqEnd: 55,
           duration: 0.42,
           volume: 0.5
+        },
+        radioOn: {
+          volume: 0.4,
+          notes: [
+            { type: 'square', freq: 380, duration: 0.035 },
+            { type: 'square', freq: 560, duration: 0.04 },
+            { type: 'sawtooth', freq: 920, freqEnd: 480, duration: 0.11 },
+            { type: 'triangle', freq: 240, freqEnd: 120, duration: 0.08 }
+          ]
         }
       }
     };
@@ -1695,6 +1854,10 @@
       return duration;
     }
 
+    function getSfxDuckMul() {
+      return SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+    }
+
     function playSfx(name) {
       const def = SFX.sounds[name];
       if (!def) return;
@@ -1705,7 +1868,8 @@
       }
       const when = ctx.currentTime + 0.001;
       const pitch = sfxPitchJitter();
-      const gainValue = Math.max(0.0001, SFX.masterVolume * (def.volume != null ? def.volume : 1));
+      const duck = name === 'death' ? 1 : getSfxDuckMul();
+      const gainValue = Math.max(0.0001, SFX.masterVolume * duck * (def.volume != null ? def.volume : 1));
 
       if (def.notes && def.notes.length) {
         let t = when;
@@ -1741,6 +1905,445 @@
       window.addEventListener(evt, unlockSfx, { capture: true, once: true });
     });
 
+    // --- GTA-STYLE CAR RADIO ---
+    const RADIO_TRACKS = [
+      { file: '1. and i love him.mp3', label: 'AND I LOVE HIM' },
+      { file: '2. Perfect Time 2 Be_GS_MACZ_VICKY_JOEY_OLLIE_ASHWIN_DAVID.mp3', label: 'PERFECT TIME 2 BE' },
+      { file: '3. GS_V9_7DAYS_WOOSILMIXM.mp3', label: '7 DAYS' },
+      { file: '4. I love you more than youll ever know.mp3', label: 'I LOVE YOU MORE' },
+      { file: '5. Summer 25_GS_BETI.mp3', label: 'SUMMER 25' },
+      { file: '6. GS_V15_MM&I_GEORGEMIX.mp3.mp3', label: 'MM & I' },
+      { file: '7. Tonight_GS_JOEY.mp3', label: 'TONIGHT' },
+      { file: '8. KR _Beti_Macz_Vicky_Cap.mp3', label: 'BETI · MACZ · VICKY' },
+      { file: '9. its over.mp3', label: "IT'S OVER" }
+    ];
+    const RADIO = {
+      baseVolume: 0.42,
+      fadeSpeed: 1.65,
+      proxMaxDist: 260,
+      proxMinDist: 40,
+      syncIntervalMs: 900,
+      labelMs: 1600,
+      shootDuck: 0.32,
+      wantedDuck: 0.5
+    };
+    const radio = {
+      muted: false,
+      fade: 0,
+      fadeTarget: 0,
+      duck: 1,
+      trackIndex: -1,
+      vehicleId: null,
+      audio: null,
+      ready: RADIO_TRACKS.map(() => false),
+      buffers: RADIO_TRACKS.map(() => null),
+      waiters: new Map(),
+      memory: new Map(),
+      prox: new Map(),
+      netCache: new Map(),
+      labelEl: null,
+      muteBtnEl: null,
+      labelHideAt: 0,
+      lastSyncAt: 0,
+      pendingEnterId: null
+    };
+
+    function radioTrackUrl(file) {
+      return 'Radio/' + encodeURIComponent(file).replace(/%2F/g, '/');
+    }
+
+    function flushRadioWaiters(index, audio) {
+      const waiters = radio.waiters.get(index);
+      radio.waiters.delete(index);
+      if (!waiters) return;
+      for (let i = 0; i < waiters.length; i++) {
+        try { waiters[i](audio); } catch (_) {}
+      }
+    }
+
+    function ensureRadioTrack(index, onReady) {
+      if (index < 0 || index >= RADIO_TRACKS.length) return;
+      if (radio.ready[index] && radio.buffers[index]) {
+        if (onReady) onReady(radio.buffers[index]);
+        return;
+      }
+      if (onReady) {
+        let list = radio.waiters.get(index);
+        if (!list) {
+          list = [];
+          radio.waiters.set(index, list);
+        }
+        list.push(onReady);
+      }
+      if (radio.buffers[index]) return;
+
+      const a = new Audio();
+      a.preload = 'auto';
+      a.src = radioTrackUrl(RADIO_TRACKS[index].file);
+      radio.buffers[index] = a;
+      const markReady = () => {
+        if (radio.ready[index]) return;
+        radio.ready[index] = true;
+        flushRadioWaiters(index, a);
+      };
+      a.addEventListener('canplaythrough', markReady);
+      a.addEventListener('loadeddata', markReady);
+      a.load();
+    }
+
+    function prefetchRadioTracks(count) {
+      const need = [];
+      for (let i = 0; i < RADIO_TRACKS.length; i++) {
+        if (!radio.ready[i] && !radio.buffers[i]) need.push(i);
+      }
+      for (let n = 0; n < count && need.length; n++) {
+        const j = Math.floor(Math.random() * need.length);
+        ensureRadioTrack(need.splice(j, 1)[0], null);
+      }
+    }
+
+    function initCarRadio() {
+      radio.labelEl = document.getElementById('radio-label');
+      radio.muteBtnEl = document.getElementById('radioMuteBtn');
+      updateRadioMuteUi();
+      if (radio.muteBtnEl) {
+        let lastTap = 0;
+        radio.muteBtnEl.addEventListener('touchend', e => {
+          e.preventDefault();
+          lastTap = performance.now();
+          toggleRadioMute();
+          if (typeof haptic === 'function') haptic(10);
+        }, { passive: false });
+        radio.muteBtnEl.addEventListener('click', e => {
+          if (performance.now() - lastTap < 400) return;
+          e.preventDefault();
+          toggleRadioMute();
+        });
+      }
+    }
+
+    function showRadioLabel(text) {
+      if (!radio.labelEl) return;
+      radio.labelEl.textContent = text;
+      radio.labelEl.classList.add('show');
+      radio.labelHideAt = performance.now() + RADIO.labelMs;
+    }
+
+    function updateRadioMuteUi() {
+      if (!radio.muteBtnEl) return;
+      const inCar = !wasted && player.mode === 'driving' && activeVehicle && !activeVehicle.isBike;
+      radio.muteBtnEl.classList.toggle('in-car', !!inCar);
+      radio.muteBtnEl.classList.toggle('muted', radio.muted);
+      radio.muteBtnEl.setAttribute('aria-pressed', radio.muted ? 'true' : 'false');
+      radio.muteBtnEl.setAttribute(
+        'aria-label',
+        radio.muted ? 'Unmute radio' : 'Mute radio'
+      );
+      radio.muteBtnEl.title = radio.muted ? 'Unmute radio (M)' : 'Mute radio (M)';
+    }
+
+    function randomRadioStart(audio) {
+      const dur = audio && isFinite(audio.duration) && audio.duration > 1 ? audio.duration : 0;
+      if (dur <= 1) return 0;
+      // Bias across start / mid / late
+      const roll = Math.random();
+      let t;
+      if (roll < 0.28) t = Math.random() * Math.min(12, dur * 0.12);
+      else if (roll < 0.72) t = dur * (0.25 + Math.random() * 0.4);
+      else t = dur * (0.7 + Math.random() * 0.25);
+      return Math.max(0, Math.min(dur * 0.95, t));
+    }
+
+    function stopAllRadioBuffersExcept(keep) {
+      for (let i = 0; i < radio.buffers.length; i++) {
+        const a = radio.buffers[i];
+        if (!a || a === keep) continue;
+        try { a.pause(); } catch (_) {}
+      }
+    }
+
+    function setMainRadioVolume() {
+      if (!radio.audio) return;
+      const deathMul = SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+      const vol = RADIO.baseVolume * radio.fade * radio.duck * deathMul * (radio.muted ? 0 : 1);
+      radio.audio.volume = Math.max(0, Math.min(1, vol));
+    }
+
+    function playLoadedRadioTrack(vehicle, idx, startAt) {
+      const audio = radio.buffers[idx];
+      if (!audio || !radio.ready[idx]) return;
+      stopAllRadioBuffersExcept(audio);
+      try {
+        let t = startAt;
+        if (t < 0) t = randomRadioStart(audio);
+        else if (isFinite(audio.duration) && audio.duration > 0) {
+          t = Math.min(t, Math.max(0, audio.duration - 0.5));
+        }
+        audio.currentTime = Math.max(0, t);
+      } catch (_) {}
+      radio.audio = audio;
+      radio.trackIndex = idx;
+      radio.vehicleId = vehicle.id;
+      radio.pendingEnterId = null;
+      radio.fade = 0;
+      radio.fadeTarget = 1;
+      setMainRadioVolume();
+      const playPromise = audio.play();
+      if (playPromise && playPromise.catch) playPromise.catch(() => {});
+      showRadioLabel('RADIO · ' + RADIO_TRACKS[idx].label);
+      broadcastRadioState(true);
+      prefetchRadioTracks(1);
+    }
+
+    function startCarRadioForVehicle(vehicle, playTuneSfx) {
+      if (!vehicle || vehicle.isBike) return;
+      unlockSfx();
+      if (playTuneSfx) playSfx('radioOn');
+
+      radio.vehicleId = vehicle.id;
+      if (radio.muted) {
+        radio.fadeTarget = 0;
+        radio.fade = 0;
+        if (radio.audio) {
+          try { radio.audio.pause(); } catch (_) {}
+        }
+        radio.audio = null;
+        radio.trackIndex = -1;
+        return;
+      }
+
+      const mem = radio.memory.get(vehicle.id);
+      let idx;
+      let startAt;
+      if (mem && mem.trackIndex >= 0 && mem.trackIndex < RADIO_TRACKS.length) {
+        idx = mem.trackIndex;
+        startAt = Math.max(0, mem.time || 0);
+      } else {
+        idx = Math.floor(Math.random() * RADIO_TRACKS.length);
+        startAt = -1;
+      }
+
+      radio.pendingEnterId = vehicle.id;
+      if (radio.ready[idx] && radio.buffers[idx]) {
+        playLoadedRadioTrack(vehicle, idx, startAt);
+        return;
+      }
+
+      ensureRadioTrack(idx, () => {
+        if (radio.muted) return;
+        if (player.mode !== 'driving' || !activeVehicle || activeVehicle.id !== vehicle.id) return;
+        playLoadedRadioTrack(vehicle, idx, startAt);
+      });
+      prefetchRadioTracks(1);
+    }
+
+    function stopCarRadio(saveVehicle) {
+      if (saveVehicle && radio.vehicleId != null && radio.audio && radio.trackIndex >= 0) {
+        radio.memory.set(radio.vehicleId, {
+          trackIndex: radio.trackIndex,
+          time: radio.audio.currentTime || 0
+        });
+      }
+      radio.fadeTarget = 0;
+      radio.pendingEnterId = null;
+      broadcastRadioState(false);
+    }
+
+    function finishRadioFadeOut() {
+      if (radio.audio) {
+        try { radio.audio.pause(); } catch (_) {}
+      }
+      radio.audio = null;
+      radio.trackIndex = -1;
+      radio.vehicleId = null;
+    }
+
+    function toggleRadioMute() {
+      radio.muted = !radio.muted;
+      updateRadioMuteUi();
+      if (radio.muted) {
+        if (radio.vehicleId != null && radio.audio && radio.trackIndex >= 0) {
+          radio.memory.set(radio.vehicleId, {
+            trackIndex: radio.trackIndex,
+            time: radio.audio.currentTime || 0
+          });
+        }
+        radio.fadeTarget = 0;
+        broadcastRadioState(false);
+      } else if (player.mode === 'driving' && activeVehicle && !activeVehicle.isBike) {
+        startCarRadioForVehicle(activeVehicle, true);
+      }
+    }
+
+    function broadcastRadioState(playing) {
+      if (net.role === 'solo') return;
+      const payload = {
+        t: 'radio',
+        vehicleId: radio.vehicleId,
+        trackIndex: radio.trackIndex,
+        time: radio.audio ? radio.audio.currentTime : 0,
+        playing: !!(playing && !radio.muted && radio.trackIndex >= 0 && radio.vehicleId)
+      };
+      if (net.role === 'guest') netSendToHost(payload);
+      else netBroadcast(payload);
+      radio.lastSyncAt = performance.now();
+    }
+
+    function handleRadioNetMessage(msg, fromId) {
+      if (!msg || msg.t !== 'radio') return;
+      if (fromId && fromId === net.localId) return;
+      if (!msg.vehicleId) {
+        radio.netCache.delete(fromId || msg.driverId || '');
+        return;
+      }
+      const key = msg.vehicleId;
+      radio.netCache.set(key, {
+        trackIndex: msg.trackIndex|0,
+        time: Number(msg.time) || 0,
+        playing: !!msg.playing,
+        driverId: fromId || msg.driverId || null,
+        updatedAt: performance.now()
+      });
+      if (net.role === 'host' && fromId) {
+        netBroadcast({ ...msg, driverId: fromId }, fromId);
+      }
+    }
+
+    function getOrCreateProxAudio(vehicleId, trackIndex) {
+      let slot = radio.prox.get(vehicleId);
+      if (slot && slot.trackIndex === trackIndex && slot.audio) return slot;
+      if (slot && slot.audio) {
+        try { slot.audio.pause(); } catch (_) {}
+      }
+      if (!radio.ready[trackIndex] || !radio.buffers[trackIndex]) {
+        ensureRadioTrack(trackIndex, null);
+        return null;
+      }
+      const src = radio.buffers[trackIndex];
+      const audio = src.cloneNode(true);
+      audio.loop = false;
+      slot = { audio, trackIndex, fade: 0 };
+      radio.prox.set(vehicleId, slot);
+      return slot;
+    }
+
+    function clearProximityRadios() {
+      radio.prox.forEach(slot => {
+        try { slot.audio.pause(); } catch (_) {}
+      });
+      radio.prox.clear();
+    }
+
+    function updateProximityRadios() {
+      if (radio.muted) {
+        clearProximityRadios();
+        return;
+      }
+      const now = performance.now();
+      const heard = new Set();
+      radio.netCache.forEach((info, vehicleId) => {
+        if (!info.playing || info.trackIndex < 0) return;
+        if (radio.vehicleId && vehicleId === radio.vehicleId) return;
+        const vehicle = vehicles.find(v => v.id === vehicleId);
+        if (!vehicle || vehicle.isBike) return;
+        if (!vehicle.driverId && now - info.updatedAt > 2500) return;
+        if (vehicle.driverId === net.localId) return;
+        const dist = Math.hypot(player.x - vehicle.x, player.y - vehicle.y);
+        if (dist > RADIO.proxMaxDist) return;
+        heard.add(vehicleId);
+        const slot = getOrCreateProxAudio(vehicleId, info.trackIndex);
+        if (!slot) return;
+        const t = Math.max(0, Math.min(1,
+          1 - (dist - RADIO.proxMinDist) / Math.max(1, RADIO.proxMaxDist - RADIO.proxMinDist)
+        ));
+        const target = t * t;
+        slot.fade += (target - slot.fade) * 0.12;
+        const deathMul = SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+        const finalVol = Math.max(0, Math.min(1, RADIO.baseVolume * 0.75 * slot.fade * radio.duck * deathMul));
+        slot.audio.volume = finalVol;
+        if (finalVol > 0.02) {
+          if (slot.audio.paused) {
+            try {
+              const drift = Math.abs((slot.audio.currentTime || 0) - (info.time || 0));
+              if (drift > 1.5 && isFinite(info.time)) slot.audio.currentTime = info.time;
+            } catch (_) {}
+            const p = slot.audio.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+        } else if (!slot.audio.paused) {
+          try { slot.audio.pause(); } catch (_) {}
+        }
+      });
+      radio.prox.forEach((slot, vehicleId) => {
+        if (heard.has(vehicleId)) return;
+        slot.fade *= 0.85;
+        slot.audio.volume = Math.max(0, slot.audio.volume * 0.85);
+        if (slot.fade < 0.03) {
+          try { slot.audio.pause(); } catch (_) {}
+          radio.prox.delete(vehicleId);
+        }
+      });
+    }
+
+    function updateCarRadio(dtSec) {
+      // Duck while shooting / wanted
+      let duck = 1;
+      if (getActiveShootCode() || gun.fireCooldown > 0) duck *= RADIO.shootDuck;
+      if ((typeof wantedLevel === 'number' ? wantedLevel : 0) > 0) duck *= RADIO.wantedDuck;
+      radio.duck += (duck - radio.duck) * Math.min(1, dtSec * 6);
+
+      if (radio.fade < radio.fadeTarget) {
+        radio.fade = Math.min(radio.fadeTarget, radio.fade + RADIO.fadeSpeed * dtSec);
+      } else if (radio.fade > radio.fadeTarget) {
+        radio.fade = Math.max(radio.fadeTarget, radio.fade - RADIO.fadeSpeed * dtSec);
+      }
+      setMainRadioVolume();
+      if (radio.fadeTarget <= 0 && radio.fade <= 0.001 && radio.audio) {
+        finishRadioFadeOut();
+      }
+
+      // Loop / end of track → pick another while still in same car
+      if (
+        !radio.muted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        radio.audio &&
+        radio.audio.ended
+      ) {
+        radio.memory.delete(activeVehicle.id);
+        startCarRadioForVehicle(activeVehicle, false);
+      }
+
+      if (radio.labelEl && radio.labelHideAt && performance.now() > radio.labelHideAt) {
+        radio.labelEl.classList.remove('show');
+        radio.labelHideAt = 0;
+      }
+
+      if (
+        !radio.muted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike &&
+        radio.audio &&
+        performance.now() - radio.lastSyncAt > RADIO.syncIntervalMs
+      ) {
+        broadcastRadioState(true);
+      }
+
+      updateProximityRadios();
+    }
+
+    function onEnterCarRadio(vehicle) {
+      startCarRadioForVehicle(vehicle, true);
+      updateRadioMuteUi();
+    }
+
+    function onExitCarRadio(vehicle) {
+      stopCarRadio(!!vehicle);
+      updateRadioMuteUi();
+    }
+
+
     function addCameraShake(amount) {
       if (amount <= 0 || wasted) return;
       cameraShake.trauma = Math.min(
@@ -1769,7 +2372,141 @@
     const wreckFx = [];
     const bullets = [];
     const muzzleFlashes = [];
+    const corpses = [];
+    const scorchMarks = [];
     let wasted = false;
+
+    function isRoadWorldAt(x, y) {
+      const c = Math.floor(x / TILE_SIZE);
+      const r = Math.floor(y / TILE_SIZE);
+      if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) return false;
+      return map[r][c] === 1;
+    }
+
+    function nudgeCorpseOffRoad(x, y) {
+      if (!isRoadWorldAt(x, y)) return { x, y };
+      for (let rad = 1; rad <= 7; rad++) {
+        for (let a = 0; a < 12; a++) {
+          const ang = (a / 12) * Math.PI * 2;
+          const nx = x + Math.cos(ang) * rad * TILE_SIZE * 0.5;
+          const ny = y + Math.sin(ang) * rad * TILE_SIZE * 0.5;
+          const c = Math.floor(nx / TILE_SIZE);
+          const r = Math.floor(ny / TILE_SIZE);
+          if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) continue;
+          const t = map[r][c];
+          if (t === PAVEMENT_TILE || t === 0) return { x: nx, y: ny };
+        }
+      }
+      return { x, y };
+    }
+
+    function spawnCorpse(data, broadcast) {
+      if (!data) return;
+      const pos = nudgeCorpseOffRoad(data.x, data.y);
+      corpses.push({
+        x: pos.x,
+        y: pos.y,
+        angle: data.angle || 0,
+        coat: data.coat || '#a94336',
+        skin: data.skin || playerSkin,
+        hair: data.hair || null,
+        isPolice: !!data.isPolice,
+        slim: data.slim != null ? !!data.slim : !data.isPolice,
+        bornAt: performance.now(),
+        lifeMs: CORPSE_LIFE_MS
+      });
+      if (broadcast && net.role !== 'solo') {
+        const payload = {
+          t: 'fx_corpse',
+          x: pos.x,
+          y: pos.y,
+          angle: data.angle || 0,
+          coat: data.coat || '#a94336',
+          skin: data.skin || playerSkin,
+          hair: data.hair || null,
+          isPolice: !!data.isPolice,
+          slim: data.slim != null ? !!data.slim : !data.isPolice
+        };
+        if (net.role === 'guest') netSendToHost(payload);
+        else netBroadcast(payload);
+      }
+    }
+
+    function spawnScorchMark(x, y, radius, broadcast) {
+      scorchMarks.push({
+        x,
+        y,
+        radius: Math.max(20, (radius || 18) * 1.55),
+        bornAt: performance.now(),
+        lifeMs: SCORCH_LIFE_MS
+      });
+      if (broadcast && net.role === 'host') {
+        netBroadcast({ t: 'fx_scorch', x, y, r: radius || 18 });
+      }
+    }
+
+    function updateCorpsesAndScorch() {
+      const now = performance.now();
+      for (let i = corpses.length - 1; i >= 0; i--) {
+        if (now - corpses[i].bornAt >= corpses[i].lifeMs) corpses.splice(i, 1);
+      }
+      for (let i = scorchMarks.length - 1; i >= 0; i--) {
+        if (now - scorchMarks[i].bornAt >= scorchMarks[i].lifeMs) scorchMarks.splice(i, 1);
+      }
+    }
+
+    function drawScorchMarks() {
+      const now = performance.now();
+      const zMul = pedZoomScale();
+      for (let i = 0; i < scorchMarks.length; i++) {
+        const m = scorchMarks[i];
+        const age = now - m.bornAt;
+        const fade = age > m.lifeMs - 1000
+          ? Math.max(0, (m.lifeMs - age) / 1000)
+          : 1;
+        if (fade <= 0) continue;
+        const p = project(m.x, m.y, 0.6);
+        const rx = m.radius * 0.22 * zMul;
+        const ry = m.radius * 0.12 * zMul;
+        ctx.fillStyle = `rgba(14, 11, 9, ${0.62 * fade})`;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, rx, ry, 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(32, 26, 20, ${0.38 * fade})`;
+        ctx.beginPath();
+        ctx.ellipse(p.x - rx * 0.15, p.y + ry * 0.1, rx * 0.72, ry * 0.7, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawCorpses() {
+      const now = performance.now();
+      for (let i = 0; i < corpses.length; i++) {
+        const c = corpses[i];
+        const age = now - c.bornAt;
+        const fade = age > c.lifeMs - 1000
+          ? Math.max(0, (c.lifeMs - age) / 1000)
+          : 1;
+        if (fade <= 0) continue;
+        drawPedestrian(
+          c.x,
+          c.y,
+          c.angle,
+          0,
+          c.coat,
+          c.skin,
+          c.isPolice,
+          c.angle,
+          0,
+          {
+            hair: c.hair,
+            slim: c.slim,
+            corpse: true,
+            alpha: fade
+          }
+        );
+      }
+    }
 
     // --- COMBAT & WANTED (tweakable) ---
     const BLOCK_WORLD = ROAD_SPACING * TILE_SIZE;
@@ -1780,7 +2517,7 @@
       bulletSpeed: 12,
       bulletLife: 42,
       playerBulletLife: 84,
-      bulletRadius: 7,
+      bulletRadius: 9,
       carDamage: 5,
       playerGunDamage: 12,
       policeGunDamagePed: 14,
@@ -1806,7 +2543,12 @@
       policeCarsHighAt: 3,
       policeChaseFrom: 1,
       policeChaseSpeed: 3.2,
-      policeRoamSpeed: 2.4
+      policeRoamSpeed: 2.4,
+      // Pursuit uses player-like grip/steer; turnSpeed > player 0.045 ⇒ slightly smaller turning radius.
+      policeChaseTurnSpeed: 0.055,
+      policeChaseSteerAccel: 0.085,
+      policeChaseAccel: 0.068,
+      policeChaseRelease: 0.78
     };
     const POLICE_LOOK = {
       coat: '#1a3a6e',
@@ -1930,12 +2672,18 @@
         turnIntent: null,
         lastIntersection: null,
         collisionCooldown: 0,
-        isPoliceCar: true
+        isPoliceCar: true,
+        vx: 0,
+        vy: 0,
+        steerRate: 0,
+        drifting: false
       };
       assignCarClass(car, 'normal', false);
       car.maxHealth = 55;
       car.health = 55;
       car.baseSpeed = cruisingSpeed;
+      car.vx = Math.cos(car.angle) * cruisingSpeed;
+      car.vy = Math.sin(car.angle) * cruisingSpeed;
       return car;
     }
 
@@ -1956,7 +2704,9 @@
 
     const pedestrianColors = ['#a94336', '#6f7b4b', '#c19a61', '#69757a', '#8b6451'];
     const skinTones = ['#f0c7a5', '#d9a27f', '#bc7f5f', '#925d43', '#68402f'];
+    const hairTones = ['#3b2a1c', '#1a1410', '#6b4e2e', '#0d0d0d', '#8a6a28', '#4a3020', '#c9b896', '#2e2218'];
     const playerSkin = skinTones[Math.floor(Math.random() * skinTones.length)];
+    const playerHair = hairTones[Math.floor(Math.random() * hairTones.length)];
     for (let i = 0; i < 24; i++) {
       const tile = pedestrianTiles[Math.floor(Math.random() * pedestrianTiles.length)];
       pedestrians.push({
@@ -1965,10 +2715,11 @@
         y: (tile.r + 0.5) * TILE_SIZE,
         angle: Math.floor(Math.random() * 4) * (Math.PI / 2),
         speed: 0.55 + Math.random() * 0.45,
-        radius: 3,
+        radius: HITBOX.ped,
         walkPhase: Math.random() * Math.PI * 2,
         coat: pedestrianColors[i % pedestrianColors.length],
         skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[i % hairTones.length],
         idleTimer: Math.floor(Math.random() * 90),
         health: 1,
         isPolice: false
@@ -1986,7 +2737,7 @@
       // Slightly tighter than cars at low speed; keep it calm.
       turnSpeed: 0.036,
       steerAccel: 0.09,
-      radius: 5,
+      radius: HITBOX.bike,
       enterDist: 42,
       baySnapDist: 78,
       bayCount: 6,
@@ -2582,9 +3333,15 @@
     // World muzzle point: side shots leave the vehicle window, not the hood.
     function getShootOrigin(shootCode, shootAngle) {
       if (!isMountedVehicle()) {
+        // Right hand relative to facing (y-down world), then out along aim.
+        const rightX = -Math.sin(player.angle);
+        const rightY = Math.cos(player.angle);
+        const handSide = 5.2;
+        const handFwd = 2.5;
+        const along = 9;
         return {
-          x: player.x + Math.cos(shootAngle) * 16,
-          y: player.y + Math.sin(shootAngle) * 16
+          x: player.x + rightX * handSide + Math.cos(player.angle) * handFwd + Math.cos(shootAngle) * along,
+          y: player.y + rightY * handSide + Math.sin(player.angle) * handFwd + Math.sin(shootAngle) * along
         };
       }
       if (shootCode === 'ArrowLeft' || shootCode === 'ArrowRight') {
@@ -2627,6 +3384,10 @@
       }
       if (!e.repeat && (e.code === 'KeyE' || e.key.toLowerCase() === 'e')) {
         togglePlayerMode();
+      }
+      if (!e.repeat && (e.code === 'KeyM' || e.key.toLowerCase() === 'm')) {
+        e.preventDefault();
+        toggleRadioMute();
       }
     }
 
@@ -3364,6 +4125,7 @@
         player.vx = Math.cos(player.angle) * player.speed;
         player.vy = Math.sin(player.angle) * player.speed;
         player.drifting = false;
+        onEnterCarRadio(activeVehicle);
         debugDrive('enter-car', {
           dist: nearestVehicle.distance,
           carClass: activeVehicle.carClass,
@@ -3419,6 +4181,7 @@
         exiting.speed = 0;
         exiting.driverId = null;
         exiting.parked = isInParkingBay(exiting.x, exiting.y);
+        onExitCarRadio(exiting);
         activeVehicle = null;
         restoreWalkDriveStats();
         if (net.role === 'guest') {
@@ -3499,7 +4262,7 @@
     }
 
     function findCarExitPosition(vehicle, requireWalkable) {
-      const reach = (vehicle.radius || 13) + 9;
+      const reach = (vehicle.radius || 17) + 9;
       const angles = [
         vehicle.angle + Math.PI / 2,
         vehicle.angle - Math.PI / 2,
@@ -3624,7 +4387,9 @@
       putPlayerOnFoot(spot.x, spot.y);
       setWantedLevel(0);
       wantedCoolTimer = 0;
+      endDeathCam();
       document.getElementById('wasted-overlay').style.display = 'none';
+      document.getElementById('wasted-overlay').classList.remove('show-text');
       startSpawnCameraIntro();
       if (net.role === 'guest') {
         netSendToHost({ t: 'respawn', x: spot.x, y: spot.y, angle: spot.angle });
@@ -3639,6 +4404,7 @@
       playSfx('death');
       if (net.role !== 'solo' && activeVehicle) {
         const drop = activeVehicle;
+        if (!drop.isBike) onExitCarRadio(drop);
         drop.driverId = null;
         drop.speed = 0;
         if (drop.isBike) tryParkBikeInNearbyBay(drop);
@@ -3656,13 +4422,35 @@
             isBike: !!drop.isBike
           });
         }
+      } else if (activeVehicle && !activeVehicle.isBike) {
+        onExitCarRadio(activeVehicle);
+      } else if (activeVehicle && activeVehicle.isBike) {
+        // leave bike; corpse still on foot pose at player
       }
-      document.getElementById('wasted-overlay').style.display = 'flex';
+      if (player.mode === 'driving' || player.mode === 'biking') {
+        player.mode = 'walking';
+        if (activeVehicle) {
+          activeVehicle.driverId = null;
+          activeVehicle = null;
+          restoreWalkDriveStats();
+        }
+      }
+      spawnCorpse({
+        x: player.x,
+        y: player.y,
+        angle: player.angle,
+        coat: net.localCoat,
+        skin: playerSkin,
+        hair: playerHair,
+        isPolice: false,
+        slim: false
+      }, true);
+      startDeathCam();
       if (net.role === 'solo') {
-        setTimeout(() => location.reload(), 2600);
+        setTimeout(() => location.reload(), DEATH_CAM.totalMs);
       } else {
         if (net.respawnTimeout) clearTimeout(net.respawnTimeout);
-        net.respawnTimeout = setTimeout(respawnLocalPlayer, 2600);
+        net.respawnTimeout = setTimeout(respawnLocalPlayer, DEATH_CAM.totalMs);
       }
     }
 
@@ -3861,8 +4649,12 @@
       vehicle.roadBase = Math.floor(tile / ROAD_SPACING) * ROAD_SPACING;
       vehicle.turn = null;
       vehicle.turnIntent = null;
+      vehicle.steerRate = 0;
+      vehicle.drifting = false;
       vehicle.baseSpeed = WANTED.policeRoamSpeed;
       vehicle.speed = Math.min(vehicle.speed, WANTED.policeRoamSpeed);
+      vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
+      vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
       const lane = getLeftLaneCenter(vehicle.roadBase, vehicle.dirIndex);
       if (vehicle.axis === 'horizontal') vehicle.y = lane;
       else vehicle.x = lane;
@@ -3874,48 +4666,150 @@
         snapPoliceCarToRoam(vehicle);
         return;
       }
+
+      if (vehicle.vx == null) vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
+      if (vehicle.vy == null) vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
+      if (vehicle.steerRate == null) vehicle.steerRate = 0;
+
+      const spec = getCarSpec(vehicle);
+      const crawl = 0.12;
+      const damageMultiplier = carHealthSpeedMult(vehicle);
+      const maxSpeed = WANTED.policeChaseSpeed * damageMultiplier;
+      const accel = WANTED.policeChaseAccel * damageMultiplier;
+      const turnSpeed = WANTED.policeChaseTurnSpeed;
+      const steerAccel = WANTED.policeChaseSteerAccel;
+
       const dx = target.x - vehicle.x;
       const dy = target.y - vehicle.y;
       const dist = Math.hypot(dx, dy);
       const desired = Math.atan2(dy, dx);
-      let angleDiff = desired - vehicle.angle;
-      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      const turnRate = dist < 90 ? 0.08 : 0.05;
-      vehicle.angle += Math.max(-turnRate, Math.min(turnRate, angleDiff));
+      const angleDiff = shortestAngleDiff(vehicle.angle, desired);
+
+      let intent = 0;
+      if (Math.abs(angleDiff) > 0.035) intent = angleDiff < 0 ? -1 : 1;
+      const steerIntensity = Math.min(1, Math.abs(angleDiff) / 0.5);
+
+      // Throttle like a driven car: push to chase speed, ease when close / turning hard.
+      let approach = maxSpeed;
+      if (dist < 45) approach = maxSpeed * 0.52;
+      else if (dist < 90) approach = maxSpeed * (0.55 + 0.45 * ((dist - 45) / 45));
+      if (Math.abs(angleDiff) > 0.85) approach *= 0.78;
+      else if (Math.abs(angleDiff) > 0.45) approach *= 0.9;
+
+      if (vehicle.speed < approach) {
+        vehicle.speed = Math.min(approach, vehicle.speed + accel);
+      } else {
+        vehicle.speed += (approach - vehicle.speed) * 0.1;
+      }
+
+      const absSpeed = Math.abs(vehicle.speed);
+      const speedRatio = Math.min(absSpeed / Math.max(maxSpeed, 0.01), 1);
+      const moveSpeed = Math.hypot(vehicle.vx, vehicle.vy);
+      const velAngle = moveSpeed > crawl ? Math.atan2(vehicle.vy, vehicle.vx) : vehicle.angle;
+      const slipSigned = moveSpeed > crawl ? shortestAngleDiff(velAngle, vehicle.angle) : 0;
+      const slipAngle = Math.abs(slipSigned);
+
+      const wantDrift = vehicle.speed > crawl &&
+        speedRatio >= spec.driftEnter &&
+        intent !== 0 &&
+        (Math.abs(vehicle.steerRate) > turnSpeed * 0.22 || slipAngle >= DRIVE_FEEL.driftSlipEnter);
+      vehicle.drifting = wantDrift || (
+        vehicle.drifting &&
+        vehicle.speed > crawl &&
+        speedRatio >= spec.driftHold &&
+        (intent !== 0 || slipAngle > DRIVE_FEEL.driftSlipHold)
+      );
+      if (absSpeed < crawl || speedRatio < 0.32) vehicle.drifting = false;
+
+      if (vehicle.drifting && slipAngle > 0.18) {
+        const bleed = spec.driftBleed != null ? spec.driftBleed : 0.996;
+        vehicle.speed *= bleed;
+      }
+
+      if (absSpeed >= crawl) {
+        let steerScale = 1.02 - 0.62 * speedRatio;
+        if (vehicle.drifting) steerScale += spec.driftSteer;
+        const maxSteer = turnSpeed *
+          Math.max(0.26, Math.min(1.25, steerScale)) *
+          Math.max(0.4, steerIntensity);
+        if (intent === 0) {
+          vehicle.steerRate = softReleaseSteer(
+            vehicle.steerRate,
+            WANTED.policeChaseRelease,
+            0.0007
+          );
+        } else {
+          vehicle.steerRate = accelerateSteer(
+            vehicle.steerRate,
+            intent,
+            maxSteer,
+            steerAccel
+          );
+        }
+        vehicle.angle += vehicle.steerRate;
+      } else {
+        vehicle.steerRate = 0;
+      }
       vehicle.dir = vehicle.angle;
 
-      const damageMultiplier = carHealthSpeedMult(vehicle);
-      const targetSpeed = WANTED.policeChaseSpeed * damageMultiplier;
-      vehicle.speed += (targetSpeed - vehicle.speed) * 0.08;
-      if (dist < 55) vehicle.speed = Math.min(vehicle.speed, targetSpeed);
+      const headingX = Math.cos(vehicle.angle);
+      const headingY = Math.sin(vehicle.angle);
+      const targetVx = headingX * vehicle.speed;
+      const targetVy = headingY * vehicle.speed;
+      let grip = vehicle.drifting
+        ? spec.driftGrip
+        : spec.grip + 0.42 * (1 - speedRatio);
+      vehicle.vx += (targetVx - vehicle.vx) * grip;
+      vehicle.vy += (targetVy - vehicle.vy) * grip;
+      if (absSpeed < crawl) {
+        vehicle.vx = 0;
+        vehicle.vy = 0;
+      }
 
-      const nx = vehicle.x + Math.cos(vehicle.angle) * vehicle.speed;
-      const ny = vehicle.y + Math.sin(vehicle.angle) * vehicle.speed;
       const radius = vehicle.driveRadius || vehicle.radius;
-      if (canDriveAt(nx, ny, radius)) {
-        vehicle.x = nx;
-        vehicle.y = ny;
-      } else {
+      const slide = trySlideMove(
+        vehicle.x,
+        vehicle.y,
+        vehicle.vx,
+        vehicle.vy,
+        radius,
+        canDriveAt
+      );
+      if (slide.moved) {
+        vehicle.x = slide.x;
+        vehicle.y = slide.y;
+        if (slide.slid) {
+          vehicle.speed *= WALL_SCRAPE_FRICTION;
+          if (!slide.usedX) vehicle.vx = 0;
+          if (!slide.usedY) vehicle.vy = 0;
+        }
+      } else if (moveSpeed > crawl) {
+        // Blocked — probe left/right like before, but keep momentum model.
         const left = vehicle.angle - 0.55;
         const right = vehicle.angle + 0.55;
-        const lx = vehicle.x + Math.cos(left) * vehicle.speed * 0.7;
-        const ly = vehicle.y + Math.sin(left) * vehicle.speed * 0.7;
-        const rx = vehicle.x + Math.cos(right) * vehicle.speed * 0.7;
-        const ry = vehicle.y + Math.sin(right) * vehicle.speed * 0.7;
+        const probe = vehicle.speed * 0.65;
+        const lx = vehicle.x + Math.cos(left) * probe;
+        const ly = vehicle.y + Math.sin(left) * probe;
+        const rx = vehicle.x + Math.cos(right) * probe;
+        const ry = vehicle.y + Math.sin(right) * probe;
         if (canDriveAt(lx, ly, radius)) {
           vehicle.angle = left;
           vehicle.x = lx;
           vehicle.y = ly;
+          vehicle.speed *= 0.88;
         } else if (canDriveAt(rx, ry, radius)) {
           vehicle.angle = right;
           vehicle.x = rx;
           vehicle.y = ry;
+          vehicle.speed *= 0.88;
         } else {
-          vehicle.angle += Math.PI * 0.5;
-          vehicle.speed *= 0.35;
+          vehicle.speed = -vehicle.speed * 0.28;
         }
         vehicle.dir = vehicle.angle;
+        vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
+        vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
+        vehicle.steerRate = 0;
+        vehicle.drifting = false;
       }
     }
 
@@ -4039,6 +4933,16 @@
       if (!ped) return;
       const idx = pedestrians.indexOf(ped);
       if (idx === -1) return;
+      spawnCorpse({
+        x: ped.x,
+        y: ped.y,
+        angle: ped.angle,
+        coat: ped.coat,
+        skin: ped.skin,
+        hair: ped.hair,
+        isPolice: !!ped.isPolice,
+        slim: !ped.isPolice
+      }, true);
       pedestrians.splice(idx, 1);
       if (!byPlayer) return;
       const killerId = typeof byPlayer === 'string' ? byPlayer : net.localId;
@@ -4080,7 +4984,7 @@
         if (!vehicle || vehicle.dead) continue;
         const speed = vehicleRunoverSpeed(vehicle);
         if (speed < RUNOVER_MIN_SPEED) continue;
-        const hitRadius = (vehicle.radius || 13) * 0.85;
+        const hitRadius = (vehicle.radius || 17) * 0.95;
         const driverId = vehicle === activeVehicle
           ? net.localId
           : (vehicle.driverId || null);
@@ -4245,10 +5149,11 @@
         y: spot.y,
         angle,
         speed: WANTED.policeSpeed,
-        radius: 3,
+        radius: HITBOX.ped,
         walkPhase: 0,
         coat: POLICE_LOOK.coat,
         skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[Math.floor(Math.random() * hairTones.length)],
         idleTimer: 0,
         fleeing: false,
         fleeTimer: 0,
@@ -4416,7 +5321,7 @@
           const shooterId = bullet.shooterId || net.localId;
           for (let p = 0; p < pedestrians.length; p++) {
             const ped = pedestrians[p];
-            if (Math.hypot(ped.x - bullet.x, ped.y - bullet.y) <= bullet.radius + ped.radius + 2) {
+            if (Math.hypot(ped.x - bullet.x, ped.y - bullet.y) <= bullet.radius + ped.radius + 3) {
               applyBulletHit(bullet, 'ped', ped);
               hit = true;
               break;
@@ -4427,7 +5332,7 @@
               const vehicle = vehicles[v];
               if (vehicle.dead || isVehicleDrivenBy(vehicle, shooterId)) continue;
               if (Math.hypot(vehicle.x - bullet.x, vehicle.y - bullet.y) <=
-                  bullet.radius + (vehicle.radius || 13) * 0.7) {
+                  bullet.radius + (vehicle.radius || 17) * 0.9) {
                 applyBulletHit(bullet, 'car', vehicle);
                 hit = true;
                 break;
@@ -4436,7 +5341,7 @@
           }
           if (!hit && net.role === 'host') {
             if (shooterId !== net.localId && !wasted && player.mode !== 'driving') {
-              const pRad = player.radius + 2;
+              const pRad = player.radius + 3;
               if (Math.hypot(player.x - bullet.x, player.y - bullet.y) <= bullet.radius + pRad) {
                 applyBulletHit(bullet, 'localPlayer', null);
                 hit = true;
@@ -4445,7 +5350,7 @@
             if (!hit) {
               for (const rp of net.players.values()) {
                 if (rp.id === shooterId || rp.wasted || rp.mode === 'driving') continue;
-                if (Math.hypot(rp.x - bullet.x, rp.y - bullet.y) <= bullet.radius + player.radius + 2) {
+                if (Math.hypot(rp.x - bullet.x, rp.y - bullet.y) <= bullet.radius + player.radius + 3) {
                   applyBulletHit(bullet, 'remotePlayer', rp);
                   hit = true;
                   break;
@@ -4468,7 +5373,7 @@
           if (!hit && net.role === 'host') {
             for (const rp of net.players.values()) {
               if (rp.wasted) continue;
-              const rpRad = rp.mode === 'driving' ? 10 : player.radius;
+              const rpRad = rp.mode === 'driving' ? 13 : player.radius;
               if (Math.hypot(rp.x - bullet.x, rp.y - bullet.y) <= bullet.radius + rpRad) {
                 applyBulletHit(bullet, 'remotePlayer', rp);
                 hit = true;
@@ -4692,8 +5597,9 @@
         ejectGuestFromCar(net.players.get(vehicle.driverId), vehicle);
       }
       spawnExplosionFx(vehicle.x, vehicle.y);
+      spawnScorchMark(vehicle.x, vehicle.y, vehicle.radius || 18, false);
       if (net.role === 'host') {
-        netBroadcast({ t: 'fx_boom', x: vehicle.x, y: vehicle.y });
+        netBroadcast({ t: 'fx_boom', x: vehicle.x, y: vehicle.y, r: vehicle.radius || 18 });
       }
       if (attackerId) addWantedForPlayer(attackerId, 1);
       const chained = [];
@@ -4891,10 +5797,11 @@
         y: spawnY,
         angle: Math.atan2(rightY, rightX) + (Math.random() - 0.5) * 0.4,
         speed: 1.45,
-        radius: 3,
+        radius: HITBOX.ped,
         walkPhase: 0,
         coat: pedestrianColors[Math.floor(Math.random() * pedestrianColors.length)],
         skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[Math.floor(Math.random() * hairTones.length)],
         idleTimer: 0,
         fleeing: true,
         fleeTimer: 220 + Math.floor(Math.random() * 80),
@@ -5065,8 +5972,67 @@
       blend: 0
     };
 
+    const deathCam = {
+      active: false,
+      startedAt: 0,
+      originX: 0,
+      originY: 0,
+      blend: 0,
+      textShown: false
+    };
+
     function getCameraZoomBase() {
       return isMobile ? CAMERA_ZOOM_MOBILE : CAMERA_ZOOM_DESKTOP;
+    }
+
+    function startDeathCam() {
+      spawnCamIntro.active = false;
+      spawnCamIntro.blend = 0;
+      deathCam.active = true;
+      deathCam.startedAt = performance.now();
+      deathCam.originX = player.x;
+      deathCam.originY = player.y;
+      deathCam.blend = 0;
+      deathCam.textShown = false;
+      SFX.deathDuck = true;
+      const overlay = document.getElementById('wasted-overlay');
+      if (overlay) {
+        overlay.style.display = 'none';
+        overlay.classList.remove('show-text');
+      }
+      if (canvas) canvas.style.filter = 'grayscale(0%)';
+    }
+
+    function updateDeathCam(now) {
+      if (!deathCam.active) return 0;
+      const elapsed = now - deathCam.startedAt;
+      if (elapsed < DEATH_CAM.easeInMs) {
+        const u = Math.min(1, elapsed / DEATH_CAM.easeInMs);
+        deathCam.blend = u * u * (3 - 2 * u);
+      } else {
+        deathCam.blend = 1;
+      }
+      if (!deathCam.textShown && elapsed >= DEATH_CAM.textAtMs) {
+        deathCam.textShown = true;
+        const overlay = document.getElementById('wasted-overlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+          overlay.classList.add('show-text');
+        }
+      }
+      if (canvas) {
+        canvas.style.filter = `grayscale(${Math.round(deathCam.blend * 100)}%)`;
+      }
+      return deathCam.blend;
+    }
+
+    function endDeathCam() {
+      deathCam.active = false;
+      deathCam.blend = 0;
+      deathCam.textShown = false;
+      SFX.deathDuck = false;
+      if (canvas) canvas.style.filter = '';
+      setMainRadioVolume();
     }
 
     function startSpawnCameraIntro() {
@@ -5163,17 +6129,25 @@
 
     function refreshCameraProjection() {
       const now = performance.now();
-      const introBlend = updateSpawnCameraIntro(now);
+      const deathBlend = updateDeathCam(now);
+      const introBlend = deathCam.active ? 0 : updateSpawnCameraIntro(now);
       const sideLeanRad = player.cameraSideLean * (12 * Math.PI / 180);
       const cameraRotation = -player.cameraAngle - sideLeanRad - shakeSample.angle - Math.PI * 0.75;
       camProj.cos = Math.cos(cameraRotation);
       camProj.sin = Math.sin(cameraRotation);
-      camProj.originX = player.x;
-      camProj.originY = player.y;
+      if (deathCam.active) {
+        camProj.originX = deathCam.originX;
+        camProj.originY = deathCam.originY;
+      } else {
+        camProj.originX = player.x;
+        camProj.originY = player.y;
+      }
+      const deathZoomMul = 1 + (DEATH_CAM.zoomMul - 1) * deathBlend;
       const introZoomMul = 1 + (SPAWN_CAM.zoomMul - 1) * introBlend;
-      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * introZoomMul;
-      if (introBlend > 0.0001) {
-        // Intro drives zoom directly (hold locked, then smoothstep ease-out).
+      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * (
+        deathCam.active ? deathZoomMul : introZoomMul
+      );
+      if (deathCam.active || introBlend > 0.0001) {
         camProj.zoom = zoomTarget;
       } else {
         const lerpRate = Math.abs(cameraZoomUserFactor - 1) > 0.0001
@@ -5183,9 +6157,11 @@
         if (Math.abs(zoomTarget - camProj.zoom) < 0.0005) camProj.zoom = zoomTarget;
       }
       camProj.zoomRatio = camProj.zoom / CAMERA_ZOOM_HEIGHT_REF;
-      camProj.screenCX = screenWidth / 2 + player.cameraSideLean * 22;
-      const lookAheadShift = player.cameraLookAhead * 0.14 * (1 - player.cameraRearPeek * 0.7);
-      const rearPeekShift = player.cameraRearPeek * 0.15;
+      camProj.screenCX = screenWidth / 2 + (deathCam.active ? 0 : player.cameraSideLean * 22);
+      const lookAheadShift = deathCam.active
+        ? 0
+        : player.cameraLookAhead * 0.14 * (1 - player.cameraRearPeek * 0.7);
+      const rearPeekShift = deathCam.active ? 0 : player.cameraRearPeek * 0.15;
       const introCy = introBlend * SPAWN_CAM.cyNudge;
       const introBob = introBlend > 0
         ? Math.sin((now - spawnCamIntro.startedAt) * 0.0055) * SPAWN_CAM.bobAmp * introBlend
@@ -5233,14 +6209,51 @@
       return rotX + rotY;
     }
 
+    const AI_LOD = {
+      nearDistSq: (18 * TILE_SIZE) * (18 * TILE_SIZE),
+      midDistSq: (34 * TILE_SIZE) * (34 * TILE_SIZE),
+      midStride: 4,
+      farStride: 8
+    };
+
+    function aiLodStrideForDistSq(distSq) {
+      if (distSq <= AI_LOD.nearDistSq) return 1;
+      if (distSq <= AI_LOD.midDistSq) return AI_LOD.midStride;
+      return AI_LOD.farStride;
+    }
+
+    function aiLodPhase(id) {
+      if (typeof id === 'number') return id & 31;
+      if (!id) return 0;
+      let h = 0;
+      const s = String(id);
+      for (let i = 0; i < s.length; i++) h = (h + s.charCodeAt(i) * (i + 1)) | 0;
+      return h & 31;
+    }
+
+    function shouldUpdateAiLod(id, distSq, forceFull) {
+      if (forceFull) return { run: true, step: 1 };
+      const stride = aiLodStrideForDistSq(distSq);
+      if (stride <= 1) return { run: true, step: 1 };
+      const run = ((simulationTick + aiLodPhase(id)) % stride) === 0;
+      return { run, step: stride };
+    }
+
     function updateEntities() {
       simulationTick++;
-      vehicles.forEach(vehicle => {
+      const px = player.x;
+      const py = player.y;
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
         vehicle.collisionCooldown = Math.max(0, vehicle.collisionCooldown - 1);
-        if (vehicle.maxHealth && vehicle.health / vehicle.maxHealth < 0.3 && Math.random() < 0.38) {
-          emitCarSmoke(vehicle);
+        if (vehicle.maxHealth && vehicle.health / vehicle.maxHealth < 0.3) {
+          const dx = vehicle.x - px;
+          const dy = vehicle.y - py;
+          if (dx * dx + dy * dy <= AI_LOD.midDistSq && Math.random() < 0.38) {
+            emitCarSmoke(vehicle);
+          }
         }
-      });
+      }
       intersections.forEach(intersection => {
         if (intersection.occupant &&
           !vehicles.some(vehicle => vehicle.id === intersection.occupant && vehicle.turn)) {
@@ -5248,12 +6261,13 @@
         }
       });
 
-      vehicles.forEach(vehicle => {
-        if (vehicle === activeVehicle || vehicle.driverId || vehicle.ai || vehicle.parked || vehicle.isBike) return;
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
+        if (vehicle === activeVehicle || vehicle.driverId || vehicle.ai || vehicle.parked || vehicle.isBike) continue;
         if (Math.abs(vehicle.speed) <= 0.04) {
           vehicle.speed = 0;
           vehicle.parked = isInParkingBay(vehicle.x, vehicle.y);
-          return;
+          continue;
         }
         const nx = vehicle.x + Math.cos(vehicle.angle) * vehicle.speed;
         const ny = vehicle.y + Math.sin(vehicle.angle) * vehicle.speed;
@@ -5264,69 +6278,87 @@
           vehicle.speed *= -0.2;
         }
         vehicle.speed *= 0.94;
-      });
+      }
 
-      vehicles.filter(vehicle => vehicle.ai).forEach(vehicle => {
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
+        if (!vehicle.ai) continue;
+
         if (vehicle.isPoliceCar && policeCarsHunting) {
           vehicle.turn = null;
           vehicle.turnIntent = null;
           updatePoliceCarChase(vehicle);
-          return;
+          continue;
         }
 
         if (vehicle.turn) {
           updateVehicleTurn(vehicle);
-          return;
+          continue;
         }
+
+        const dx = vehicle.x - px;
+        const dy = vehicle.y - py;
+        const distSq = dx * dx + dy * dy;
+        const lod = shouldUpdateAiLod(vehicle.id, distSq, false);
+        if (!lod.run) continue;
+        const stepScale = lod.step;
 
         const direction = directionVector(vehicle.dirIndex);
         const damageMultiplier = carHealthSpeedMult(vehicle);
         let targetSpeed = vehicle.baseSpeed * damageMultiplier;
-        const intersection = findIntersectionAhead(vehicle, direction);
+        const farSimple = lod.step >= AI_LOD.farStride;
 
-        if (intersection && intersection.distance < TILE_SIZE * 4) {
-          if (vehicle.lastIntersection !== intersection.item.id && !vehicle.turnIntent) {
-            const turnRoll = Math.random();
-            vehicle.turnIntent = turnRoll < 0.2
-              ? 'left'
-              : (turnRoll < 0.4 ? 'right' : 'straight');
+        if (!farSimple) {
+          const intersection = findIntersectionAhead(vehicle, direction);
+
+          if (intersection && intersection.distance < TILE_SIZE * 4) {
+            if (vehicle.lastIntersection !== intersection.item.id && !vehicle.turnIntent) {
+              const turnRoll = Math.random();
+              vehicle.turnIntent = turnRoll < 0.2
+                ? 'left'
+                : (turnRoll < 0.4 ? 'right' : 'straight');
+            }
+
+            const signalAxis = getSignalAxis(intersection.item);
+            const hasGreen = signalAxis === vehicle.axis;
+            const turnBlocked = vehicle.turnIntent !== 'straight' &&
+              intersection.item.occupant &&
+              intersection.item.occupant !== vehicle.id;
+            const stopDistance = ROAD_WIDTH * TILE_SIZE / 2 + 20;
+
+            if (!hasGreen || turnBlocked) {
+              const brakingDistance = Math.max(0, intersection.distance - stopDistance);
+              targetSpeed = Math.min(
+                targetSpeed,
+                vehicle.baseSpeed * Math.min(1, brakingDistance / 90)
+              );
+            } else if (vehicle.turnIntent !== 'straight' && intersection.distance < 8) {
+              startVehicleTurn(vehicle, intersection.item);
+              continue;
+            }
+          } else {
+            vehicle.lastIntersection = null;
+            vehicle.turnIntent = null;
           }
 
-          const signalAxis = getSignalAxis(intersection.item);
-          const hasGreen = signalAxis === vehicle.axis;
-          const turnBlocked = vehicle.turnIntent !== 'straight' &&
-            intersection.item.occupant &&
-            intersection.item.occupant !== vehicle.id;
-          const stopDistance = ROAD_WIDTH * TILE_SIZE / 2 + 20;
-
-          if (!hasGreen || turnBlocked) {
-            const brakingDistance = Math.max(0, intersection.distance - stopDistance);
-            targetSpeed = Math.min(
-              targetSpeed,
-              vehicle.baseSpeed * Math.min(1, brakingDistance / 90)
-            );
-          } else if (vehicle.turnIntent !== 'straight' && intersection.distance < 8) {
-            startVehicleTurn(vehicle, intersection.item);
-            return;
+          if (lod.step <= AI_LOD.midStride) {
+            const leadDistance = findLeadVehicleDistance(vehicle, direction);
+            if (leadDistance < 105) {
+              targetSpeed = Math.min(
+                targetSpeed,
+                vehicle.baseSpeed * Math.max(0, (leadDistance - 30) / 75)
+              );
+            }
           }
-
         } else {
-          vehicle.lastIntersection = null;
           vehicle.turnIntent = null;
         }
 
-        const leadDistance = findLeadVehicleDistance(vehicle, direction);
-        if (leadDistance < 105) {
-          targetSpeed = Math.min(
-            targetSpeed,
-            vehicle.baseSpeed * Math.max(0, (leadDistance - 30) / 75)
-          );
-        }
-
         vehicle.targetSpeed = targetSpeed;
-        vehicle.speed += (targetSpeed - vehicle.speed) * 0.08;
-        const nx = vehicle.x + direction.x * vehicle.speed;
-        const ny = vehicle.y + direction.y * vehicle.speed;
+        vehicle.speed += (targetSpeed - vehicle.speed) * Math.min(1, 0.08 * stepScale);
+        const move = vehicle.speed * stepScale;
+        const nx = vehicle.x + direction.x * move;
+        const ny = vehicle.y + direction.y * move;
         const margin = TILE_SIZE * 0.4;
         const worldLimit = MAP_SIZE * TILE_SIZE - margin;
         const insideCity = nx >= margin && nx <= worldLimit &&
@@ -5336,10 +6368,11 @@
           vehicle.x = nx;
           vehicle.y = ny;
           const lane = getLeftLaneCenter(vehicle.roadBase, vehicle.dirIndex);
+          const laneBlend = Math.min(1, 0.035 * stepScale);
           if (vehicle.axis === 'horizontal') {
-            vehicle.y += (lane - vehicle.y) * 0.035;
+            vehicle.y += (lane - vehicle.y) * laneBlend;
           } else {
-            vehicle.x += (lane - vehicle.x) * 0.035;
+            vehicle.x += (lane - vehicle.x) * laneBlend;
           }
         } else {
           vehicle.dirIndex = (vehicle.dirIndex + 2) % 4;
@@ -5356,26 +6389,37 @@
           }
         }
         vehicle.angle = vehicle.dir;
-      });
+      }
       handleVehicleCollisions();
     }
 
     function updatePedestrians() {
-      pedestrians.forEach(pedestrian => {
-        if (pedestrian.isPolice) return;
+      const px = player.x;
+      const py = player.y;
+      for (let i = 0; i < pedestrians.length; i++) {
+        const pedestrian = pedestrians[i];
+        if (pedestrian.isPolice) continue;
+
+        const pdx = pedestrian.x - px;
+        const pdy = pedestrian.y - py;
+        const distSq = pdx * pdx + pdy * pdy;
+        const lod = shouldUpdateAiLod(pedestrian.id || i, distSq, !!pedestrian.fleeing);
+        if (!lod.run) continue;
+        const stepScale = lod.step;
+        const moveSpeed = pedestrian.speed * stepScale;
 
         if (pedestrian.fleeing) {
-          pedestrian.fleeTimer--;
+          pedestrian.fleeTimer -= stepScale;
           if (pedestrian.fleeTimer <= 0) {
             pedestrian.fleeing = false;
             pedestrian.speed = 0.55 + Math.random() * 0.45;
           } else {
-            const nextX = pedestrian.x + Math.cos(pedestrian.angle) * pedestrian.speed;
-            const nextY = pedestrian.y + Math.sin(pedestrian.angle) * pedestrian.speed;
+            const nextX = pedestrian.x + Math.cos(pedestrian.angle) * moveSpeed;
+            const nextY = pedestrian.y + Math.sin(pedestrian.angle) * moveSpeed;
             if (canWalkAt(nextX, nextY, pedestrian.radius)) {
               pedestrian.x = nextX;
               pedestrian.y = nextY;
-              pedestrian.walkPhase += pedestrian.speed * 0.28;
+              pedestrian.walkPhase += moveSpeed * 0.28;
             } else {
               const turns = [Math.PI / 2, -Math.PI / 2, Math.PI / 4, -Math.PI / 4, Math.PI];
               const validTurn = turns.find(turn => canWalkAt(
@@ -5385,39 +6429,41 @@
               ));
               pedestrian.angle += validTurn ?? Math.PI;
             }
-            return;
+            continue;
           }
         }
 
         if (pedestrian.idleTimer > 0) {
-          pedestrian.idleTimer--;
-          return;
+          pedestrian.idleTimer = Math.max(0, pedestrian.idleTimer - stepScale);
+          continue;
         }
 
-        const nearbyVehicle = vehicles.find(vehicle =>
-          Math.hypot(vehicle.x - pedestrian.x, vehicle.y - pedestrian.y) < 34
-        );
-        if (nearbyVehicle) {
-          pedestrian.angle = Math.atan2(
-            pedestrian.y - nearbyVehicle.y,
-            pedestrian.x - nearbyVehicle.x
+        if (distSq <= AI_LOD.nearDistSq) {
+          const nearbyVehicle = vehicles.find(vehicle =>
+            Math.hypot(vehicle.x - pedestrian.x, vehicle.y - pedestrian.y) < 34
           );
-          pedestrian.idleTimer = 12;
-          return;
+          if (nearbyVehicle) {
+            pedestrian.angle = Math.atan2(
+              pedestrian.y - nearbyVehicle.y,
+              pedestrian.x - nearbyVehicle.x
+            );
+            pedestrian.idleTimer = 12;
+            continue;
+          }
         }
 
-        if (Math.random() < 0.003) {
+        if (Math.random() < 0.003 * stepScale) {
           pedestrian.idleTimer = 30 + Math.floor(Math.random() * 90);
-          return;
+          continue;
         }
 
-        const nextX = pedestrian.x + Math.cos(pedestrian.angle) * pedestrian.speed;
-        const nextY = pedestrian.y + Math.sin(pedestrian.angle) * pedestrian.speed;
+        const nextX = pedestrian.x + Math.cos(pedestrian.angle) * moveSpeed;
+        const nextY = pedestrian.y + Math.sin(pedestrian.angle) * moveSpeed;
         if (canPedestrianUseSurface(nextX, nextY, pedestrian.radius)) {
           pedestrian.x = nextX;
           pedestrian.y = nextY;
-          pedestrian.walkPhase += pedestrian.speed * 0.28;
-          return;
+          pedestrian.walkPhase += moveSpeed * 0.28;
+          continue;
         }
 
         const turns = Math.random() > 0.5
@@ -5431,7 +6477,7 @@
             pedestrian.radius
           ));
         pedestrian.angle = validTurn ?? pedestrian.angle + Math.PI;
-      });
+      }
     }
 
     function findIntersectionAhead(vehicle, direction) {
@@ -5946,9 +6992,23 @@
         item.cabinet = null;
       }
 
-      // All traffic, parked cars and the controlled vehicle share one queue.
+      // Traffic / parked / player cars — cull off-camera (keep local + occupied).
+      const vehPad = 2;
+      const vStartX = startX - vehPad;
+      const vEndX = endX + vehPad;
+      const vStartY = startY - vehPad;
+      const vEndY = endY + vehPad;
       for (let i = 0; i < vehicles.length; i++) {
         const vehicle = vehicles[i];
+        const keep =
+          vehicle === activeVehicle ||
+          vehicle.driverId === net.localId ||
+          (!!vehicle.driverId && vehicle.driverId !== net.localId);
+        if (!keep) {
+          const tileX = vehicle.x / TILE_SIZE;
+          const tileY = vehicle.y / TILE_SIZE;
+          if (tileX < vStartX || tileX > vEndX || tileY < vStartY || tileY > vEndY) continue;
+        }
         const item = acquireRenderItem();
         item.type = 'vehicle';
         item.vehicle = vehicle;
@@ -5974,7 +7034,7 @@
         item.intersection = null;
       }
 
-      if (player.mode === 'walking') {
+      if (player.mode === 'walking' && !wasted) {
         const item = acquireRenderItem();
         item.type = 'pedestrian';
         item.depth = projectDepth(player.x, player.y);
@@ -6022,7 +7082,9 @@
       }
       drawParkingBays();
       drawBikeBays();
+      drawScorchMarks();
       drawSkidMarks();
+      drawCorpses();
       ctx.beginPath();
       for (let i = 0; i < groundQueue.length; i++) {
         const tile = groundQueue[i];
@@ -6052,19 +7114,23 @@
             let hasRider = item.vehicle === activeVehicle;
             let riderCoat = net.localCoat;
             let riderSkin = playerSkin;
+            let riderHair = playerHair;
             if (!hasRider && item.vehicle.driverId) {
               const rp = net.players.get(item.vehicle.driverId);
               if (rp && !rp.wasted) {
                 hasRider = true;
                 riderCoat = rp.coat || '#3d7a8c';
                 riderSkin = rp.skin || playerSkin;
+                riderHair = rp.hair || hairToneFromCoat(riderCoat);
               }
             }
-            drawLimeBike(item.vehicle, hasRider, riderCoat, riderSkin);
+            drawLimeBike(item.vehicle, hasRider, riderCoat, riderSkin, riderHair);
           } else {
             drawVehicle(item.vehicle, item.vehicle === activeVehicle || !!item.vehicle.driverId);
           }
         } else if (item.type === 'pedestrian') {
+          const shootCode = getActiveShootCode();
+          const aiming = !!(shootCode || gun.fireCooldown > 0);
           drawPedestrian(
             player.x,
             player.y,
@@ -6074,7 +7140,12 @@
             playerSkin,
             false,
             player.travelAngle,
-            player.moveAmount
+            player.moveAmount,
+            {
+              hair: playerHair,
+              showGun: aiming,
+              gunAngle: shootCode ? shootAngleFromCode(shootCode) : player.angle
+            }
           );
         } else if (item.type === 'remotePlayer') {
           syncEntityTravel(item.pedestrian);
@@ -6087,7 +7158,8 @@
             item.pedestrian.skin || playerSkin,
             false,
             item.pedestrian.travelAngle,
-            item.pedestrian.moveAmount
+            item.pedestrian.moveAmount,
+            { hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat) }
           );
         } else if (item.type === 'npcPedestrian') {
           syncEntityTravel(item.pedestrian);
@@ -6100,7 +7172,11 @@
             item.pedestrian.skin,
             item.pedestrian.isPolice,
             item.pedestrian.travelAngle,
-            item.pedestrian.moveAmount
+            item.pedestrian.moveAmount,
+            {
+              hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat),
+              slim: !item.pedestrian.isPolice
+            }
           );
         } else if (item.type === 'trafficLight') {
           drawTrafficLights(item.intersection);
@@ -6115,7 +7191,7 @@
       drawRemotePlayerLabels();
       drawReloadBar();
       drawAtmosphere();
-      drawMinimap();
+      drawMinimapIfNeeded();
 
       if (activeVehicle && activeVehicle.health / activeVehicle.maxHealth < 0.45) {
         ctx.strokeStyle = `rgba(169, 63, 52, ${
@@ -6716,9 +7792,20 @@
       }
     }
 
+    function bayInCameraView(bay, padTiles) {
+      const pad = (padTiles == null ? 1 : padTiles) * TILE_SIZE;
+      const minX = player.x - (14 + 2) * TILE_SIZE - pad;
+      const maxX = player.x + (14 + 2) * TILE_SIZE + pad;
+      const minY = player.y - (14 + 2) * TILE_SIZE - pad;
+      const maxY = player.y + (14 + 2) * TILE_SIZE + pad;
+      return !(bay.x + bay.w < minX || bay.x > maxX || bay.y + bay.h < minY || bay.y > maxY);
+    }
+
     function drawParkingBays() {
       const z = 2.5;
-      parkingBays.forEach(bay => {
+      for (let i = 0; i < parkingBays.length; i++) {
+        const bay = parkingBays[i];
+        if (!bayInCameraView(bay, 1)) continue;
         const p0 = project(bay.x, bay.y, z);
         const p1 = project(bay.x + bay.w, bay.y, z);
         const p2 = project(bay.x + bay.w, bay.y + bay.h, z);
@@ -6730,12 +7817,14 @@
         ctx.setLineDash([5, 4]);
         strokeQuad(p0, p1, p2, p3);
         ctx.setLineDash([]);
-      });
+      }
     }
 
     function drawBikeBays() {
       const z = 2.4;
-      bikeBays.forEach(bay => {
+      for (let i = 0; i < bikeBays.length; i++) {
+        const bay = bikeBays[i];
+        if (!bayInCameraView(bay, 1)) continue;
         const p0 = project(bay.x, bay.y, z);
         const p1 = project(bay.x + bay.w, bay.y, z);
         const p2 = project(bay.x + bay.w, bay.y + bay.h, z);
@@ -6758,10 +7847,10 @@
         ctx.rotate(-player.cameraAngle * 0.15);
         ctx.fillText('CYCLE HIRE ONLY', 0, 0);
         ctx.restore();
-      });
+      }
     }
 
-    function drawLimeBike(bike, withRider = false, riderCoat = '#a94336', riderSkin = playerSkin) {
+    function drawLimeBike(bike, withRider = false, riderCoat = '#a94336', riderSkin = playerSkin, riderHair = null) {
       const wx = bike.x;
       const wy = bike.y;
       const angle = bike.angle;
@@ -6806,7 +7895,15 @@
       drawBox(4.2, 0.55, 8.5, 5.5, 7.2, '#2a2a2a');
 
       if (withRider) {
-        drawPedestrian(wx, wy, angle, 0, riderCoat, riderSkin, false, angle, 0, { seated: true });
+        const localRider = bike === activeVehicle && player.mode === 'biking';
+        const shootCode = localRider ? getActiveShootCode() : null;
+        const aiming = !!(localRider && (shootCode || gun.fireCooldown > 0));
+        drawPedestrian(wx, wy, angle, 0, riderCoat, riderSkin, false, angle, 0, {
+          seated: true,
+          hair: riderHair || hairToneFromCoat(riderCoat),
+          showGun: aiming,
+          gunAngle: shootCode ? shootAngleFromCode(shootCode) : angle
+        });
       }
     }
 
@@ -7366,255 +8463,459 @@
       }
     }
 
-    // Old-school projected person: body faces `angle`, legs swing along travel.
-    // travelAngle / moveAmount optional; opts.seated for bike riders.
-    function drawPedestrian(wx, wy, angle, walkPhase, coatColor, skinColor, isPolice, travelAngle, moveAmount, opts) {
-      const s = PED_SCALE;
-      const seated = !!(opts && opts.seated);
-      const face = angle || 0;
-      const travel = travelAngle != null ? travelAngle : face;
-      const amt = seated ? 0 : Math.max(0, Math.min(1, moveAmount != null ? moveAmount : 0));
-      const phase = walkPhase || 0;
-      const bob = seated ? 0 : Math.abs(Math.sin(phase * 2)) * 0.7 * amt;
+    // --- PIXEL PED SPRITES (8-dir, walk cycle, GTA street fit) ---
+    // Screen-space classic sprites: face look angle, walk frames from walkPhase.
+    const PED_SPRITE = {
+      w: 28,
+      h: 36,
+      dirs: 8,
+      frames: 4,
+      drawScale: 1.25
+    };
+    const pedAtlasCache = new Map();
 
-      const dirOffset = (basisAngle, side, forward) => ({
-        x: Math.cos(basisAngle) * forward - Math.sin(basisAngle) * side,
-        y: Math.sin(basisAngle) * forward + Math.cos(basisAngle) * side
-      });
-
-      const worldPoint = (basisAngle, side, forward, z) => {
-        const o = dirOffset(basisAngle, side * s, forward * s);
-        return { x: wx + o.x, y: wy + o.y, z: z * s };
-      };
-
-      const projectedPoint = (basisAngle, side, forward, z) => {
-        const point = worldPoint(basisAngle, side, forward, z);
-        return project(point.x, point.y, point.z);
-      };
-
-      const facePt = (side, forward, z) => projectedPoint(face, side, forward, z);
-      const mixWorld = (faceSide, faceFwd, travelSide, travelFwd, z) => {
-        const a = dirOffset(face, faceSide * s, faceFwd * s);
-        const b = dirOffset(travel, travelSide * s, travelFwd * s);
-        return project(wx + a.x + b.x, wy + a.y + b.y, z * s);
-      };
-
-      const coat = isPolice ? POLICE_LOOK.coat : coatColor;
-      const coatEdge = isPolice ? POLICE_LOOK.coatEdge : shadeColor(coat, -28);
-      const pants = isPolice ? '#12161e' : shadeColor(coat, -48);
-      const pantsEdge = shadeColor(pants, -22);
-      const shoe = isPolice ? '#0a0c10' : '#2a241c';
-      const hair = isPolice ? POLICE_LOOK.hat : shadeColor(skinColor, -70);
-      const sleeve = isPolice ? POLICE_LOOK.coat : coat;
-
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      const ground = project(wx, wy, 0);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.34)';
-      ctx.beginPath();
-      ctx.ellipse(ground.x, ground.y, (isPolice ? 7.2 : 6.2) * s, (isPolice ? 3.5 : 3.1) * s, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      const hipZ = 9.2 + bob;
-      const shoulderZ = 18.4 + bob;
-      const headZ = 23.6 + bob;
-      const hip = facePt(0, 0, hipZ);
-      const shoulders = facePt(0, 0.2, shoulderZ);
-
-      // --- Legs (swing along travel; hips stay on facing body) ---
-      const stride = seated ? 0 : Math.sin(phase) * 3.5 * amt;
-      const liftL = seated ? 0 : Math.max(0, Math.sin(phase)) * 2.4 * amt;
-      const liftR = seated ? 0 : Math.max(0, Math.sin(phase + Math.PI)) * 2.4 * amt;
-      const hipW = 2.35;
-
-      let leftFoot;
-      let rightFoot;
-      let leftKnee;
-      let rightKnee;
-      if (seated) {
-        leftFoot = mixWorld(-hipW, 0, 0, 4.2, 4.2);
-        rightFoot = mixWorld(hipW, 0, 0, 4.2, 4.2);
-        leftKnee = mixWorld(-hipW * 0.9, 0, 0, 2.4, 7.2);
-        rightKnee = mixWorld(hipW * 0.9, 0, 0, 2.4, 7.2);
-      } else {
-        leftFoot = mixWorld(-hipW, 0, 0, stride, 1.1 + liftL);
-        rightFoot = mixWorld(hipW, 0, 0, -stride, 1.1 + liftR);
-        leftKnee = mixWorld(-hipW * 0.95, 0, 0, stride * 0.45, 5.2 + liftL * 0.55);
-        rightKnee = mixWorld(hipW * 0.95, 0, 0, -stride * 0.45, 5.2 + liftR * 0.55);
+    function hairToneFromCoat(coat) {
+      const s = String(coat || '');
+      let h = 2166136261;
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
       }
+      return hairTones[(h >>> 0) % hairTones.length];
+    }
 
-      const leftHip = facePt(-hipW, 0, hipZ);
-      const rightHip = facePt(hipW, 0, hipZ);
+    function resolvePedHair(hair, coat) {
+      if (hair && typeof hair === 'string') return hair;
+      return hairToneFromCoat(coat);
+    }
 
-      // Thighs (pants)
-      ctx.strokeStyle = pantsEdge;
-      ctx.lineWidth = 4.4 * s;
-      drawProjectedLine(leftHip, leftKnee);
-      drawProjectedLine(rightHip, rightKnee);
-      ctx.strokeStyle = pants;
-      ctx.lineWidth = 3.5 * s;
-      drawProjectedLine(leftHip, leftKnee);
-      drawProjectedLine(rightHip, rightKnee);
+    function hexToRgb(hex) {
+      const v = parseInt(String(hex).replace('#', ''), 16);
+      if (Number.isNaN(v)) return [200, 160, 120];
+      return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+    }
 
-      // Calves
-      ctx.strokeStyle = pants;
-      ctx.lineWidth = 2.8 * s;
-      drawProjectedLine(leftKnee, leftFoot);
-      drawProjectedLine(rightKnee, rightFoot);
+    function rgbToHex(r, g, b) {
+      const clamp = n => Math.max(0, Math.min(255, n | 0));
+      return `#${[clamp(r), clamp(g), clamp(b)].map(c => c.toString(16).padStart(2, '0')).join('')}`;
+    }
 
-      // Shoes
-      const shoeTipL = seated
-        ? mixWorld(-hipW, 0, 0, 5.4, 4.0)
-        : mixWorld(-hipW, 0, 0, stride + 1.3, 1.0 + liftL);
-      const shoeTipR = seated
-        ? mixWorld(hipW, 0, 0, 5.4, 4.0)
-        : mixWorld(hipW, 0, 0, -stride + 1.3, 1.0 + liftR);
-      ctx.strokeStyle = shoe;
-      ctx.lineWidth = 3.1 * s;
-      drawProjectedLine(leftFoot, shoeTipL);
-      drawProjectedLine(rightFoot, shoeTipR);
-      ctx.fillStyle = shoe;
-      ctx.beginPath();
-      ctx.arc(shoeTipL.x, shoeTipL.y, 1.35 * s, 0, Math.PI * 2);
-      ctx.arc(shoeTipR.x, shoeTipR.y, 1.35 * s, 0, Math.PI * 2);
-      ctx.fill();
+    function shadeHex(hex, amount) {
+      const [r, g, b] = hexToRgb(hex);
+      return rgbToHex(r + amount, g + amount, b + amount);
+    }
 
-      // --- Torso / clothing ---
+    function angleToSpriteDir(worldAngle) {
+      const twoPi = Math.PI * 2;
+      let a = worldAngle - player.cameraAngle;
+      a = ((a % twoPi) + twoPi) % twoPi;
+      // 0 = camera-forward = screen-up = North(2)
+      return (Math.round(a / (Math.PI / 4)) + 2) % PED_SPRITE.dirs;
+    }
+
+    function pedWalkFrame(walkPhase, moveAmount, seated) {
+      if (seated) return 0;
+      if ((moveAmount != null ? moveAmount : 0) < 0.08) return 0;
+      const cycle = ((walkPhase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      return Math.floor((cycle / (Math.PI * 2)) * PED_SPRITE.frames) % PED_SPRITE.frames;
+    }
+
+    function buildPedPalette(skin, hair, isPolice) {
+      const skinMid = skin || skinTones[0];
+      const skinHi = shadeHex(skinMid, 28);
+      const skinSh = shadeHex(skinMid, -36);
+      const hairMid = hair || hairTones[0];
       if (isPolice) {
-        ctx.strokeStyle = coatEdge;
-        ctx.lineWidth = 9.2 * s;
-        drawProjectedLine(hip, shoulders);
-        ctx.strokeStyle = coat;
-        ctx.lineWidth = 7.2 * s;
-        drawProjectedLine(hip, shoulders);
-
-        const beltA = facePt(-2.7, 0.1, 11.2 + bob);
-        const beltB = facePt(2.7, 0.1, 11.2 + bob);
-        ctx.strokeStyle = '#0a0c12';
-        ctx.lineWidth = 2.3 * s;
-        drawProjectedLine(beltA, beltB);
-
-        const chestL = facePt(-2.3, 0.6, 14.8 + bob);
-        const chestR = facePt(2.3, 0.6, 14.8 + bob);
-        ctx.strokeStyle = POLICE_LOOK.accent;
-        ctx.lineWidth = 1.55 * s;
-        drawProjectedLine(chestL, chestR);
-        drawProjectedLine(facePt(-1.9, 0.6, 16.2 + bob), facePt(1.9, 0.6, 16.2 + bob));
-
-        const collar = facePt(0, 0.3, 19.8 + bob);
-        ctx.fillStyle = POLICE_LOOK.collar;
-        ctx.beginPath();
-        ctx.arc(collar.x, collar.y, 2.15 * s, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        ctx.strokeStyle = coatEdge;
-        ctx.lineWidth = 8.2 * s;
-        drawProjectedLine(hip, shoulders);
-        ctx.strokeStyle = coat;
-        ctx.lineWidth = 6.4 * s;
-        drawProjectedLine(hip, shoulders);
-
-        // Jacket hem / collar hints
-        ctx.strokeStyle = shadeColor(coat, 24);
-        ctx.lineWidth = 1.4 * s;
-        drawProjectedLine(facePt(-2.6, 0.4, 17.6 + bob), facePt(2.6, 0.4, 17.6 + bob));
-        ctx.strokeStyle = shadeColor(coat, -35);
-        ctx.lineWidth = 1.7 * s;
-        drawProjectedLine(facePt(-2.4, 0.15, 10.2 + bob), facePt(2.4, 0.15, 10.2 + bob));
+        return {
+          outline: '#0a0c10',
+          skin: skinMid,
+          skinHi,
+          skinSh,
+          hair: POLICE_LOOK.hat,
+          hairHi: shadeHex(POLICE_LOOK.hat, 18),
+          hairSh: shadeHex(POLICE_LOOK.hat, -14),
+          shirt: POLICE_LOOK.coat,
+          shirtHi: shadeHex(POLICE_LOOK.coat, 24),
+          shirtSh: POLICE_LOOK.coatEdge,
+          jeans: '#12161e',
+          jeansHi: '#1c2430',
+          jeansSh: '#07090c',
+          shoe: '#0a0c10',
+          shoeHi: '#f0f0f0',
+          shoeSole: '#d8d8d8',
+          eye: '#1a1520',
+          eyeHi: '#ffffff',
+          police: true
+        };
       }
+      return {
+        outline: '#1a120e',
+        skin: skinMid,
+        skinHi,
+        skinSh,
+        hair: hairMid,
+        hairHi: shadeHex(hairMid, 30),
+        hairSh: shadeHex(hairMid, -28),
+        shirt: '#f4f4f2',
+        shirtHi: '#ffffff',
+        shirtSh: '#c8c8c4',
+        jeans: '#3a5f8f',
+        jeansHi: '#5a7fad',
+        jeansSh: '#243f63',
+        shoe: '#1e1e1e',
+        shoeHi: '#f0f0f0',
+        shoeSole: '#e8e8e8',
+        eye: '#1a1520',
+        eyeHi: '#ffffff',
+        police: false
+      };
+    }
 
-      // --- Arms (counter-swing along travel, sockets on facing shoulders) ---
-      const armSwing = seated ? 0.4 : stride * 0.72;
-      const leftElbow = mixWorld(-4.3, 0.2, 0, -armSwing, 13.2 + bob);
-      const rightElbow = mixWorld(4.3, 0.2, 0, armSwing, 13.2 + bob);
-      const leftHand = mixWorld(-4.8, 0.15, 0, -armSwing * 1.15, 10.4 + bob * 0.8);
-      const rightHand = mixWorld(4.8, 0.15, 0, armSwing * 1.15, 10.4 + bob * 0.8);
-      const leftShoulder = facePt(-3.2, 0.15, shoulderZ);
-      const rightShoulder = facePt(3.2, 0.15, shoulderZ);
+    function paintPedPixels(pctx, w, h, dir, frame, pal) {
+      const img = pctx.createImageData(w, h);
+      const data = img.data;
+      const set = (x, y, hex, a) => {
+        if (x < 0 || y < 0 || x >= w || y >= h) return;
+        const rgb = hexToRgb(hex);
+        const i = (y * w + x) * 4;
+        data[i] = rgb[0];
+        data[i + 1] = rgb[1];
+        data[i + 2] = rgb[2];
+        data[i + 3] = a == null ? 255 : a;
+      };
 
-      ctx.strokeStyle = sleeve;
-      ctx.lineWidth = (isPolice ? 3.3 : 3.0) * s;
-      drawProjectedLine(leftShoulder, leftElbow);
-      drawProjectedLine(rightShoulder, rightElbow);
-      ctx.strokeStyle = skinColor;
-      ctx.lineWidth = 2.15 * s;
-      drawProjectedLine(leftElbow, leftHand);
-      drawProjectedLine(rightElbow, rightHand);
-      ctx.fillStyle = skinColor;
-      ctx.beginPath();
-      ctx.arc(leftHand.x, leftHand.y, 1.25 * s, 0, Math.PI * 2);
-      ctx.arc(rightHand.x, rightHand.y, 1.25 * s, 0, Math.PI * 2);
-      ctx.fill();
+      const mirror = dir === 3 || dir === 4 || dir === 5;
+      const srcDir = dir === 3 ? 1 : dir === 4 ? 0 : dir === 5 ? 7 : dir;
+      const putBuf = [];
+      const put = (x, y, hex, a) => { putBuf.push(x, y, hex, a == null ? 255 : a); };
 
-      // --- Head / face ---
-      const head = facePt(0, 0.35, headZ);
-      ctx.fillStyle = skinColor;
-      ctx.beginPath();
-      ctx.arc(head.x, head.y, 3.9 * s, 0, Math.PI * 2);
-      ctx.fill();
+      const cx = 14;
+      const stride = [0, 2, 0, -2][frame] || 0;
+      const strideOpp = -stride;
+      const bob = frame % 2 === 1 ? 1 : 0;
+      const armL = -Math.round(stride * 0.75);
+      const armR = Math.round(stride * 0.75);
 
-      // Hair / scalp (civilians)
-      if (!isPolice) {
-        const scalp = facePt(0, -0.55, headZ + 1.5);
-        ctx.fillStyle = hair;
-        ctx.beginPath();
-        ctx.ellipse(scalp.x, scalp.y, 3.5 * s, 2.4 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      const back = srcDir === 2 || srcDir === 1;
+      const side = srcDir === 0;
 
-      // Face: nose toward look angle + eye dots
-      const nose = facePt(0, 3.4, headZ - 0.2);
-      const eyeL = facePt(-1.35, 2.5, headZ + 0.55);
-      const eyeR = facePt(1.35, 2.5, headZ + 0.55);
-      ctx.fillStyle = isPolice ? '#1a1520' : '#2b2218';
-      ctx.beginPath();
-      ctx.arc(eyeL.x, eyeL.y, 0.7 * s, 0, Math.PI * 2);
-      ctx.arc(eyeR.x, eyeR.y, 0.7 * s, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = shadeColor(skinColor, -25);
-      ctx.lineWidth = 1.35 * s;
-      drawProjectedLine(head, nose);
-
-      if (isPolice) {
-        const brimL = facePt(-5.2, 1.2, 24.4 + bob);
-        const brimR = facePt(5.2, 1.2, 24.4 + bob);
-        ctx.strokeStyle = POLICE_LOOK.hat;
-        ctx.lineWidth = 3.4 * s;
-        drawProjectedLine(brimL, brimR);
-
-        const dome = facePt(0, 0.1, 27.7 + bob);
-        ctx.fillStyle = POLICE_LOOK.hat;
-        ctx.beginPath();
-        ctx.ellipse(dome.x, dome.y, 5.2 * s, 3.4 * s, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        const bandL = facePt(-4.4, 0.6, 25.6 + bob);
-        const bandR = facePt(4.4, 0.6, 25.6 + bob);
-        ctx.lineWidth = 2.4 * s;
-        for (let i = 0; i < 7; i++) {
-          const t0 = i / 7;
-          const t1 = (i + 0.62) / 7;
-          const ax = bandL.x + (bandR.x - bandL.x) * t0;
-          const ay = bandL.y + (bandR.y - bandL.y) * t0;
-          const bx = bandL.x + (bandR.x - bandL.x) * t1;
-          const by = bandL.y + (bandR.y - bandL.y) * t1;
-          ctx.strokeStyle = i % 2 === 0 ? POLICE_LOOK.checkLight : POLICE_LOOK.checkDark;
-          ctx.beginPath();
-          ctx.moveTo(ax, ay);
-          ctx.lineTo(bx, by);
-          ctx.stroke();
+      // Ground shadow (pre-outline)
+      for (let x = 7; x <= 20; x++) {
+        for (let y = 32; y <= 34; y++) {
+          const dx = (x - 13.5) / 7.5;
+          const dy = (y - 33) / 1.4;
+          if (dx * dx + dy * dy <= 1) put(x, y, '#000000', 95);
         }
       }
 
+      const footY = 30 + bob;
+      const leftFootX = cx - 5 + (back || !side ? stride : 0);
+      const rightFootX = cx + 1 + (back || !side ? strideOpp : 0);
+
+      // Jeans
+      const R = (x0, y0, x1, y1, hex, a) => {
+        for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
+          for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) put(x, y, hex, a);
+        }
+      };
+      R(cx - 5, 19 + bob, cx - 1, footY - 2, pal.jeans);
+      R(cx - 4, 19 + bob, cx - 2, footY - 3, pal.jeansHi);
+      R(cx - 5, footY - 4, cx - 1, footY - 3, pal.jeansSh);
+      R(cx + 0, 19 + bob, cx + 4, footY - 2, pal.jeans);
+      R(cx + 1, 19 + bob, cx + 3, footY - 3, pal.jeansHi);
+      R(cx + 0, footY - 4, cx + 4, footY - 3, pal.jeansSh);
+
+      // Sneakers
+      R(leftFootX, footY - 1, leftFootX + 5, footY + 1, pal.shoe);
+      R(leftFootX, footY + 1, leftFootX + 5, footY + 2, pal.shoeSole);
+      R(leftFootX + 1, footY - 1, leftFootX + 3, footY, pal.shoeHi);
+      R(rightFootX, footY - 1, rightFootX + 5, footY + 1, pal.shoe);
+      R(rightFootX, footY + 1, rightFootX + 5, footY + 2, pal.shoeSole);
+      R(rightFootX + 1, footY - 1, rightFootX + 3, footY, pal.shoeHi);
+
+      // Shirt / torso
+      const tTop = 10 + bob;
+      const tBot = 20 + bob;
+      R(cx - 6, tTop, cx + 5, tBot, pal.shirt);
+      R(cx - 5, tTop + 1, cx + 4, tBot - 1, pal.shirtHi);
+      R(cx - 6, tBot - 1, cx + 5, tBot, pal.shirtSh);
+      // short sleeves
+      R(cx - 9, tTop + 2 + armL, cx - 6, tTop + 6 + armL, pal.shirt);
+      R(cx + 5, tTop + 2 + armR, cx + 8, tTop + 6 + armR, pal.shirt);
+      R(cx - 9, tTop + 3 + armL, cx - 7, tTop + 5 + armL, pal.shirtHi);
+      R(cx + 6, tTop + 3 + armR, cx + 8, tTop + 5 + armR, pal.shirtHi);
+
+      // Arms / hands
+      R(cx - 10, tTop + 5 + armL, cx - 8, tTop + 9 + armL, pal.skin);
+      R(cx + 7, tTop + 5 + armR, cx + 9, tTop + 9 + armR, pal.skin);
+      R(cx - 10, tTop + 8 + armL, cx - 8, tTop + 10 + armL, pal.skinSh);
+      R(cx + 7, tTop + 8 + armR, cx + 9, tTop + 10 + armR, pal.skinSh);
+
+      // Head
+      const headY = 3 + bob;
+      R(cx - 5, headY + 2, cx + 4, headY + 10, pal.skin);
+      R(cx - 4, headY + 3, cx + 3, headY + 8, pal.skinHi);
+      R(cx - 5, headY + 8, cx + 4, headY + 10, pal.skinSh);
+
+      // Hair / helmet
+      R(cx - 6, headY, cx + 5, headY + 5, pal.hair);
+      R(cx - 5, headY, cx + 4, headY + 3, pal.hairHi);
+      R(cx - 6, headY + 4, cx + 5, headY + 6, pal.hairSh);
+      put(cx - 4, headY - 1, pal.hair, 255);
+      put(cx - 1, headY - 1, pal.hairHi, 255);
+      put(cx + 2, headY - 1, pal.hair, 255);
+      put(cx + 4, headY, pal.hairSh, 255);
+
+      if (pal.police) {
+        // Brim
+        R(cx - 7, headY + 5, cx + 6, headY + 6, pal.hair);
+        // Check band hint
+        for (let i = 0; i < 6; i++) {
+          put(cx - 5 + i * 2, headY + 5, i % 2 ? '#ffffff' : '#111111', 255);
+        }
+      }
+
+      // Face
+      if (!back) {
+        const eyeY = headY + 6;
+        if (side) {
+          put(cx + 2, eyeY, pal.eye, 255);
+          put(cx + 2, eyeY - 1, pal.eyeHi, 255);
+        } else {
+          put(cx - 2, eyeY, pal.eye, 255);
+          put(cx + 1, eyeY, pal.eye, 255);
+          put(cx - 2, eyeY - 1, pal.eyeHi, 255);
+          put(cx + 1, eyeY - 1, pal.eyeHi, 255);
+        }
+      }
+
+      for (let i = 0; i < putBuf.length; i += 4) {
+        let x = putBuf[i];
+        const y = putBuf[i + 1];
+        if (mirror) x = w - 1 - x;
+        set(x, y, putBuf[i + 2], putBuf[i + 3]);
+      }
+
+      // Baked outline around opaque non-shadow pixels
+      const copy = new Uint8ClampedArray(data);
+      const solid = (x, y) => {
+        if (x < 0 || y < 0 || x >= w || y >= h) return false;
+        const i = (y * w + x) * 4;
+        return copy[i + 3] > 200 && !(copy[i] < 35 && copy[i + 1] < 35 && copy[i + 2] < 35 && y >= 31);
+      };
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          if (copy[i + 3] > 20) continue;
+          if (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1) ||
+              solid(x - 1, y - 1) || solid(x + 1, y - 1) || solid(x - 1, y + 1) || solid(x + 1, y + 1)) {
+            set(x, y, pal.outline, 255);
+          }
+        }
+      }
+
+      pctx.putImageData(img, 0, 0);
+    }
+
+    function buildPedAtlas(skin, hair, isPolice) {
+      const { w, h, dirs, frames } = PED_SPRITE;
+      const canvas = document.createElement('canvas');
+      canvas.width = w * frames;
+      canvas.height = h * dirs;
+      const actx = canvas.getContext('2d');
+      const pal = buildPedPalette(skin, hair, isPolice);
+      const tmp = document.createElement('canvas');
+      tmp.width = w;
+      tmp.height = h;
+      const tctx = tmp.getContext('2d');
+      for (let d = 0; d < dirs; d++) {
+        for (let f = 0; f < frames; f++) {
+          tctx.clearRect(0, 0, w, h);
+          paintPedPixels(tctx, w, h, d, f, pal);
+          actx.drawImage(tmp, f * w, d * h);
+        }
+      }
+      return canvas;
+    }
+
+    function getPedAtlas(skin, hair, isPolice) {
+      const key = `${skin}|${hair}|${isPolice ? 1 : 0}`;
+      let atlas = pedAtlasCache.get(key);
+      if (!atlas) {
+        atlas = buildPedAtlas(skin, hair, !!isPolice);
+        pedAtlasCache.set(key, atlas);
+        if (pedAtlasCache.size > 28) {
+          pedAtlasCache.delete(pedAtlasCache.keys().next().value);
+        }
+      }
+      return atlas;
+    }
+
+    function pedZoomScale() {
+      // Match world zoom (spawn intro, wheel/pinch) so sprites scale with the city.
+      return camProj.zoom / Math.max(0.01, getCameraZoomBase());
+    }
+
+    function drawHeldPistol(wx, wy, faceAngle, shootAngle, skinColor) {
+      const rightX = -Math.sin(faceAngle);
+      const rightY = Math.cos(faceAngle);
+      const handSide = 5.2;
+      const handFwd = 2.5;
+      const hx = wx + rightX * handSide + Math.cos(faceAngle) * handFwd;
+      const hy = wy + rightY * handSide + Math.sin(faceAngle) * handFwd;
+      const hand = project(hx, hy, 11);
+      const tip = project(
+        hx + Math.cos(shootAngle) * 10,
+        hy + Math.sin(shootAngle) * 10,
+        11
+      );
+      const ang = Math.atan2(tip.y - hand.y, tip.x - hand.x);
+      const s = Math.max(0.55, pedZoomScale() * 1.35);
+
+      ctx.save();
+      ctx.translate(hand.x, hand.y);
+      ctx.rotate(ang);
+      ctx.imageSmoothingEnabled = false;
+
+      // Raised arm stump toward grip
+      ctx.strokeStyle = skinColor || '#d9a27f';
+      ctx.lineWidth = 2.2 * s;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-5.5 * s, 1.2 * s);
+      ctx.lineTo(-1.2 * s, 0.4 * s);
+      ctx.stroke();
+
+      // Pistol (local +x = barrel)
+      ctx.fillStyle = '#2a2a2a';
+      ctx.fillRect(-1.2 * s, 0.8 * s, 2.2 * s, 3.4 * s); // grip
+      ctx.fillStyle = '#3a3a3a';
+      ctx.fillRect(-0.9 * s, 1.1 * s, 1.5 * s, 2.6 * s);
+      ctx.fillStyle = '#6e6e6e';
+      ctx.fillRect(-1.4 * s, -1.3 * s, 8.8 * s, 2.4 * s); // slide
+      ctx.fillStyle = '#8a8a8a';
+      ctx.fillRect(-1.0 * s, -1.0 * s, 7.6 * s, 1.2 * s);
+      ctx.fillStyle = '#4a4a4a';
+      ctx.fillRect(6.8 * s, -0.85 * s, 3.2 * s, 1.5 * s); // barrel
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(9.4 * s, -0.55 * s, 1.1 * s, 0.9 * s); // muzzle
+      ctx.fillStyle = '#b08a3a';
+      ctx.fillRect(-0.2 * s, 0.9 * s, 1.3 * s, 0.7 * s); // trigger guard hint
+
       ctx.restore();
     }
+
+    function drawPedestrian(wx, wy, angle, walkPhase, coatColor, skinColor, isPolice, travelAngle, moveAmount, opts) {
+      const seated = !!(opts && opts.seated);
+      const corpse = !!(opts && opts.corpse);
+      const slim = !!(opts && opts.slim);
+      const alpha = opts && opts.alpha != null ? opts.alpha : 1;
+      const hair = resolvePedHair(opts && opts.hair, coatColor);
+      const skin = skinColor || skinTones[0];
+      const atlas = getPedAtlas(skin, hair, isPolice);
+      const dir = angleToSpriteDir(angle || 0);
+      const frame = corpse ? 0 : pedWalkFrame(walkPhase, seated ? 0 : moveAmount, seated);
+      const { w, h, drawScale } = PED_SPRITE;
+      const ground = project(wx, wy, 0);
+      const zoomMul = pedZoomScale();
+      let dw = w * drawScale * zoomMul;
+      let dh = h * drawScale * zoomMul;
+      if (slim) dw *= 0.78;
+      if (seated) {
+        dh *= 0.82;
+        dw *= 0.96;
+      }
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.globalAlpha = alpha;
+
+      if (corpse) {
+        // Light blood pool under body
+        ctx.fillStyle = 'rgba(150, 32, 32, 0.38)';
+        ctx.beginPath();
+        ctx.ellipse(ground.x, ground.y + 1, dw * 0.42, dh * 0.11, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(110, 18, 18, 0.22)';
+        ctx.beginPath();
+        ctx.ellipse(ground.x + dw * 0.08, ground.y + 2, dw * 0.28, dh * 0.07, -0.25, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Flat lying pose: rotate sprite onto the ground plane
+        const faceScreen = Math.atan2(
+          Math.sin(angle - player.cameraAngle),
+          Math.cos(angle - player.cameraAngle)
+        );
+        ctx.translate(ground.x, ground.y);
+        ctx.rotate(faceScreen + Math.PI / 2);
+        ctx.drawImage(
+          atlas,
+          frame * w,
+          dir * h,
+          w,
+          h,
+          -dw * 0.55,
+          -dh * 0.18,
+          dw * 1.15,
+          dh * 0.36
+        );
+        ctx.restore();
+        return;
+      }
+
+      const dx = ground.x - dw * 0.5;
+      const dy = ground.y - dh * (seated ? 0.78 : 0.88);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
+      ctx.beginPath();
+      ctx.ellipse(ground.x, ground.y + 1, dw * 0.26, dh * 0.065, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.drawImage(atlas, frame * w, dir * h, w, h, dx, dy, dw, dh);
+      ctx.restore();
+
+      if (opts && opts.showGun) {
+        drawHeldPistol(
+          wx,
+          wy,
+          angle || 0,
+          opts.gunAngle != null ? opts.gunAngle : (angle || 0),
+          skin
+        );
+      }
+    }
+
 
     // --- ANIMATED MINIMAP ---
     // Own view radius — not tied to world CAMERA_ZOOM_* / camProj.zoom.
     const MINIMAP_SIZE = 160;
     const MINIMAP_VIEW_TILES = 34;
+    const minimapDirty = {
+      x: NaN,
+      y: NaN,
+      angle: NaN,
+      lastDrawAt: 0,
+      moveThresh: 12,
+      angleThresh: 0.07,
+      heartbeatMs: 450
+    };
+
+    function drawMinimapIfNeeded() {
+      const now = performance.now();
+      const angDiff = isFinite(minimapDirty.angle)
+        ? Math.abs(shortestAngleDiff(minimapDirty.angle, player.angle))
+        : Infinity;
+      const moved = !isFinite(minimapDirty.x) ||
+        Math.hypot(player.x - minimapDirty.x, player.y - minimapDirty.y) >= minimapDirty.moveThresh ||
+        angDiff >= minimapDirty.angleThresh;
+      const heartbeat = now - minimapDirty.lastDrawAt >= minimapDirty.heartbeatMs;
+      if (!moved && !heartbeat) return;
+      drawMinimap();
+      minimapDirty.x = player.x;
+      minimapDirty.y = player.y;
+      minimapDirty.angle = player.angle;
+      minimapDirty.lastDrawAt = now;
+    }
 
     function drawMinimap() {
       const size = MINIMAP_SIZE;
@@ -8013,6 +9314,7 @@
             name: entry.name || 'Player',
             coat: entry.coat || '#3d7a8c',
             skin: entry.skin || skinTones[0],
+            hair: hairToneFromCoat(entry.coat || '#3d7a8c'),
             isHost: !!entry.isHost,
             x: player.x,
             y: player.y,
@@ -8033,6 +9335,7 @@
           rp.name = entry.name || rp.name;
           rp.coat = entry.coat || rp.coat;
           rp.skin = entry.skin || rp.skin;
+          rp.hair = hairToneFromCoat(rp.coat);
           rp.isHost = !!entry.isHost;
         }
       });
@@ -8139,8 +9442,9 @@
           if (!ped) {
             ped = {
               id, x, y, angle, walkPhase,
-              radius: 3,
+              radius: HITBOX.ped,
               coat, skin,
+              hair: hairToneFromCoat(coat),
               isPolice: !!isPolice,
               netTargetX: x,
               netTargetY: y,
@@ -8150,6 +9454,7 @@
           } else {
             ped.coat = coat;
             ped.skin = skin;
+            ped.hair = hairToneFromCoat(coat);
             ped.isPolice = !!isPolice;
             ped.netTargetX = x;
             ped.netTargetY = y;
@@ -8242,6 +9547,10 @@
     function handleHostMessage(conn, msg) {
       if (!msg || typeof msg !== 'object') return;
       const peerId = conn.peer;
+      if (msg.t === 'radio') {
+        handleRadioNetMessage(msg, peerId);
+        return;
+      }
 
       if (msg.t === 'hello') {
         const spawn = pickSafePlayerSpawn();
@@ -8253,6 +9562,7 @@
           name: cleanName,
           coat: assignedCoat,
           skin: skinTones.includes(msg.skin) ? msg.skin : skinTones[0],
+          hair: hairToneFromCoat(assignedCoat),
           isHost: false,
           x: spawn.x,
           y: spawn.y,
@@ -8411,6 +9721,21 @@
         skidMarks.push({ x: msg.x, y: msg.y, angle: msg.a, life: SKID_LIFE });
         if (skidMarks.length > SKID_MAX) skidMarks.splice(0, skidMarks.length - SKID_MAX);
         netBroadcast(msg, peerId);
+      } else if (msg.t === 'fx_corpse') {
+        spawnCorpse({
+          x: msg.x,
+          y: msg.y,
+          angle: msg.angle,
+          coat: msg.coat,
+          skin: msg.skin,
+          hair: msg.hair,
+          isPolice: !!msg.isPolice,
+          slim: msg.slim
+        }, false);
+        netBroadcast(msg, peerId);
+      } else if (msg.t === 'fx_scorch') {
+        spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
+        netBroadcast(msg, peerId);
       } else if (msg.t === 'rename') {
         rp.name = String(msg.name || 'Player').trim().slice(0, 14) || 'Player';
         netBroadcast({ t: 'roster', roster: buildRoster() });
@@ -8420,6 +9745,10 @@
 
     function handleGuestMessage(msg) {
       if (!msg || typeof msg !== 'object') return;
+      if (msg.t === 'radio') {
+        handleRadioNetMessage(msg, msg.driverId || null);
+        return;
+      }
       if (msg.t === 'welcome') {
         net.localCoat = msg.yourCoat || '#3d7a8c';
         if (Array.isArray(msg.billboards)) {
@@ -8454,7 +9783,9 @@
         gun.reloadTimer = 0;
         gun.reloadMax = 0;
         setWantedLevel(0);
+        endDeathCam();
         document.getElementById('wasted-overlay').style.display = 'none';
+        document.getElementById('wasted-overlay').classList.remove('show-text');
         if (msg.spawn) {
           player.angle = msg.spawn.angle || 0;
           putPlayerOnFoot(msg.spawn.x, msg.spawn.y);
@@ -8508,9 +9839,11 @@
           player.vx = Math.cos(player.angle) * player.speed;
           player.vy = Math.sin(player.angle) * player.speed;
           player.drifting = false;
+          onEnterCarRadio(activeVehicle);
         }
       } else if (msg.t === 'eject') {
         if (activeVehicle && (!msg.vehicleId || activeVehicle.id === msg.vehicleId)) {
+          onExitCarRadio(activeVehicle);
           activeVehicle.driverId = null;
           activeVehicle = null;
           restoreWalkDriveStats();
@@ -8553,11 +9886,25 @@
         renderMpPlayersList();
       } else if (msg.t === 'fx_boom') {
         spawnExplosionFx(msg.x, msg.y);
+        spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
         const dist = Math.hypot(player.x - msg.x, player.y - msg.y);
         if (dist < SHAKE.blastNear) {
           const falloff = 1 - dist / SHAKE.blastNear;
           addCameraShake(SHAKE.bigBlast * (0.4 + 0.6 * falloff));
         }
+      } else if (msg.t === 'fx_corpse') {
+        spawnCorpse({
+          x: msg.x,
+          y: msg.y,
+          angle: msg.angle,
+          coat: msg.coat,
+          skin: msg.skin,
+          hair: msg.hair,
+          isPolice: !!msg.isPolice,
+          slim: msg.slim
+        }, false);
+      } else if (msg.t === 'fx_scorch') {
+        spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
       } else if (msg.t === 'fx_muzzle') {
         spawnMuzzleFlash(msg.x, msg.y, msg.angle);
       } else if (msg.t === 'fx_skid') {
@@ -9302,7 +10649,6 @@
         return;
       }
       if (net.role !== 'solo') netLeaveRoom();
-      if (typeof setMobilePaused === 'function') setMobilePaused(false);
       const code = generateRoomCode();
       const peerId = net.peerPrefix + code.toLowerCase();
       mpHostBtn.disabled = true;
@@ -9383,7 +10729,6 @@
         return;
       }
       if (net.role !== 'solo') netLeaveRoom();
-      if (typeof setMobilePaused === 'function') setMobilePaused(false);
       mpHostBtn.disabled = true;
       mpJoinBtn.disabled = true;
       setMpStatus(`Connecting to ${code}...`);
@@ -9568,12 +10913,9 @@
       aim:  { active: false, id: null, baseX: 0, baseY: 0, vx: 0, vy: 0, maxR: 44, reset: null }
     };
     const touchOwnedCodes = new Set();
-    let mobilePaused = false;
 
     const interactBtnEl = document.getElementById('interactBtn');
     const mobileMpBtnEl = document.getElementById('mobileMpBtn');
-    const mobilePauseBtnEl = document.getElementById('mobilePauseBtn');
-    const pausedOverlayEl = document.getElementById('paused-overlay');
     const mobileAmmoLabelEl = document.getElementById('mobile-ammo-label');
 
     function haptic(pattern) {
@@ -9612,23 +10954,6 @@
       mobileAnalogThrottle.value = 0;
       mobileAnalogSteer.walk = 0;
       mobileAnalogSteer.drive = 0;
-    }
-
-    function setMobilePaused(next) {
-      const target = !!(next && isMobile && net.role === 'solo');
-      mobilePaused = target;
-      if (pausedOverlayEl) pausedOverlayEl.classList.toggle('show', mobilePaused);
-      if (mobilePaused) resetMobileSticks();
-      if (mobilePauseBtnEl) {
-        mobilePauseBtnEl.textContent = mobilePaused ? 'RESUME' : 'PAUSE';
-        mobilePauseBtnEl.classList.toggle('active', mobilePaused);
-      }
-    }
-
-    function toggleMobilePause() {
-      if (!isMobile || net.role !== 'solo' || wasted) return;
-      setMobilePaused(!mobilePaused);
-      haptic(12);
     }
 
     function findNearestEnterableVehicle() {
@@ -9676,14 +11001,6 @@
         }
       }
 
-      if (mobilePauseBtnEl) {
-        const isSolo = net.role === 'solo';
-        if (!isSolo && mobilePaused) setMobilePaused(false);
-        mobilePauseBtnEl.disabled = !isSolo || wasted;
-        mobilePauseBtnEl.textContent = mobilePaused ? 'RESUME' : 'PAUSE';
-        mobilePauseBtnEl.classList.toggle('active', mobilePaused);
-      }
-
       if (mobileMpBtnEl) {
         const open = mpPanel.classList.contains('mobile-open');
         const inRoom = net.role !== 'solo';
@@ -9708,7 +11025,7 @@
       mobileAnalogThrottle.value = 0;
       mobileAnalogMove.x = 0;
       mobileAnalogMove.y = 0;
-      if (wasted || mobilePaused) return;
+      if (wasted) return;
 
       const driving = player.mode === 'driving';
       const walking = player.mode === 'walking';
@@ -9984,14 +11301,10 @@
       );
 
       bindMobileTap(interactBtnEl, () => {
-        if (mobilePaused || wasted) return;
+        if (wasted) return;
         if (!interactBtnEl.classList.contains('available')) return;
         togglePlayerMode();
         haptic(15);
-      });
-
-      bindMobileTap(mobilePauseBtnEl, () => {
-        toggleMobilePause();
       });
 
       bindMobileTap(mobileMpBtnEl, () => {
@@ -10004,6 +11317,7 @@
         haptic(10);
         updateMobileHudAndControls();
       });
+
     }
 
     // --- MAIN GAME LOOP (Fixed 120 ticks/sec across 60Hz / 120Hz / 144Hz displays) ---
@@ -10068,16 +11382,13 @@
       updateCameraShake();
     }
 
+    let radioLastTs = 0;
     function loop(now) {
       const ts = typeof now === 'number' ? now : performance.now();
-      if (isMobile && mobilePaused && net.role === 'solo') {
-        lastFrameTime = ts;
-        simAccumulator = 0;
-        render();
-        updateHud();
-        requestAnimationFrame(loop);
-        return;
-      }
+      const radioDt = radioLastTs
+        ? Math.min(0.05, Math.max(0, (ts - radioLastTs) / 1000))
+        : 0.016;
+      radioLastTs = ts;
 
       if (!lastFrameTime) {
         lastFrameTime = ts;
@@ -10100,6 +11411,8 @@
         }
       }
 
+      updateCorpsesAndScorch();
+      updateCarRadio(radioDt);
       render();
       updateHud();
       requestAnimationFrame(loop);
@@ -10108,6 +11421,7 @@
     updateWantedStarsUi();
     resizeCanvas();
     if (isMobile) resetMobileSticks();
+    initCarRadio();
     startSpawnCameraIntro();
     requestAnimationFrame(loop);
   </script>
