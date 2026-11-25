@@ -1865,11 +1865,10 @@
           volume: 0.32
         },
         drift: {
-          type: 'sawtooth',
-          freq: 155,
-          freqEnd: 105,
-          duration: 0.055,
-          volume: 0.16
+          type: 'noise',
+          duration: 0.09,
+          volume: 0.2,
+          filterFreq: 1400
         },
         crash: {
           type: 'noise',
@@ -2065,11 +2064,15 @@
       { file: '6. GS_V15_MM&I_GEORGEMIX.mp3.mp3', label: 'MM & I' },
       { file: '7. Tonight_GS_JOEY.mp3', label: 'TONIGHT' },
       { file: '8. KR _Beti_Macz_Vicky_Cap.mp3', label: 'BETI · MACZ · VICKY' },
-      { file: '9. its over.mp3', label: "IT'S OVER" }
+      { file: '9. its over.mp3', label: "IT'S OVER" },
+      { file: 'radio1.mp3', label: 'RADIO 1' },
+      { file: 'radio2.mp3', label: 'RADIO 2' }
     ];
     const RADIO = {
-      baseVolume: 0.3,
+      baseVolume: 0.22,
       fadeSpeed: 1.65,
+      gapMs: 480,
+      cabinLevel: 0.022,
       proxMaxDist: 260,
       proxMinDist: 40,
       syncIntervalMs: 900,
@@ -2095,11 +2098,116 @@
       muteBtnEl: null,
       labelHideAt: 0,
       lastSyncAt: 0,
-      pendingEnterId: null
+      pendingEnterId: null,
+      awaitingNext: null,
+      eqReady: false,
+      wiredMedia: new WeakSet(),
+      cabinGain: null
     };
 
     function radioTrackUrl(file) {
       return 'Radio/' + encodeURIComponent(file).replace(/%2F/g, '/');
+    }
+
+    function ensureRadioEqGraph() {
+      const ctx = ensureSfxContext();
+      if (!ctx) return null;
+      if (radio.eqReady) return ctx;
+
+      // Obvious boombox / AM car-radio EQ (high-pass, mid bump, low-pass)
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 380;
+      hp.Q.value = 0.75;
+
+      const scoop = ctx.createBiquadFilter();
+      scoop.type = 'peaking';
+      scoop.frequency.value = 220;
+      scoop.Q.value = 0.8;
+      scoop.gain.value = -6;
+
+      const mid = ctx.createBiquadFilter();
+      mid.type = 'peaking';
+      mid.frequency.value = 1350;
+      mid.Q.value = 1.05;
+      mid.gain.value = 8.5;
+
+      const presence = ctx.createBiquadFilter();
+      presence.type = 'peaking';
+      presence.frequency.value = 2400;
+      presence.Q.value = 1.2;
+      presence.gain.value = 3.5;
+
+      const lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 2650;
+      lp.Q.value = 0.9;
+
+      const eqOut = ctx.createGain();
+      eqOut.gain.value = 1.25;
+
+      hp.connect(scoop);
+      scoop.connect(mid);
+      mid.connect(presence);
+      presence.connect(lp);
+      lp.connect(eqOut);
+      eqOut.connect(ctx.destination);
+
+      radio.eqInput = hp;
+      radio.eqOut = eqOut;
+
+      // Subtle cabin / road hiss under the radio
+      const cabinBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 2), ctx.sampleRate);
+      const data = cabinBuf.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        data[i] = last * 4;
+      }
+      const cabinSrc = ctx.createBufferSource();
+      cabinSrc.buffer = cabinBuf;
+      cabinSrc.loop = true;
+      const cabinBp = ctx.createBiquadFilter();
+      cabinBp.type = 'bandpass';
+      cabinBp.frequency.value = 480;
+      cabinBp.Q.value = 0.55;
+      const cabinGain = ctx.createGain();
+      cabinGain.gain.value = 0;
+      cabinSrc.connect(cabinBp);
+      cabinBp.connect(cabinGain);
+      cabinGain.connect(ctx.destination);
+      try { cabinSrc.start(); } catch (_) {}
+      radio.cabinGain = cabinGain;
+
+      radio.eqReady = true;
+      return ctx;
+    }
+
+    function wireRadioMediaElement(audio) {
+      if (!audio || radio.wiredMedia.has(audio)) return;
+      const ctx = ensureRadioEqGraph();
+      if (!ctx || !radio.eqInput) return;
+      try {
+        const src = ctx.createMediaElementSource(audio);
+        src.connect(radio.eqInput);
+        radio.wiredMedia.add(audio);
+      } catch (_) {}
+    }
+
+    function updateRadioCabinNoise() {
+      if (!radio.cabinGain) return;
+      const deathMul = SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+      const playing = !radio.muted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike &&
+        radio.fade > 0.04;
+      const target = playing
+        ? RADIO.cabinLevel * radio.fade * radio.duck * deathMul
+        : 0;
+      const g = radio.cabinGain.gain;
+      g.value += (target - g.value) * 0.12;
     }
 
     function flushRadioWaiters(index, audio) {
@@ -2131,9 +2239,11 @@
       a.preload = 'auto';
       a.src = radioTrackUrl(RADIO_TRACKS[index].file);
       radio.buffers[index] = a;
+      wireRadioMediaElement(a);
       const markReady = () => {
         if (radio.ready[index]) return;
         radio.ready[index] = true;
+        wireRadioMediaElement(a);
         flushRadioWaiters(index, a);
       };
       a.addEventListener('canplaythrough', markReady);
@@ -2222,6 +2332,9 @@
     function playLoadedRadioTrack(vehicle, idx, startAt) {
       const audio = radio.buffers[idx];
       if (!audio || !radio.ready[idx]) return;
+      unlockSfx();
+      ensureRadioEqGraph();
+      wireRadioMediaElement(audio);
       stopAllRadioBuffersExcept(audio);
       try {
         let t = startAt;
@@ -2235,6 +2348,7 @@
       radio.trackIndex = idx;
       radio.vehicleId = vehicle.id;
       radio.pendingEnterId = null;
+      radio.awaitingNext = null;
       radio.fade = 0;
       radio.fadeTarget = 1;
       setMainRadioVolume();
@@ -2243,6 +2357,27 @@
       showRadioLabel('RADIO · ' + RADIO_TRACKS[idx].label);
       broadcastRadioState(true);
       prefetchRadioTracks(1);
+    }
+
+    function queueNextRadioTrackFromStart(vehicle) {
+      if (!vehicle || radio.muted) return;
+      const prev = radio.trackIndex;
+      let idx = Math.floor(Math.random() * RADIO_TRACKS.length);
+      if (RADIO_TRACKS.length > 1) {
+        let guard = 0;
+        while (idx === prev && guard++ < 12) {
+          idx = Math.floor(Math.random() * RADIO_TRACKS.length);
+        }
+      }
+      radio.memory.delete(vehicle.id);
+      radio.awaitingNext = {
+        vehicleId: vehicle.id,
+        idx,
+        startAt: 0,
+        playAt: performance.now() + RADIO.gapMs
+      };
+      radio.fadeTarget = 0;
+      ensureRadioTrack(idx, null);
     }
 
     function startCarRadioForVehicle(vehicle, playTuneSfx) {
@@ -2294,6 +2429,7 @@
           time: radio.audio.currentTime || 0
         });
       }
+      radio.awaitingNext = null;
       radio.fadeTarget = 0;
       radio.pendingEnterId = null;
       broadcastRadioState(false);
@@ -2305,7 +2441,9 @@
       }
       radio.audio = null;
       radio.trackIndex = -1;
-      radio.vehicleId = null;
+      if (!radio.awaitingNext) {
+        radio.vehicleId = null;
+      }
     }
 
     function toggleRadioMute() {
@@ -2318,6 +2456,7 @@
             time: radio.audio.currentTime || 0
           });
         }
+        radio.awaitingNext = null;
         radio.fadeTarget = 0;
         broadcastRadioState(false);
       } else if (player.mode === 'driving' && activeVehicle && !activeVehicle.isBike) {
@@ -2372,6 +2511,7 @@
       const src = radio.buffers[trackIndex];
       const audio = src.cloneNode(true);
       audio.loop = false;
+      wireRadioMediaElement(audio);
       slot = { audio, trackIndex, fade: 0 };
       radio.prox.set(vehicleId, slot);
       return slot;
@@ -2448,20 +2588,45 @@
         radio.fade = Math.max(radio.fadeTarget, radio.fade - RADIO.fadeSpeed * dtSec);
       }
       setMainRadioVolume();
+      updateRadioCabinNoise();
       if (radio.fadeTarget <= 0 && radio.fade <= 0.001 && radio.audio) {
         finishRadioFadeOut();
       }
 
-      // Loop / end of track → pick another while still in same car
+      // End of track → short gap, then next song from the start (not random mid-point)
       if (
         !radio.muted &&
+        !radio.awaitingNext &&
         player.mode === 'driving' &&
         activeVehicle &&
+        !activeVehicle.isBike &&
         radio.audio &&
         radio.audio.ended
       ) {
-        radio.memory.delete(activeVehicle.id);
-        startCarRadioForVehicle(activeVehicle, false);
+        queueNextRadioTrackFromStart(activeVehicle);
+      }
+
+      if (
+        radio.awaitingNext &&
+        !radio.muted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        activeVehicle.id === radio.awaitingNext.vehicleId &&
+        radio.fade <= 0.001 &&
+        performance.now() >= radio.awaitingNext.playAt
+      ) {
+        const next = radio.awaitingNext;
+        const idx = next.idx;
+        radio.awaitingNext = null;
+        if (radio.ready[idx] && radio.buffers[idx]) {
+          playLoadedRadioTrack(activeVehicle, idx, 0);
+        } else {
+          ensureRadioTrack(idx, () => {
+            if (radio.muted) return;
+            if (player.mode !== 'driving' || !activeVehicle || activeVehicle.id !== next.vehicleId) return;
+            playLoadedRadioTrack(activeVehicle, idx, 0);
+          });
+        }
       }
 
       if (radio.labelEl && radio.labelHideAt && performance.now() > radio.labelHideAt) {
@@ -2491,6 +2656,285 @@
     function onExitCarRadio(vehicle) {
       stopCarRadio(!!vehicle);
       updateRadioMuteUi();
+    }
+
+    // --- CONTINUOUS CAR ENGINE / DRIFT (under radio) ---
+    const DRIVE_SFX = {
+      master: 0.125,
+      mobileMul: 0.85,
+      idleHz: 52,
+      maxHz: 158,
+      revPitchMul: 0.84,
+      rumble: 0.28,
+      driftMaster: 0.2,
+      proxMinDist: 50,
+      proxMaxDist: 380,
+      refMaxSpeed: 7.2
+    };
+    const driveVoices = new Map();
+
+    function makeLoopNoiseBuffer(ctx, seconds, brown) {
+      const len = Math.max(1, Math.floor(ctx.sampleRate * seconds));
+      const buffer = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1;
+        if (brown) {
+          last = (last + 0.02 * white) / 1.02;
+          data[i] = last * 3.5;
+        } else {
+          data[i] = white;
+        }
+      }
+      return buffer;
+    }
+
+    function createDriveVoice() {
+      const ctx = ensureSfxContext();
+      if (!ctx) return null;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      osc1.type = 'sawtooth';
+      osc2.type = 'square';
+      osc1.frequency.value = DRIVE_SFX.idleHz;
+      osc2.frequency.value = DRIVE_SFX.idleHz * 1.005;
+      const oscGain = ctx.createGain();
+      oscGain.gain.value = 0.32;
+      osc1.connect(oscGain);
+      osc2.connect(oscGain);
+
+      const rumbleSrc = ctx.createBufferSource();
+      rumbleSrc.buffer = makeLoopNoiseBuffer(ctx, 1.5, true);
+      rumbleSrc.loop = true;
+      const rumbleFilter = ctx.createBiquadFilter();
+      rumbleFilter.type = 'lowpass';
+      rumbleFilter.frequency.value = 180;
+      const rumbleGain = ctx.createGain();
+      rumbleGain.gain.value = DRIVE_SFX.rumble;
+      rumbleSrc.connect(rumbleFilter);
+      rumbleFilter.connect(rumbleGain);
+
+      const bodyLp = ctx.createBiquadFilter();
+      bodyLp.type = 'lowpass';
+      bodyLp.frequency.value = 420;
+      bodyLp.Q.value = 0.7;
+      oscGain.connect(bodyLp);
+      rumbleGain.connect(bodyLp);
+
+      const driftSrc = ctx.createBufferSource();
+      driftSrc.buffer = makeLoopNoiseBuffer(ctx, 1.2, false);
+      driftSrc.loop = true;
+      const driftBp = ctx.createBiquadFilter();
+      driftBp.type = 'bandpass';
+      driftBp.frequency.value = 1100;
+      driftBp.Q.value = 0.85;
+      const driftGain = ctx.createGain();
+      driftGain.gain.value = 0;
+      driftSrc.connect(driftBp);
+      driftBp.connect(driftGain);
+
+      const master = ctx.createGain();
+      master.gain.value = 0;
+      bodyLp.connect(master);
+      driftGain.connect(master);
+      master.connect(ctx.destination);
+
+      const startAt = ctx.currentTime + 0.01;
+      try {
+        osc1.start(startAt);
+        osc2.start(startAt);
+        rumbleSrc.start(startAt);
+        driftSrc.start(startAt);
+      } catch (_) {}
+
+      return {
+        osc1,
+        osc2,
+        rumbleFilter,
+        rumbleGain,
+        bodyLp,
+        driftBp,
+        driftGain,
+        master,
+        alive: true
+      };
+    }
+
+    function getDriveVoice(id) {
+      let voice = driveVoices.get(id);
+      if (voice && voice.alive) return voice;
+      voice = createDriveVoice();
+      if (!voice) return null;
+      driveVoices.set(id, voice);
+      return voice;
+    }
+
+    function stopDriveVoice(id, quick) {
+      const voice = driveVoices.get(id);
+      if (!voice) return;
+      const ctx = sfxCtx;
+      if (ctx) {
+        const t = ctx.currentTime;
+        try {
+          voice.master.gain.cancelScheduledValues(t);
+          voice.master.gain.setTargetAtTime(0, t, quick ? 0.02 : 0.08);
+          voice.driftGain.gain.setTargetAtTime(0, t, 0.05);
+        } catch (_) {}
+      }
+      if (quick) {
+        driveVoices.delete(id);
+        voice.alive = false;
+        try {
+          voice.osc1.stop();
+          voice.osc2.stop();
+        } catch (_) {}
+      }
+    }
+
+    function applyDriveVoice(id, state) {
+      const voice = state.active ? getDriveVoice(id) : driveVoices.get(id);
+      if (!voice || !voice.alive) return;
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const deathMul = SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+      const mobileMul = isMobile ? DRIVE_SFX.mobileMul : 1;
+      const atten = state.atten != null ? state.atten : 1;
+
+      let vol = 0;
+      if (state.active) {
+        const load = Math.max(state.throttle || 0, (state.speedRatio || 0) * 0.42);
+        vol = DRIVE_SFX.master * mobileMul * deathMul * atten *
+          (0.2 + 0.8 * load) *
+          (state.reverse ? 0.92 : 1);
+      }
+      voice.master.gain.setTargetAtTime(Math.max(0, Math.min(0.35, vol)), now, 0.06);
+
+      const speedRatio = Math.max(0, Math.min(1, state.speedRatio || 0));
+      const throttle = Math.max(0, Math.min(1, state.throttle || 0));
+      let hz = DRIVE_SFX.idleHz + (DRIVE_SFX.maxHz - DRIVE_SFX.idleHz) * Math.pow(speedRatio, 0.82);
+      hz *= 1 + throttle * 0.2;
+      if (state.reverse) hz *= DRIVE_SFX.revPitchMul;
+      voice.osc1.frequency.setTargetAtTime(hz, now, 0.05);
+      voice.osc2.frequency.setTargetAtTime(hz * 1.007, now, 0.05);
+      voice.bodyLp.frequency.setTargetAtTime(
+        300 + speedRatio * 560 + throttle * 220,
+        now,
+        0.06
+      );
+      voice.rumbleFilter.frequency.setTargetAtTime(140 + speedRatio * 120, now, 0.08);
+      voice.rumbleGain.gain.setTargetAtTime(
+        DRIVE_SFX.rumble * (0.65 + speedRatio * 0.55 + throttle * 0.25),
+        now,
+        0.08
+      );
+
+      const slip = Math.max(0, state.slip || 0);
+      const slipT = Math.max(0, Math.min(1, (slip - 0.08) / 0.55));
+      let driftAmt = 0;
+      if (state.active) {
+        if (state.drifting) driftAmt = Math.max(0.28 * speedRatio, slipT);
+        else driftAmt = slipT * 0.2;
+        driftAmt *= driftAmt;
+      }
+      voice.driftGain.gain.setTargetAtTime(
+        DRIVE_SFX.driftMaster * driftAmt * deathMul * atten * mobileMul,
+        now,
+        0.04
+      );
+      voice.driftBp.frequency.setTargetAtTime(750 + slipT * 1600 + speedRatio * 200, now, 0.05);
+    }
+
+    function driveAudioAtten(x, y) {
+      const dist = Math.hypot(x - player.x, y - player.y);
+      if (dist <= DRIVE_SFX.proxMinDist) return 1;
+      if (dist >= DRIVE_SFX.proxMaxDist) return 0;
+      const t = 1 - (dist - DRIVE_SFX.proxMinDist) /
+        Math.max(1, DRIVE_SFX.proxMaxDist - DRIVE_SFX.proxMinDist);
+      return t * t;
+    }
+
+    function updateDriveAudio() {
+      if (!sfxUnlocked && !(player.mode === 'driving' && activeVehicle && !activeVehicle.isBike)) {
+        // Still allow fade-out of existing voices
+      } else {
+        unlockSfx();
+      }
+
+      const heard = new Set();
+      const refMax = DRIVE_SFX.refMaxSpeed;
+
+      // Local player car
+      if (
+        !wasted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike
+      ) {
+        const absSp = Math.abs(player.speed);
+        applyDriveVoice('local', {
+          active: true,
+          speedRatio: Math.min(1, absSp / Math.max(0.01, player.maxSpeed || refMax)),
+          throttle: player.audioThrottle || 0,
+          reverse: !!player.audioReverse,
+          slip: player.audioSlip || 0,
+          drifting: !!player.drifting,
+          atten: 1
+        });
+        heard.add('local');
+      } else if (driveVoices.has('local')) {
+        applyDriveVoice('local', { active: false });
+      }
+
+      // Other players' cars (distance-attenuated)
+      if (net.players && net.players.size) {
+        net.players.forEach(rp => {
+          if (!rp || rp.wasted || rp.mode !== 'driving' || !rp.vehicleId) return;
+          const v = vehicles.find(item => item.id === rp.vehicleId);
+          if (!v || v.isBike || v.dead) return;
+          const atten = driveAudioAtten(v.x, v.y);
+          if (atten < 0.02) {
+            if (driveVoices.has(rp.id)) applyDriveVoice(rp.id, { active: false });
+            return;
+          }
+          const signedSp = rp.speed != null ? rp.speed : (v.speed || 0);
+          const absSp = Math.abs(signedSp);
+          const prev = rp._audioPrevAbs != null ? rp._audioPrevAbs : absSp;
+          const accel = absSp - prev;
+          rp._audioPrevAbs = absSp;
+          const speedRatio = Math.min(1, absSp / refMax);
+          const throttle = Math.max(0, Math.min(1, accel * 14 + speedRatio * 0.4));
+          let motion = Math.hypot(rp.vx || 0, rp.vy || 0);
+          let velAng = motion > 0.12 ? Math.atan2(rp.vy, rp.vx) : null;
+          if (motion < 0.12) {
+            const pdx = v.x - (v._audioPrevX != null ? v._audioPrevX : v.x);
+            const pdy = v.y - (v._audioPrevY != null ? v._audioPrevY : v.y);
+            motion = Math.hypot(pdx, pdy);
+            if (motion > 0.08) velAng = Math.atan2(pdy, pdx);
+          }
+          v._audioPrevX = v.x;
+          v._audioPrevY = v.y;
+          const travel = signedSp >= 0 ? (rp.angle || v.angle) : (rp.angle || v.angle) + Math.PI;
+          const slip = velAng != null && motion > 0.08
+            ? Math.abs(shortestAngleDiff(velAng, travel))
+            : 0;
+          applyDriveVoice(rp.id, {
+            active: true,
+            speedRatio,
+            throttle,
+            reverse: signedSp < -0.12,
+            slip,
+            drifting: slip > 0.18 && speedRatio > 0.35,
+            atten
+          });
+          heard.add(rp.id);
+        });
+      }
+
+      driveVoices.forEach((_, id) => {
+        if (!heard.has(id)) applyDriveVoice(id, { active: false });
+      });
     }
 
 
@@ -3702,8 +4146,9 @@
 
       let targetSideLean = 0;
       if (isMountedVehicle()) {
-        if (shootCode === 'ArrowLeft') targetSideLean = -1;
-        else if (shootCode === 'ArrowRight') targetSideLean = 1;
+        // Lean opposite the shot so more of the aimed-side world stays on screen.
+        if (shootCode === 'ArrowLeft') targetSideLean = 1;
+        else if (shootCode === 'ArrowRight') targetSideLean = -1;
       }
       const leanEase = Math.abs(targetSideLean) > Math.abs(player.cameraSideLean) ? 0.12 : 0.08;
       player.cameraSideLean += (targetSideLean - player.cameraSideLean) * leanEase;
@@ -3961,9 +4406,12 @@
         if (now - hapticDriftAt >= HAPTIC.driftIntervalMs) {
           hapticDriftAt = now;
           haptic(HAPTIC.driftPulse);
-          playSfx('drift');
         }
       }
+
+      player.audioThrottle = Math.max(throttleFwd, throttleRev);
+      player.audioReverse = player.speed < -crawl || throttleRev > 0.15;
+      player.audioSlip = slipAngle;
 
       activeVehicle.x = player.x;
       activeVehicle.y = player.y;
@@ -3974,6 +4422,9 @@
 
     function handleWalkingInput() {
       player.drifting = false;
+      player.audioThrottle = 0;
+      player.audioReverse = false;
+      player.audioSlip = 0;
       player.vx = 0;
       player.vy = 0;
       const mobileWalkStick = isMobile && mobileTouch && mobileTouch.aim && mobileTouch.aim.active;
@@ -4448,6 +4899,7 @@
     }
 
     function ejectPlayerFromCar(vehicle) {
+      if (vehicle && !vehicle.isBike) onExitCarRadio(vehicle);
       const spot = findCarExitPosition(vehicle, false);
       if (vehicle && vehicle.driverId === net.localId) vehicle.driverId = null;
       activeVehicle = null;
@@ -5742,6 +6194,15 @@
       const attackerId = typeof fromPlayer === 'string'
         ? fromPlayer
         : (fromPlayer ? net.localId : null);
+      if (radio.vehicleId === vehicle.id) onExitCarRadio(vehicle);
+      if (radio.netCache && radio.netCache.has(vehicle.id)) radio.netCache.delete(vehicle.id);
+      if (radio.prox && radio.prox.has(vehicle.id)) {
+        const proxSlot = radio.prox.get(vehicle.id);
+        if (proxSlot && proxSlot.audio) {
+          try { proxSlot.audio.pause(); } catch (_) {}
+        }
+        radio.prox.delete(vehicle.id);
+      }
       if (vehicle === activeVehicle) {
         ejectPlayerFromCar(vehicle);
       } else if (net.role === 'host' && vehicle.driverId && net.players.has(vehicle.driverId)) {
@@ -11579,6 +12040,7 @@
 
       updateCorpsesAndScorch();
       updateCarRadio(radioDt);
+      updateDriveAudio();
       render();
       updateHud();
       requestAnimationFrame(loop);
