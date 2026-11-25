@@ -789,6 +789,12 @@ noscript .hero-noscript-wrap {
     opacity: 0.85;
 }
 
+.contribute-page {
+    min-height: calc(100vh - var(--site-top-h, 120px));
+    min-height: calc(100svh - var(--site-top-h, 120px));
+    background: var(--black);
+}
+
 @media (max-width: 800px) {
     .forms-section__grid {
         grid-template-columns: 1fr;
