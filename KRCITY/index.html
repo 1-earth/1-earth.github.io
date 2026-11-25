@@ -72,6 +72,38 @@
       color: #d4b56e;
       font-weight: bold;
     }
+
+    /* Session coach: PRESS TO ENTER (desktop → E legend) */
+    #enter-hint-desktop {
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+      margin-top: 2px;
+      margin-bottom: 4px;
+      color: #e9dec8;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    #enter-hint-desktop.show {
+      display: flex;
+    }
+    #enter-hint-desktop .enter-hint-arrow {
+      color: #c8573f;
+      font-size: 12px;
+      line-height: 1;
+      margin-left: 4px;
+      animation: enter-hint-nudge-y 0.75s ease-in-out infinite;
+    }
+    #ui-overlay.enter-hint-active #enter-key-row .key {
+      animation: enter-key-pulse 0.75s ease-in-out infinite;
+    }
+    @keyframes enter-key-pulse {
+      0%, 100% { color: #d4b56e; text-shadow: none; }
+      50% { color: #f0d48a; text-shadow: 0 0 8px rgba(212, 181, 110, 0.55); }
+    }
     #minimap-container {
       position: absolute;
       top: 15px;
@@ -226,15 +258,149 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
       background: rgba(24, 20, 16, 0.65);
       border: 1px solid rgba(183, 167, 142, 0.45);
       padding: 5px 7px;
+    }
+    .mp-room-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mp-room-actions .mp-btn {
+      padding: 3px 6px;
+      font-size: 10px;
+      letter-spacing: 0.4px;
     }
     #mp-room-code {
       color: #d4b56e;
       font-weight: bold;
       letter-spacing: 2px;
-      font-size: 14px;
+      font-size: 13px;
+    }
+    #mp-qr-wrap {
+      margin-bottom: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    #mp-qr-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      background: rgba(24, 20, 16, 0.65);
+      border: 1px solid rgba(183, 167, 142, 0.45);
+      padding: 7px 6px 6px;
+      cursor: pointer;
+      color: #c8bfa9;
+      font-family: inherit;
+    }
+    #mp-qr-card:hover {
+      border-color: #d4b56e;
+      color: #f3eee3;
+    }
+    #mp-qr-canvas {
+      display: block;
+      width: 132px;
+      height: 132px;
+      background: #f5efe2;
+      border-radius: 2px;
+      image-rendering: pixelated;
+    }
+    .mp-qr-caption {
+      font-size: 10px;
+      letter-spacing: 0.4px;
+      color: inherit;
+    }
+    #mp-qr-local-hint {
+      font-size: 10px;
+      color: #d4b56e;
+      text-align: center;
+      line-height: 1.3;
+    }
+    #qr-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(18, 14, 10, 0.78);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      user-select: none;
+    }
+    #qr-modal.open {
+      display: flex;
+    }
+    .qr-modal-box {
+      width: min(310px, 92vw);
+      background: rgba(43, 38, 31, 0.97);
+      border: 1px solid #b7a78e;
+      border-radius: 2px;
+      box-shadow: 6px 7px 0 rgba(16, 12, 8, 0.45);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: #eee5d4;
+      text-align: center;
+    }
+    .qr-modal-title {
+      color: #c8573f;
+      font-weight: bold;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .qr-modal-room {
+      font-size: 12px;
+      color: #eee5d4;
+      letter-spacing: 1px;
+    }
+    .qr-modal-room span {
+      color: #d4b56e;
+      font-weight: bold;
+      font-size: 16px;
+      letter-spacing: 3px;
+    }
+    #mp-qr-modal-canvas {
+      display: block;
+      width: min(220px, 68vw);
+      height: min(220px, 68vw);
+      background: #f8f4ea;
+      border: 2px solid #b7a78e;
+      border-radius: 2px;
+      image-rendering: pixelated;
+    }
+    #mp-qr-modal-url {
+      width: 100%;
+      font-size: 10px;
+      color: #c8bfa9;
+      word-break: break-all;
+      background: rgba(24, 20, 16, 0.7);
+      border: 1px solid rgba(183, 167, 142, 0.35);
+      padding: 5px 7px;
+      user-select: text;
+    }
+    #mp-qr-modal-hint {
+      font-size: 10px;
+      color: #d4b56e;
+      line-height: 1.35;
+    }
+    .qr-modal-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .qr-modal-actions .mp-btn {
+      flex: 1;
+      padding: 6px 10px;
     }
     #mp-players {
       display: flex;
@@ -392,8 +558,14 @@
       right: 8px;
       width: auto;
       max-width: 280px;
+      max-height: calc(100% - 46px);
+      overflow-y: auto;
       z-index: 18;
       touch-action: auto;
+    }
+    body.mobile #mp-qr-canvas {
+      width: 108px;
+      height: 108px;
     }
     body.mobile #mp-panel.mobile-open {
       display: block;
@@ -433,6 +605,8 @@
       justify-content: flex-end;
       min-height: clamp(46px, 7.2dvh, 56px);
       padding: 0 2px 2px;
+      z-index: 6;
+      overflow: visible;
     }
     .jj-wordmark {
       position: absolute;
@@ -603,6 +777,71 @@
         inset 0 2px 4px rgba(40, 30, 15, 0.3);
       transform: translateY(2px);
     }
+    #interactBtn.hint-pulse.available {
+      animation: enter-btn-pulse 0.9s ease-in-out infinite;
+    }
+    @keyframes enter-btn-pulse {
+      0%, 100% {
+        box-shadow:
+          0 3px 0 #8c7f68,
+          0 5px 10px rgba(40, 30, 15, 0.38),
+          0 0 0 2px rgba(200, 87, 63, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95),
+          inset 0 -3px 6px rgba(140, 120, 90, 0.28);
+      }
+      50% {
+        box-shadow:
+          0 3px 0 #8c7f68,
+          0 5px 10px rgba(40, 30, 15, 0.38),
+          0 0 0 4px rgba(200, 87, 63, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.95),
+          inset 0 -3px 6px rgba(140, 120, 90, 0.28);
+      }
+    }
+
+    /* Session coach: PRESS TO ENTER (mobile → ENTER button) */
+    #enter-hint-mobile {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% - 2px);
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 1px;
+      pointer-events: none;
+      z-index: 5;
+      text-align: right;
+    }
+    #enter-hint-mobile.show {
+      display: flex;
+    }
+    #enter-hint-mobile .enter-hint-text {
+      font-size: 9px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      color: #3a3328;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+      white-space: nowrap;
+      background: rgba(233, 222, 200, 0.92);
+      border: 1px solid #8f3a2a;
+      border-radius: 2px;
+      padding: 3px 6px;
+      box-shadow:
+        0 2px 0 #8c7f68,
+        0 3px 6px rgba(40, 30, 15, 0.28);
+    }
+    #enter-hint-mobile .enter-hint-arrow {
+      color: #c8573f;
+      font-size: 12px;
+      line-height: 1;
+      margin-right: clamp(14px, 2.2dvh, 18px);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+      animation: enter-hint-nudge-y 0.75s ease-in-out infinite;
+    }
+    @keyframes enter-hint-nudge-y {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
 
     /* Bottom bar: Rams drilled-dot speakers + MP & PAUSE cream pills */
     .jj-bottom {
@@ -677,6 +916,15 @@
         height: 36px;
         font-size: 8px;
       }
+      body.mobile #enter-hint-mobile .enter-hint-text {
+        font-size: 8px;
+        padding: 2px 5px;
+        letter-spacing: 1px;
+      }
+      body.mobile #enter-hint-mobile .enter-hint-arrow {
+        font-size: 10px;
+        margin-right: 11px;
+      }
       body.mobile #pad .stick-well {
         width: clamp(72px, 21dvh, 102px);
         height: clamp(72px, 21dvh, 102px);
@@ -702,9 +950,13 @@
     <div id="ui-overlay">
       <h1 class="desktop-only">KR CITY 2</h1>
       <div class="desktop-only"><span class="key">W / S</span> : Move / Accelerate</div>
-      <div class="desktop-only"><span class="key">A / D</span> : Turn</div>
-      <div class="desktop-only"><span class="key">↑ / ↓</span> : Shoot Up / Down</div>
-      <div class="desktop-only"><span class="key">E</span> : Enter / Exit Car or Bike</div>
+      <div class="desktop-only"><span class="key">A / D</span> : Turn (drive / walk arrows)</div>
+      <div class="desktop-only"><span class="key">↑ ↓ ← →</span> : Shoot F / B / L / R (drive)</div>
+      <div class="desktop-only" id="enter-key-row"><span class="key">E</span> : Enter / Exit Car or Bike</div>
+      <div id="enter-hint-desktop" class="desktop-only" role="status" aria-live="polite">
+        <span class="enter-hint-arrow" aria-hidden="true">▲</span>
+        <span>PRESS TO ENTER</span>
+      </div>
       <div>HP: <span class="key" id="hp-label">100</span></div>
       <div id="car-hp-row" style="display: none;"><span id="car-class-label">Car</span>: <span class="key" id="car-hp-label">90</span></div>
       <div id="mobile-ammo-row" class="mobile-only">AMMO: <span class="key" id="mobile-ammo-label">12/12</span></div>
@@ -733,7 +985,17 @@
         <div id="mp-active-controls" style="display: none;">
           <div id="mp-room-box" style="margin-bottom: 6px;">
             <span>ROOM: <span id="mp-room-code">----</span></span>
-            <button id="mp-copy-btn" class="mp-btn" type="button">Copy Link</button>
+            <span class="mp-room-actions">
+              <button id="mp-qr-toggle-btn" class="mp-btn" type="button" style="display: none;">Hide QR</button>
+              <button id="mp-copy-btn" class="mp-btn" type="button">Copy Link</button>
+            </span>
+          </div>
+          <div id="mp-qr-wrap" style="display: none;">
+            <button id="mp-qr-card" type="button" title="Click to enlarge QR code" aria-label="Enlarge room QR code">
+              <canvas id="mp-qr-canvas" width="132" height="132"></canvas>
+              <span class="mp-qr-caption">Scan to join · Tap to enlarge</span>
+            </button>
+            <div id="mp-qr-local-hint" style="display: none;">Local URL — phones need your hosted link</div>
           </div>
           <div class="mp-row" style="margin-bottom: 6px;">
             <button id="mp-leave-btn" class="mp-btn" type="button" style="flex: 1;">Leave Room</button>
@@ -759,6 +1021,10 @@
       <div class="jj-top-bar">
         <div class="jj-wordmark"><span>KR</span>&middot;BOY</div>
         <button id="interactBtn" type="button" aria-label="Enter or exit vehicle">ENTER</button>
+        <div id="enter-hint-mobile" role="status" aria-live="polite">
+          <span class="enter-hint-arrow" aria-hidden="true">▲</span>
+          <span class="enter-hint-text">PRESS TO ENTER</span>
+        </div>
       </div>
       <div class="jj-row">
         <div class="stick-zone left">
@@ -781,7 +1047,7 @@
           </div>
           <div class="stick-base" id="rightBase"></div>
           <div class="stick-knob" id="rightKnob"></div>
-          <span class="label">TURN · SHOOT</span>
+          <span class="label" id="aim-stick-label">TURN · SHOOT</span>
         </div>
       </div>
       <div class="jj-bottom">
@@ -789,6 +1055,20 @@
         <button id="mobileMpBtn" class="jj-pill" type="button">MP</button>
         <button id="mobilePauseBtn" class="jj-pill" type="button">PAUSE</button>
         <div class="jj-speaker right" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="qr-modal" role="dialog" aria-modal="true" aria-label="Scan to join room">
+    <div class="qr-modal-box">
+      <div class="qr-modal-title">Scan to Join City</div>
+      <div class="qr-modal-room">ROOM: <span id="mp-qr-modal-code">----</span></div>
+      <canvas id="mp-qr-modal-canvas" width="220" height="220"></canvas>
+      <div id="mp-qr-modal-url"></div>
+      <div id="mp-qr-modal-hint" style="display: none;">Local URL — phones on another network need your hosted link (e.g. GitHub Pages)</div>
+      <div class="qr-modal-actions">
+        <button id="mp-qr-modal-copy" class="mp-btn primary" type="button">Copy Link</button>
+        <button id="mp-qr-modal-close" class="mp-btn" type="button">Close</button>
       </div>
     </div>
   </div>
@@ -848,6 +1128,18 @@
     const BUILDING_FOOTPRINT_TILES = 2;
     const PAVEMENT_TILE = 5;
     const map = [];
+
+    // Ped visual size + camera zoom (tune here; collision radius stays unchanged).
+    const PED_SCALE = 0.8;
+    const CAMERA_ZOOM_DESKTOP = 1.35;
+    const CAMERA_ZOOM_MOBILE = 0.96;
+    const CAMERA_ZOOM_LERP = 0.12;
+    const CAMERA_ZOOM_LERP_USER = 0.07; // slower while user-nudged zoom is active
+    const CAMERA_ZOOM_HEIGHT_REF = 0.82;
+    const CAMERA_ZOOM_USER_RANGE = 0.15; // ±15% around platform base zoom
+    const CAMERA_ZOOM_WHEEL_STEP = 0.035;
+    const CAMERA_ZOOM_PINCH_SENS = 0.9;
+    const CAMERA_ZOOM_HAPTIC_MS = 8;
 
     // Tile Types: 0 = Park, 1 = Road, 2-4 = Buildings, 5 = Pavement
     const BUILDING_HEIGHTS = { 0: 0, 1: 0, 2: 40, 3: 80, 4: 130, 5: 0 };
@@ -999,11 +1291,25 @@
     const PLAYER_WALK_DRIVE = { maxSpeed: 7, accel: 0.06, driveRadius: 10 };
 
     // Steer acceleration: fraction of this frame's full turn speed added per frame
-    // while a turn key is held. Release or both directions snaps to 0.
-    // At 60fps: 0.05 ≈ 0.33s to full, 0.10 ≈ 0.17s, 0.20 ≈ 0.08s, 1 = instant.
+    // while a turn key is held. At 60fps: 0.05 ≈ 0.33s to full, 0.10 ≈ 0.17s, 1 = instant.
     const STEER_FEEL = {
       walkAccel: 0.05,
-      driveAccel: 0.02
+      driveAccel: 0.06,
+      driveRelease: 0.78
+    };
+
+    // Arcade drive feel — soft momentum, auto-drift, camera lag (player cars only).
+    const DRIVE_FEEL = {
+      driftSlipEnter: 0.16,
+      driftSlipHold: 0.10,
+      counterGripBoost: 0.22,
+      counterStraighten: 0.07,
+      driftEndSlip: 0.11,
+      camLagCruise: 14,
+      camLagDrift: 44,
+      camCatchCruise: 0.14,
+      camCatchDrift: 0.038,
+      tireSmokeSlip: 0.38
     };
 
     const CAR_CLASSES = {
@@ -1017,12 +1323,14 @@
         driveRadius: 10,
         cruiseMin: 1.5,
         cruiseSpan: 0.8,
-        driftEnter: 0.55,
-        driftHold: 0.4,
-        driftGrip: 0.07,
-        grip: 0.22,
-        driftSteer: 0.42,
-        steerAccel: 0.14,
+        driftEnter: 0.48,
+        driftHold: 0.36,
+        driftGrip: 0.055,
+        grip: 0.17,
+        driftSteer: 0.48,
+        steerAccel: 0.07,
+        driftBleed: 0.996,
+        camLagBoost: 1,
         shove: 1,
         colors: ['#a94336', '#668078', '#d0b56f', '#6f7b4b', '#c19a61']
       },
@@ -1036,12 +1344,14 @@
         driveRadius: 12,
         cruiseMin: 1.15,
         cruiseSpan: 0.55,
-        driftEnter: 0.68,
-        driftHold: 0.52,
-        driftGrip: 0.12,
-        grip: 0.32,
-        driftSteer: 0.18,
-        steerAccel: 0.09,
+        driftEnter: 0.60,
+        driftHold: 0.48,
+        driftGrip: 0.095,
+        grip: 0.26,
+        driftSteer: 0.24,
+        steerAccel: 0.045,
+        driftBleed: 0.994,
+        camLagBoost: 0.78,
         shove: 1.45,
         colors: ['#6b675c', '#5d6a62', '#7a6a58', '#4f5854', '#8a7e6a']
       },
@@ -1055,12 +1365,14 @@
         driveRadius: 9,
         cruiseMin: 2.0,
         cruiseSpan: 0.8,
-        driftEnter: 0.45,
-        driftHold: 0.32,
-        driftGrip: 0.045,
-        grip: 0.18,
-        driftSteer: 0.58,
-        steerAccel: 0.20,
+        driftEnter: 0.40,
+        driftHold: 0.28,
+        driftGrip: 0.032,
+        grip: 0.13,
+        driftSteer: 0.66,
+        steerAccel: 0.10,
+        driftBleed: 0.9975,
+        camLagBoost: 1.18,
         shove: 0.85,
         colors: ['#c4453c', '#d4a03a', '#3d7a8c', '#b84e6e', '#e8d07a']
       }
@@ -1081,6 +1393,8 @@
       cameraSlope: 0.36,
       cameraLookAhead: 0,
       cameraRearPeek: 0,
+      cameraSideLean: 0,
+      camHardBlend: 0,
       maxSpeed: 7,
       accel: 0.06,
       friction: 0.92,
@@ -1132,7 +1446,7 @@
     const SKID_LIFE = 180;
     const SKID_MAX = 180;
     // Radians of slip (nose vs travel) before marks appear while drifting.
-    const SKID_SLIP_MIN = 0.22;
+    const SKID_SLIP_MIN = 0.32;
 
     // Camera shake: trauma 0–1, squared for punch; decays each frame.
     const SHAKE = {
@@ -1391,6 +1705,11 @@
 
     const BIKE = {
       speed: 4.2,
+      accel: 0.08,
+      grip: 0.28,
+      // Slightly tighter than cars at low speed; keep it calm.
+      turnSpeed: 0.036,
+      steerAccel: 0.09,
       radius: 5,
       enterDist: 42,
       baySnapDist: 78,
@@ -1429,6 +1748,84 @@
       if (south) return 's';
       if (west) return 'w';
       return 'e';
+    }
+
+    // Face into the block (building frontage), opposite the road-side kerb.
+    function bayFrontageAngle(side) {
+      if (side === 'n') return Math.PI / 2;
+      if (side === 's') return -Math.PI / 2;
+      if (side === 'w') return 0;
+      if (side === 'e') return Math.PI;
+      return 34 * (Math.PI / 180);
+    }
+
+    function findClosestBuildingCenter(x, y) {
+      const half = (TILE_SIZE * BUILDING_FOOTPRINT_TILES) / 2;
+      let best = null;
+      let bestDist = Infinity;
+      for (let r = 0; r < MAP_SIZE; r++) {
+        for (let c = 0; c < MAP_SIZE; c++) {
+          const tile = map[r][c];
+          if (tile < 2 || tile > 4 || !isBuildingAnchor(r, c)) continue;
+          const cx = c * TILE_SIZE + half;
+          const cy = r * TILE_SIZE + half;
+          const dist = Math.hypot(cx - x, cy - y);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = { cx, cy, dist };
+          }
+        }
+      }
+      return best;
+    }
+
+    function resolveSpawnFrontageSide(x, y) {
+      const c = Math.floor(x / TILE_SIZE);
+      const r = Math.floor(y / TILE_SIZE);
+      if (r >= 0 && r < MAP_SIZE && c >= 0 && c < MAP_SIZE) {
+        const side = roadSideOfPavement(r, c);
+        if (side) return side;
+      }
+      let nearest = null;
+      let nearestDist = Infinity;
+      for (let i = 0; i < parkingBays.length; i++) {
+        const bay = parkingBays[i];
+        const dist = Math.hypot(bay.cx - x, bay.cy - y);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = bay;
+        }
+      }
+      if (nearest && nearestDist < TILE_SIZE * 4) return nearest.side;
+      return null;
+    }
+
+    // Base = bay frontage into the block; auto-pick ±20° closer to the nearest building.
+    function pickSpawnFacingAngle(x, y, sideHint) {
+      const OFFSET = 20 * (Math.PI / 180);
+      const FALLBACK = 34 * (Math.PI / 180);
+      const side = sideHint || resolveSpawnFrontageSide(x, y);
+      const building = findClosestBuildingCenter(x, y);
+      let base;
+      if (side) {
+        base = bayFrontageAngle(side);
+      } else if (building) {
+        base = Math.atan2(building.cy - y, building.cx - x);
+      } else {
+        return FALLBACK;
+      }
+      const toward = building
+        ? Math.atan2(building.cy - y, building.cx - x)
+        : base;
+      const left = base + OFFSET;
+      const right = base - OFFSET;
+      const absDiff = (from, to) => {
+        let diff = (to - from) % (Math.PI * 2);
+        if (diff > Math.PI) diff -= Math.PI * 2;
+        if (diff < -Math.PI) diff += Math.PI * 2;
+        return Math.abs(diff);
+      };
+      return absDiff(left, toward) <= absDiff(right, toward) ? left : right;
     }
 
     function shuffleInPlace(list) {
@@ -1714,8 +2111,9 @@
       if (walkSpot) {
         player.x = walkSpot.x;
         player.y = walkSpot.y;
-        player.angle = spawnBay.angle;
-        player.cameraAngle = spawnBay.angle;
+        const facing = pickSpawnFacingAngle(walkSpot.x, walkSpot.y, spawnBay.side);
+        player.angle = facing;
+        player.cameraAngle = facing;
       }
     }
 
@@ -1874,13 +2272,62 @@
       return false;
     }
 
+    function isMountedVehicle() {
+      return player.mode === 'driving' || player.mode === 'biking';
+    }
+
     function getActiveShootCode() {
       const up = anyCodeHeld('ArrowUp');
       const down = anyCodeHeld('ArrowDown');
-      if (up && down) return gun.lastShootCode === 'ArrowDown' ? 'ArrowDown' : 'ArrowUp';
-      if (down) return 'ArrowDown';
+      const sideOk = isMountedVehicle();
+      const left = sideOk && anyCodeHeld('ArrowLeft');
+      const right = sideOk && anyCodeHeld('ArrowRight');
+      const held = [];
+      if (up) held.push('ArrowUp');
+      if (down) held.push('ArrowDown');
+      if (left) held.push('ArrowLeft');
+      if (right) held.push('ArrowRight');
+      if (!held.length) return null;
+      if (held.length === 1) return held[0];
+      if (gun.lastShootCode && held.indexOf(gun.lastShootCode) !== -1) return gun.lastShootCode;
       if (up) return 'ArrowUp';
-      return null;
+      if (down) return 'ArrowDown';
+      if (left) return 'ArrowLeft';
+      return 'ArrowRight';
+    }
+
+    function shootAngleFromCode(shootCode) {
+      if (shootCode === 'ArrowDown') return player.angle + Math.PI;
+      if (shootCode === 'ArrowLeft') return player.angle - Math.PI / 2;
+      if (shootCode === 'ArrowRight') return player.angle + Math.PI / 2;
+      return player.angle;
+    }
+
+    // World muzzle point: side shots leave the vehicle window, not the hood.
+    function getShootOrigin(shootCode, shootAngle) {
+      if (!isMountedVehicle()) {
+        return {
+          x: player.x + Math.cos(shootAngle) * 16,
+          y: player.y + Math.sin(shootAngle) * 16
+        };
+      }
+      if (shootCode === 'ArrowLeft' || shootCode === 'ArrowRight') {
+        const sideOff = player.mode === 'biking' ? 8 : 14;
+        const along = player.mode === 'biking' ? 4 : 6;
+        const leftX = -Math.sin(player.angle);
+        const leftY = Math.cos(player.angle);
+        const sideX = shootCode === 'ArrowLeft' ? leftX : -leftX;
+        const sideY = shootCode === 'ArrowLeft' ? leftY : -leftY;
+        return {
+          x: player.x + sideX * sideOff + Math.cos(shootAngle) * along,
+          y: player.y + sideY * sideOff + Math.sin(shootAngle) * along
+        };
+      }
+      const muzzleDist = player.mode === 'biking' ? 18 : 24;
+      return {
+        x: player.x + Math.cos(shootAngle) * muzzleDist,
+        y: player.y + Math.sin(shootAngle) * muzzleDist
+      };
     }
 
     function isTypingInUi(target) {
@@ -1896,7 +2343,10 @@
           e.code === 'ArrowUp' || e.code === 'ArrowDown') {
         e.preventDefault();
       }
-      if (!e.repeat && (e.code === 'ArrowUp' || e.code === 'ArrowDown')) {
+      if (!e.repeat && (
+        e.code === 'ArrowUp' || e.code === 'ArrowDown' ||
+        ((e.code === 'ArrowLeft' || e.code === 'ArrowRight') && isMountedVehicle())
+      )) {
         gun.lastShootCode = e.code;
       }
       if (!e.repeat && (e.code === 'KeyE' || e.key.toLowerCase() === 'e')) {
@@ -1958,13 +2408,27 @@
         handleDrivingInput();
       }
 
-      if ((player.mode === 'walking' || player.mode === 'biking') && !player.cameraEasing) {
+      if (player.mode === 'walking' && !player.cameraEasing) {
         player.cameraAngle = player.angle;
       } else if (player.mode === 'driving') {
-        const speedRatio = Math.min(player.motionSpeed / player.maxSpeed, 1);
+        const speedRatio = Math.min(player.motionSpeed / Math.max(player.maxSpeed, 0.01), 1);
+        const spec = activeVehicle ? getCarSpec(activeVehicle) : CAR_CLASSES.normal;
+        const lagBoost = spec.camLagBoost != null ? spec.camLagBoost : 1;
+        // Continuous intensity (no on/off flicker from steerRate crossing a threshold).
+        const steerIntensity = Math.min(
+          1,
+          Math.abs(player.steerRate) / Math.max(player.turnSpeed * 0.85, 0.001)
+        );
+        const blendTarget = player.drifting ? 1 : steerIntensity;
+        player.camHardBlend += (blendTarget - player.camHardBlend) * 0.08;
+        if (player.camHardBlend < 0.002) player.camHardBlend = 0;
+        if (player.camHardBlend > 0.998) player.camHardBlend = 1;
+        const blend = player.camHardBlend;
+
+        const cruiseCatch = DRIVE_FEEL.camCatchCruise + (1 - speedRatio) * 0.04;
         const catchUp = player.cameraEasing
           ? 0.1
-          : (0.16 - speedRatio * 0.05) * (player.drifting ? 0.6 : 1);
+          : cruiseCatch + (DRIVE_FEEL.camCatchDrift - cruiseCatch) * blend;
         const angleDiff = shortestAngleDiff(player.cameraAngle, player.angle);
         player.cameraAngle += angleDiff * catchUp;
 
@@ -1974,7 +2438,29 @@
             player.cameraEasing = false;
           }
         } else {
-          const maxLag = (player.drifting ? 26 : 15) * Math.PI / 180;
+          const lagDeg = DRIVE_FEEL.camLagCruise +
+            (DRIVE_FEEL.camLagDrift * lagBoost - DRIVE_FEEL.camLagCruise) * blend;
+          const maxLag = lagDeg * Math.PI / 180;
+          // Hold a stable offset at the (blended) limit — no soft pull fighting catch-up.
+          const lag = shortestAngleDiff(player.cameraAngle, player.angle);
+          if (lag > maxLag) player.cameraAngle = player.angle - maxLag;
+          else if (lag < -maxLag) player.cameraAngle = player.angle + maxLag;
+        }
+      } else if (player.mode === 'biking') {
+        const speedRatio = Math.min(player.motionSpeed / Math.max(player.maxSpeed, 0.01), 1);
+        const catchUp = player.cameraEasing
+          ? 0.1
+          : (0.16 - speedRatio * 0.05);
+        const angleDiff = shortestAngleDiff(player.cameraAngle, player.angle);
+        player.cameraAngle += angleDiff * catchUp;
+
+        if (player.cameraEasing) {
+          if (Math.abs(angleDiff) < 0.012) {
+            player.cameraAngle = player.angle;
+            player.cameraEasing = false;
+          }
+        } else {
+          const maxLag = 15 * Math.PI / 180;
           const lag = shortestAngleDiff(player.cameraAngle, player.angle);
           if (lag > maxLag) player.cameraAngle = player.angle - maxLag;
           else if (lag < -maxLag) player.cameraAngle = player.angle + maxLag;
@@ -1985,9 +2471,19 @@
       const targetSlope = 0.36 - speedRatio * 0.14;
       player.cameraSlope += (targetSlope - player.cameraSlope) * 0.06;
       player.cameraLookAhead += (speedRatio - player.cameraLookAhead) * 0.055;
-      const targetRearPeek = getActiveShootCode() === 'ArrowDown' ? 1 : 0;
+      const shootCode = getActiveShootCode();
+      const targetRearPeek = shootCode === 'ArrowDown' ? 1 : 0;
       const peekEase = targetRearPeek > player.cameraRearPeek ? 0.085 : 0.055;
       player.cameraRearPeek += (targetRearPeek - player.cameraRearPeek) * peekEase;
+
+      let targetSideLean = 0;
+      if (isMountedVehicle()) {
+        if (shootCode === 'ArrowLeft') targetSideLean = -1;
+        else if (shootCode === 'ArrowRight') targetSideLean = 1;
+      }
+      const leanEase = Math.abs(targetSideLean) > Math.abs(player.cameraSideLean) ? 0.12 : 0.08;
+      player.cameraSideLean += (targetSideLean - player.cameraSideLean) * leanEase;
+      if (Math.abs(player.cameraSideLean) < 0.01 && targetSideLean === 0) player.cameraSideLean = 0;
     }
 
     function handleDrivingInput() {
@@ -1999,6 +2495,7 @@
         player.mode = activeVehicle && activeVehicle.isBike ? 'biking' : 'walking';
         player.drifting = false;
         player.steerRate = 0;
+        player.camHardBlend = 0;
         return;
       }
 
@@ -2037,37 +2534,58 @@
       });
 
       const absSpeed = Math.abs(player.speed);
-      const speedRatio = Math.min(absSpeed / player.maxSpeed, 1);
+      const speedRatio = Math.min(absSpeed / Math.max(player.maxSpeed, 0.01), 1);
       const intent = steerIntent(
-        anyCodeHeld('KeyA', 'ArrowLeft'),
-        anyCodeHeld('KeyD', 'ArrowRight')
+        anyCodeHeld('KeyA'),
+        anyCodeHeld('KeyD')
       );
       const steering = intent !== 0;
       const moveSpeed = Math.hypot(player.vx, player.vy);
       const travelAngle = player.speed >= 0 ? player.angle : player.angle + Math.PI;
-      const slipAngle = moveSpeed > crawl
-        ? Math.abs(shortestAngleDiff(travelAngle, Math.atan2(player.vy, player.vx)))
-        : 0;
+      const velAngle = moveSpeed > crawl ? Math.atan2(player.vy, player.vx) : travelAngle;
+      const slipSigned = moveSpeed > crawl ? shortestAngleDiff(velAngle, travelAngle) : 0;
+      const slipAngle = Math.abs(slipSigned);
 
-      const wantDrift = player.speed > crawl && speedRatio >= spec.driftEnter && steering;
+      const wantDrift = player.speed > crawl &&
+        speedRatio >= spec.driftEnter &&
+        steering &&
+        (Math.abs(player.steerRate) > player.turnSpeed * 0.22 || slipAngle >= DRIVE_FEEL.driftSlipEnter);
       player.drifting = wantDrift || (
         player.drifting &&
         player.speed > crawl &&
         speedRatio >= spec.driftHold &&
-        (steering || slipAngle > 0.28)
+        (steering || slipAngle > DRIVE_FEEL.driftSlipHold)
       );
-      if (absSpeed < crawl || speedRatio < 0.35) player.drifting = false;
+      if (absSpeed < crawl || speedRatio < 0.32) player.drifting = false;
 
-      if (player.drifting) player.speed *= 0.985;
+      const counterSteer = player.drifting &&
+        steering &&
+        slipAngle > 0.12 &&
+        intent * slipSigned < 0;
+
+      if (player.drifting && slipAngle > 0.18) {
+        const bleed = spec.driftBleed != null ? spec.driftBleed : 0.996;
+        const slipBleed = Math.min(0.008, (slipAngle - 0.18) * 0.015);
+        player.speed *= bleed - slipBleed;
+      }
 
       if (absSpeed >= crawl) {
-        let steerScale = 1.05 - 0.72 * speedRatio;
+        let steerScale = 1.02 - 0.62 * speedRatio;
         if (player.drifting) steerScale += spec.driftSteer;
-        const maxSteer = player.turnSpeed * Math.max(0.28, Math.min(1.2, steerScale));
+        if (counterSteer) steerScale *= 0.88;
+        const maxSteer = player.turnSpeed * Math.max(0.26, Math.min(1.25, steerScale));
         const reverseSteer = player.speed < 0 ? -1 : 1;
         const driveAccel = spec.steerAccel != null ? spec.steerAccel : STEER_FEEL.driveAccel;
-        player.steerRate = accelerateSteer(player.steerRate, intent, maxSteer, driveAccel);
+        if (intent === 0) {
+          player.steerRate *= STEER_FEEL.driveRelease;
+          if (Math.abs(player.steerRate) < 0.0007) player.steerRate = 0;
+        } else {
+          player.steerRate = accelerateSteer(player.steerRate, intent, maxSteer, driveAccel);
+        }
         player.angle += player.steerRate * reverseSteer;
+        if (counterSteer) {
+          player.angle += slipSigned * DRIVE_FEEL.counterStraighten;
+        }
       } else {
         player.steerRate = 0;
       }
@@ -2076,7 +2594,12 @@
       const headingY = Math.sin(player.angle);
       const targetVx = headingX * player.speed;
       const targetVy = headingY * player.speed;
-      const grip = player.drifting ? spec.driftGrip : spec.grip + 0.5 * (1 - speedRatio);
+      let grip = player.drifting
+        ? spec.driftGrip
+        : spec.grip + 0.42 * (1 - speedRatio);
+      if (counterSteer) {
+        grip = Math.min(0.48, grip + DRIVE_FEEL.counterGripBoost);
+      }
       player.vx += (targetVx - player.vx) * grip;
       player.vy += (targetVy - player.vy) * grip;
       if (absSpeed < crawl) {
@@ -2123,6 +2646,9 @@
       const skidSlip = player.motionSpeed > crawl
         ? Math.abs(shortestAngleDiff(travelNow, Math.atan2(player.vy, player.vx)))
         : 0;
+      if (player.drifting && skidSlip < DRIVE_FEEL.driftEndSlip && counterSteer) {
+        player.drifting = false;
+      }
       if (player.drifting && player.motionSpeed > crawl && skidSlip >= SKID_SLIP_MIN) {
         const sx = player.x - headingX * 12;
         const sy = player.y - headingY * 12;
@@ -2137,6 +2663,9 @@
           netBroadcast({ t: 'fx_skid', x: netRound1(sx), y: netRound1(sy), a: netRound3(player.angle) });
         } else if (net.role === 'guest' && (net.frameCounter % 2 === 0)) {
           netSendToHost({ t: 'fx_skid', x: netRound1(sx), y: netRound1(sy), a: netRound3(player.angle) });
+        }
+        if (skidSlip >= DRIVE_FEEL.tireSmokeSlip && (simulationTick % 3 === 0)) {
+          emitTireSmoke(player.x, player.y, player.angle);
         }
       }
 
@@ -2200,59 +2729,98 @@
     function handleBikingInput() {
       if (!activeVehicle || !activeVehicle.isBike) {
         player.mode = 'walking';
+        player.drifting = false;
         player.steerRate = 0;
         return;
       }
 
-      player.drifting = false;
-      const intent = steerIntent(
-        anyCodeHeld('ArrowLeft'),
-        anyCodeHeld('ArrowRight')
-      );
-      player.steerRate = accelerateSteer(
-        player.steerRate,
-        intent,
-        player.turnSpeed,
-        STEER_FEEL.walkAccel
-      );
-      player.angle += player.steerRate;
+      // Same control model as cars: W/S throttle, A/D (+ arrows) steer — no strafe.
+      const crawl = 0.12;
+      const effectiveMaxSpeed = player.maxSpeed;
+      const effectiveAccel = player.accel;
+      const brakeForce = effectiveAccel * 1.8;
 
-      let forward = 0;
-      let right = 0;
-      player.motionSpeed = 0;
-      if (keys['w']) forward = BIKE.speed;
-      if (keys['s']) forward = -BIKE.speed * 0.7;
-      if (keys['d']) right = BIKE.speed;
-      if (keys['a']) right = -BIKE.speed;
-
-      const moveMag = Math.hypot(forward, right);
-      if (moveMag > BIKE.speed) {
-        const scale = BIKE.speed / moveMag;
-        forward *= scale;
-        right *= scale;
-      }
-
-      if (forward !== 0 || right !== 0) {
-        const dx = Math.cos(player.angle) * forward - Math.sin(player.angle) * right;
-        const dy = Math.sin(player.angle) * forward + Math.cos(player.angle) * right;
-        const slide = trySlideMove(player.x, player.y, dx, dy, BIKE.radius, canDriveAt);
-        if (slide.moved) {
-          player.x = slide.x;
-          player.y = slide.y;
-          player.motionSpeed = Math.hypot(
-            slide.usedX ? dx : 0,
-            slide.usedY ? dy : 0
-          );
+      if (keys['w']) {
+        player.speed = Math.min(player.speed + effectiveAccel, effectiveMaxSpeed);
+      } else if (keys['s']) {
+        if (player.speed > crawl) {
+          player.speed = Math.max(0, player.speed - brakeForce);
+        } else if (player.speed > 0) {
+          player.speed = 0;
+        } else {
+          player.speed = Math.max(player.speed - effectiveAccel, -effectiveMaxSpeed * 0.5);
         }
+      } else {
+        player.speed *= player.friction;
+        if (Math.abs(player.speed) < crawl) player.speed = 0;
       }
 
-      player.speed = player.motionSpeed;
-      player.vx = 0;
-      player.vy = 0;
+      const absSpeed = Math.abs(player.speed);
+      const speedRatio = Math.min(absSpeed / Math.max(player.maxSpeed, 0.01), 1);
+      const intent = steerIntent(
+        anyCodeHeld('KeyA'),
+        anyCodeHeld('KeyD')
+      );
+      player.drifting = false;
+
+      // Bikes stay a bit more agile at crawl than cars, without car-level dead zone.
+      if (absSpeed >= 0.04 || intent !== 0) {
+        const steerScale = 1.08 - 0.45 * speedRatio;
+        const maxSteer = BIKE.turnSpeed * Math.max(0.75, Math.min(1.12, steerScale));
+        const reverseSteer = player.speed < 0 ? -1 : 1;
+        player.steerRate = accelerateSteer(
+          player.steerRate,
+          intent,
+          maxSteer,
+          BIKE.steerAccel
+        );
+        player.angle += player.steerRate * reverseSteer;
+      } else {
+        player.steerRate = 0;
+      }
+
+      const headingX = Math.cos(player.angle);
+      const headingY = Math.sin(player.angle);
+      const targetVx = headingX * player.speed;
+      const targetVy = headingY * player.speed;
+      const grip = BIKE.grip + 0.5 * (1 - speedRatio);
+      player.vx += (targetVx - player.vx) * grip;
+      player.vy += (targetVy - player.vy) * grip;
+      if (absSpeed < crawl) {
+        player.vx = 0;
+        player.vy = 0;
+      }
+
+      const slide = trySlideMove(
+        player.x,
+        player.y,
+        player.vx,
+        player.vy,
+        player.driveRadius,
+        canDriveAt
+      );
+
+      if (slide.moved) {
+        player.x = slide.x;
+        player.y = slide.y;
+        if (slide.slid) {
+          player.speed *= WALL_SCRAPE_FRICTION;
+          if (!slide.usedX) player.vx = 0;
+          if (!slide.usedY) player.vy = 0;
+        }
+      } else if (Math.hypot(player.vx, player.vy) > crawl) {
+        if (absSpeed > 0.8) addCameraShake(SHAKE.minorWall);
+        player.speed = -player.speed * 0.25;
+        player.vx = headingX * player.speed;
+        player.vy = headingY * player.speed;
+      }
+      player.motionSpeed = Math.hypot(player.vx, player.vy);
+
       activeVehicle.x = player.x;
       activeVehicle.y = player.y;
       activeVehicle.angle = player.angle;
-      activeVehicle.speed = player.motionSpeed;
+      activeVehicle.dir = player.angle;
+      activeVehicle.speed = player.speed;
     }
 
     function clearBikeSlot(bike) {
@@ -2322,18 +2890,17 @@
           activeVehicle.ai = false;
           activeVehicle.parked = false;
           activeVehicle.driverId = net.localId;
+          applyDriveStatsFromBike();
           player.mode = 'biking';
           player.x = activeVehicle.x;
           player.y = activeVehicle.y;
-          // Keep walk facing / camera — do not snap to bike heading
-          player.cameraEasing = false;
-          player.cameraAngle = player.angle;
+          player.angle = activeVehicle.angle;
+          player.cameraEasing = true;
           player.steerRate = 0;
           player.speed = 0;
           player.vx = 0;
           player.vy = 0;
           player.drifting = false;
-          activeVehicle.angle = player.angle;
           debugDrive('enter-bike', { dist: nearestVehicle.distance });
           return;
         }
@@ -2383,6 +2950,7 @@
         player.cameraAngle = player.angle;
         player.steerRate = 0;
         activeVehicle = null;
+        restoreWalkDriveStats();
         if (net.role === 'guest') {
           netSendToHost({
             t: 'exit_vehicle',
@@ -2464,6 +3032,12 @@
       player.maxSpeed = spec.maxSpeed;
       player.accel = spec.accel;
       player.driveRadius = spec.driveRadius;
+    }
+
+    function applyDriveStatsFromBike() {
+      player.maxSpeed = BIKE.speed;
+      player.accel = BIKE.accel;
+      player.driveRadius = BIKE.radius;
     }
 
     function restoreWalkDriveStats() {
@@ -2553,7 +3127,7 @@
         const x = baseX + Math.cos(ang) * radius;
         const y = baseY + Math.sin(ang) * radius;
         if (isOnPlayableMap(x, y) && canWalkAt(x, y, player.radius + 2)) {
-          return { x, y, angle: 34 * (Math.PI / 180) };
+          return { x, y, angle: pickSpawnFacingAngle(x, y) };
         }
       }
       if (pedestrianTiles.length) {
@@ -2562,11 +3136,11 @@
           const x = (tile.c + 0.5) * TILE_SIZE;
           const y = (tile.r + 0.5) * TILE_SIZE;
           if (canWalkAt(x, y, player.radius + 2)) {
-            return { x, y, angle: 0 };
+            return { x, y, angle: pickSpawnFacingAngle(x, y) };
           }
         }
       }
-      return { x: baseX, y: baseY, angle: 34 * (Math.PI / 180) };
+      return { x: baseX, y: baseY, angle: pickSpawnFacingAngle(baseX, baseY) };
     }
 
     function respawnLocalPlayer() {
@@ -2907,27 +3481,28 @@
       });
     }
 
-    function fireBullet(owner, x, y, angle, speed, shooterId = net.localId) {
+    function fireBullet(owner, x, y, angle, speed, shooterId = net.localId, muzzleReady = false) {
       const vx = Math.cos(angle) * speed;
       const vy = Math.sin(angle) * speed;
+      let isMountedShooter = isMountedVehicle();
+      if (owner === 'player' && shooterId && shooterId !== net.localId) {
+        const rp = net.players.get(shooterId);
+        isMountedShooter = !!(rp && (rp.mode === 'driving' || rp.mode === 'biking'));
+      }
+      const nose = muzzleReady ? 4 : (owner === 'player' ? (isMountedShooter ? 10 : 10) : 10);
       bullets.push({
         owner,
         shooterId: owner === 'player' ? shooterId : null,
-        x: x + Math.cos(angle) * 10,
-        y: y + Math.sin(angle) * 10,
+        x: x + Math.cos(angle) * nose,
+        y: y + Math.sin(angle) * nose,
         vx,
         vy,
         life: owner === 'player' ? COMBAT.playerBulletLife : COMBAT.bulletLife,
         radius: COMBAT.bulletRadius
       });
-      let isDrivingShooter = player.mode === 'driving';
-      if (owner === 'player' && shooterId && shooterId !== net.localId) {
-        const rp = net.players.get(shooterId);
-        isDrivingShooter = !!(rp && rp.mode === 'driving');
-      }
-      const muzzleDist = owner === 'player'
-        ? (isDrivingShooter ? 24 : 16)
-        : 12;
+      const muzzleDist = muzzleReady
+        ? 0
+        : (owner === 'player' ? (isMountedShooter ? 24 : 16) : 12);
       const mx = x + Math.cos(angle) * muzzleDist;
       const my = y + Math.sin(angle) * muzzleDist;
       spawnMuzzleFlash(mx, my, angle);
@@ -2960,17 +3535,13 @@
         startReload();
         return;
       }
-      const shootAngle = shootCode === 'ArrowDown' ? player.angle + Math.PI : player.angle;
+      const shootAngle = shootAngleFromCode(shootCode);
+      const origin = getShootOrigin(shootCode, shootAngle);
       if (net.role === 'guest') {
-        const muzzleDist = player.mode === 'driving' ? 24 : 16;
-        spawnMuzzleFlash(
-          player.x + Math.cos(shootAngle) * muzzleDist,
-          player.y + Math.sin(shootAngle) * muzzleDist,
-          shootAngle
-        );
-        netSendToHost({ t: 'shoot', x: player.x, y: player.y, angle: shootAngle });
+        spawnMuzzleFlash(origin.x, origin.y, shootAngle);
+        netSendToHost({ t: 'shoot', x: origin.x, y: origin.y, angle: shootAngle });
       } else {
-        fireBullet('player', player.x, player.y, shootAngle, COMBAT.bulletSpeed, net.localId);
+        fireBullet('player', origin.x, origin.y, shootAngle, COMBAT.bulletSpeed, net.localId, true);
       }
       addCameraShake(SHAKE.minorFire);
       gun.ammo--;
@@ -3536,6 +4107,29 @@
       ctx.restore();
     }
 
+    function drawEnterVehicleMarker() {
+      if (wasted || player.mode !== 'walking') return;
+      const vehicle = findNearestEnterableVehicle();
+      if (!vehicle) return;
+
+      const roofZ = vehicle.isBike ? 24 : 34;
+      const bob = Math.sin(simulationTick * 0.18) * 3;
+      const pos = project(vehicle.x, vehicle.y, roofZ);
+      const x = Math.round(pos.x);
+      const y = Math.round(pos.y + bob);
+
+      ctx.save();
+      ctx.font = '26px "Courier New", Courier, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(20, 16, 12, 0.72)';
+      ctx.strokeText('˯', x, y);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('˯', x, y);
+      ctx.restore();
+    }
+
     function vehicleWorldVel(vehicle) {
       if (vehicle === activeVehicle) {
         return { vx: player.vx, vy: player.vy };
@@ -3564,6 +4158,28 @@
         vz: 0.32 + Math.random() * 0.22,
         life: 26 + Math.floor(Math.random() * 14),
         maxLife: 40
+      });
+    }
+
+    function emitTireSmoke(x, y, angle) {
+      if (carSmoke.length >= 70) return;
+      const layout = activeVehicle ? getCarLayout(activeVehicle.carClass) : null;
+      const rear = layout && layout.wheels ? layout.wheels.rear : -10;
+      const side = layout && layout.wheels ? layout.wheels.side * 0.55 : 4;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const sideSign = (simulationTick & 1) ? 1 : -1;
+      const px = x + cos * rear - sin * side * sideSign;
+      const py = y + sin * rear + cos * side * sideSign;
+      carSmoke.push({
+        x: px + (Math.random() - 0.5) * 2.5,
+        y: py + (Math.random() - 0.5) * 2.5,
+        z: 1.5 + Math.random() * 2,
+        vx: -cos * 0.15 + (Math.random() - 0.5) * 0.2,
+        vy: -sin * 0.15 + (Math.random() - 0.5) * 0.2,
+        vz: 0.18 + Math.random() * 0.16,
+        life: 14 + Math.floor(Math.random() * 10),
+        maxLife: 24
       });
     }
 
@@ -3938,32 +4554,117 @@
 
     // --- ISOMETRIC PROJECTION ENGINE ---
     // Camera trig / screen basis refreshed once per frame (see refreshCameraProjection).
+    // Minimap uses its own scale (MINIMAP_VIEW_TILES) and does not read camProj.zoom.
+    // Session-only user zoom nudge (wheel / pinch); forgotten on reload.
+    let cameraZoomUserFactor = 1;
+    let cameraZoomHapticAt = 0;
+    const cameraPinch = {
+      active: false,
+      id0: null,
+      id1: null,
+      startDist: 0,
+      startFactor: 1
+    };
+
     const camProj = {
       cos: 1,
       sin: 0,
       originX: 0,
       originY: 0,
-      zoom: 1.12,
-      zoomRatio: 1.12 / 0.82,
+      zoom: isMobile ? CAMERA_ZOOM_MOBILE : CAMERA_ZOOM_DESKTOP,
+      zoomRatio: (isMobile ? CAMERA_ZOOM_MOBILE : CAMERA_ZOOM_DESKTOP) / CAMERA_ZOOM_HEIGHT_REF,
       screenCX: 0,
       screenCYBase: 0,
       slopeTerm: 0
     };
 
+    function getCameraZoomBase() {
+      return isMobile ? CAMERA_ZOOM_MOBILE : CAMERA_ZOOM_DESKTOP;
+    }
+
+    function clampCameraZoomUserFactor(factor) {
+      const min = 1 - CAMERA_ZOOM_USER_RANGE;
+      const max = 1 + CAMERA_ZOOM_USER_RANGE;
+      return Math.max(min, Math.min(max, factor));
+    }
+
+    function isCameraZoomBlockedByTextFocus() {
+      const el = document.activeElement;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+    }
+
+    function hapticCameraZoom() {
+      if (!navigator.vibrate) return;
+      const now = performance.now();
+      if (now - cameraZoomHapticAt < 100) return;
+      cameraZoomHapticAt = now;
+      try { navigator.vibrate(CAMERA_ZOOM_HAPTIC_MS); } catch (_) {}
+    }
+
+    function setCameraZoomUserFactor(nextFactor) {
+      const clamped = clampCameraZoomUserFactor(nextFactor);
+      if (clamped === cameraZoomUserFactor) {
+        cameraZoomUserFactor = clamped;
+        return false;
+      }
+      cameraZoomUserFactor = clamped;
+      hapticCameraZoom();
+      return true;
+    }
+
+    function adjustCameraZoomUserFactor(delta) {
+      return setCameraZoomUserFactor(cameraZoomUserFactor + delta);
+    }
+
+    function touchPairDistance(t0, t1) {
+      return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+    }
+
+    function findTouchById(touchList, id) {
+      for (let i = 0; i < touchList.length; i++) {
+        if (touchList[i].identifier === id) return touchList[i];
+      }
+      return null;
+    }
+
     function refreshCameraProjection() {
-      const cameraRotation = -player.cameraAngle - shakeSample.angle - Math.PI * 0.75;
+      const sideLeanRad = player.cameraSideLean * (12 * Math.PI / 180);
+      const cameraRotation = -player.cameraAngle - sideLeanRad - shakeSample.angle - Math.PI * 0.75;
       camProj.cos = Math.cos(cameraRotation);
       camProj.sin = Math.sin(cameraRotation);
       camProj.originX = player.x;
       camProj.originY = player.y;
-      camProj.zoom = isMobile ? 0.96 : 1.12;
-      camProj.zoomRatio = camProj.zoom / 0.82;
-      camProj.screenCX = screenWidth / 2;
+      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor;
+      const lerpRate = Math.abs(cameraZoomUserFactor - 1) > 0.0001
+        ? CAMERA_ZOOM_LERP_USER
+        : CAMERA_ZOOM_LERP;
+      camProj.zoom += (zoomTarget - camProj.zoom) * lerpRate;
+      if (Math.abs(zoomTarget - camProj.zoom) < 0.0005) camProj.zoom = zoomTarget;
+      camProj.zoomRatio = camProj.zoom / CAMERA_ZOOM_HEIGHT_REF;
+      camProj.screenCX = screenWidth / 2 + player.cameraSideLean * 22;
       const lookAheadShift = player.cameraLookAhead * 0.14 * (1 - player.cameraRearPeek * 0.7);
       const rearPeekShift = player.cameraRearPeek * 0.15;
       camProj.screenCYBase = screenHeight * (0.58 + lookAheadShift - rearPeekShift);
       camProj.slopeTerm = player.cameraSlope * camProj.zoomRatio;
     }
+
+    // Restricted zoom: mouse wheel over the game canvas only.
+    canvas.addEventListener('wheel', e => {
+      if (isCameraZoomBlockedByTextFocus()) return;
+      e.preventDefault();
+      let delta;
+      if (e.deltaMode === 0) {
+        delta = -e.deltaY * 0.0012;
+      } else {
+        delta = -Math.sign(e.deltaY || 1) * CAMERA_ZOOM_WHEEL_STEP;
+      }
+      const cap = CAMERA_ZOOM_WHEEL_STEP * 1.5;
+      delta = Math.max(-cap, Math.min(cap, delta));
+      if (Math.abs(delta) < 0.002) return;
+      adjustCameraZoomUserFactor(delta);
+    }, { passive: false });
 
     function project(wx, wy, wz) {
       const relX = wx - camProj.originX;
@@ -4466,6 +5167,126 @@
     const renderPool = [];
     const renderQueue = [];
 
+    // Building occlusion ghost: fade occluding buildings so players stay visible.
+    const buildingGhostAlpha = new Map();
+    const occlusionSubjects = [];
+    const GHOST_FADE_SPEED = 0.15;
+    const GHOST_AABB_PAD = 10;
+    const GHOST_WALL_FADE = 0.72;
+    const GHOST_ROOF_FADE = 0.45;
+
+    function subjectScreenHeight(mode) {
+      return mode === 'driving' || mode === 'biking' ? 14 : 20 * PED_SCALE;
+    }
+
+    function collectOcclusionSubjects() {
+      occlusionSubjects.length = 0;
+
+      const localPos = project(player.x, player.y, subjectScreenHeight(player.mode));
+      occlusionSubjects.push({
+        sx: localPos.x,
+        sy: localPos.y,
+        depth: projectDepth(player.x, player.y)
+      });
+
+      if (net.players.size === 0) return;
+      net.players.forEach(rp => {
+        if (rp.wasted) return;
+        let x = rp.x;
+        let y = rp.y;
+        if ((rp.mode === 'driving' || rp.mode === 'biking') && rp.vehicleId) {
+          const v = vehicles.find(item => item.id === rp.vehicleId);
+          if (v) {
+            x = v.x;
+            y = v.y;
+          }
+        }
+        const pos = project(x, y, subjectScreenHeight(rp.mode));
+        occlusionSubjects.push({
+          sx: pos.x,
+          sy: pos.y,
+          depth: projectDepth(x, y)
+        });
+      });
+    }
+
+    function buildingOcclusionAABB(wx, wy, tileType) {
+      const h = BUILDING_HEIGHTS[tileType];
+      const bx = wx + BUILDING_INSET;
+      const by = wy + BUILDING_INSET;
+      const size = TILE_SIZE * BUILDING_FOOTPRINT_TILES - BUILDING_INSET * 2;
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      const xs = [bx, bx + size, bx + size, bx];
+      const ys = [by, by, by + size, by + size];
+      for (let i = 0; i < 4; i++) {
+        const bottom = project(xs[i], ys[i], 0);
+        const top = project(xs[i], ys[i], h);
+        minX = Math.min(minX, bottom.x, top.x);
+        minY = Math.min(minY, bottom.y, top.y);
+        maxX = Math.max(maxX, bottom.x, top.x);
+        maxY = Math.max(maxY, bottom.y, top.y);
+      }
+      return {
+        minX: minX - GHOST_AABB_PAD,
+        minY: minY - GHOST_AABB_PAD,
+        maxX: maxX + GHOST_AABB_PAD,
+        maxY: maxY + GHOST_AABB_PAD
+      };
+    }
+
+    function subjectOverlapsBuildingAABB(subject, aabb) {
+      return subject.sx >= aabb.minX &&
+        subject.sx <= aabb.maxX &&
+        subject.sy >= aabb.minY &&
+        subject.sy <= aabb.maxY;
+    }
+
+    function updateBuildingGhostAlphas() {
+      collectOcclusionSubjects();
+      const seen = new Set();
+
+      for (let i = 0; i < renderQueue.length; i++) {
+        const item = renderQueue[i];
+        if (item.type !== 'building') continue;
+
+        const key = item.r + ',' + item.c;
+        seen.add(key);
+
+        let target = 0;
+        const aabb = buildingOcclusionAABB(item.wx, item.wy, item.tileType);
+        for (let s = 0; s < occlusionSubjects.length; s++) {
+          const subject = occlusionSubjects[s];
+          if (item.depth > subject.depth && subjectOverlapsBuildingAABB(subject, aabb)) {
+            target = 1;
+            break;
+          }
+        }
+
+        let alpha = buildingGhostAlpha.get(key) || 0;
+        alpha += (target - alpha) * GHOST_FADE_SPEED;
+        if (alpha < 0.004 && target === 0) {
+          buildingGhostAlpha.delete(key);
+          item.ghostAlpha = 0;
+        } else {
+          if (alpha > 1) alpha = 1;
+          if (alpha < 0) alpha = 0;
+          buildingGhostAlpha.set(key, alpha);
+          item.ghostAlpha = alpha;
+        }
+      }
+
+      for (const key of Array.from(buildingGhostAlpha.keys())) {
+        if (seen.has(key)) continue;
+        let alpha = buildingGhostAlpha.get(key) || 0;
+        alpha += (0 - alpha) * GHOST_FADE_SPEED;
+        if (alpha < 0.004) buildingGhostAlpha.delete(key);
+        else buildingGhostAlpha.set(key, alpha);
+      }
+    }
+
     function acquireGroundTile(r, c, tileType, wx, wy, depth) {
       const i = groundQueue.length;
       let tile = groundPool[i];
@@ -4496,12 +5317,15 @@
           wx: 0,
           wy: 0,
           depth: 0,
+          ghostAlpha: 0,
           vehicle: null,
           pedestrian: null,
           intersection: null,
           cabinet: null
         };
         renderPool[i] = item;
+      } else {
+        item.ghostAlpha = 0;
       }
       renderQueue.push(item);
       return item;
@@ -4664,6 +5488,7 @@
 
       // Painter's Algorithm Depth Sort (Back to Front)
       renderQueue.sort((a, b) => a.depth - b.depth);
+      updateBuildingGhostAlphas();
 
       // Draw raised objects and vehicles.
       for (let i = 0; i < renderQueue.length; i++) {
@@ -4724,6 +5549,7 @@
 
       drawWreckFx();
       drawCombatFx();
+      drawEnterVehicleMarker();
       drawRemotePlayerLabels();
       drawReloadBar();
       drawAtmosphere();
@@ -4980,6 +5806,10 @@
       const bx = wx + BUILDING_INSET;
       const by = wy + BUILDING_INSET;
       const size = TILE_SIZE * BUILDING_FOOTPRINT_TILES - BUILDING_INSET * 2;
+      const ghostAlpha = tile.ghostAlpha || 0;
+      const wallFillAlpha = 1 - ghostAlpha * GHOST_WALL_FADE;
+      const roofFillAlpha = 1 - ghostAlpha * GHOST_ROOF_FADE;
+      const edgeBoost = ghostAlpha > 0.02;
 
       // Roof diamond points (z = height)
       const r0 = project(bx, by, h);
@@ -5011,13 +5841,14 @@
         const topB = project(wall.b[0], wall.b[1], h);
         const topA = project(wall.a[0], wall.a[1], h);
 
+        ctx.globalAlpha = wallFillAlpha;
         ctx.fillStyle = wall.color;
         fillQuad(bottomA, bottomB, topB, topA);
 
         // Sun casts shadows toward -X/-Y; east (+X) and south (+Y) faces stay lit.
         const sunlit = wall.index === 1 || wall.index === 2;
         ctx.strokeStyle = sunlit ? PALETTE.windowsLit : PALETTE.windowsShade;
-        ctx.globalAlpha = sunlit ? 0.72 : 0.28;
+        ctx.globalAlpha = (sunlit ? 0.72 : 0.28) * wallFillAlpha;
         ctx.lineWidth = 2;
         for (let z = 18; z < h - 8; z += 18) {
           for (let offset = 0.18; offset <= 0.7; offset += 0.26) {
@@ -5037,16 +5868,33 @@
           }
         }
         ctx.globalAlpha = 1;
-        drawBillboardOnWall(r, c, wall.index);
+
+        if (edgeBoost) {
+          ctx.globalAlpha = Math.min(1, 0.35 + ghostAlpha * 0.65);
+          ctx.strokeStyle = '#6a5f50';
+          ctx.lineWidth = 1.5 + ghostAlpha * 0.5;
+          strokeQuad(bottomA, bottomB, topB, topA);
+          ctx.globalAlpha = 1;
+        }
+
+        if (ghostAlpha < 0.85) {
+          ctx.globalAlpha = wallFillAlpha;
+          drawBillboardOnWall(r, c, wall.index);
+          ctx.globalAlpha = 1;
+        }
       });
 
       // Roof Surface
+      ctx.globalAlpha = roofFillAlpha;
       ctx.fillStyle = PALETTE.roofs[tileType];
       fillQuad(r0, r1, r2, r3);
+      ctx.globalAlpha = 1;
 
       ctx.strokeStyle = '#51483c';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = edgeBoost ? 1.5 + ghostAlpha * 0.5 : 1;
+      if (edgeBoost) ctx.globalAlpha = Math.min(1, 0.45 + ghostAlpha * 0.55);
       strokeQuad(r0, r1, r2, r3);
+      ctx.globalAlpha = 1;
 
       // Occasional brick-red roof awnings and muted service units.
       const detailSeed = (r * 7 + c * 13) % 7;
@@ -5055,14 +5903,17 @@
         const a1 = project(bx + size - 6, by + 6, h + 1);
         const a2 = project(bx + size - 6, by + 16, h + 1);
         const a3 = project(bx + 6, by + 16, h + 1);
+        ctx.globalAlpha = roofFillAlpha;
         ctx.fillStyle = PALETTE.brick;
         fillQuad(a0, a1, a2, a3);
+        ctx.globalAlpha = 1;
         ctx.strokeStyle = '#6f2d29';
         strokeQuad(a0, a1, a2, a3);
       } else if (detailSeed === 3) {
         const unitSize = size * 0.26;
         const ux = bx + size * 0.55;
         const uy = by + size * 0.22;
+        ctx.globalAlpha = roofFillAlpha;
         ctx.fillStyle = '#746d61';
         fillQuad(
           project(ux, uy, h + 1),
@@ -5070,6 +5921,7 @@
           project(ux + unitSize, uy + unitSize, h + 1),
           project(ux, uy + unitSize, h + 1)
         );
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -5929,21 +6781,23 @@
     }
 
     function drawPedestrian(wx, wy, angle, walkPhase, coatColor, skinColor, isPolice) {
+      const s = PED_SCALE;
       const stride = Math.sin(walkPhase) * 3;
       const worldPoint = (side, forward, z) => ({
         x: wx + Math.cos(angle) * forward - Math.sin(angle) * side,
         y: wy + Math.sin(angle) * forward + Math.cos(angle) * side,
         z
       });
+      // side/forward/z are authored at full size; PED_SCALE applied here.
       const projectedPoint = (side, forward, z) => {
-        const point = worldPoint(side, forward, z);
+        const point = worldPoint(side * s, forward * s, z * s);
         return project(point.x, point.y, point.z);
       };
 
       const ground = project(wx, wy, 0);
       ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
       ctx.beginPath();
-      ctx.ellipse(ground.x, ground.y, isPolice ? 7 : 6, isPolice ? 3.4 : 3, 0, 0, Math.PI * 2);
+      ctx.ellipse(ground.x, ground.y, (isPolice ? 7 : 6) * s, (isPolice ? 3.4 : 3) * s, 0, 0, Math.PI * 2);
       ctx.fill();
 
       const hip = projectedPoint(0, 0, 9);
@@ -5952,31 +6806,31 @@
       const rightFoot = projectedPoint(2, -stride, 1);
 
       ctx.strokeStyle = isPolice ? '#0c1018' : '#403d37';
-      ctx.lineWidth = isPolice ? 3.5 : 3;
+      ctx.lineWidth = (isPolice ? 3.5 : 3) * s;
       drawProjectedLine(hip, leftFoot);
       drawProjectedLine(hip, rightFoot);
 
       if (isPolice) {
         // Classic dark-blue tunic body
         ctx.strokeStyle = POLICE_LOOK.coatEdge;
-        ctx.lineWidth = 9;
+        ctx.lineWidth = 9 * s;
         drawProjectedLine(hip, shoulders);
         ctx.strokeStyle = POLICE_LOOK.coat;
-        ctx.lineWidth = 7;
+        ctx.lineWidth = 7 * s;
         drawProjectedLine(hip, shoulders);
 
         // Dark belt
         const beltA = projectedPoint(-2.5, 0, 11);
         const beltB = projectedPoint(2.5, 0, 11);
         ctx.strokeStyle = '#0a0c12';
-        ctx.lineWidth = 2.2;
+        ctx.lineWidth = 2.2 * s;
         drawProjectedLine(beltA, beltB);
 
         // Gold chest accents (buttons / braid hint)
         const chestL = projectedPoint(-2.2, 0.5, 14.5);
         const chestR = projectedPoint(2.2, 0.5, 14.5);
         ctx.strokeStyle = POLICE_LOOK.accent;
-        ctx.lineWidth = 1.6;
+        ctx.lineWidth = 1.6 * s;
         drawProjectedLine(chestL, chestR);
         const chestL2 = projectedPoint(-1.8, 0.5, 16);
         const chestR2 = projectedPoint(1.8, 0.5, 16);
@@ -5986,22 +6840,22 @@
         const collar = projectedPoint(0, 0, 19.5);
         ctx.fillStyle = POLICE_LOOK.collar;
         ctx.beginPath();
-        ctx.arc(collar.x, collar.y, 2.2, 0, Math.PI * 2);
+        ctx.arc(collar.x, collar.y, 2.2 * s, 0, Math.PI * 2);
         ctx.fill();
       } else {
         ctx.strokeStyle = coatColor;
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 6 * s;
         drawProjectedLine(hip, shoulders);
       }
 
       const armSwing = stride * 0.7;
       if (isPolice) {
         ctx.strokeStyle = POLICE_LOOK.coat;
-        ctx.lineWidth = 3.2;
+        ctx.lineWidth = 3.2 * s;
         drawProjectedLine(shoulders, projectedPoint(-4.5, -armSwing, 12));
         drawProjectedLine(shoulders, projectedPoint(4.5, armSwing, 12));
         ctx.strokeStyle = skinColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * s;
         drawProjectedLine(
           projectedPoint(-4.5, -armSwing, 12),
           projectedPoint(-5, -armSwing * 1.1, 10)
@@ -6012,7 +6866,7 @@
         );
       } else {
         ctx.strokeStyle = skinColor;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * s;
         drawProjectedLine(shoulders, projectedPoint(-4, -armSwing, 11));
         drawProjectedLine(shoulders, projectedPoint(4, armSwing, 11));
       }
@@ -6020,7 +6874,7 @@
       const head = projectedPoint(0, 0, 23);
       ctx.fillStyle = skinColor;
       ctx.beginPath();
-      ctx.arc(head.x, head.y, 3.8, 0, Math.PI * 2);
+      ctx.arc(head.x, head.y, 3.8 * s, 0, Math.PI * 2);
       ctx.fill();
 
       if (isPolice) {
@@ -6028,19 +6882,19 @@
         const brimL = projectedPoint(-5.2, 1.2, 24.2);
         const brimR = projectedPoint(5.2, 1.2, 24.2);
         ctx.strokeStyle = POLICE_LOOK.hat;
-        ctx.lineWidth = 3.4;
+        ctx.lineWidth = 3.4 * s;
         drawProjectedLine(brimL, brimR);
 
         const dome = projectedPoint(0, 0, 27.5);
         ctx.fillStyle = POLICE_LOOK.hat;
         ctx.beginPath();
-        ctx.ellipse(dome.x, dome.y, 5.2, 3.4, 0, 0, Math.PI * 2);
+        ctx.ellipse(dome.x, dome.y, 5.2 * s, 3.4 * s, 0, 0, Math.PI * 2);
         ctx.fill();
 
         // Bold Sillitoe check band
         const bandL = projectedPoint(-4.4, 0.6, 25.4);
         const bandR = projectedPoint(4.4, 0.6, 25.4);
-        ctx.lineWidth = 2.4;
+        ctx.lineWidth = 2.4 * s;
         for (let i = 0; i < 7; i++) {
           const t0 = i / 7;
           const t1 = (i + 0.62) / 7;
@@ -6058,11 +6912,12 @@
 
       const facing = projectedPoint(0, 5, 22);
       ctx.strokeStyle = isPolice ? '#ffffff' : '#ead8ae';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.5 * s;
       drawProjectedLine(head, facing);
     }
 
     // --- ANIMATED MINIMAP ---
+    // Own view radius — not tied to world CAMERA_ZOOM_* / camProj.zoom.
     const MINIMAP_SIZE = 160;
     const MINIMAP_VIEW_TILES = 34;
 
@@ -6215,6 +7070,38 @@
       miniCtx.textBaseline = 'alphabetic';
     }
 
+    // Session-only coach mark: PRESS TO ENTER (resets on refresh)
+    let enterHintDismissed = false;
+    const enterHintDesktopEl = document.getElementById('enter-hint-desktop');
+    const enterHintMobileEl = document.getElementById('enter-hint-mobile');
+    const uiOverlayEl = document.getElementById('ui-overlay');
+
+    function updateEnterHint() {
+      if (player.mode === 'driving' || player.mode === 'biking') {
+        enterHintDismissed = true;
+      }
+
+      const nearVehicle = !enterHintDismissed &&
+        !wasted &&
+        player.mode === 'walking' &&
+        typeof findNearestEnterableVehicle === 'function' &&
+        !!findNearestEnterableVehicle();
+
+      if (enterHintDesktopEl) {
+        enterHintDesktopEl.classList.toggle('show', nearVehicle && !isMobile);
+      }
+      if (uiOverlayEl) {
+        uiOverlayEl.classList.toggle('enter-hint-active', nearVehicle && !isMobile);
+      }
+      if (enterHintMobileEl) {
+        enterHintMobileEl.classList.toggle('show', nearVehicle && isMobile);
+      }
+      const interactBtn = document.getElementById('interactBtn');
+      if (interactBtn) {
+        interactBtn.classList.toggle('hint-pulse', nearVehicle && isMobile);
+      }
+    }
+
     function updateHud() {
       document.getElementById('hp-label').textContent = String(Math.max(0, Math.ceil(player.hp)));
       const carRow = document.getElementById('car-hp-row');
@@ -6229,6 +7116,7 @@
       if (isMobile && typeof updateMobileHudAndControls === 'function') {
         updateMobileHudAndControls();
       }
+      updateEnterHint();
     }
 
     // --- MULTIPLAYER NETWORKING (P2P WebRTC / PeerJS, Level 2) ---
@@ -6798,7 +7686,15 @@
         rp.vy = 0;
       } else if (msg.t === 'shoot') {
         if (rp.wasted) return;
-        fireBullet('player', Number(msg.x) || rp.x, Number(msg.y) || rp.y, Number(msg.angle) || rp.angle, COMBAT.bulletSpeed, peerId);
+        fireBullet(
+          'player',
+          Number(msg.x) || rp.x,
+          Number(msg.y) || rp.y,
+          Number(msg.angle) || rp.angle,
+          COMBAT.bulletSpeed,
+          peerId,
+          true
+        );
       } else if (msg.t === 'respawn') {
         rp.wasted = false;
         rp.hp = PLAYER_MAX_HP;
@@ -6887,17 +7783,17 @@
         if (msg.isBike) {
           clearBikeSlot(v);
           activeVehicle = v;
+          applyDriveStatsFromBike();
           player.mode = 'biking';
           player.x = v.x;
           player.y = v.y;
-          player.cameraEasing = false;
-          player.cameraAngle = player.angle;
+          player.angle = msg.angle != null ? msg.angle : v.angle;
+          player.cameraEasing = true;
           player.steerRate = 0;
           player.speed = 0;
           player.vx = 0;
           player.vy = 0;
           player.drifting = false;
-          v.angle = player.angle;
         } else {
           if (msg.carClass && v.carClass !== msg.carClass) {
             assignCarClass(v, msg.carClass, true);
@@ -7144,6 +8040,450 @@
     const mpLeaveBtn = document.getElementById('mp-leave-btn');
     const mpPlayersEl = document.getElementById('mp-players');
     const mpStatusEl = document.getElementById('mp-status');
+    const mpQrToggleBtn = document.getElementById('mp-qr-toggle-btn');
+    const mpQrWrap = document.getElementById('mp-qr-wrap');
+    const mpQrCard = document.getElementById('mp-qr-card');
+    const mpQrCanvas = document.getElementById('mp-qr-canvas');
+    const mpQrLocalHint = document.getElementById('mp-qr-local-hint');
+    const qrModalEl = document.getElementById('qr-modal');
+    const mpQrModalCode = document.getElementById('mp-qr-modal-code');
+    const mpQrModalCanvas = document.getElementById('mp-qr-modal-canvas');
+    const mpQrModalUrl = document.getElementById('mp-qr-modal-url');
+    const mpQrModalHint = document.getElementById('mp-qr-modal-hint');
+    const mpQrModalCopy = document.getElementById('mp-qr-modal-copy');
+    const mpQrModalClose = document.getElementById('mp-qr-modal-close');
+
+    let mpQrVisible = true;
+    let mpLastQrUrl = '';
+
+    // Self-contained ISO/IEC 18004 Byte-Mode QR Encoder (ECC Level M, Versions 1–10).
+    const QR_VERSIONS_M = [
+      null,
+      [1, 10, 1, 16, 0, 0, []],
+      [2, 16, 1, 28, 0, 0, [6, 18]],
+      [3, 26, 1, 44, 0, 0, [6, 22]],
+      [4, 18, 2, 32, 0, 0, [6, 26]],
+      [5, 24, 2, 43, 0, 0, [6, 30]],
+      [6, 16, 4, 27, 0, 0, [6, 34]],
+      [7, 18, 4, 31, 0, 0, [6, 22, 38]],
+      [8, 22, 2, 38, 2, 39, [6, 24, 42]],
+      [9, 22, 3, 36, 2, 37, [6, 26, 46]],
+      [10, 26, 4, 43, 1, 44, [6, 28, 50]]
+    ];
+
+    const QR_GF_EXP = new Uint8Array(512);
+    const QR_GF_LOG = new Uint8Array(256);
+    (() => {
+      let x = 1;
+      for (let i = 0; i < 255; i++) {
+        QR_GF_EXP[i] = x;
+        QR_GF_LOG[x] = i;
+        x <<= 1;
+        if (x & 0x100) x ^= 0x11d;
+      }
+      for (let i = 255; i < 512; i++) QR_GF_EXP[i] = QR_GF_EXP[i - 255];
+    })();
+
+    function qrGfMul(a, b) {
+      if (a === 0 || b === 0) return 0;
+      return QR_GF_EXP[QR_GF_LOG[a] + QR_GF_LOG[b]];
+    }
+
+    function qrRsRemainder(data, ecCount) {
+      let gen = [1];
+      for (let i = 0; i < ecCount; i++) {
+        const next = new Array(gen.length + 1).fill(0);
+        const factor = QR_GF_EXP[i];
+        for (let j = 0; j < gen.length; j++) {
+          next[j] ^= gen[j];
+          next[j + 1] ^= qrGfMul(gen[j], factor);
+        }
+        gen = next;
+      }
+      const rem = new Uint8Array(ecCount);
+      for (let i = 0; i < data.length; i++) {
+        const coef = data[i] ^ rem[0];
+        for (let j = 0; j < ecCount - 1; j++) rem[j] = rem[j + 1];
+        rem[ecCount - 1] = 0;
+        if (coef !== 0) {
+          for (let j = 0; j < ecCount; j++) {
+            rem[j] ^= qrGfMul(gen[j + 1], coef);
+          }
+        }
+      }
+      return rem;
+    }
+
+    function generateQrMatrix(text) {
+      const bytes = typeof TextEncoder !== 'undefined'
+        ? Array.from(new TextEncoder().encode(text))
+        : Array.from(unescape(encodeURIComponent(text)), ch => ch.charCodeAt(0));
+
+      let spec = null;
+      for (let v = 1; v < QR_VERSIONS_M.length; v++) {
+        const s = QR_VERSIONS_M[v];
+        const totalDataBytes = s[2] * s[3] + s[4] * s[5];
+        const headerBits = 4 + (v >= 10 ? 16 : 8);
+        if (bytes.length * 8 + headerBits <= totalDataBytes * 8) {
+          spec = s;
+          break;
+        }
+      }
+      if (!spec) return null;
+
+      const [ver, ecPerBlock, g1Count, g1Data, g2Count, g2Data, alignCenters] = spec;
+      const totalDataBytes = g1Count * g1Data + g2Count * g2Data;
+      const size = ver * 4 + 17;
+
+      // 1. Build byte-mode data codewords
+      const bits = [];
+      const pushBits = (val, len) => {
+        for (let i = len - 1; i >= 0; i--) bits.push((val >>> i) & 1);
+      };
+      pushBits(0b0100, 4);
+      pushBits(bytes.length, ver >= 10 ? 16 : 8);
+      for (let i = 0; i < bytes.length; i++) pushBits(bytes[i], 8);
+      const maxBits = totalDataBytes * 8;
+      for (let i = 0; i < 4 && bits.length < maxBits; i++) bits.push(0);
+      while (bits.length % 8 !== 0) bits.push(0);
+      const codewords = [];
+      for (let i = 0; i < bits.length; i += 8) {
+        let b = 0;
+        for (let j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+        codewords.push(b);
+      }
+      let padToggle = 0;
+      while (codewords.length < totalDataBytes) {
+        codewords.push(padToggle ? 0x11 : 0xec);
+        padToggle ^= 1;
+      }
+
+      // 2. Split into RS blocks & interleave data + EC codewords
+      const dataBlocks = [];
+      const ecBlocks = [];
+      let offset = 0;
+      for (let i = 0; i < g1Count; i++) {
+        const blk = codewords.slice(offset, offset + g1Data);
+        offset += g1Data;
+        dataBlocks.push(blk);
+        ecBlocks.push(qrRsRemainder(blk, ecPerBlock));
+      }
+      for (let i = 0; i < g2Count; i++) {
+        const blk = codewords.slice(offset, offset + g2Data);
+        offset += g2Data;
+        dataBlocks.push(blk);
+        ecBlocks.push(qrRsRemainder(blk, ecPerBlock));
+      }
+
+      const finalBytes = [];
+      const maxDataLen = Math.max(g1Data, g2Data);
+      for (let i = 0; i < maxDataLen; i++) {
+        for (let b = 0; b < dataBlocks.length; b++) {
+          if (i < dataBlocks[b].length) finalBytes.push(dataBlocks[b][i]);
+        }
+      }
+      for (let i = 0; i < ecPerBlock; i++) {
+        for (let b = 0; b < ecBlocks.length; b++) {
+          finalBytes.push(ecBlocks[b][i]);
+        }
+      }
+
+      // 3. Place function patterns
+      const modules = Array.from({ length: size }, () => new Uint8Array(size));
+      const isFunc = Array.from({ length: size }, () => new Uint8Array(size));
+      const setFunc = (r, c, dark) => {
+        if (r < 0 || c < 0 || r >= size || c >= size) return;
+        modules[r][c] = dark ? 1 : 0;
+        isFunc[r][c] = 1;
+      };
+
+      const drawFinder = (r0, c0) => {
+        for (let dr = -1; dr <= 7; dr++) {
+          for (let dc = -1; dc <= 7; dc++) {
+            const r = r0 + dr;
+            const c = c0 + dc;
+            if (r < 0 || c < 0 || r >= size || c >= size) continue;
+            const inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+            const dark = inOuter && (
+              dr === 0 || dr === 6 || dc === 0 || dc === 6 ||
+              (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4)
+            );
+            setFunc(r, c, dark);
+          }
+        }
+      };
+      drawFinder(0, 0);
+      drawFinder(0, size - 7);
+      drawFinder(size - 7, 0);
+
+      for (let i = 8; i < size - 8; i++) {
+        setFunc(6, i, i % 2 === 0);
+        setFunc(i, 6, i % 2 === 0);
+      }
+
+      for (let i = 0; i < alignCenters.length; i++) {
+        for (let j = 0; j < alignCenters.length; j++) {
+          const ar = alignCenters[i];
+          const ac = alignCenters[j];
+          if ((ar <= 8 && ac <= 8) || (ar <= 8 && ac >= size - 9) || (ar >= size - 9 && ac <= 8)) {
+            continue;
+          }
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const dist = Math.max(Math.abs(dr), Math.abs(dc));
+              setFunc(ar + dr, ac + dc, dist !== 1);
+            }
+          }
+        }
+      }
+
+      // Reserve format info strips & dark module
+      for (let i = 0; i < 9; i++) {
+        if (i !== 6) {
+          setFunc(8, i, false);
+          setFunc(i, 8, false);
+        }
+      }
+      for (let i = 0; i < 8; i++) {
+        setFunc(8, size - 1 - i, false);
+        if (i < 7) setFunc(size - 1 - i, 8, false);
+      }
+      setFunc(size - 8, 8, true);
+
+      // Version info blocks (versions >= 7)
+      if (ver >= 7) {
+        let rem = ver;
+        for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1f25);
+        const vBits = (ver << 12) | rem;
+        for (let i = 0; i < 18; i++) {
+          const bit = (vBits >>> i) & 1;
+          const a = size - 11 + (i % 3);
+          const b = Math.floor(i / 3);
+          setFunc(b, a, bit);
+          setFunc(a, b, bit);
+        }
+      }
+
+      // 4. Zigzag data placement
+      let bitIdx = 0;
+      const totalBits = finalBytes.length * 8;
+      let upward = true;
+      for (let right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        for (let step = 0; step < size; step++) {
+          const r = upward ? (size - 1 - step) : step;
+          for (let dx = 0; dx < 2; dx++) {
+            const c = right - dx;
+            if (isFunc[r][c]) continue;
+            let dark = 0;
+            if (bitIdx < totalBits) {
+              dark = (finalBytes[bitIdx >>> 3] >>> (7 - (bitIdx & 7))) & 1;
+              bitIdx++;
+            }
+            modules[r][c] = dark;
+          }
+        }
+        upward = !upward;
+      }
+
+      // 5. Evaluate all 8 ISO masks & pick lowest penalty
+      const applyFormat = (grid, mask) => {
+        const data = (0 << 3) | mask; // ECC M = 00
+        let rem = data;
+        for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+        const fBits = ((data << 10) | rem) ^ 0x5412;
+        const b = i => (fBits >>> i) & 1;
+        // Copy 1 around top-left
+        grid[8][0] = b(14); grid[8][1] = b(13); grid[8][2] = b(12);
+        grid[8][3] = b(11); grid[8][4] = b(10); grid[8][5] = b(9);
+        grid[8][7] = b(8);  grid[8][8] = b(7);  grid[7][8] = b(6);
+        grid[5][8] = b(5);  grid[4][8] = b(4);  grid[3][8] = b(3);
+        grid[2][8] = b(2);  grid[1][8] = b(1);  grid[0][8] = b(0);
+        // Copy 2 bottom-left & top-right
+        grid[size - 1][8] = b(14); grid[size - 2][8] = b(13); grid[size - 3][8] = b(12);
+        grid[size - 4][8] = b(11); grid[size - 5][8] = b(10); grid[size - 6][8] = b(9);
+        grid[size - 7][8] = b(8);
+        grid[8][size - 8] = b(7); grid[8][size - 7] = b(6); grid[8][size - 6] = b(5);
+        grid[8][size - 5] = b(4); grid[8][size - 4] = b(3); grid[8][size - 3] = b(2);
+        grid[8][size - 2] = b(1); grid[8][size - 1] = b(0);
+      };
+
+      const maskCond = (mask, r, c) => {
+        switch (mask) {
+          case 0: return (r + c) % 2 === 0;
+          case 1: return r % 2 === 0;
+          case 2: return c % 3 === 0;
+          case 3: return (r + c) % 3 === 0;
+          case 4: return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0;
+          case 5: return ((r * c) % 2 + (r * c) % 3) === 0;
+          case 6: return (((r * c) % 2 + (r * c) % 3) % 2) === 0;
+          default: return (((r + c) % 2 + (r * c) % 3) % 2) === 0;
+        }
+      };
+
+      const scoreMask = grid => {
+        let penalty = 0;
+        let darkTotal = 0;
+        // Rule 1: runs of 5+ same color
+        for (let r = 0; r < size; r++) {
+          let runColor = grid[r][0], runLen = 1;
+          for (let c = 1; c < size; c++) {
+            if (grid[r][c] === runColor) runLen++;
+            else {
+              if (runLen >= 5) penalty += 3 + (runLen - 5);
+              runColor = grid[r][c];
+              runLen = 1;
+            }
+          }
+          if (runLen >= 5) penalty += 3 + (runLen - 5);
+        }
+        for (let c = 0; c < size; c++) {
+          let runColor = grid[0][c], runLen = 1;
+          for (let r = 1; r < size; r++) {
+            if (grid[r][c] === runColor) runLen++;
+            else {
+              if (runLen >= 5) penalty += 3 + (runLen - 5);
+              runColor = grid[r][c];
+              runLen = 1;
+            }
+          }
+          if (runLen >= 5) penalty += 3 + (runLen - 5);
+        }
+        // Rule 2: 2x2 blocks + count dark
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const v = grid[r][c];
+            darkTotal += v;
+            if (r + 1 < size && c + 1 < size &&
+                v === grid[r][c + 1] && v === grid[r + 1][c] && v === grid[r + 1][c + 1]) {
+              penalty += 3;
+            }
+          }
+        }
+        // Rule 4: dark ratio deviation from 50%
+        const pct = (darkTotal * 100) / (size * size);
+        penalty += Math.floor(Math.abs(pct - 50) / 5) * 10;
+        return penalty;
+      };
+
+      let bestGrid = null;
+      let bestPenalty = Infinity;
+      for (let mask = 0; mask < 8; mask++) {
+        const grid = modules.map((row, r) => {
+          const out = new Uint8Array(size);
+          for (let c = 0; c < size; c++) {
+            out[c] = (!isFunc[r][c] && maskCond(mask, r, c)) ? (row[c] ^ 1) : row[c];
+          }
+          return out;
+        });
+        applyFormat(grid, mask);
+        const p = scoreMask(grid);
+        if (p < bestPenalty) {
+          bestPenalty = p;
+          bestGrid = grid;
+        }
+      }
+      return bestGrid;
+    }
+
+    function renderQrToCanvas(targetCanvas, text, darkColor = '#1a1612', lightColor = '#f5efe2') {
+      if (!targetCanvas || !text) return false;
+      const matrix = generateQrMatrix(text);
+      if (!matrix) return false;
+      const n = matrix.length;
+      const quiet = 4;
+      const total = n + quiet * 2;
+      const displaySize = targetCanvas.width || 132;
+      const scale = Math.max(2, Math.floor(displaySize / total));
+      const px = total * scale;
+      targetCanvas.width = px;
+      targetCanvas.height = px;
+      const qctx = targetCanvas.getContext('2d');
+      qctx.imageSmoothingEnabled = false;
+      qctx.fillStyle = lightColor;
+      qctx.fillRect(0, 0, px, px);
+      qctx.fillStyle = darkColor;
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (matrix[r][c]) {
+            qctx.fillRect((c + quiet) * scale, (r + quiet) * scale, scale, scale);
+          }
+        }
+      }
+      return true;
+    }
+
+    function getRoomInviteUrl(code) {
+      const url = new URL(location.href);
+      url.searchParams.delete('mobile');
+      if (code) url.searchParams.set('room', code);
+      else url.searchParams.delete('room');
+      return url.toString();
+    }
+
+    function isLocalDevUrl() {
+      const host = location.hostname;
+      return location.protocol === 'file:' ||
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host === '::1';
+    }
+
+    function copyRoomInviteLink() {
+      const link = getRoomInviteUrl(net.roomCode);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link)
+          .then(() => setMpStatus('Invite link copied!'))
+          .catch(() => setMpStatus(`Share code: ${net.roomCode}`));
+      } else {
+        setMpStatus(`Share code: ${net.roomCode}`);
+      }
+    }
+
+    function closeQrModal() {
+      if (qrModalEl) qrModalEl.classList.remove('open');
+    }
+
+    function openQrModal() {
+      if (!qrModalEl || net.role !== 'host' || !net.roomCode) return;
+      const link = getRoomInviteUrl(net.roomCode);
+      mpQrModalCode.textContent = net.roomCode;
+      mpQrModalUrl.textContent = link;
+      mpQrModalHint.style.display = isLocalDevUrl() ? 'block' : 'none';
+      mpQrModalCanvas.width = 240;
+      mpQrModalCanvas.height = 240;
+      renderQrToCanvas(mpQrModalCanvas, link, '#1a1612', '#f8f4ea');
+      qrModalEl.classList.add('open');
+      clearHeldKeys();
+    }
+
+    function updateHostQrUi() {
+      const isHost = net.role === 'host' && !!net.roomCode;
+      if (!isHost) {
+        if (mpQrToggleBtn) mpQrToggleBtn.style.display = 'none';
+        if (mpQrWrap) mpQrWrap.style.display = 'none';
+        mpLastQrUrl = '';
+        closeQrModal();
+        return;
+      }
+      const link = getRoomInviteUrl(net.roomCode);
+      if (mpQrToggleBtn) {
+        mpQrToggleBtn.style.display = 'inline-block';
+        mpQrToggleBtn.textContent = mpQrVisible ? 'Hide QR' : 'Show QR';
+      }
+      if (mpQrWrap) {
+        mpQrWrap.style.display = mpQrVisible ? 'flex' : 'none';
+      }
+      if (mpQrLocalHint) {
+        mpQrLocalHint.style.display = isLocalDevUrl() ? 'block' : 'none';
+      }
+      if (link !== mpLastQrUrl) {
+        mpQrCanvas.width = 160;
+        mpQrCanvas.height = 160;
+        renderQrToCanvas(mpQrCanvas, link, '#1a1612', '#f5efe2');
+        mpLastQrUrl = link;
+      }
+    }
 
     function setMpStatus(text, isErr = false) {
       mpStatusEl.textContent = text;
@@ -7162,6 +8502,7 @@
       } else {
         mpBadge.textContent = 'Solo';
       }
+      updateHostQrUi();
       renderMpPlayersList();
     }
 
@@ -7277,6 +8618,7 @@
         net.localCoat = '#a94336';
         net.roomCode = code;
         net.coatIndex = 1;
+        mpQrVisible = true;
         if (activeVehicle) activeVehicle.driverId = id;
         mpHostBtn.disabled = false;
         mpJoinBtn.disabled = false;
@@ -7444,15 +8786,47 @@
 
       mpCopyBtn.addEventListener('click', () => {
         mpCopyBtn.blur();
-        const url = new URL(location.href);
-        url.searchParams.set('room', net.roomCode);
-        const link = url.toString();
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(link)
-            .then(() => setMpStatus('Invite link copied!'))
-            .catch(() => setMpStatus(`Share code: ${net.roomCode}`));
-        } else {
-          setMpStatus(`Share code: ${net.roomCode}`);
+        copyRoomInviteLink();
+      });
+
+      if (mpQrToggleBtn) {
+        mpQrToggleBtn.addEventListener('click', () => {
+          mpQrToggleBtn.blur();
+          mpQrVisible = !mpQrVisible;
+          updateHostQrUi();
+        });
+      }
+
+      if (mpQrCard) {
+        mpQrCard.addEventListener('click', () => {
+          mpQrCard.blur();
+          openQrModal();
+        });
+      }
+
+      if (mpQrModalCopy) {
+        mpQrModalCopy.addEventListener('click', () => {
+          mpQrModalCopy.blur();
+          copyRoomInviteLink();
+        });
+      }
+
+      if (mpQrModalClose) {
+        mpQrModalClose.addEventListener('click', () => {
+          mpQrModalClose.blur();
+          closeQrModal();
+        });
+      }
+
+      if (qrModalEl) {
+        qrModalEl.addEventListener('click', e => {
+          if (e.target === qrModalEl) closeQrModal();
+        });
+      }
+
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && qrModalEl && qrModalEl.classList.contains('open')) {
+          closeQrModal();
         }
       });
 
@@ -7613,6 +8987,11 @@
         mobileMpBtnEl.textContent = inRoom ? `MP·${net.players.size + 1}` : 'MP';
         mobileMpBtnEl.classList.toggle('active', open || inRoom);
       }
+
+      const aimStickLabelEl = document.getElementById('aim-stick-label');
+      if (aimStickLabelEl) {
+        aimStickLabelEl.textContent = isMountedVehicle() ? 'SHOOT' : 'TURN · SHOOT';
+      }
     }
 
     function applyMobileTouchInput() {
@@ -7628,10 +9007,16 @@
         if (mobileTouch.move.vx >  MOVE_DEADZONE) pressTouchCode('KeyD');
       }
 
-      // Right joystick → Arrow keys (Horizontal: Turn/Spin; Vertical: Shoot Up/Down with wider deadzone)
+      // Right joystick → arrows. On foot: L/R turn. Mounted: L/R side-shoot. Vertical: F/B shoot.
       if (mobileTouch.aim.active) {
-        if (mobileTouch.aim.vx < -AIM_TURN_DEADZONE) pressTouchCode('ArrowLeft');
-        if (mobileTouch.aim.vx >  AIM_TURN_DEADZONE) pressTouchCode('ArrowRight');
+        if (mobileTouch.aim.vx < -AIM_TURN_DEADZONE) {
+          pressTouchCode('ArrowLeft');
+          if (isMountedVehicle()) gun.lastShootCode = 'ArrowLeft';
+        }
+        if (mobileTouch.aim.vx > AIM_TURN_DEADZONE) {
+          pressTouchCode('ArrowRight');
+          if (isMountedVehicle()) gun.lastShootCode = 'ArrowRight';
+        }
         if (mobileTouch.aim.vy < -SHOOT_DEADZONE) {
           pressTouchCode('ArrowUp');
           gun.lastShootCode = 'ArrowUp';
@@ -7792,13 +9177,47 @@
 
     if (isMobile) {
       document.addEventListener('touchmove', e => {
-        if (e.target && e.target.closest && e.target.closest('#mp-panel')) return;
+        if (e.target && e.target.closest && e.target.closest('#mp-panel, #qr-modal')) return;
         e.preventDefault();
       }, { passive: false });
 
+      // Two-finger pinch zoom on the game canvas only (sticks stay 1-finger).
       canvas.addEventListener('touchstart', e => {
         e.preventDefault();
+        if (e.touches.length >= 2) {
+          const t0 = e.touches[0];
+          const t1 = e.touches[1];
+          cameraPinch.active = true;
+          cameraPinch.id0 = t0.identifier;
+          cameraPinch.id1 = t1.identifier;
+          cameraPinch.startDist = Math.max(12, touchPairDistance(t0, t1));
+          cameraPinch.startFactor = cameraZoomUserFactor;
+        }
       }, { passive: false });
+
+      canvas.addEventListener('touchmove', e => {
+        if (!cameraPinch.active) return;
+        const t0 = findTouchById(e.touches, cameraPinch.id0);
+        const t1 = findTouchById(e.touches, cameraPinch.id1);
+        if (!t0 || !t1) return;
+        e.preventDefault();
+        const dist = Math.max(12, touchPairDistance(t0, t1));
+        const ratio = dist / cameraPinch.startDist;
+        const eased = 1 + (ratio - 1) * CAMERA_ZOOM_PINCH_SENS;
+        setCameraZoomUserFactor(cameraPinch.startFactor * eased);
+      }, { passive: false });
+
+      const endCanvasPinch = e => {
+        if (!cameraPinch.active) return;
+        const still0 = findTouchById(e.touches, cameraPinch.id0);
+        const still1 = findTouchById(e.touches, cameraPinch.id1);
+        if (still0 && still1) return;
+        cameraPinch.active = false;
+        cameraPinch.id0 = null;
+        cameraPinch.id1 = null;
+      };
+      canvas.addEventListener('touchend', endCanvasPinch, { passive: false });
+      canvas.addEventListener('touchcancel', endCanvasPinch, { passive: false });
 
       attachMobileJoystick(
         document.querySelector('#pad .stick-zone.left'),
