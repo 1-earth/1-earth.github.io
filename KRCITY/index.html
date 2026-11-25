@@ -1660,9 +1660,9 @@
     const MOBILE_WARP = {
       enabled: true,
       expand: 1.12,       // capture +12% world (zoom out before remap)
-      power: 1.38,        // >1 = wider center cells, tighter edges (try 1.2–1.55)
+      power: 1.48,        // >1 = wider center cells, tighter edges (try 1.2–1.55)
       begin: 0.8,         // 0 = warp from center; higher (e.g. 0.45) = warp starts closer to edges
-      slices: 52,         // strips per axis (higher = smoother, costlier)
+      slices: 32,         // strips per axis (higher = smoother, costlier)
       smooth: true,       // bilinear when resampling strips
       respectReducedMotion: false
     };
@@ -1671,6 +1671,22 @@
       tmp: null,
       w: 0,
       h: 0
+    };
+    // Multiplayer: off-screen peer arrows on the game canvas border.
+    const MP_OFFSCREEN = {
+      color: '#fdd327',
+      sizeNear: 16,
+      sizeFar: 7,
+      alphaNear: 0.95,
+      alphaFar: 0.16,
+      distNear: 2 * TILE_SIZE,   // world px — full strength just off-screen (~2 tiles)
+      distFar: 26 * TILE_SIZE,  // world px — nearly gone (~26 tiles)
+      margin: 14,               // inset from canvas edge (bezel-safe)
+      pulseDist: 5 * TILE_SIZE, // world px — pulse when this close while still off-screen
+      pulseAmp: 0.14,      // alpha pulse amount
+      pulseHz: 2.4,
+      outline: 'rgba(24, 18, 8, 0.75)',
+      outlineWidth: 2.5
     };
     const CAMERA_ZOOM_HAPTIC_MS = 8;
     // Spawn / respawn / MP-join: far map → dive to player → ease out to play zoom.
@@ -1926,6 +1942,8 @@
     };
     // Signed -1..1 after deadzone + response curve; updated each mobile input tick.
     const mobileAnalogSteer = { walk: 0, drive: 0 };
+    // Right-stick continuous aim (car/bike/foot): world angle while stick past shoot deadzone.
+    const mobileAnalogAim = { active: false, angle: 0, nx: 0, ny: 0 };
 
     // Mobile car throttle (left stick): micro-move at bottom, full speed at full stick.
     // While turning, throttle is preserved from stick magnitude so steer doesn't dump speed
@@ -1949,7 +1967,7 @@
     const MOBILE_WALK_FEEL = {
       deadzone: 0.34,
       curveExp: 2.05,
-      microExp: 1.35,
+      microExp: 1.95,
       smooth: 0.1,
       releaseSmooth: 0.075,
       stopEpsilon: 0.004
@@ -4736,27 +4754,63 @@
       return player.mode === 'driving' || player.mode === 'biking';
     }
 
-    function getActiveShootCode() {
+    // Stick/keys → car-relative aim. Up = facing/hood; supports diagonals + full analog.
+    function getShootAim() {
+      if (typeof mobileAnalogAim !== 'undefined' && mobileAnalogAim.active) {
+        return {
+          active: true,
+          angle: mobileAnalogAim.angle,
+          nx: mobileAnalogAim.nx,
+          ny: mobileAnalogAim.ny,
+          code: 'Analog'
+        };
+      }
+
       const up = anyCodeHeld('ArrowUp');
       const down = anyCodeHeld('ArrowDown');
-      const sideOk = isMountedVehicle();
-      const left = sideOk && anyCodeHeld('ArrowLeft');
-      const right = sideOk && anyCodeHeld('ArrowRight');
-      const held = [];
-      if (up) held.push('ArrowUp');
-      if (down) held.push('ArrowDown');
-      if (left) held.push('ArrowLeft');
-      if (right) held.push('ArrowRight');
-      if (!held.length) return null;
-      if (held.length === 1) return held[0];
-      if (gun.lastShootCode && held.indexOf(gun.lastShootCode) !== -1) return gun.lastShootCode;
-      if (up) return 'ArrowUp';
-      if (down) return 'ArrowDown';
-      if (left) return 'ArrowLeft';
-      return 'ArrowRight';
+      const mounted = isMountedVehicle();
+      // Mounted: L/R always aim. On foot: L/R only contribute when also holding U/D (diagonals),
+      // so lone L/R still turn instead of firing.
+      const left = mounted
+        ? anyCodeHeld('ArrowLeft')
+        : (up || down) && anyCodeHeld('ArrowLeft');
+      const right = mounted
+        ? anyCodeHeld('ArrowRight')
+        : (up || down) && anyCodeHeld('ArrowRight');
+
+      let sx = 0;
+      let sy = 0;
+      if (up) sy -= 1;
+      if (down) sy += 1;
+      if (left) sx -= 1;
+      if (right) sx += 1;
+      if (sx === 0 && sy === 0) return null;
+
+      const mag = Math.hypot(sx, sy) || 1;
+      const nx = sx / mag;
+      const ny = sy / mag;
+      // Stick space: -Y = forward, +X = right → world angle relative to facing.
+      const stickAng = Math.atan2(sx, -sy);
+      let code = 'ArrowUp';
+      if (Math.abs(ny) >= Math.abs(nx)) code = ny > 0 ? 'ArrowDown' : 'ArrowUp';
+      else code = nx < 0 ? 'ArrowLeft' : 'ArrowRight';
+      return {
+        active: true,
+        angle: player.angle + stickAng,
+        nx,
+        ny,
+        code
+      };
+    }
+
+    function getActiveShootCode() {
+      const aim = getShootAim();
+      return aim ? aim.code : null;
     }
 
     function shootAngleFromCode(shootCode) {
+      const aim = getShootAim();
+      if (aim) return aim.angle;
       if (shootCode === 'ArrowDown') return player.angle + Math.PI;
       if (shootCode === 'ArrowLeft') return player.angle - Math.PI / 2;
       if (shootCode === 'ArrowRight') return player.angle + Math.PI / 2;
@@ -4777,22 +4831,18 @@
           y: player.y + rightY * handSide + Math.sin(player.angle) * handFwd + Math.sin(shootAngle) * along
         };
       }
-      if (shootCode === 'ArrowLeft' || shootCode === 'ArrowRight') {
-        const sideOff = player.mode === 'biking' ? 8 : 14;
-        const along = player.mode === 'biking' ? 4 : 6;
-        const leftX = -Math.sin(player.angle);
-        const leftY = Math.cos(player.angle);
-        const sideX = shootCode === 'ArrowLeft' ? leftX : -leftX;
-        const sideY = shootCode === 'ArrowLeft' ? leftY : -leftY;
-        return {
-          x: player.x + sideX * sideOff + Math.cos(shootAngle) * along,
-          y: player.y + sideY * sideOff + Math.sin(shootAngle) * along
-        };
-      }
+      const rel = shortestAngleDiff(shootAngle, player.angle);
+      const side = -Math.sin(rel); // left aim → +side (vehicle left)
+      const fwd = Math.cos(rel);
+      const leftX = -Math.sin(player.angle);
+      const leftY = Math.cos(player.angle);
+      const sideOffMax = player.mode === 'biking' ? 8 : 14;
       const muzzleDist = player.mode === 'biking' ? 18 : 24;
+      const along = muzzleDist * (0.4 + 0.6 * Math.max(0, fwd));
+      const sideOff = sideOffMax * side;
       return {
-        x: player.x + Math.cos(shootAngle) * muzzleDist,
-        y: player.y + Math.sin(shootAngle) * muzzleDist
+        x: player.x + leftX * sideOff + Math.cos(shootAngle) * along,
+        y: player.y + leftY * sideOff + Math.sin(shootAngle) * along
       };
     }
 
@@ -5100,20 +5150,27 @@
       const targetSlope = 0.36 - speedRatio * 0.14;
       player.cameraSlope += (targetSlope - player.cameraSlope) * 0.06;
       player.cameraLookAhead += (speedRatio - player.cameraLookAhead) * 0.055;
-      const shootCode = getActiveShootCode();
-      const targetRearPeek = shootCode === 'ArrowDown' ? 1 : 0;
+      const shootAim = getShootAim();
+      let targetRearPeek = 0;
+      if (shootAim) {
+        const rel = shortestAngleDiff(shootAim.angle, player.angle);
+        // Peek back when aiming mostly rearward.
+        targetRearPeek = Math.max(0, Math.min(1, -Math.cos(rel)));
+      }
       const peekEase = targetRearPeek > player.cameraRearPeek ? 0.085 : 0.055;
       player.cameraRearPeek += (targetRearPeek - player.cameraRearPeek) * peekEase;
 
       let targetSideLean = 0;
-      if (isMountedVehicle()) {
-        // Lean opposite the shot so more of the aimed-side world stays on screen.
-        if (shootCode === 'ArrowLeft') targetSideLean = 1;
-        else if (shootCode === 'ArrowRight') targetSideLean = -1;
+      if (isMountedVehicle() && shootAim) {
+        // Continuous lean opposite the aim so more of the aimed-side world stays on screen.
+        const rel = shortestAngleDiff(shootAim.angle, player.angle);
+        targetSideLean = -Math.sin(rel);
       }
       const leanEase = Math.abs(targetSideLean) > Math.abs(player.cameraSideLean) ? 0.12 : 0.08;
       player.cameraSideLean += (targetSideLean - player.cameraSideLean) * leanEase;
-      if (Math.abs(player.cameraSideLean) < 0.01 && targetSideLean === 0) player.cameraSideLean = 0;
+      if (Math.abs(player.cameraSideLean) < 0.01 && Math.abs(targetSideLean) < 0.01) {
+        player.cameraSideLean = 0;
+      }
     }
 
     function handleDrivingInput() {
@@ -6538,15 +6595,16 @@
         return;
       }
       if (gun.fireCooldown > 0) gun.fireCooldown--;
-      const shootCode = getActiveShootCode();
-      if (!shootCode) return;
+      const shootAim = getShootAim();
+      if (!shootAim) return;
       if (gun.fireCooldown > 0) return;
       if (gun.ammo <= 0) {
         startReload();
         return;
       }
-      const shootAngle = shootAngleFromCode(shootCode);
-      const origin = getShootOrigin(shootCode, shootAngle);
+      const shootAngle = shootAim.angle;
+      const origin = getShootOrigin(shootAim.code, shootAngle);
+      gun.lastShootCode = shootAim.code;
       if (net.role === 'guest') {
         spawnMuzzleFlash(origin.x, origin.y, shootAngle);
         netSendToHost({ t: 'shoot', x: origin.x, y: origin.y, angle: shootAngle });
@@ -9169,8 +9227,8 @@
             drawVehicle(item.vehicle, item.vehicle === activeVehicle || !!item.vehicle.driverId);
           }
         } else if (item.type === 'pedestrian') {
-          const shootCode = getActiveShootCode();
-          const aiming = !!(shootCode || gun.fireCooldown > 0);
+          const shootAim = getShootAim();
+          const aiming = !!(shootAim || gun.fireCooldown > 0);
           drawPedestrian(
             player.x,
             player.y,
@@ -9184,7 +9242,7 @@
             {
               hair: playerHair,
               showGun: aiming,
-              gunAngle: shootCode ? shootAngleFromCode(shootCode) : player.angle
+              gunAngle: shootAim ? shootAim.angle : player.angle
             }
           );
         } else if (item.type === 'remotePlayer') {
@@ -9263,6 +9321,7 @@
         drawDamageReticule();
         ctx.restore();
       }
+      drawMpOffscreenArrows();
       drawBootSplash();
     }
 
@@ -9959,13 +10018,13 @@
 
       if (withRider) {
         const localRider = bike === activeVehicle && player.mode === 'biking';
-        const shootCode = localRider ? getActiveShootCode() : null;
-        const aiming = !!(localRider && (shootCode || gun.fireCooldown > 0));
+        const shootAim = localRider ? getShootAim() : null;
+        const aiming = !!(localRider && (shootAim || gun.fireCooldown > 0));
         drawPedestrian(wx, wy, angle, 0, riderCoat, riderSkin, false, angle, 0, {
           seated: true,
           hair: riderHair || hairToneFromCoat(riderCoat),
           showGun: aiming,
-          gunAngle: shootCode ? shootAngleFromCode(shootCode) : angle
+          gunAngle: shootAim ? shootAim.angle : angle
         });
       }
     }
@@ -12181,6 +12240,108 @@
       updateWreckFx();
     }
 
+    function getRemotePlayerWorldPos(rp) {
+      let x = rp.x;
+      let y = rp.y;
+      if ((rp.mode === 'driving' || rp.mode === 'biking') && rp.vehicleId) {
+        const v = vehicles.find(item => item.id === rp.vehicleId);
+        if (v) {
+          x = v.x;
+          y = v.y;
+        }
+      }
+      return { x, y };
+    }
+
+    function projectPointToRectBorder(px, py, left, top, right, bottom) {
+      const cx = (left + right) * 0.5;
+      const cy = (top + bottom) * 0.5;
+      let dx = px - cx;
+      let dy = py - cy;
+      if (Math.abs(dx) < 1e-6 && Math.abs(dy) < 1e-6) {
+        return { x: right, y: cy, angle: 0 };
+      }
+      const tx = dx > 0 ? (right - cx) / dx : (dx < 0 ? (left - cx) / dx : Infinity);
+      const ty = dy > 0 ? (bottom - cy) / dy : (dy < 0 ? (top - cy) / dy : Infinity);
+      const t = Math.min(tx, ty);
+      return {
+        x: cx + dx * t,
+        y: cy + dy * t,
+        angle: Math.atan2(dy, dx)
+      };
+    }
+
+    function drawMpOffscreenArrows() {
+      if (!net.players || net.players.size === 0) return;
+      if (bootSplash.active) return;
+
+      const W = screenWidth;
+      const H = screenHeight;
+      const m = MP_OFFSCREEN.margin;
+      const left = m;
+      const top = m;
+      const right = W - m;
+      const bottom = H - m;
+      if (right <= left || bottom <= top) return;
+
+      const distNear = MP_OFFSCREEN.distNear;
+      const distFar = Math.max(distNear + 1, MP_OFFSCREEN.distFar);
+      const now = performance.now();
+
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+
+      net.players.forEach(rp => {
+        if (!rp || rp.wasted) return;
+
+        const world = getRemotePlayerWorldPos(rp);
+        let pos = project(world.x, world.y, subjectScreenHeight(rp.mode));
+        // Match visible canvas (shake + optional mobile warp).
+        if (typeof mobileWarpActive === 'function' && mobileWarpActive() &&
+            typeof mobileWarpMapPoint === 'function') {
+          pos = mobileWarpMapPoint(pos.x + shakeSample.x, pos.y + shakeSample.y);
+        } else {
+          pos = { x: pos.x + shakeSample.x, y: pos.y + shakeSample.y };
+        }
+
+        // On-screen → no arrow (one cue per player only when off canvas).
+        if (pos.x >= 0 && pos.x <= W && pos.y >= 0 && pos.y <= H) return;
+
+        const border = projectPointToRectBorder(pos.x, pos.y, left, top, right, bottom);
+        const dist = Math.hypot(world.x - player.x, world.y - player.y);
+        const t = Math.max(0, Math.min(1, (dist - distNear) / (distFar - distNear)));
+        const size = MP_OFFSCREEN.sizeNear + (MP_OFFSCREEN.sizeFar - MP_OFFSCREEN.sizeNear) * t;
+        let alpha = MP_OFFSCREEN.alphaNear + (MP_OFFSCREEN.alphaFar - MP_OFFSCREEN.alphaNear) * t;
+
+        if (dist <= MP_OFFSCREEN.pulseDist) {
+          const pulse = 0.5 + 0.5 * Math.sin(now * 0.001 * MP_OFFSCREEN.pulseHz * Math.PI * 2);
+          alpha = Math.min(1, alpha + MP_OFFSCREEN.pulseAmp * pulse);
+        }
+        if (alpha < 0.02 || size < 1) return;
+
+        ctx.save();
+        ctx.translate(border.x, border.y);
+        ctx.rotate(border.angle);
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.moveTo(size * 0.72, 0);
+        ctx.lineTo(-size * 0.52, size * 0.58);
+        ctx.lineTo(-size * 0.28, 0);
+        ctx.lineTo(-size * 0.52, -size * 0.58);
+        ctx.closePath();
+        ctx.fillStyle = MP_OFFSCREEN.color;
+        ctx.fill();
+        ctx.strokeStyle = MP_OFFSCREEN.outline;
+        ctx.lineWidth = MP_OFFSCREEN.outlineWidth;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
     function drawRemotePlayerLabels() {
       if (net.players.size === 0) return;
       ctx.save();
@@ -12189,8 +12350,9 @@
       ctx.textBaseline = 'bottom';
       net.players.forEach(rp => {
         if (rp.wasted) return;
-        const z = rp.mode === 'driving' ? 24 : 28;
-        const pos = project(rp.x, rp.y, z);
+        const world = getRemotePlayerWorldPos(rp);
+        const z = rp.mode === 'driving' || rp.mode === 'biking' ? 24 : 28;
+        const pos = project(world.x, world.y, z);
         if (pos.x < -60 || pos.x > screenWidth + 60 || pos.y < -40 || pos.y > screenHeight + 40) {
           return;
         }
@@ -12200,7 +12362,7 @@
         const y = Math.round(pos.y - 6);
         ctx.fillStyle = 'rgba(24, 20, 16, 0.72)';
         ctx.fillRect(x - w / 2, y - 14, w, 15);
-        ctx.strokeStyle = rp.coat || '#b7a78e';
+        ctx.strokeStyle = MP_OFFSCREEN.color;
         ctx.lineWidth = 1;
         ctx.strokeRect(x - w / 2 + 0.5, y - 13.5, w - 1, 14);
         ctx.fillStyle = '#f3eee3';
@@ -13119,6 +13281,9 @@
       mobileAnalogThrottle.value = 0;
       mobileAnalogSteer.walk = 0;
       mobileAnalogSteer.drive = 0;
+      mobileAnalogAim.active = false;
+      mobileAnalogAim.nx = 0;
+      mobileAnalogAim.ny = 0;
     }
 
     function findNearestEnterableVehicle() {
@@ -13180,10 +13345,14 @@
       mobileAnalogThrottle.value = 0;
       mobileAnalogMove.x = 0;
       mobileAnalogMove.y = 0;
+      mobileAnalogAim.active = false;
+      mobileAnalogAim.nx = 0;
+      mobileAnalogAim.ny = 0;
       if (wasted) return;
 
       const driving = player.mode === 'driving';
       const walking = player.mode === 'walking';
+      const mounted = isMountedVehicle();
 
       // Left joystick → WASD (Move / Drive & Steer). Walk/drive use analog where applicable.
       if (mobileTouch.move.active) {
@@ -13245,33 +13414,36 @@
         }
       }
 
-      // Right joystick → arrows. On foot: L/R turn (analog). Mounted: L/R side-shoot. Vertical: F/B shoot.
+      // Right joystick → omnidirectional aim/shoot (car-relative). On foot: L/R still turns.
       if (mobileTouch.aim.active) {
         const walkTurnDz = walking
           ? mobileSteerDeadzone(MOBILE_STEER_FEEL.walkDeadzone, player.angle)
           : AIM_TURN_DEADZONE;
-        const turnDz = walking ? walkTurnDz : AIM_TURN_DEADZONE;
-        if (mobileTouch.aim.vx < -turnDz) {
-          pressTouchCode('ArrowLeft');
-          if (isMountedVehicle()) gun.lastShootCode = 'ArrowLeft';
-        }
-        if (mobileTouch.aim.vx > turnDz) {
-          pressTouchCode('ArrowRight');
-          if (isMountedVehicle()) gun.lastShootCode = 'ArrowRight';
-        }
         if (walking) {
+          // Keep digital L/R for any code readers; analog steer drives the turn rate.
+          if (mobileTouch.aim.vx < -walkTurnDz) pressTouchCode('ArrowLeft');
+          if (mobileTouch.aim.vx > walkTurnDz) pressTouchCode('ArrowRight');
           mobileAnalogSteer.walk = mobileStickAxisAnalog(
             mobileTouch.aim.vx,
             walkTurnDz,
             MOBILE_STEER_FEEL.curveExp
           );
         }
-        if (mobileTouch.aim.vy < -SHOOT_DEADZONE) {
-          pressTouchCode('ArrowUp');
-          gun.lastShootCode = 'ArrowUp';
-        } else if (mobileTouch.aim.vy > SHOOT_DEADZONE) {
-          pressTouchCode('ArrowDown');
-          gun.lastShootCode = 'ArrowDown';
+
+        const aimMag = Math.hypot(mobileTouch.aim.vx, mobileTouch.aim.vy);
+        if (aimMag >= SHOOT_DEADZONE) {
+          const stickAng = Math.atan2(mobileTouch.aim.vx, -mobileTouch.aim.vy);
+          mobileAnalogAim.active = true;
+          mobileAnalogAim.angle = player.angle + stickAng;
+          mobileAnalogAim.nx = mobileTouch.aim.vx / aimMag;
+          mobileAnalogAim.ny = mobileTouch.aim.vy / aimMag;
+          const ax = Math.abs(mobileAnalogAim.nx);
+          const ay = Math.abs(mobileAnalogAim.ny);
+          gun.lastShootCode = ay >= ax
+            ? (mobileAnalogAim.ny > 0 ? 'ArrowDown' : 'ArrowUp')
+            : (mobileAnalogAim.nx < 0 ? 'ArrowLeft' : 'ArrowRight');
+        } else if (mounted) {
+          // Below fire deadzone: no shoot (omni aim uses SHOOT_DEADZONE only).
         }
       }
     }
@@ -13531,6 +13703,9 @@
           mobileAnalogSteer.walk = 0;
           mobileAnalogSteer.drive = 0;
           mobileAnalogThrottle.value = 0;
+          mobileAnalogAim.active = false;
+          mobileAnalogAim.nx = 0;
+          mobileAnalogAim.ny = 0;
           resetMobileWalkMove();
         } else {
           applyMobileTouchInput();
