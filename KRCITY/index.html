@@ -1298,6 +1298,31 @@
       driveRelease: 0.78
     };
 
+    // Mobile-only stick turn/steer: analog curve, larger deadzone, lower max, soft release.
+    // Desktop keyboard feel is unchanged. Bike left-stick is unchanged.
+    const MOBILE_STEER_FEEL = {
+      walkDeadzone: 0.26,
+      driveDeadzone: 0.28,
+      curveExp: 1.4,
+      walkMaxScale: 0.84,
+      driveMaxScale: 0.88,
+      walkAccel: 0.038,
+      driveAccelMul: 0.78,
+      walkRelease: 0.84,
+      driveRelease: 0.84
+    };
+    // Signed -1..1 after deadzone + response curve; updated each mobile input tick.
+    const mobileAnalogSteer = { walk: 0, drive: 0 };
+
+    // Mobile car throttle (left stick Y): mild analog curve + larger deadzone.
+    // +1 = full forward at stick limit, -1 = full reverse/brake. Walking/bike unchanged.
+    const MOBILE_THROTTLE_FEEL = {
+      deadzone: 0.30,
+      curveExp: 1.4,
+      overCapBrake: 0.4
+    };
+    const mobileAnalogThrottle = { value: 0 };
+
     // Arcade drive feel — soft momentum, auto-drift, camera lag (player cars only).
     const DRIVE_FEEL = {
       driftSlipEnter: 0.16,
@@ -1464,6 +1489,198 @@
     };
     const cameraShake = { trauma: 0 };
     let shakeSample = { x: 0, y: 0, angle: 0 };
+
+    // Mobile-only haptics (navigator.vibrate). Numbers = ms; arrays = vibrate/pause pattern.
+    // Local player events only. Tune intensities here.
+    const HAPTIC = {
+      fire: 8,
+      crash: 30,
+      crashWall: 24,
+      crashMinSpeed: 0.8,
+      driftPulse: 16,
+      driftIntervalMs: 150,
+      damage: 36,
+      explodeNear: 48,
+      death: [45, 35, 80]
+    };
+    let hapticDriftAt = 0;
+
+    // --- OLD-SCHOOL BEEP SFX (edit sounds here) ---
+    // Web Audio oscillators / noise. masterVolume softens everything; each sound has its own volume.
+    // type: 'square'|'sawtooth'|'triangle'|'sine'|'noise'
+    // Optional notes: [{ freq, duration, type? }, ...] for short arpeggios.
+    const SFX = {
+      masterVolume: 0.2,
+      pitchVariance: 0.07,
+      sounds: {
+        shoot: {
+          type: 'square',
+          freq: 920,
+          freqEnd: 380,
+          duration: 0.055,
+          volume: 0.32
+        },
+        drift: {
+          type: 'sawtooth',
+          freq: 155,
+          freqEnd: 105,
+          duration: 0.055,
+          volume: 0.16
+        },
+        crash: {
+          type: 'noise',
+          duration: 0.14,
+          volume: 0.48,
+          filterFreq: 900
+        },
+        crashWall: {
+          type: 'noise',
+          duration: 0.09,
+          volume: 0.36,
+          filterFreq: 520
+        },
+        kill: {
+          volume: 0.4,
+          notes: [
+            { type: 'square', freq: 620, duration: 0.05 },
+            { type: 'square', freq: 980, duration: 0.09 }
+          ]
+        },
+        death: {
+          type: 'sawtooth',
+          freq: 280,
+          freqEnd: 55,
+          duration: 0.42,
+          volume: 0.5
+        }
+      }
+    };
+
+    let sfxCtx = null;
+    let sfxUnlocked = false;
+
+    function ensureSfxContext() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!sfxCtx) sfxCtx = new AC();
+      if (sfxCtx.state === 'suspended') {
+        sfxCtx.resume().catch(() => {});
+      }
+      return sfxCtx;
+    }
+
+    function unlockSfx() {
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      sfxUnlocked = true;
+      // Silent blip helps unlock audio on iOS / strict autoplay policies.
+      try {
+        const buffer = ctx.createBuffer(1, 1, 22050);
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.connect(ctx.destination);
+        src.start(0);
+      } catch (_) {}
+    }
+
+    function sfxPitchJitter() {
+      const v = SFX.pitchVariance || 0;
+      if (v <= 0) return 1;
+      return 1 + (Math.random() * 2 - 1) * v;
+    }
+
+    function playSfxNoise(ctx, def, when, gainValue, pitch) {
+      const duration = Math.max(0.02, def.duration || 0.1);
+      const sampleRate = ctx.sampleRate;
+      const frameCount = Math.max(1, Math.floor(sampleRate * duration));
+      const buffer = ctx.createBuffer(1, frameCount, sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < frameCount; i++) {
+        const env = 1 - i / frameCount;
+        data[i] = (Math.random() * 2 - 1) * env * env;
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.playbackRate.value = pitch;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = (def.filterFreq || 800) * pitch;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(gainValue, when);
+      gain.gain.exponentialRampToValueAtTime(0.001, when + duration);
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(when);
+      src.stop(when + duration + 0.02);
+    }
+
+    function playSfxTone(ctx, tone, when, gainValue, pitch) {
+      const type = tone.type || 'square';
+      const duration = Math.max(0.02, tone.duration || 0.08);
+      const freq = Math.max(40, (tone.freq || 440) * pitch);
+      const freqEnd = tone.freqEnd != null ? Math.max(40, tone.freqEnd * pitch) : null;
+      const osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, when);
+      if (freqEnd != null) {
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, when + duration);
+      }
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(gainValue, when);
+      gain.gain.exponentialRampToValueAtTime(0.001, when + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(when);
+      osc.stop(when + duration + 0.02);
+      return duration;
+    }
+
+    function playSfx(name) {
+      const def = SFX.sounds[name];
+      if (!def) return;
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      if (ctx.state !== 'running') {
+        ctx.resume().catch(() => {});
+      }
+      const when = ctx.currentTime + 0.001;
+      const pitch = sfxPitchJitter();
+      const gainValue = Math.max(0.0001, SFX.masterVolume * (def.volume != null ? def.volume : 1));
+
+      if (def.notes && def.notes.length) {
+        let t = when;
+        for (let i = 0; i < def.notes.length; i++) {
+          const note = def.notes[i];
+          const noteGain = gainValue * (note.volume != null ? note.volume : 1);
+          const dur = playSfxTone(ctx, note, t, noteGain, pitch);
+          t += dur * 0.92;
+        }
+        return;
+      }
+
+      if (def.type === 'noise') {
+        playSfxNoise(ctx, def, when, gainValue, pitch);
+        return;
+      }
+
+      playSfxTone(ctx, def, when, gainValue, pitch);
+    }
+
+    function playKillSfxFor(attackerId) {
+      const killer = !attackerId || attackerId === true ? net.localId : attackerId;
+      if (killer === net.localId) {
+        playSfx('kill');
+        return;
+      }
+      if (net.role === 'host' && killer) {
+        netSendToPeer(killer, { t: 'sfx', name: 'kill' });
+      }
+    }
+
+    ['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, unlockSfx, { capture: true, once: true });
+    });
 
     function addCameraShake(amount) {
       if (amount <= 0 || wasted) return;
@@ -2391,6 +2608,22 @@
       return rate;
     }
 
+    // Map raw stick axis (-1..1) through deadzone + ease-in curve → signed -1..1.
+    function mobileStickAxisAnalog(vx, deadzone, curveExp) {
+      const abs = Math.abs(vx);
+      if (abs <= deadzone) return 0;
+      const span = Math.max(0.001, 1 - deadzone);
+      const t = Math.min(1, (abs - deadzone) / span);
+      const curved = Math.pow(t, Math.max(1, curveExp));
+      return (vx < 0 ? -1 : 1) * curved;
+    }
+
+    function softReleaseSteer(currentRate, releaseMul, epsilon) {
+      let rate = currentRate * releaseMul;
+      if (Math.abs(rate) < (epsilon != null ? epsilon : 0.0005)) return 0;
+      return rate;
+    }
+
     function handleInput() {
       if (DEBUG_DRIVE && (player.mode === 'driving' || player.mode === 'biking' ||
           keys.w || keys.a || keys.s || keys.d)) {
@@ -2507,15 +2740,45 @@
       const brakeForce = effectiveAccel * 1.8;
       const speedBefore = player.speed;
 
-      if (keys['w']) {
-        player.speed = Math.min(player.speed + effectiveAccel, effectiveMaxSpeed);
-      } else if (keys['s']) {
+      const mobileThrottleStick = isMobile && mobileTouch && mobileTouch.move && mobileTouch.move.active;
+      let throttleFwd = 0;
+      let throttleRev = 0;
+      if (mobileThrottleStick) {
+        const t = mobileAnalogThrottle.value;
+        if (t > 0) throttleFwd = t;
+        else if (t < 0) throttleRev = -t;
+      } else {
+        if (keys['w']) throttleFwd = 1;
+        else if (keys['s']) throttleRev = 1;
+      }
+
+      if (throttleFwd > 0) {
+        const targetMax = effectiveMaxSpeed * throttleFwd;
+        const step = effectiveAccel * throttleFwd;
+        if (player.speed < targetMax) {
+          player.speed = Math.min(player.speed + step, targetMax);
+        } else if (player.speed > targetMax + 0.02) {
+          // Ease down toward the partial-stick speed cap (no instant snap).
+          player.speed = Math.max(
+            targetMax,
+            player.speed - brakeForce * MOBILE_THROTTLE_FEEL.overCapBrake
+          );
+        }
+      } else if (throttleRev > 0) {
+        const brake = brakeForce * throttleRev;
+        const revAccel = effectiveAccel * throttleRev;
+        const revMax = effectiveMaxSpeed * 0.5 * throttleRev;
         if (player.speed > crawl) {
-          player.speed = Math.max(0, player.speed - brakeForce);
+          player.speed = Math.max(0, player.speed - brake);
         } else if (player.speed > 0) {
           player.speed = 0;
-        } else {
-          player.speed = Math.max(player.speed - effectiveAccel, -effectiveMaxSpeed * 0.5);
+        } else if (player.speed > -revMax) {
+          player.speed = Math.max(player.speed - revAccel, -revMax);
+        } else if (player.speed < -revMax - 0.02) {
+          player.speed = Math.min(
+            -revMax,
+            player.speed + brakeForce * MOBILE_THROTTLE_FEEL.overCapBrake
+          );
         }
       } else {
         player.speed *= player.friction;
@@ -2530,15 +2793,32 @@
         speedBefore,
         speedAfterKeys: player.speed,
         appliedW: !!keys.w,
-        appliedS: !!keys.s
+        appliedS: !!keys.s,
+        throttleFwd,
+        throttleRev
       });
 
       const absSpeed = Math.abs(player.speed);
       const speedRatio = Math.min(absSpeed / Math.max(player.maxSpeed, 0.01), 1);
-      const intent = steerIntent(
-        anyCodeHeld('KeyA'),
-        anyCodeHeld('KeyD')
-      );
+      const mobileDriveStick = isMobile && mobileTouch && mobileTouch.move && mobileTouch.move.active;
+      let intent;
+      let steerIntensity = 1;
+      let releaseMul = STEER_FEEL.driveRelease;
+      let accelMul = 1;
+      if (mobileDriveStick) {
+        const a = mobileAnalogSteer.drive;
+        intent = a === 0 ? 0 : (a < 0 ? -1 : 1);
+        steerIntensity = Math.abs(a) * MOBILE_STEER_FEEL.driveMaxScale;
+        releaseMul = MOBILE_STEER_FEEL.driveRelease;
+        accelMul = MOBILE_STEER_FEEL.driveAccelMul;
+      } else {
+        intent = steerIntent(
+          anyCodeHeld('KeyA'),
+          anyCodeHeld('KeyD')
+        );
+        // Soft unwind after lifting the left stick (active becomes false).
+        if (isMobile) releaseMul = MOBILE_STEER_FEEL.driveRelease;
+      }
       const steering = intent !== 0;
       const moveSpeed = Math.hypot(player.vx, player.vy);
       const travelAngle = player.speed >= 0 ? player.angle : player.angle + Math.PI;
@@ -2573,12 +2853,13 @@
         let steerScale = 1.02 - 0.62 * speedRatio;
         if (player.drifting) steerScale += spec.driftSteer;
         if (counterSteer) steerScale *= 0.88;
-        const maxSteer = player.turnSpeed * Math.max(0.26, Math.min(1.25, steerScale));
+        const maxSteer = player.turnSpeed *
+          Math.max(0.26, Math.min(1.25, steerScale)) *
+          steerIntensity;
         const reverseSteer = player.speed < 0 ? -1 : 1;
-        const driveAccel = spec.steerAccel != null ? spec.steerAccel : STEER_FEEL.driveAccel;
+        const driveAccel = (spec.steerAccel != null ? spec.steerAccel : STEER_FEEL.driveAccel) * accelMul;
         if (intent === 0) {
-          player.steerRate *= STEER_FEEL.driveRelease;
-          if (Math.abs(player.steerRate) < 0.0007) player.steerRate = 0;
+          player.steerRate = softReleaseSteer(player.steerRate, releaseMul, 0.0007);
         } else {
           player.steerRate = accelerateSteer(player.steerRate, intent, maxSteer, driveAccel);
         }
@@ -2634,7 +2915,11 @@
             vy: player.vy
           });
         }
-        if (absSpeed > 0.8) addCameraShake(SHAKE.minorWall);
+        if (absSpeed > HAPTIC.crashMinSpeed) {
+          addCameraShake(SHAKE.minorWall);
+          haptic(HAPTIC.crashWall);
+          playSfx('crashWall');
+        }
         player.speed = -player.speed * 0.25;
         player.vx = headingX * player.speed;
         player.vy = headingY * player.speed;
@@ -2668,6 +2953,14 @@
           emitTireSmoke(player.x, player.y, player.angle);
         }
       }
+      if (player.drifting && player.motionSpeed > crawl) {
+        const now = performance.now();
+        if (now - hapticDriftAt >= HAPTIC.driftIntervalMs) {
+          hapticDriftAt = now;
+          haptic(HAPTIC.driftPulse);
+          playSfx('drift');
+        }
+      }
 
       activeVehicle.x = player.x;
       activeVehicle.y = player.y;
@@ -2680,16 +2973,46 @@
       player.drifting = false;
       player.vx = 0;
       player.vy = 0;
-      const intent = steerIntent(
-        anyCodeHeld('ArrowLeft'),
-        anyCodeHeld('ArrowRight')
-      );
-      player.steerRate = accelerateSteer(
-        player.steerRate,
-        intent,
-        player.turnSpeed,
-        STEER_FEEL.walkAccel
-      );
+      const mobileWalkStick = isMobile && mobileTouch && mobileTouch.aim && mobileTouch.aim.active;
+      if (mobileWalkStick) {
+        const a = mobileAnalogSteer.walk;
+        if (a === 0) {
+          player.steerRate = softReleaseSteer(
+            player.steerRate,
+            MOBILE_STEER_FEEL.walkRelease,
+            0.00045
+          );
+        } else {
+          const intent = a < 0 ? -1 : 1;
+          const maxRate = player.turnSpeed * MOBILE_STEER_FEEL.walkMaxScale * Math.abs(a);
+          player.steerRate = accelerateSteer(
+            player.steerRate,
+            intent,
+            maxRate,
+            MOBILE_STEER_FEEL.walkAccel
+          );
+        }
+      } else {
+        const intent = steerIntent(
+          anyCodeHeld('ArrowLeft'),
+          anyCodeHeld('ArrowRight')
+        );
+        if (isMobile && intent === 0) {
+          // Soft unwind after lifting the stick (active becomes false).
+          player.steerRate = softReleaseSteer(
+            player.steerRate,
+            MOBILE_STEER_FEEL.walkRelease,
+            0.00045
+          );
+        } else {
+          player.steerRate = accelerateSteer(
+            player.steerRate,
+            intent,
+            player.turnSpeed,
+            STEER_FEEL.walkAccel
+          );
+        }
+      }
       player.angle += player.steerRate;
 
       let forward = 0;
@@ -3115,7 +3438,12 @@
         player.gunHitCooldown = 10;
         addCameraShake(SHAKE.tinyGunHit);
       }
-      if (player.hp <= 0) triggerWasted();
+      if (player.hp <= 0) {
+        triggerWasted();
+        return;
+      }
+      // Blast nearby uses explode haptic; gun/car hits get strong damage pulse.
+      if (kind === 'gun' || kind === 'car') haptic(HAPTIC.damage);
     }
 
     function pickSafePlayerSpawn() {
@@ -3171,6 +3499,8 @@
       if (wasted) return;
       wasted = true;
       player.hp = 0;
+      haptic(HAPTIC.death);
+      playSfx('death');
       if (net.role !== 'solo' && activeVehicle) {
         const drop = activeVehicle;
         drop.driverId = null;
@@ -3544,6 +3874,8 @@
         fireBullet('player', origin.x, origin.y, shootAngle, COMBAT.bulletSpeed, net.localId, true);
       }
       addCameraShake(SHAKE.minorFire);
+      haptic(HAPTIC.fire);
+      playSfx('shoot');
       gun.ammo--;
       gun.fireCooldown = COMBAT.fireInterval;
       if (gun.ammo <= 0) startReload();
@@ -3573,7 +3905,9 @@
       if (idx === -1) return;
       pedestrians.splice(idx, 1);
       if (!byPlayer) return;
-      addWantedForPlayer(typeof byPlayer === 'string' ? byPlayer : net.localId, 1);
+      const killerId = typeof byPlayer === 'string' ? byPlayer : net.localId;
+      addWantedForPlayer(killerId, 1);
+      playKillSfxFor(killerId);
     }
 
     function damagePedestrian(ped, amount, byPlayer) {
@@ -3659,6 +3993,7 @@
         }
         if (attackerId && attackerId !== rp.id) {
           addWantedForPlayer(attackerId, 1);
+          playKillSfxFor(attackerId);
         }
       }
     }
@@ -3689,6 +4024,7 @@
           hurtPlayer(dmg, 'gun');
           if (wasAlive && wasted && attackerId && attackerId !== net.localId) {
             addWantedForPlayer(attackerId, 1);
+            playKillSfxFor(attackerId);
           }
         } else if (net.role === 'host' && vehicle.driverId && net.players.has(vehicle.driverId)) {
           const rp = net.players.get(vehicle.driverId);
@@ -3893,6 +4229,7 @@
           }
           if (wasAlive && wasted && shooterId && shooterId !== net.localId) {
             addWantedForPlayer(shooterId, 1);
+            playKillSfxFor(shooterId);
           }
           fleePedsNearShot(bullet.x, bullet.y);
         } else if (targetKind === 'remotePlayer' && target) {
@@ -4241,11 +4578,14 @@
         hurtPlayer(Math.round(52 * (1 - playerDist / radius)), 'blast');
         if (wasAlive && wasted && attackerId && attackerId !== net.localId) {
           addWantedForPlayer(attackerId, 1);
+          playKillSfxFor(attackerId);
         }
       }
       if (playerDist < SHAKE.blastNear) {
         const falloff = 1 - playerDist / SHAKE.blastNear;
         addCameraShake(SHAKE.bigBlast * (0.4 + 0.6 * falloff));
+        // Skip if death haptic already played for a fatal blast.
+        if (!wasted) haptic(HAPTIC.explodeNear);
       }
       if (net.role === 'host') {
         net.players.forEach(rp => {
@@ -4351,6 +4691,7 @@
           hurtPlayer(hit, 'car');
           if (wasAlive && wasted && vehicle.driverId && vehicle.driverId !== net.localId) {
             addWantedForPlayer(vehicle.driverId, 1);
+            playKillSfxFor(vehicle.driverId);
           }
           const nx = (player.x - vehicle.x) / Math.max(dist, 0.01);
           const ny = (player.y - vehicle.y) / Math.max(dist, 0.01);
@@ -5088,7 +5429,13 @@
                   const crashDriver = localInCrash
                     ? net.localId
                     : (first.driverId || second.driverId || null);
-                  if (localInCrash) addCameraShake(SHAKE.mediumCrash);
+                  if (localInCrash) {
+                    addCameraShake(SHAKE.mediumCrash);
+                    if (impactSpeed >= HAPTIC.crashMinSpeed) {
+                      haptic(HAPTIC.crash);
+                      playSfx('crash');
+                    }
+                  }
                   const dmg = Math.round(Math.max(0, impactSpeed - 0.35) * 5.2);
                   if (dmg > 0) {
                     first.health = Math.max(0, first.health - dmg);
@@ -7832,6 +8179,8 @@
           }
         }
         if (player.hp <= 0) triggerWasted();
+      } else if (msg.t === 'sfx') {
+        if (msg.name) playSfx(msg.name);
       } else if (msg.t === 'car_bump') {
         if (activeVehicle && activeVehicle.id === msg.vehicleId) {
           player.speed = msg.speed;
@@ -7845,6 +8194,7 @@
             activeVehicle.y = player.y;
           }
           addCameraShake(msg.shake || SHAKE.mediumCrash);
+          playSfx('crash');
         }
       } else if (msg.t === 'shake') {
         addCameraShake(msg.amount || SHAKE.tinyGunHit);
@@ -8876,11 +9226,10 @@
     const pausedOverlayEl = document.getElementById('paused-overlay');
     const mobileAmmoLabelEl = document.getElementById('mobile-ammo-label');
 
-    function haptic(ms) {
-      if (!isMobile) return;
-      if (navigator.vibrate) {
-        try { navigator.vibrate(ms); } catch (_) {}
-      }
+    function haptic(pattern) {
+      if (!isMobile || pattern == null) return;
+      if (!navigator.vibrate) return;
+      try { navigator.vibrate(pattern); } catch (_) {}
     }
 
     function releaseTouchOwnedCodes() {
@@ -8997,25 +9346,54 @@
     function applyMobileTouchInput() {
       if (!isMobile) return;
       releaseTouchOwnedCodes();
+      mobileAnalogSteer.walk = 0;
+      mobileAnalogSteer.drive = 0;
+      mobileAnalogThrottle.value = 0;
       if (wasted || mobilePaused) return;
 
-      // Left joystick → WASD (Move / Drive & Steer)
+      const driving = player.mode === 'driving';
+      const walking = player.mode === 'walking';
+
+      // Left joystick → WASD (Move / Drive & Steer). Drive uses analog throttle + steer.
       if (mobileTouch.move.active) {
-        if (mobileTouch.move.vy < -MOVE_DEADZONE) pressTouchCode('KeyW');
-        if (mobileTouch.move.vy >  MOVE_DEADZONE) pressTouchCode('KeyS');
-        if (mobileTouch.move.vx < -MOVE_DEADZONE) pressTouchCode('KeyA');
-        if (mobileTouch.move.vx >  MOVE_DEADZONE) pressTouchCode('KeyD');
+        const throttleDz = driving ? MOBILE_THROTTLE_FEEL.deadzone : MOVE_DEADZONE;
+        if (mobileTouch.move.vy < -throttleDz) pressTouchCode('KeyW');
+        if (mobileTouch.move.vy >  throttleDz) pressTouchCode('KeyS');
+        const steerDz = driving ? MOBILE_STEER_FEEL.driveDeadzone : MOVE_DEADZONE;
+        if (mobileTouch.move.vx < -steerDz) pressTouchCode('KeyA');
+        if (mobileTouch.move.vx >  steerDz) pressTouchCode('KeyD');
+        if (driving) {
+          mobileAnalogSteer.drive = mobileStickAxisAnalog(
+            mobileTouch.move.vx,
+            MOBILE_STEER_FEEL.driveDeadzone,
+            MOBILE_STEER_FEEL.curveExp
+          );
+          // Stick up (negative vy) → +throttle; stick down → reverse/brake.
+          mobileAnalogThrottle.value = mobileStickAxisAnalog(
+            -mobileTouch.move.vy,
+            MOBILE_THROTTLE_FEEL.deadzone,
+            MOBILE_THROTTLE_FEEL.curveExp
+          );
+        }
       }
 
-      // Right joystick → arrows. On foot: L/R turn. Mounted: L/R side-shoot. Vertical: F/B shoot.
+      // Right joystick → arrows. On foot: L/R turn (analog). Mounted: L/R side-shoot. Vertical: F/B shoot.
       if (mobileTouch.aim.active) {
-        if (mobileTouch.aim.vx < -AIM_TURN_DEADZONE) {
+        const turnDz = walking ? MOBILE_STEER_FEEL.walkDeadzone : AIM_TURN_DEADZONE;
+        if (mobileTouch.aim.vx < -turnDz) {
           pressTouchCode('ArrowLeft');
           if (isMountedVehicle()) gun.lastShootCode = 'ArrowLeft';
         }
-        if (mobileTouch.aim.vx > AIM_TURN_DEADZONE) {
+        if (mobileTouch.aim.vx > turnDz) {
           pressTouchCode('ArrowRight');
           if (isMountedVehicle()) gun.lastShootCode = 'ArrowRight';
+        }
+        if (walking) {
+          mobileAnalogSteer.walk = mobileStickAxisAnalog(
+            mobileTouch.aim.vx,
+            MOBILE_STEER_FEEL.walkDeadzone,
+            MOBILE_STEER_FEEL.curveExp
+          );
         }
         if (mobileTouch.aim.vy < -SHOOT_DEADZONE) {
           pressTouchCode('ArrowUp');
@@ -9271,8 +9649,14 @@
 
     function stepSimulation() {
       if (isMobile) {
-        if (wasted) releaseTouchOwnedCodes();
-        else applyMobileTouchInput();
+        if (wasted) {
+          releaseTouchOwnedCodes();
+          mobileAnalogSteer.walk = 0;
+          mobileAnalogSteer.drive = 0;
+          mobileAnalogThrottle.value = 0;
+        } else {
+          applyMobileTouchInput();
+        }
       }
       if (net.role === 'guest') {
         if (!wasted) {
