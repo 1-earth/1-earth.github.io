@@ -1698,31 +1698,36 @@
       driveRelease: 0.78
     };
 
-    // Mobile-only stick turn/steer: larger deadzone, stronger ease-in, lower max, soft release.
+    // Mobile-only stick turn/steer: larger deadzone, stronger ease-in, soft release.
     // Desktop keyboard feel is unchanged. Bike left-stick is unchanged.
     const MOBILE_STEER_FEEL = {
       walkDeadzone: 0.34,
-      driveDeadzone: 0.36,
-      curveExp: 2.15,
+      driveDeadzone: 0.3,
+      curveExp: 1.75,
       walkMaxScale: 0.7,
-      driveMaxScale: 0.72,
+      driveMaxScale: 0.88,
       walkAccel: 0.026,
-      driveAccelMul: 0.52,
+      driveAccelMul: 0.72,
       walkRelease: 0.76,
-      driveRelease: 0.74,
+      driveRelease: 0.78,
       // Extra deadzone while nearly grid-aligned (stops micro-wobble).
-      gridLockExtraDz: 0.1,
+      gridLockExtraDz: 0.08,
       gridLockDeg: 10
     };
     // Signed -1..1 after deadzone + response curve; updated each mobile input tick.
     const mobileAnalogSteer = { walk: 0, drive: 0 };
 
-    // Mobile car throttle (left stick Y): micro-move band at bottom, full speed at full stick.
-    // +1 = full forward at stick limit, -1 = full reverse/brake. Same curve for reverse.
+    // Mobile car throttle (left stick): micro-move at bottom, full speed at full stick.
+    // While turning, throttle is preserved from stick magnitude so steer doesn't dump speed
+    // (keyboard W+A keeps full throttle; raw stick Y alone would not).
     const MOBILE_THROTTLE_FEEL = {
-      deadzone: 0.36,
-      curveExp: 2.2,
+      deadzone: 0.32,
+      curveExp: 1.85,
       overCapBrake: 0.4,
+      // Softer ease-down while steering so a diagonal nudge doesn't slam the brakes.
+      turnOverCapBrake: 0.12,
+      // Blend stick length into throttle when there is forward/reverse intent.
+      turnMagKeep: 0.92,
       // Soft launch: accel scaled down near standstill, ramps back as speed builds.
       launchAccelMin: 0.26,
       launchAccelFullAt: 0.38
@@ -3714,6 +3719,8 @@
       policeShootRange: 210,
       policeShootInterval: 38,
       policeAimDot: 0.72,
+      // After jacking a police car, ejected officer waits this long before first shot (120 TPS).
+      policeEjectShootDelayTicks: Math.round(1.5 * 120),
       spawnMinDist: BLOCK_WORLD * 0.85,
       spawnMaxDist: BLOCK_WORLD * 1.55,
       maxByStars: [0, 2, 3, 4, 5, 6],
@@ -4906,6 +4913,11 @@
           (1 - MOBILE_THROTTLE_FEEL.launchAccelMin) * ease;
       }
 
+      const steeringStick = mobileThrottleStick && Math.abs(mobileAnalogSteer.drive) > 0.08;
+      const overCapMul = steeringStick
+        ? MOBILE_THROTTLE_FEEL.turnOverCapBrake
+        : MOBILE_THROTTLE_FEEL.overCapBrake;
+
       if (throttleFwd > 0) {
         const targetMax = effectiveMaxSpeed * throttleFwd;
         const step = effectiveAccel * throttleFwd * launchMul;
@@ -4915,7 +4927,7 @@
           // Ease down toward the partial-stick speed cap (no instant snap).
           player.speed = Math.max(
             targetMax,
-            player.speed - brakeForce * MOBILE_THROTTLE_FEEL.overCapBrake
+            player.speed - brakeForce * overCapMul
           );
         }
       } else if (throttleRev > 0) {
@@ -4931,7 +4943,7 @@
         } else if (player.speed < -revMax - 0.02) {
           player.speed = Math.min(
             -revMax,
-            player.speed + brakeForce * MOBILE_THROTTLE_FEEL.overCapBrake
+            player.speed + brakeForce * overCapMul
           );
         }
       } else {
@@ -5475,7 +5487,9 @@
           return;
         }
 
-        if (!hijacked.isPoliceCar && !hijacked.parked && Math.abs(hijacked.speed) > 0.35) {
+        if (hijacked.isPoliceCar) {
+          spawnEjectedPoliceOfficer(hijacked);
+        } else if (!hijacked.parked && Math.abs(hijacked.speed) > 0.35) {
           spawnFleeingDriver(hijacked);
         }
 
@@ -7217,6 +7231,46 @@
         fleeTimer: 220 + Math.floor(Math.random() * 80),
         health: 1,
         isPolice: false
+      });
+    }
+
+    // Jacking a police car dumps the officer beside it; they can't fire until delay elapses.
+    function spawnEjectedPoliceOfficer(vehicle) {
+      if (!vehicle) return;
+      const rightX = -Math.sin(vehicle.angle);
+      const rightY = Math.cos(vehicle.angle);
+      let spawnX = vehicle.x + rightX * 24;
+      let spawnY = vehicle.y + rightY * 24;
+      [24, 30, 36, 44, 52].some(distance => {
+        const sx = vehicle.x + rightX * distance;
+        const sy = vehicle.y + rightY * distance;
+        if (canWalkAt(sx, sy, 3)) {
+          spawnX = sx;
+          spawnY = sy;
+          return true;
+        }
+        return false;
+      });
+      const faceX = player.x - spawnX;
+      const faceY = player.y - spawnY;
+      pedestrians.push({
+        id: `police-eject-${simulationTick}-${Math.floor(Math.random() * 999)}`,
+        x: spawnX,
+        y: spawnY,
+        angle: Math.atan2(faceY, faceX) || vehicle.angle + Math.PI,
+        speed: WANTED.policeSpeed,
+        radius: HITBOX.ped,
+        walkPhase: 0,
+        coat: POLICE_LOOK.coat,
+        skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[Math.floor(Math.random() * hairTones.length)],
+        idleTimer: 0,
+        fleeing: false,
+        fleeTimer: 0,
+        isPolice: true,
+        health: WANTED.policeHp,
+        maxHealth: WANTED.policeHp,
+        shootCooldown: WANTED.policeEjectShootDelayTicks
       });
     }
 
@@ -11280,7 +11334,9 @@
             maxHealth: v.maxHealth
           });
         } else {
-          if (!v.isPoliceCar && !v.parked && Math.abs(v.speed) > 0.35) {
+          if (v.isPoliceCar) {
+            spawnEjectedPoliceOfficer(v);
+          } else if (!v.parked && Math.abs(v.speed) > 0.35) {
             spawnFleeingDriver(v);
           }
           v.ai = false;
@@ -12708,12 +12764,34 @@
             mobileSteerDeadzone(MOBILE_STEER_FEEL.driveDeadzone, player.angle),
             MOBILE_STEER_FEEL.curveExp
           );
-          // Stick up (negative vy) → +throttle; stick down → reverse/brake.
-          mobileAnalogThrottle.value = mobileStickAxisAnalog(
+          // Stick up → forward, down → reverse. While turning (diagonal), also keep
+          // throttle from stick length so turning doesn't starve forward speed.
+          const axisT = mobileStickAxisAnalog(
             -mobileTouch.move.vy,
             MOBILE_THROTTLE_FEEL.deadzone,
             MOBILE_THROTTLE_FEEL.curveExp
           );
+          const stickMag = Math.hypot(mobileTouch.move.vx, mobileTouch.move.vy);
+          const magT = mobileStickAxisAnalog(
+            stickMag,
+            MOBILE_THROTTLE_FEEL.deadzone,
+            MOBILE_THROTTLE_FEEL.curveExp
+          );
+          const keep = MOBILE_THROTTLE_FEEL.turnMagKeep;
+          if (axisT > 0) {
+            mobileAnalogThrottle.value = Math.max(axisT, magT * keep);
+          } else if (axisT < 0) {
+            mobileAnalogThrottle.value = Math.min(axisT, -magT * keep);
+          } else if (
+            magT > 0.12 &&
+            Math.abs(mobileAnalogSteer.drive) > 0.25 &&
+            Math.abs(player.speed) > 0.45
+          ) {
+            // Hard lateral while already moving: hold speed like keyboard W+A.
+            mobileAnalogThrottle.value = Math.sign(player.speed) * magT * keep * 0.75;
+          } else {
+            mobileAnalogThrottle.value = 0;
+          }
         } else if (walking) {
           const vec = mobileStickVectorAnalog(
             mobileTouch.move.vx,
