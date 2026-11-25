@@ -1651,42 +1651,73 @@
       driveRelease: 0.78
     };
 
-    // Mobile-only stick turn/steer: analog curve, larger deadzone, lower max, soft release.
+    // Mobile-only stick turn/steer: larger deadzone, stronger ease-in, lower max, soft release.
     // Desktop keyboard feel is unchanged. Bike left-stick is unchanged.
     const MOBILE_STEER_FEEL = {
-      walkDeadzone: 0.26,
-      driveDeadzone: 0.28,
-      curveExp: 1.4,
-      walkMaxScale: 0.84,
-      driveMaxScale: 0.88,
-      walkAccel: 0.038,
-      driveAccelMul: 0.78,
-      walkRelease: 0.84,
-      driveRelease: 0.84
+      walkDeadzone: 0.34,
+      driveDeadzone: 0.36,
+      curveExp: 2.15,
+      walkMaxScale: 0.7,
+      driveMaxScale: 0.72,
+      walkAccel: 0.026,
+      driveAccelMul: 0.52,
+      walkRelease: 0.76,
+      driveRelease: 0.74,
+      // Extra deadzone while nearly grid-aligned (stops micro-wobble).
+      gridLockExtraDz: 0.1,
+      gridLockDeg: 10
     };
     // Signed -1..1 after deadzone + response curve; updated each mobile input tick.
     const mobileAnalogSteer = { walk: 0, drive: 0 };
 
-    // Mobile car throttle (left stick Y): mild analog curve + larger deadzone.
-    // +1 = full forward at stick limit, -1 = full reverse/brake. Walking/bike unchanged.
+    // Mobile car throttle (left stick Y): micro-move band at bottom, full speed at full stick.
+    // +1 = full forward at stick limit, -1 = full reverse/brake. Same curve for reverse.
     const MOBILE_THROTTLE_FEEL = {
-      deadzone: 0.30,
-      curveExp: 1.4,
-      overCapBrake: 0.4
+      deadzone: 0.36,
+      curveExp: 2.2,
+      overCapBrake: 0.4,
+      // Soft launch: accel scaled down near standstill, ramps back as speed builds.
+      launchAccelMin: 0.26,
+      launchAccelFullAt: 0.38
     };
     const mobileAnalogThrottle = { value: 0 };
 
-    // Mobile walking left-stick move: circular deadzone, mild curve, smoothing, soft stop.
+    // Mobile walking left-stick move: larger deadzone, stronger curve, smoother start/stop.
     // x = strafe right, y = forward (both -1..1). Desktop keyboard walking unchanged.
     const MOBILE_WALK_FEEL = {
-      deadzone: 0.28,
-      curveExp: 1.4,
-      smooth: 0.14,
-      releaseSmooth: 0.09,
+      deadzone: 0.34,
+      curveExp: 2.05,
+      microExp: 1.35,
+      smooth: 0.1,
+      releaseSmooth: 0.075,
       stopEpsilon: 0.004
     };
     const mobileAnalogMove = { x: 0, y: 0 };
     const mobileWalkSmooth = { x: 0, y: 0 };
+
+    // Subtle magnetic lane + grid assist (mobile driving). Breaks on hard steer or held turn.
+    const MOBILE_LANE_ASSIST = {
+      steerBreak: 0.55,
+      holdSteerMin: 0.3,
+      holdBreakMs: 280,
+      cooldownMs: 480,
+      headingPull: 0.044,
+      lanePull: 0.036,
+      maxLaneShift: 2.08,
+      alignSnapDeg: 20,
+      minSpeed: 0.1
+    };
+    const mobileLaneAssist = {
+      brokenUntil: 0,
+      holdSteerSince: 0
+    };
+
+    // Walking: soft-snap world move toward N/S/E/W only when already near a cardinal.
+    // Does NOT touch facing/camera angle.
+    const MOBILE_WALK_MOVE_ALIGN = {
+      maxOffDeg: 28,
+      pull: 0.28
+    };
 
     // Arcade drive feel — soft momentum, auto-drift, camera lag (player cars only).
     const DRIVE_FEEL = {
@@ -4297,14 +4328,123 @@
     }
 
     // 2D stick vector through circular deadzone + magnitude curve (preserves direction).
-    function mobileStickVectorAnalog(vx, vy, deadzone, curveExp) {
+    function mobileStickVectorAnalog(vx, vy, deadzone, curveExp, microExp) {
       const mag = Math.hypot(vx, vy);
       if (mag <= deadzone || mag < 0.0001) return { x: 0, y: 0 };
       const span = Math.max(0.001, 1 - deadzone);
       const t = Math.min(1, (mag - deadzone) / span);
-      const curved = Math.pow(t, Math.max(1, curveExp));
+      let curved = Math.pow(t, Math.max(1, curveExp));
+      if (microExp && microExp > 1) curved = Math.pow(curved, microExp);
       const scale = curved / mag;
       return { x: vx * scale, y: vy * scale };
+    }
+
+    function nearestCardinalAngle(angle) {
+      const step = Math.PI / 2;
+      return Math.round(angle / step) * step;
+    }
+
+    function angleNearGrid(angle, deg) {
+      const nearest = nearestCardinalAngle(angle);
+      return Math.abs(shortestAngleDiff(angle, nearest)) <= (deg * Math.PI / 180);
+    }
+
+    function mobileSteerDeadzone(baseDz, angle) {
+      if (angleNearGrid(angle, MOBILE_STEER_FEEL.gridLockDeg)) {
+        return Math.min(0.55, baseDz + MOBILE_STEER_FEEL.gridLockExtraDz);
+      }
+      return baseDz;
+    }
+
+    function getRoadStripBase(tile) {
+      const local = ((tile % ROAD_SPACING) + ROAD_SPACING) % ROAD_SPACING;
+      if (local >= ROAD_WIDTH) return null;
+      return Math.floor(tile / ROAD_SPACING) * ROAD_SPACING;
+    }
+
+    function applyMobileLaneAssist(steerAbs) {
+      if (!isMobile || player.mode !== 'driving' || wasted) return;
+      const now = performance.now();
+      const cfg = MOBILE_LANE_ASSIST;
+
+      if (steerAbs >= cfg.steerBreak) {
+        mobileLaneAssist.brokenUntil = now + cfg.cooldownMs;
+        mobileLaneAssist.holdSteerSince = 0;
+        return;
+      }
+      if (steerAbs >= cfg.holdSteerMin) {
+        if (!mobileLaneAssist.holdSteerSince) mobileLaneAssist.holdSteerSince = now;
+        else if (now - mobileLaneAssist.holdSteerSince >= cfg.holdBreakMs) {
+          mobileLaneAssist.brokenUntil = now + cfg.cooldownMs;
+          return;
+        }
+      } else {
+        mobileLaneAssist.holdSteerSince = 0;
+      }
+      if (now < mobileLaneAssist.brokenUntil) return;
+      if (Math.abs(player.speed) < cfg.minSpeed) return;
+      if (!isRoadWorldAt(player.x, player.y)) return;
+
+      const nearest = nearestCardinalAngle(player.angle);
+      const err = shortestAngleDiff(player.angle, nearest);
+      const maxAlign = cfg.alignSnapDeg * Math.PI / 180;
+      if (Math.abs(err) > maxAlign) return;
+
+      const assistT = 1 - Math.min(1, steerAbs / Math.max(0.001, cfg.steerBreak));
+      const assistEase = assistT * assistT;
+      player.angle += err * Math.min(1, cfg.headingPull * assistEase);
+
+      const dirIndex = ((Math.round(nearest / (Math.PI / 2)) % 4) + 4) % 4;
+      const tileX = Math.floor(player.x / TILE_SIZE);
+      const tileY = Math.floor(player.y / TILE_SIZE);
+      const radius = player.driveRadius || 13;
+
+      if (dirIndex % 2 === 0) {
+        // Horizontal travel → gently pull Y toward left-lane center.
+        const roadBase = getRoadStripBase(tileY);
+        if (roadBase == null) return;
+        const lane = getLeftLaneCenter(roadBase, dirIndex);
+        const dy = lane - player.y;
+        const shift = Math.max(
+          -cfg.maxLaneShift,
+          Math.min(cfg.maxLaneShift, dy * cfg.lanePull * assistEase)
+        );
+        if (Math.abs(shift) > 0.01 && canDriveAt(player.x, player.y + shift, radius)) {
+          player.y += shift;
+        }
+      } else {
+        // Vertical travel → gently pull X toward left-lane center.
+        const roadBase = getRoadStripBase(tileX);
+        if (roadBase == null) return;
+        const lane = getLeftLaneCenter(roadBase, dirIndex);
+        const dx = lane - player.x;
+        const shift = Math.max(
+          -cfg.maxLaneShift,
+          Math.min(cfg.maxLaneShift, dx * cfg.lanePull * assistEase)
+        );
+        if (Math.abs(shift) > 0.01 && canDriveAt(player.x + shift, player.y, radius)) {
+          player.x += shift;
+        }
+      }
+    }
+
+    // Soft-snap a world-space walk delta toward N/S/E/W if already near a cardinal.
+    function softSnapWalkMoveToCardinal(dx, dy) {
+      const mag = Math.hypot(dx, dy);
+      if (mag < 0.0001) return { x: dx, y: dy };
+      const ang = Math.atan2(dy, dx);
+      const nearest = nearestCardinalAngle(ang);
+      const err = Math.abs(shortestAngleDiff(ang, nearest));
+      const maxErr = MOBILE_WALK_MOVE_ALIGN.maxOffDeg * Math.PI / 180;
+      if (err > maxErr) return { x: dx, y: dy };
+      const assistT = 1 - err / maxErr;
+      const pull = MOBILE_WALK_MOVE_ALIGN.pull * assistT * assistT;
+      const tx = Math.cos(nearest) * mag;
+      const ty = Math.sin(nearest) * mag;
+      return {
+        x: dx + (tx - dx) * pull,
+        y: dy + (ty - dy) * pull
+      };
     }
 
     function softReleaseSteer(currentRate, releaseMul, epsilon) {
@@ -4452,9 +4592,20 @@
         else if (keys['s']) throttleRev = 1;
       }
 
+      // Mobile soft launch: keep full top speed at full stick, but ease accel from standstill.
+      let launchMul = 1;
+      if (mobileThrottleStick) {
+        const absSp0 = Math.abs(player.speed);
+        const fullAt = Math.max(0.05, MOBILE_THROTTLE_FEEL.launchAccelFullAt * effectiveMaxSpeed);
+        const u = Math.min(1, absSp0 / fullAt);
+        const ease = u * u * (3 - 2 * u);
+        launchMul = MOBILE_THROTTLE_FEEL.launchAccelMin +
+          (1 - MOBILE_THROTTLE_FEEL.launchAccelMin) * ease;
+      }
+
       if (throttleFwd > 0) {
         const targetMax = effectiveMaxSpeed * throttleFwd;
-        const step = effectiveAccel * throttleFwd;
+        const step = effectiveAccel * throttleFwd * launchMul;
         if (player.speed < targetMax) {
           player.speed = Math.min(player.speed + step, targetMax);
         } else if (player.speed > targetMax + 0.02) {
@@ -4466,7 +4617,7 @@
         }
       } else if (throttleRev > 0) {
         const brake = brakeForce * throttleRev;
-        const revAccel = effectiveAccel * throttleRev;
+        const revAccel = effectiveAccel * throttleRev * launchMul;
         const revMax = effectiveMaxSpeed * 0.5 * throttleRev;
         if (player.speed > crawl) {
           player.speed = Math.max(0, player.speed - brake);
@@ -4677,6 +4828,10 @@
       player.audioReverse = player.speed < -crawl || throttleRev > 0.15;
       player.audioSlip = slipAngle;
 
+      if (isMobile) {
+        applyMobileLaneAssist(mobileDriveStick ? Math.abs(mobileAnalogSteer.drive) : 0);
+      }
+
       activeVehicle.x = player.x;
       activeVehicle.y = player.y;
       activeVehicle.angle = player.angle;
@@ -4769,8 +4924,14 @@
       }
 
       if (forward !== 0 || right !== 0) {
-        const dx = Math.cos(player.angle) * forward - Math.sin(player.angle) * right;
-        const dy = Math.sin(player.angle) * forward + Math.cos(player.angle) * right;
+        let dx = Math.cos(player.angle) * forward - Math.sin(player.angle) * right;
+        let dy = Math.sin(player.angle) * forward + Math.cos(player.angle) * right;
+        // Mobile: nudge travel toward world N/S/E/W when already near a cardinal — facing/camera untouched.
+        if (isMobile && mobileMoveStick) {
+          const snapped = softSnapWalkMoveToCardinal(dx, dy);
+          dx = snapped.x;
+          dy = snapped.y;
+        }
         const slide = trySlideMove(player.x, player.y, dx, dy, player.radius, canWalkAt);
 
         if (slide.moved) {
@@ -12119,7 +12280,7 @@
         if (driving) {
           mobileAnalogSteer.drive = mobileStickAxisAnalog(
             mobileTouch.move.vx,
-            MOBILE_STEER_FEEL.driveDeadzone,
+            mobileSteerDeadzone(MOBILE_STEER_FEEL.driveDeadzone, player.angle),
             MOBILE_STEER_FEEL.curveExp
           );
           // Stick up (negative vy) → +throttle; stick down → reverse/brake.
@@ -12133,7 +12294,8 @@
             mobileTouch.move.vx,
             mobileTouch.move.vy,
             MOBILE_WALK_FEEL.deadzone,
-            MOBILE_WALK_FEEL.curveExp
+            MOBILE_WALK_FEEL.curveExp,
+            MOBILE_WALK_FEEL.microExp
           );
           // Stick space → move space: +x strafe right, +y forward.
           mobileAnalogMove.x = vec.x;
@@ -12143,7 +12305,10 @@
 
       // Right joystick → arrows. On foot: L/R turn (analog). Mounted: L/R side-shoot. Vertical: F/B shoot.
       if (mobileTouch.aim.active) {
-        const turnDz = walking ? MOBILE_STEER_FEEL.walkDeadzone : AIM_TURN_DEADZONE;
+        const walkTurnDz = walking
+          ? mobileSteerDeadzone(MOBILE_STEER_FEEL.walkDeadzone, player.angle)
+          : AIM_TURN_DEADZONE;
+        const turnDz = walking ? walkTurnDz : AIM_TURN_DEADZONE;
         if (mobileTouch.aim.vx < -turnDz) {
           pressTouchCode('ArrowLeft');
           if (isMountedVehicle()) gun.lastShootCode = 'ArrowLeft';
@@ -12155,7 +12320,7 @@
         if (walking) {
           mobileAnalogSteer.walk = mobileStickAxisAnalog(
             mobileTouch.aim.vx,
-            MOBILE_STEER_FEEL.walkDeadzone,
+            walkTurnDz,
             MOBILE_STEER_FEEL.curveExp
           );
         }
