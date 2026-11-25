@@ -1486,6 +1486,53 @@
       totalMs: 3800,
       audioDuck: 0.12
     };
+    // Cop-kill cinematic (local only): freeze → slow-mo → camera bias on wreck.
+    const COP_KILL = {
+      durationMs: 600,
+      freezeMs: 90,
+      slowEndMs: 420,
+      zoomMul: 1.35,
+      audioDuck: 0.32,
+      biasMax: 0.55
+    };
+    // First-load boot wipe only (not on respawn).
+    const BOOT = {
+      durationSec: 0.85,
+      title: 'KR CITY'
+    };
+    // On-foot locomotion tiers (auto sprint after full-move buildup).
+    const FOOT = {
+      walkSpeed: 2.6,
+      runSpeed: 3.45,
+      sprintSpeed: 4.65,
+      walkWarmupSec: 0.45,
+      sprintBuildupSec: 2,
+      analogRunCommit: 0.78,
+      walkWarmupTicks: Math.round(0.45 * 120),
+      sprintBuildupTicks: Math.round(2 * 120)
+    };
+    const DAMAGE_RET = {
+      PUNCH: 0.9,
+      FADE: 0.75,
+      // Old-school ring look (tune size / transparency here)
+      r0: 48,
+      r1: 78,
+      gap: 0.07,       // radians cut between wedges
+      fillAlpha: 0.12, // base fill (very transparent)
+      fillAlphaHot: 0.28,
+      edgeAlpha: 0.22,
+      edgeAlphaHot: 0.45,
+      notch: 10       // inward arrow tip for chevron shape
+    };
+    const UK_POLICE = {
+      white: '#f2f2f4',
+      floBlue: '#0090D0',
+      floLime: '#C8E600',
+      barA: '#0060B8',
+      barB: '#9AE5FF'
+    };
+    const IMPREZA_WR_BLUE = '#0c4a9c';
+    const IMPREZA_NEON = '100, 230, 255';
     const CORPSE_LIFE_MS = 10000;
     const SCORCH_LIFE_MS = 10000;
 
@@ -1696,14 +1743,19 @@
     const mobileWalkSmooth = { x: 0, y: 0 };
 
     // Subtle magnetic lane + grid assist (mobile driving). Breaks on hard steer or held turn.
+    // Heading: light straighten. Lane: only a tiny settle when already very near left lane.
     const MOBILE_LANE_ASSIST = {
       steerBreak: 0.55,
       holdSteerMin: 0.3,
       holdBreakMs: 280,
       cooldownMs: 480,
-      headingPull: 0.044,
-      lanePull: 0.036,
-      maxLaneShift: 2.08,
+      headingPull: 0.034,
+      // Lane magnet is proximity-only + weak so middle/right stay free.
+      lanePull: 0.012,
+      maxLaneShift: 0.65,
+      // ~0.4 of half-road width; outside this, zero lane pull.
+      laneProximityMul: 0.4,
+      laneAwayVel: 0.12,
       alignSnapDeg: 20,
       minSpeed: 0.1
     };
@@ -1712,11 +1764,12 @@
       holdSteerSince: 0
     };
 
-    // Walking: soft-snap world move toward N/S/E/W only when already near a cardinal.
-    // Does NOT touch facing/camera angle.
+    // Walking: soft-snap travel vector to world N/S/E/W only (never facing/camera).
+    // Only when left stick is already mostly axis-aligned (not intentional diagonals).
     const MOBILE_WALK_MOVE_ALIGN = {
-      maxOffDeg: 28,
-      pull: 0.28
+      stickAxisMaxRatio: 0.38,
+      worldMaxOffDeg: 24,
+      pull: 0.1
     };
 
     // Arcade drive feel — soft momentum, auto-drift, camera lag (player cars only).
@@ -1801,6 +1854,31 @@
         camLagBoost: 1.18,
         shove: 0.85,
         colors: ['#c4453c', '#d4a03a', '#3d7a8c', '#b84e6e', '#e8d07a']
+      },
+      // Rare WR-blue Impreza: sports-adjacent drift, neon + wing in draw.
+      impreza: {
+        label: 'Impreza',
+        npcHealth: 30,
+        playerHealth: 70,
+        maxSpeed: 8.9,
+        accel: 0.088,
+        radius: 15,
+        driveRadius: 12,
+        cruiseMin: 2.05,
+        cruiseSpan: 0.75,
+        driftEnter: 0.36,
+        driftHold: 0.24,
+        driftGrip: 0.028,
+        grip: 0.12,
+        driftSteer: 0.74,
+        steerAccel: 0.11,
+        driftBleed: 0.9978,
+        camLagBoost: 1.22,
+        shove: 0.82,
+        colors: [IMPREZA_WR_BLUE],
+        spawnWeight: 0.04,
+        neon: true,
+        fixedColor: IMPREZA_WR_BLUE
       }
     };
     const player = {
@@ -1826,8 +1904,11 @@
       friction: 0.92,
       turnSpeed: 0.045,
       steerRate: 0,
-      walkSpeed: 2.6,
+      walkSpeed: FOOT.walkSpeed,
       walkPhase: 0,
+      footWarmup: 0,
+      footSprintBuild: 0,
+      footSprinting: false,
       travelAngle: 34 * (Math.PI / 180),
       moveAmount: 0,
       radius: HITBOX.player,
@@ -1917,6 +1998,7 @@
       masterVolume: 0.2,
       pitchVariance: 0.07,
       deathDuck: false,
+      copKillDuck: false,
       sounds: {
         shoot: {
           type: 'square',
@@ -1956,6 +2038,19 @@
           freqEnd: 55,
           duration: 0.42,
           volume: 0.5
+        },
+        sprint: {
+          type: 'noise',
+          duration: 0.12,
+          volume: 0.28,
+          filterFreq: 1800
+        },
+        copKill: {
+          volume: 0.45,
+          notes: [
+            { type: 'sawtooth', freq: 220, freqEnd: 90, duration: 0.12 },
+            { type: 'square', freq: 520, duration: 0.06 }
+          ]
         },
         radioOn: {
           volume: 0.4,
@@ -2050,7 +2145,201 @@
     }
 
     function getSfxDuckMul() {
-      return SFX.deathDuck ? DEATH_CAM.audioDuck : 1;
+      let mul = 1;
+      if (SFX.deathDuck) mul *= DEATH_CAM.audioDuck;
+      if (SFX.copKillDuck) mul *= COP_KILL.audioDuck;
+      return mul;
+    }
+
+    // --- Damage direction reticule (8 sectors) ---
+    const damageReticule = { sector: [0, 0, 0, 0, 0, 0, 0, 0] };
+
+    function triggerDamageReticuleDirectional(fromX, fromY) {
+      const dx = fromX - player.x;
+      const dy = fromY - player.y;
+      if (dx * dx + dy * dy < 0.25) return;
+      const c = Math.cos(-player.cameraAngle);
+      const s = Math.sin(-player.cameraAngle);
+      const vx = dx * c - dy * s;
+      const vy = dx * s + dy * c;
+      let a = Math.atan2(vy, vx) + Math.PI / 2;
+      a = ((a % (Math.PI * 2)) + (Math.PI * 2)) % (Math.PI * 2);
+      const seg = Math.min(7, Math.floor(a / (Math.PI / 4 + 1e-6)));
+      damageReticule.sector[seg] = Math.min(1, damageReticule.sector[seg] + DAMAGE_RET.PUNCH);
+    }
+
+    function triggerDamageReticuleOmni() {
+      const a = Math.min(1, DAMAGE_RET.PUNCH * 0.25);
+      for (let i = 0; i < 8; i++) {
+        damageReticule.sector[i] = Math.min(1, damageReticule.sector[i] + a);
+      }
+    }
+
+    function updateDamageReticule() {
+      const fade = DAMAGE_RET.FADE / 120;
+      for (let i = 0; i < 8; i++) {
+        damageReticule.sector[i] = Math.max(0, damageReticule.sector[i] - fade);
+      }
+    }
+
+    function clearDamageReticule() {
+      for (let i = 0; i < 8; i++) damageReticule.sector[i] = 0;
+    }
+
+    function drawDamageReticule() {
+      if (wasted || bootSplash.active) return;
+      let any = 0;
+      for (let i = 0; i < 8; i++) any = Math.max(any, damageReticule.sector[i]);
+      if (any < 0.02) return;
+      const feet = project(player.x, player.y, 10);
+      const r0 = DAMAGE_RET.r0;
+      const r1 = DAMAGE_RET.r1;
+      const gap = DAMAGE_RET.gap;
+      const notch = DAMAGE_RET.notch;
+      ctx.save();
+      ctx.translate(Math.round(feet.x), Math.round(feet.y));
+      // Chunkier pixels / hard edges — classic HUD feel
+      ctx.imageSmoothingEnabled = false;
+      ctx.lineJoin = 'miter';
+      ctx.miterLimit = 2;
+      for (let i = 0; i < 8; i++) {
+        const a = damageReticule.sector[i];
+        if (a < 0.02) continue;
+        const mid = -Math.PI / 2 + i * (Math.PI / 4);
+        const a0 = mid - Math.PI / 8 + gap;
+        const a1 = mid + Math.PI / 8 - gap;
+        const cos0 = Math.cos(a0);
+        const sin0 = Math.sin(a0);
+        const cos1 = Math.cos(a1);
+        const sin1 = Math.sin(a1);
+        const cosM = Math.cos(mid);
+        const sinM = Math.sin(mid);
+        // Chevron / arrow wedge pointing outward (old-school damage pip)
+        ctx.beginPath();
+        ctx.moveTo(Math.round(cos0 * r0), Math.round(sin0 * r0));
+        ctx.lineTo(Math.round(cos0 * r1), Math.round(sin0 * r1));
+        ctx.lineTo(Math.round(cosM * (r1 + notch)), Math.round(sinM * (r1 + notch)));
+        ctx.lineTo(Math.round(cos1 * r1), Math.round(sin1 * r1));
+        ctx.lineTo(Math.round(cos1 * r0), Math.round(sin1 * r0));
+        ctx.lineTo(Math.round(cosM * (r0 + notch * 0.35)), Math.round(sinM * (r0 + notch * 0.35)));
+        ctx.closePath();
+        const fillA = DAMAGE_RET.fillAlpha + a * (DAMAGE_RET.fillAlphaHot - DAMAGE_RET.fillAlpha);
+        const edgeA = DAMAGE_RET.edgeAlpha + a * (DAMAGE_RET.edgeAlphaHot - DAMAGE_RET.edgeAlpha);
+        ctx.fillStyle = `rgba(255, 48, 48, ${fillA})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${edgeA})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Inner dark outline for 1-bit / CRT HUD contrast
+        ctx.strokeStyle = `rgba(40, 0, 0, ${edgeA * 0.65})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // --- Boot splash (first load only) ---
+    const bootSplash = {
+      active: true,
+      timer: 0,
+      duration: BOOT.durationSec
+    };
+
+    function updateBootSplash(dtSec) {
+      if (!bootSplash.active) return;
+      bootSplash.timer += dtSec;
+      if (bootSplash.timer >= bootSplash.duration) {
+        bootSplash.active = false;
+        if (!spawnCamIntro.active && !wasted) startSpawnCameraIntro();
+      }
+    }
+
+    function drawBootSplash() {
+      if (!bootSplash.active) return;
+      const t = Math.min(1, bootSplash.timer / bootSplash.duration);
+      const w = screenWidth;
+      const h = screenHeight;
+      ctx.save();
+      if (t < 0.55) {
+        ctx.fillStyle = '#0a0908';
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#e8e0d0';
+        ctx.font = `700 ${Math.round(Math.min(w, h) * 0.08)}px "Courier New", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(BOOT.title, w * 0.5, h * 0.46);
+        ctx.font = `400 ${Math.round(Math.min(w, h) * 0.028)}px "Courier New", monospace`;
+        ctx.fillStyle = 'rgba(232, 224, 208, 0.55)';
+        ctx.fillText('LOADING', w * 0.5, h * 0.54);
+      } else {
+        const u = (t - 0.55) / 0.45;
+        const cell = 16;
+        const cols = Math.ceil(w / cell);
+        const rows = Math.ceil(h / cell);
+        const reveal = u * cols * rows;
+        ctx.fillStyle = '#0a0908';
+        let n = 0;
+        for (let y = 0; y < rows; y++) {
+          for (let x = 0; x < cols; x++) {
+            if (n++ >= reveal) ctx.fillRect(x * cell, y * cell, cell + 1, cell + 1);
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // --- Cop-kill cinematic ---
+    const copKillFx = {
+      active: false,
+      startedAt: 0,
+      x: 0,
+      y: 0
+    };
+
+    function triggerCopKillFx(x, y) {
+      if (deathCam.active || wasted) return;
+      copKillFx.active = true;
+      copKillFx.startedAt = performance.now();
+      copKillFx.x = x;
+      copKillFx.y = y;
+      SFX.copKillDuck = true;
+      playSfx('copKill');
+      addCameraShake(SHAKE.mediumCrash);
+    }
+
+    function endCopKillFx() {
+      if (!copKillFx.active) return;
+      copKillFx.active = false;
+      SFX.copKillDuck = false;
+      setMainRadioVolume();
+    }
+
+    function getCopKillTimeScale() {
+      if (!copKillFx.active || deathCam.active) return 1;
+      const elapsed = performance.now() - copKillFx.startedAt;
+      if (elapsed >= COP_KILL.durationMs) {
+        endCopKillFx();
+        return 1;
+      }
+      if (elapsed < COP_KILL.freezeMs) return 0;
+      if (elapsed < COP_KILL.slowEndMs) {
+        const u = (elapsed - COP_KILL.freezeMs) / Math.max(1, COP_KILL.slowEndMs - COP_KILL.freezeMs);
+        const s = u * u * (3 - 2 * u);
+        return 0.22 + 0.78 * s;
+      }
+      return 1;
+    }
+
+    function getCopKillCameraPunch() {
+      if (!copKillFx.active || deathCam.active) return { bias: 0, zoom: 1 };
+      const elapsed = performance.now() - copKillFx.startedAt;
+      const k = Math.min(1, elapsed / COP_KILL.durationMs);
+      let bias;
+      if (k < 0.25) bias = (k / 0.25) * COP_KILL.biasMax;
+      else bias = (1 - (k - 0.25) / 0.75) * COP_KILL.biasMax;
+      const zoomWave = k < 0.5 ? (k / 0.5) : (1 - (k - 0.5) / 0.5);
+      const zoom = 1 + (COP_KILL.zoomMul - 1) * zoomWave;
+      return { bias, zoom };
     }
 
     let bikeHopAudio = null;
@@ -2765,10 +3054,11 @@
     }
 
     function updateCarRadio(dtSec) {
-      // Duck while shooting / wanted
+      // Duck while shooting / wanted / cop-kill cinematic
       let duck = 1;
       if (getActiveShootCode() || gun.fireCooldown > 0) duck *= RADIO.shootDuck;
       if ((typeof wantedLevel === 'number' ? wantedLevel : 0) > 0) duck *= RADIO.wantedDuck;
+      if (SFX.copKillDuck) duck *= COP_KILL.audioDuck;
       radio.duck += (duck - radio.duck) * Math.min(1, dtSec * 6);
 
       if (radio.fade < radio.fadeTarget) {
@@ -3555,7 +3845,7 @@
         speed: cruisingSpeed,
         baseSpeed: cruisingSpeed,
         targetSpeed: cruisingSpeed,
-        color: '#f3f0e8',
+        color: UK_POLICE.white,
         ai: true,
         turn: null,
         turnIntent: null,
@@ -4392,58 +4682,71 @@
 
       const assistT = 1 - Math.min(1, steerAbs / Math.max(0.001, cfg.steerBreak));
       const assistEase = assistT * assistT;
+      // Heading assist stays independent of lane proximity (middle/right still straighten).
       player.angle += err * Math.min(1, cfg.headingPull * assistEase);
 
       const dirIndex = ((Math.round(nearest / (Math.PI / 2)) % 4) + 4) % 4;
       const tileX = Math.floor(player.x / TILE_SIZE);
       const tileY = Math.floor(player.y / TILE_SIZE);
       const radius = player.driveRadius || 13;
+      // Half of road width ≈ one lane; only settle when already near left-lane center.
+      const laneProx = ROAD_WIDTH * TILE_SIZE * 0.5 * cfg.laneProximityMul;
+
+      function tryLaneNudge(error, lateralVel, applyShift) {
+        const dist = Math.abs(error);
+        if (dist > laneProx || laneProx < 0.001) return;
+        // Soft falloff: strongest at lane center, zero at proximity edge.
+        const u = 1 - dist / laneProx;
+        const proxEase = u * u;
+        // Don't fight a clear lane change (moving away from left lane).
+        if (Math.abs(lateralVel) >= cfg.laneAwayVel && error * lateralVel < 0) return;
+        const shift = Math.max(
+          -cfg.maxLaneShift,
+          Math.min(cfg.maxLaneShift, error * cfg.lanePull * assistEase * proxEase)
+        );
+        if (Math.abs(shift) > 0.008) applyShift(shift);
+      }
 
       if (dirIndex % 2 === 0) {
-        // Horizontal travel → gently pull Y toward left-lane center.
         const roadBase = getRoadStripBase(tileY);
         if (roadBase == null) return;
         const lane = getLeftLaneCenter(roadBase, dirIndex);
-        const dy = lane - player.y;
-        const shift = Math.max(
-          -cfg.maxLaneShift,
-          Math.min(cfg.maxLaneShift, dy * cfg.lanePull * assistEase)
-        );
-        if (Math.abs(shift) > 0.01 && canDriveAt(player.x, player.y + shift, radius)) {
-          player.y += shift;
-        }
+        tryLaneNudge(lane - player.y, player.vy || 0, (shift) => {
+          if (canDriveAt(player.x, player.y + shift, radius)) player.y += shift;
+        });
       } else {
-        // Vertical travel → gently pull X toward left-lane center.
         const roadBase = getRoadStripBase(tileX);
         if (roadBase == null) return;
         const lane = getLeftLaneCenter(roadBase, dirIndex);
-        const dx = lane - player.x;
-        const shift = Math.max(
-          -cfg.maxLaneShift,
-          Math.min(cfg.maxLaneShift, dx * cfg.lanePull * assistEase)
-        );
-        if (Math.abs(shift) > 0.01 && canDriveAt(player.x + shift, player.y, radius)) {
-          player.x += shift;
-        }
+        tryLaneNudge(lane - player.x, player.vx || 0, (shift) => {
+          if (canDriveAt(player.x + shift, player.y, radius)) player.x += shift;
+        });
       }
     }
 
-    // Soft-snap a world-space walk delta toward N/S/E/W if already near a cardinal.
-    function softSnapWalkMoveToCardinal(dx, dy) {
+    // Soft-snap world travel toward N/S/E/W. Does not touch facing/camera.
+    // Gate: left stick mostly on-axis, and world move already near a cardinal.
+    function alignMobileWalkWorldMove(dx, dy, stickX, stickY) {
+      if (!isMobile || wasted) return { dx, dy };
       const mag = Math.hypot(dx, dy);
-      if (mag < 0.0001) return { x: dx, y: dy };
-      const ang = Math.atan2(dy, dx);
-      const nearest = nearestCardinalAngle(ang);
-      const err = Math.abs(shortestAngleDiff(ang, nearest));
-      const maxErr = MOBILE_WALK_MOVE_ALIGN.maxOffDeg * Math.PI / 180;
-      if (err > maxErr) return { x: dx, y: dy };
-      const assistT = 1 - err / maxErr;
-      const pull = MOBILE_WALK_MOVE_ALIGN.pull * assistT * assistT;
-      const tx = Math.cos(nearest) * mag;
-      const ty = Math.sin(nearest) * mag;
+      if (mag < 0.0001) return { dx, dy };
+      const cfg = MOBILE_WALK_MOVE_ALIGN;
+      const ax = Math.abs(stickX || 0);
+      const ay = Math.abs(stickY || 0);
+      const stickDom = Math.max(ax, ay);
+      const stickMin = Math.min(ax, ay);
+      if (stickDom < 0.02) return { dx, dy };
+      if (stickMin / stickDom > cfg.stickAxisMaxRatio) return { dx, dy };
+
+      const moveAng = Math.atan2(dy, dx);
+      const nearest = nearestCardinalAngle(moveAng);
+      const err = shortestAngleDiff(moveAng, nearest);
+      if (Math.abs(err) > cfg.worldMaxOffDeg * Math.PI / 180) return { dx, dy };
+
+      const aligned = moveAng + err * Math.min(1, cfg.pull);
       return {
-        x: dx + (tx - dx) * pull,
-        y: dy + (ty - dy) * pull
+        dx: Math.cos(aligned) * mag,
+        dy: Math.sin(aligned) * mag
       };
     }
 
@@ -4894,6 +5197,7 @@
       player.moveAmount = 0;
       const mobileMoveStick = isMobile && mobileTouch && mobileTouch.move && mobileTouch.move.active;
       const smoothMag = Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y);
+      let inputMag = 0;
       if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
         const targetX = mobileMoveStick ? mobileAnalogMove.x : 0;
         const targetY = mobileMoveStick ? mobileAnalogMove.y : 0;
@@ -4907,18 +5211,54 @@
           mobileWalkSmooth.x = 0;
           mobileWalkSmooth.y = 0;
         }
-        right = mobileWalkSmooth.x * player.walkSpeed;
-        forward = mobileWalkSmooth.y * player.walkSpeed;
+        inputMag = Math.min(1, Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y));
       } else {
-        if (keys['w']) forward = player.walkSpeed;
-        if (keys['s']) forward = -player.walkSpeed * 0.7;
-        if (keys['d']) right = player.walkSpeed;
-        if (keys['a']) right = -player.walkSpeed;
+        const keyFwd = keys['w'] ? 1 : (keys['s'] ? 0.7 : 0);
+        const keySide = (keys['a'] || keys['d']) ? 1 : 0;
+        inputMag = Math.min(1, Math.hypot(keyFwd, keySide));
+      }
+
+      // Walk → run → auto-sprint after holding full move ~2s (beta-style).
+      const fullCommit = inputMag >= FOOT.analogRunCommit;
+      if (inputMag < 0.08) {
+        player.footWarmup = 0;
+        player.footSprintBuild = 0;
+        player.footSprinting = false;
+      } else if (!fullCommit) {
+        player.footWarmup = Math.min(FOOT.walkWarmupTicks, player.footWarmup + 1);
+        player.footSprintBuild = 0;
+        player.footSprinting = false;
+      } else {
+        player.footWarmup = FOOT.walkWarmupTicks;
+        player.footSprintBuild = Math.min(FOOT.sprintBuildupTicks, player.footSprintBuild + 1);
+        if (!player.footSprinting && player.footSprintBuild >= FOOT.sprintBuildupTicks) {
+          player.footSprinting = true;
+          playSfx('sprint');
+        }
+      }
+
+      let moveSpeed = FOOT.walkSpeed;
+      if (player.footSprinting) moveSpeed = FOOT.sprintSpeed;
+      else if (fullCommit && player.footWarmup >= FOOT.walkWarmupTicks) moveSpeed = FOOT.runSpeed;
+      else if (fullCommit) {
+        const warmT = player.footWarmup / Math.max(1, FOOT.walkWarmupTicks);
+        moveSpeed = FOOT.walkSpeed + (FOOT.runSpeed - FOOT.walkSpeed) * warmT;
+      }
+      player.walkSpeed = moveSpeed;
+
+      if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
+        right = mobileWalkSmooth.x * moveSpeed;
+        forward = mobileWalkSmooth.y * moveSpeed;
+      } else {
+        if (keys['w']) forward = moveSpeed;
+        if (keys['s']) forward = -moveSpeed * 0.7;
+        if (keys['d']) right = moveSpeed;
+        if (keys['a']) right = -moveSpeed;
       }
 
       const moveMag = Math.hypot(forward, right);
-      if (moveMag > player.walkSpeed) {
-        const scale = player.walkSpeed / moveMag;
+      if (moveMag > moveSpeed && moveSpeed > 0) {
+        const scale = moveSpeed / moveMag;
         forward *= scale;
         right *= scale;
       }
@@ -4926,11 +5266,15 @@
       if (forward !== 0 || right !== 0) {
         let dx = Math.cos(player.angle) * forward - Math.sin(player.angle) * right;
         let dy = Math.sin(player.angle) * forward + Math.cos(player.angle) * right;
-        // Mobile: nudge travel toward world N/S/E/W when already near a cardinal — facing/camera untouched.
-        if (isMobile && mobileMoveStick) {
-          const snapped = softSnapWalkMoveToCardinal(dx, dy);
-          dx = snapped.x;
-          dy = snapped.y;
+        if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
+          const aligned = alignMobileWalkWorldMove(
+            dx,
+            dy,
+            mobileWalkSmooth.x,
+            mobileWalkSmooth.y
+          );
+          dx = aligned.dx;
+          dy = aligned.dy;
         }
         const slide = trySlideMove(player.x, player.y, dx, dy, player.radius, canWalkAt);
 
@@ -4944,7 +5288,7 @@
           player.motionSpeed = movement;
           if (movement > 0.01) {
             player.travelAngle = Math.atan2(usedY, usedX);
-            player.moveAmount = Math.min(1, movement / Math.max(player.walkSpeed, 0.01));
+            player.moveAmount = Math.min(1, movement / Math.max(moveSpeed, 0.01));
           }
         }
       }
@@ -5234,11 +5578,17 @@
 
     function pickCarClass() {
       const roll = Math.random();
-      if (roll < 0.5) return 'normal';
-      return roll < 0.75 ? 'van' : 'sports';
+      const imprezaWeight = (CAR_CLASSES.impreza && CAR_CLASSES.impreza.spawnWeight) || 0.04;
+      if (roll < imprezaWeight) return 'impreza';
+      if (roll < imprezaWeight + 0.48) return 'normal';
+      if (roll < imprezaWeight + 0.72) return 'van';
+      return 'sports';
     }
 
     function pickCarColor(classId) {
+      const spec = getCarSpec(classId);
+      if (spec.fixedColor) return spec.fixedColor;
+      if (classId === 'impreza') return IMPREZA_WR_BLUE;
       const whites = ['#f2f0ea', '#ebe8e1', '#e4e1d9', '#f7f5f0', '#ddd9d1'];
       return whites[Math.floor(Math.random() * whites.length)];
     }
@@ -5252,6 +5602,7 @@
       vehicle.driveRadius = spec.driveRadius;
       vehicle.maxHealth = playerOwned ? spec.playerHealth : spec.npcHealth;
       vehicle.health = vehicle.maxHealth;
+      if (spec.fixedColor) vehicle.color = spec.fixedColor;
       return vehicle;
     }
 
@@ -5272,6 +5623,10 @@
       player.maxSpeed = PLAYER_WALK_DRIVE.maxSpeed;
       player.accel = PLAYER_WALK_DRIVE.accel;
       player.driveRadius = PLAYER_WALK_DRIVE.driveRadius;
+      player.walkSpeed = FOOT.walkSpeed;
+      player.footWarmup = 0;
+      player.footSprintBuild = 0;
+      player.footSprinting = false;
     }
 
     function carHealthSpeedMult(vehicle) {
@@ -5350,13 +5705,19 @@
       player.hp = Math.min(PLAYER_MAX_HP, player.hp + PLAYER_REGEN_PER_TICK);
     }
 
-    function hurtPlayer(amount, kind) {
+    function hurtPlayer(amount, kind, fromX, fromY) {
       if (wasted || amount <= 0) return;
       if (kind === 'car' && player.hitCooldown > 0) return;
       if (kind === 'blast' && player.blastCooldown > 0) return;
       if (kind === 'gun' && player.gunHitCooldown > 0) return;
       player.hp = Math.max(0, player.hp - amount);
       notePlayerTookDamage();
+      if (kind === 'blast') triggerDamageReticuleOmni();
+      else if (typeof fromX === 'number' && typeof fromY === 'number') {
+        triggerDamageReticuleDirectional(fromX, fromY);
+      } else {
+        triggerDamageReticuleOmni();
+      }
       if (kind === 'car') player.hitCooldown = 42;
       if (kind === 'blast') player.blastCooldown = 18;
       if (kind === 'gun') {
@@ -6089,7 +6450,7 @@
         if (vehicle === activeVehicle) {
           const dmg = attackerId ? COMBAT.playerGunDamage : COMBAT.policeGunDamagePed;
           const wasAlive = !wasted;
-          hurtPlayer(dmg, 'gun');
+          hurtPlayer(dmg, 'gun', vehicle.x, vehicle.y);
           if (wasAlive && wasted && attackerId && attackerId !== net.localId) {
             addWantedForPlayer(attackerId, 1);
             playKillSfxFor(attackerId);
@@ -6292,7 +6653,7 @@
         } else if (targetKind === 'localPlayer') {
           const wasAlive = !wasted;
           if (player.mode === 'walking' || (activeVehicle && activeVehicle.isBike)) {
-            hurtPlayer(COMBAT.playerGunDamage, 'gun');
+            hurtPlayer(COMBAT.playerGunDamage, 'gun', bullet.x, bullet.y);
           } else if (activeVehicle) {
             damageVehicleFromBullet(activeVehicle, COMBAT.carDamage, shooterId);
           }
@@ -6313,10 +6674,10 @@
       } else if (bullet.owner === 'police') {
         if (targetKind === 'player') {
           if (player.mode === 'walking') {
-            hurtPlayer(COMBAT.policeGunDamagePed, 'gun');
+            hurtPlayer(COMBAT.policeGunDamagePed, 'gun', bullet.x, bullet.y);
           } else if (activeVehicle) {
             if (activeVehicle.isBike) {
-              hurtPlayer(COMBAT.policeGunDamagePed, 'gun');
+              hurtPlayer(COMBAT.policeGunDamagePed, 'gun', bullet.x, bullet.y);
             } else {
               damageVehicleFromBullet(activeVehicle, COMBAT.policeGunDamageCar, false);
               addCameraShake(SHAKE.tinyGunHit);
@@ -6656,7 +7017,7 @@
       const playerDist = Math.hypot(player.x - vehicle.x, player.y - vehicle.y);
       if (playerDist < radius) {
         const wasAlive = !wasted;
-        hurtPlayer(Math.round(52 * (1 - playerDist / radius)), 'blast');
+        hurtPlayer(Math.round(52 * (1 - playerDist / radius)), 'blast', vehicle.x, vehicle.y);
         if (wasAlive && wasted && attackerId && attackerId !== net.localId) {
           addWantedForPlayer(attackerId, 1);
           playKillSfxFor(attackerId);
@@ -6669,6 +7030,14 @@
         );
         // Skip if death haptic already played for a fatal blast.
         if (!wasted) haptic(HAPTIC.explodeNear);
+      }
+      // Local-only cinematic when the local player destroys a police car.
+      if (vehicle.isPoliceCar && attackerId && !deathCam.active) {
+        if (attackerId === net.localId && !wasted) {
+          triggerCopKillFx(vehicle.x, vehicle.y);
+        } else if (net.role === 'host' && attackerId !== net.localId) {
+          netSendToPeer(attackerId, { t: 'cop_kill', x: vehicle.x, y: vehicle.y });
+        }
       }
       if (net.role === 'host') {
         net.players.forEach(rp => {
@@ -6771,7 +7140,7 @@
           if (carSpeed < minHitSpeed) continue;
           const hit = Math.round(16 + carSpeed * 8 + (vehicle.isPoliceCar ? 8 : 0));
           const wasAlive = !wasted;
-          hurtPlayer(hit, 'car');
+          hurtPlayer(hit, 'car', vehicle.x, vehicle.y);
           if (wasAlive && wasted && vehicle.driverId && vehicle.driverId !== net.localId) {
             addWantedForPlayer(vehicle.driverId, 1);
             playKillSfxFor(vehicle.driverId);
@@ -7035,6 +7404,8 @@
       spawnCamIntro.fxBlend = 0;
       spawnCamIntro.zoomMul = 1;
       stopSpawnIntroAudio();
+      endCopKillFx();
+      clearDamageReticule();
       deathCam.active = true;
       deathCam.startedAt = performance.now();
       deathCam.originX = player.x;
@@ -7345,6 +7716,9 @@
       const now = performance.now();
       const deathBlend = updateDeathCam(now);
       const introBlend = deathCam.active ? 0 : updateSpawnCameraIntro(now);
+      const copPunch = (!deathCam.active && !spawnCamIntro.active)
+        ? getCopKillCameraPunch()
+        : { bias: 0, zoom: 1 };
       const sideLeanRad = player.cameraSideLean * (12 * Math.PI / 180);
       const cameraRotation = -player.cameraAngle - sideLeanRad - shakeSample.angle - Math.PI * 0.75;
       camProj.cos = Math.cos(cameraRotation);
@@ -7352,6 +7726,9 @@
       if (deathCam.active) {
         camProj.originX = deathCam.originX;
         camProj.originY = deathCam.originY;
+      } else if (copPunch.bias > 0.001) {
+        camProj.originX = player.x + (copKillFx.x - player.x) * copPunch.bias;
+        camProj.originY = player.y + (copKillFx.y - player.y) * copPunch.bias;
       } else {
         camProj.originX = player.x;
         camProj.originY = player.y;
@@ -7361,8 +7738,8 @@
       const introZoomMul = spawnCamIntro.active ? spawnCamIntro.zoomMul : 1;
       const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * (
         deathCam.active ? deathZoomMul : introZoomMul
-      );
-      if (deathCam.active || spawnCamIntro.active) {
+      ) * (deathCam.active ? 1 : copPunch.zoom);
+      if (deathCam.active || spawnCamIntro.active || copKillFx.active) {
         camProj.zoom = zoomTarget;
       } else {
         const lerpRate = Math.abs(cameraZoomUserFactor - 1) > 0.0001
@@ -8415,7 +8792,9 @@
         ctx.lineWidth = 8;
         ctx.strokeRect(4, 4, screenWidth - 8, screenHeight - 8);
       }
+      drawDamageReticule();
       ctx.restore();
+      drawBootSplash();
     }
 
     function appendBuildingShadowPath(tile) {
@@ -9332,6 +9711,30 @@
           stripes: true
         };
       }
+      if (carClass === 'impreza') {
+        return {
+          shadowW: 10.4, shadowL: 14.2,
+          body: { w: 9.1, l: 13.8, z0: 2, z1: 6.2, fwd: 0.35 },
+          cabin: { w: 5.9, l: 5.3, z0: 6.2, z1: 11.1, fwd: -1.4 },
+          spoiler: { w: 9.2, l: 1.25, z0: 6.4, z1: 9.1, fwd: -13.4 },
+          cabinColor: '#1a2433',
+          glassColor: '#2a4a5c',
+          glassFwdFront: 3.7,
+          glassFwdRear: -6.6,
+          glassZ0: 7,
+          glassZ1: 10.6,
+          glassW: 5,
+          hoodFwd: 9.2,
+          crackZ: 6.4,
+          crackSpan: 11.2,
+          bumper: { w: 9.0, l: 0.55, z0: 2.1, z1: 4.3 },
+          wheels: { side: 10.5, front: 9.0, rear: -8.5, hw: 2.05, hl: 2.4, z1: 3.8 },
+          headLight: { spread: 6.0, w: 1.3, l: 0.48, z0: 3.4, z1: 5.5 },
+          tailLight: { spread: 6.0, w: 1.15, l: 0.42, z0: 3.4, z1: 5.3 },
+          stripes: false,
+          neon: true
+        };
+      }
       return {
         shadowW: 9, shadowL: 15,
         body: { w: 8, l: 14, z0: 2, z1: 8, fwd: 0 },
@@ -9498,32 +9901,39 @@
       }
 
       if (vehicle.isPoliceCar) {
+        // UK Battenburg side / roof bands + blue/white light bar.
         [-1, 1].forEach(sideSign => {
-          const side = sideSign * (body.w + 0.2);
-          const panels = [
-            { fwd: 6, color: '#f5d031' },
-            { fwd: 2.5, color: '#1f4f9c' },
-            { fwd: -1, color: '#f5d031' },
-            { fwd: -4.5, color: '#1f4f9c' },
-            { fwd: -8, color: '#f5d031' }
+          const side = sideSign * (body.w + 0.15);
+          const bands = [
+            { fwd: 7.2, color: UK_POLICE.floBlue },
+            { fwd: 4.2, color: UK_POLICE.floLime },
+            { fwd: 1.2, color: UK_POLICE.floBlue },
+            { fwd: -1.8, color: UK_POLICE.floLime },
+            { fwd: -4.8, color: UK_POLICE.floBlue },
+            { fwd: -7.8, color: UK_POLICE.floLime }
           ];
-          panels.forEach(panel => {
-            drawBox(0.55, 1.35, panel.fwd, body.z0 + 1.2, body.z1 - 0.4, panel.color, side);
+          bands.forEach(band => {
+            drawBox(0.5, 1.2, band.fwd, body.z0 + 1.1, body.z1 - 0.35, band.color, side);
           });
         });
+        // Roof Battenburg strip
+        for (let b = 0; b < 5; b++) {
+          const t = (b / 5) - 0.4;
+          const bandColor = b % 2 === 0 ? UK_POLICE.floBlue : UK_POLICE.floLime;
+          drawBox(cabin.w * 0.92, 0.55, cabin.fwd + t * cabin.l * 1.5, cabin.z1, cabin.z1 + 0.45, bandColor, 0);
+        }
 
         const hunting = policeCarsHunting || vehicle === activeVehicle;
         const phase = Math.floor(simulationTick / 5) % 2;
-        const blueHot = !hunting || phase === 0;
-        const yellowHot = !hunting || phase === 1;
-        const blueColor = blueHot ? '#7ec2ff' : '#1a3f7a';
-        const yellowColor = yellowHot ? '#ffe14a' : '#7a5a10';
+        const aHot = !hunting || phase === 0;
+        const bHot = !hunting || phase === 1;
+        const colA = aHot ? UK_POLICE.barB : UK_POLICE.barA;
+        const colB = bHot ? '#ffffff' : UK_POLICE.barA;
 
-        drawBox(3.2, 1.1, cabin.fwd, cabin.z1, cabin.z1 + 1.6, '#1a1f28', 0);
-        drawBox(1.1, 0.7, cabin.fwd - 0.9, cabin.z1 + 0.2, cabin.z1 + 1.45, blueColor, 0);
-        drawBox(1.1, 0.7, cabin.fwd + 0.9, cabin.z1 + 0.2, cabin.z1 + 1.45, yellowColor, 0);
+        drawBox(3.4, 1.05, cabin.fwd, cabin.z1, cabin.z1 + 1.55, '#1a1f28', 0);
+        drawBox(1.15, 0.7, cabin.fwd - 0.95, cabin.z1 + 0.2, cabin.z1 + 1.4, colA, 0);
+        drawBox(1.15, 0.7, cabin.fwd + 0.95, cabin.z1 + 0.2, cabin.z1 + 1.4, colB, 0);
 
-        // Emergency light aura (blue / yellow tint)
         const glowWorld = toWorld(0, cabin.fwd, cabin.z1 + 1.4);
         const glow = project(glowWorld.x, glowWorld.y, glowWorld.z);
         const leftGlow = project(
@@ -9540,34 +9950,39 @@
         const radius = hunting ? 26 : 14;
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        if (blueHot) {
+        if (aHot) {
           ctx.fillStyle = `rgba(70, 140, 255, ${aura})`;
           ctx.beginPath();
           ctx.arc(leftGlow.x, leftGlow.y, radius, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = `rgba(140, 190, 255, ${aura * 0.7})`;
-          ctx.beginPath();
-          ctx.arc(leftGlow.x, leftGlow.y, radius * 0.45, 0, Math.PI * 2);
-          ctx.fill();
         }
-        if (yellowHot) {
-          ctx.fillStyle = `rgba(255, 200, 50, ${aura})`;
+        if (bHot) {
+          ctx.fillStyle = `rgba(200, 230, 255, ${aura})`;
           ctx.beginPath();
           ctx.arc(rightGlow.x, rightGlow.y, radius, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = `rgba(255, 230, 140, ${aura * 0.7})`;
-          ctx.beginPath();
-          ctx.arc(rightGlow.x, rightGlow.y, radius * 0.45, 0, Math.PI * 2);
-          ctx.fill();
         }
         if (hunting) {
-          ctx.fillStyle = phase === 0
-            ? `rgba(80, 150, 255, ${aura * 0.35})`
-            : `rgba(255, 195, 60, ${aura * 0.35})`;
+          ctx.fillStyle = `rgba(80, 160, 255, ${aura * 0.35})`;
           ctx.beginPath();
           ctx.arc(glow.x, glow.y, radius * 1.35, 0, Math.PI * 2);
           ctx.fill();
         }
+        ctx.restore();
+      }
+
+      if (vehicle.carClass === 'impreza' || (getCarSpec(vehicle).neon)) {
+        const neonZ = 1.2;
+        const glowPts = [
+          toWorld(-body.w * 0.85, body.fwd - body.l * 0.7, neonZ),
+          toWorld(body.w * 0.85, body.fwd - body.l * 0.7, neonZ),
+          toWorld(body.w * 0.85, body.fwd + body.l * 0.7, neonZ),
+          toWorld(-body.w * 0.85, body.fwd + body.l * 0.7, neonZ)
+        ].map(p => project(p.x, p.y, p.z));
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(${IMPREZA_NEON}, 0.22)`;
+        fillQuad(glowPts[0], glowPts[1], glowPts[2], glowPts[3]);
         ctx.restore();
       }
 
@@ -11078,6 +11493,12 @@
         if (typeof msg.hp === 'number') player.hp = Math.max(0, msg.hp);
         else player.hp = Math.max(0, player.hp - (msg.amount || 0));
         notePlayerTookDamage();
+        if (msg.kind === 'blast') triggerDamageReticuleOmni();
+        else if (msg.shoveX != null && msg.shoveY != null) {
+          triggerDamageReticuleDirectional(msg.shoveX, msg.shoveY);
+        } else {
+          triggerDamageReticuleOmni();
+        }
         if (msg.kind === 'gun') addCameraShake(SHAKE.tinyGunHit);
         else if (msg.kind === 'car') addCameraShake(SHAKE.mediumCrash);
         if (player.mode === 'walking' && msg.shoveX != null && msg.shoveY != null) {
@@ -11089,6 +11510,10 @@
         if (player.hp <= 0) triggerWasted();
       } else if (msg.t === 'sfx') {
         if (msg.name) playSfx(msg.name);
+      } else if (msg.t === 'cop_kill') {
+        if (!wasted && !deathCam.active) {
+          triggerCopKillFx(Number(msg.x) || player.x, Number(msg.y) || player.y);
+        }
       } else if (msg.t === 'car_bump') {
         if (activeVehicle && activeVehicle.id === msg.vehicleId) {
           player.speed = msg.speed;
@@ -12575,6 +13000,7 @@
     });
 
     function stepSimulation() {
+      if (bootSplash.active) return;
       const spawnLocked = isSpawnIntroLocked();
       if (isMobile) {
         if (wasted || spawnLocked) {
@@ -12588,6 +13014,7 @@
         }
       }
       updatePlayerHealthRegen();
+      updateDamageReticule();
       if (net.role === 'guest') {
         if (!wasted && !spawnLocked) {
           handleInput();
@@ -12630,25 +13057,29 @@
         ? Math.min(0.05, Math.max(0, (ts - radioLastTs) / 1000))
         : 0.016;
       radioLastTs = ts;
+      updateBootSplash(radioDt);
+      const timeScale = bootSplash.active ? 0 : getCopKillTimeScale();
 
       if (!lastFrameTime) {
         lastFrameTime = ts;
-        stepSimulation();
+        if (timeScale > 0) stepSimulation();
       } else {
         let dt = Math.min(100, Math.max(0, ts - lastFrameTime));
         lastFrameTime = ts;
         // Snap common 120Hz / 60Hz frame intervals to avoid 0/2 or 1/3 micro-jitter.
         if (Math.abs(dt - SIM_STEP_MS) < 0.85) dt = SIM_STEP_MS;
         else if (Math.abs(dt - SIM_STEP_MS * 2) < 1.35) dt = SIM_STEP_MS * 2;
-        simAccumulator += dt;
-        const maxAccum = SIM_STEP_MS * SIM_MAX_STEPS_PER_FRAME;
-        if (simAccumulator > maxAccum) simAccumulator = maxAccum;
+        if (timeScale > 0) {
+          simAccumulator += dt * timeScale;
+          const maxAccum = SIM_STEP_MS * SIM_MAX_STEPS_PER_FRAME;
+          if (simAccumulator > maxAccum) simAccumulator = maxAccum;
 
-        let steps = 0;
-        while (simAccumulator >= SIM_STEP_MS && steps < SIM_MAX_STEPS_PER_FRAME) {
-          stepSimulation();
-          simAccumulator -= SIM_STEP_MS;
-          steps++;
+          let steps = 0;
+          while (simAccumulator >= SIM_STEP_MS && steps < SIM_MAX_STEPS_PER_FRAME) {
+            stepSimulation();
+            simAccumulator -= SIM_STEP_MS;
+            steps++;
+          }
         }
       }
 
@@ -12664,7 +13095,8 @@
     resizeCanvas();
     if (isMobile) resetMobileSticks();
     initCarRadio();
-    startSpawnCameraIntro();
+    // Spawn intro starts after first-load boot wipe finishes.
+    if (!bootSplash.active) startSpawnCameraIntro();
     requestAnimationFrame(loop);
   </script>
 </body>
