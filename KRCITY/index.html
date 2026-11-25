@@ -1186,34 +1186,159 @@
 
     /* Compact adjustments for very short viewports (e.g. phone landscape) */
     @media (max-height: 500px) {
-      body.mobile .jj-plate { padding: 3px 10px 4px; }
-      body.mobile .jj-top-bar { min-height: 36px; padding-bottom: 0; }
-      body.mobile .jj-wordmark { font-size: 9px; letter-spacing: 3px; }
-      body.mobile #interactBtn {
+      body.mobile:not(.mobile-landscape) .jj-plate { padding: 3px 10px 4px; }
+      body.mobile:not(.mobile-landscape) .jj-top-bar { min-height: 36px; padding-bottom: 0; }
+      body.mobile:not(.mobile-landscape) .jj-wordmark { font-size: 9px; letter-spacing: 3px; }
+      body.mobile:not(.mobile-landscape) #interactBtn {
         width: 36px;
         height: 36px;
         font-size: 8px;
       }
-      body.mobile #enter-hint-mobile .enter-hint-text {
+      body.mobile:not(.mobile-landscape) #enter-hint-mobile .enter-hint-text {
         font-size: 10px;
         padding: 3px 6px;
         letter-spacing: 1.2px;
       }
-      body.mobile #enter-hint-mobile .enter-hint-arrow {
+      body.mobile:not(.mobile-landscape) #enter-hint-mobile .enter-hint-arrow {
         font-size: 11px;
         margin-right: 11px;
       }
-      body.mobile #pad .stick-well {
+      body.mobile:not(.mobile-landscape) #pad .stick-well {
         width: clamp(72px, 21dvh, 102px);
         height: clamp(72px, 21dvh, 102px);
       }
-      body.mobile #pad .stick-knob {
+      body.mobile:not(.mobile-landscape) #pad .stick-knob {
         width: clamp(36px, 10dvh, 48px);
         height: clamp(36px, 10dvh, 48px);
       }
-      body.mobile #pad .label { display: none; }
-      body.mobile .jj-bottom { min-height: 26px; padding-top: 2px; }
-      body.mobile .jj-pill { padding: 3px 10px; font-size: 8px; }
+      body.mobile:not(.mobile-landscape) #pad .label { display: none; }
+      body.mobile:not(.mobile-landscape) .jj-bottom { min-height: 26px; padding-top: 2px; }
+      body.mobile:not(.mobile-landscape) .jj-pill { padding: 3px 10px; font-size: 8px; }
+    }
+
+    /* ---------- LANDSCAPE: full-bleed game + thin PSP frame (10% bottom) ---------- */
+    body.mobile.mobile-landscape #game-container {
+      top: 5px;
+      left: 5px;
+      right: 5px;
+      bottom: 10dvh;
+      width: auto;
+      height: auto;
+      border-radius: 2px;
+      box-shadow:
+        0 0 0 1px #1a1510,
+        0 0 0 2px #b9ad94,
+        0 0 0 5px #d9ceb7,
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        0 2px 8px rgba(40, 30, 15, 0.3);
+    }
+    body.mobile.mobile-landscape #pad {
+      height: 10dvh;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      pointer-events: none;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    body.mobile.mobile-landscape .jj-plate {
+      padding: 0 12px;
+      border-top: 1px solid rgba(40, 30, 15, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      pointer-events: none;
+    }
+    /* ENTER floats top-right over the game; wordmark sits in the bottom strip */
+    body.mobile.mobile-landscape .jj-top-bar {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      left: auto;
+      min-height: 0;
+      padding: 0;
+      z-index: 26;
+      pointer-events: none;
+      overflow: visible;
+    }
+    body.mobile.mobile-landscape .jj-top-bar #interactBtn,
+    body.mobile.mobile-landscape .jj-top-bar #enter-hint-mobile {
+      pointer-events: auto;
+    }
+    body.mobile.mobile-landscape .jj-wordmark {
+      position: fixed;
+      left: 50%;
+      top: auto;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 2.6dvh);
+      transform: translateX(-50%);
+      z-index: 24;
+      font-size: 9px;
+      letter-spacing: 4px;
+      pointer-events: none;
+    }
+    body.mobile.mobile-landscape #interactBtn {
+      width: 42px;
+      height: 42px;
+      font-size: 9px;
+    }
+    /* Twin sticks overlay the game (same controls as portrait) */
+    body.mobile.mobile-landscape .jj-row {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 5px;
+      bottom: 10dvh;
+      z-index: 18;
+      flex: none;
+      min-height: 0;
+      pointer-events: none;
+    }
+    body.mobile.mobile-landscape #pad .stick-zone {
+      position: absolute;
+      flex: none;
+      width: 40%;
+      height: 56%;
+      bottom: 2%;
+      pointer-events: auto;
+      opacity: 0.78;
+    }
+    body.mobile.mobile-landscape #pad .stick-zone.left { left: 1%; }
+    body.mobile.mobile-landscape #pad .stick-zone.right {
+      right: 1%;
+      left: auto;
+    }
+    body.mobile.mobile-landscape #pad .stick-well {
+      width: clamp(84px, 26vmin, 118px);
+      height: clamp(84px, 26vmin, 118px);
+    }
+    body.mobile.mobile-landscape #pad .stick-knob {
+      width: clamp(40px, 12vmin, 56px);
+      height: clamp(40px, 12vmin, 56px);
+    }
+    body.mobile.mobile-landscape #pad .label { display: none; }
+    body.mobile.mobile-landscape .jj-bottom {
+      position: relative;
+      height: 100%;
+      min-height: 0;
+      padding: 0;
+      gap: clamp(14px, 4vw, 28px);
+      pointer-events: auto;
+      z-index: 22;
+    }
+    body.mobile.mobile-landscape .jj-speaker {
+      height: 12px;
+      opacity: 0.5;
+    }
+    body.mobile.mobile-landscape .jj-pill {
+      padding: 4px 12px;
+      font-size: 9px;
+    }
+    body.mobile.mobile-landscape #left-panels {
+      bottom: calc(10dvh + 6px);
+      max-width: min(260px, calc(100% - 16px));
+      max-height: calc(100dvh - 10dvh - 24px);
+    }
+    body.mobile.mobile-landscape #minimap-stack {
+      top: 6px;
+      right: 6px;
     }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -1414,11 +1539,29 @@
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
 
+    function isMobileLandscape() {
+      return isMobile && window.matchMedia('(orientation: landscape)').matches;
+    }
+
+    function syncMobileOrientationClass() {
+      if (!isMobile) {
+        document.body.classList.remove('mobile-landscape');
+        return false;
+      }
+      const landscape = isMobileLandscape();
+      document.body.classList.toggle('mobile-landscape', landscape);
+      return landscape;
+    }
+
     function resizeCanvas() {
+      syncMobileOrientationClass();
       if (isMobile) {
         const rect = canvas.getBoundingClientRect();
+        const fallbackH = isMobileLandscape()
+          ? Math.floor(window.innerHeight * 0.9)
+          : Math.floor(window.innerHeight * 0.6);
         screenWidth = Math.max(1, Math.floor(rect.width) || (window.innerWidth - 20));
-        screenHeight = Math.max(1, Math.floor(rect.height) || Math.floor(window.innerHeight * 0.6));
+        screenHeight = Math.max(1, Math.floor(rect.height) || fallbackH);
       } else {
         screenWidth = window.innerWidth;
         screenHeight = window.innerHeight;
@@ -1428,11 +1571,32 @@
       ctx.imageSmoothingEnabled = false;
       invalidateAtmosphereOverlay();
     }
-    window.addEventListener('resize', resizeCanvas);
+
+    function scheduleMobileLayoutRefresh() {
+      // Double rAF so CSS orientation class / flex settles before measuring the canvas.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resizeCanvas();
+          if (typeof updateMobileMinimapSize === 'function') updateMobileMinimapSize(true);
+        });
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      if (isMobile) scheduleMobileLayoutRefresh();
+      else resizeCanvas();
+    });
     if (isMobile) {
-      window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 120));
+      syncMobileOrientationClass();
+      window.addEventListener('orientationchange', () => setTimeout(scheduleMobileLayoutRefresh, 140));
+      const orientMq = window.matchMedia('(orientation: landscape)');
+      if (orientMq.addEventListener) {
+        orientMq.addEventListener('change', () => scheduleMobileLayoutRefresh());
+      } else if (orientMq.addListener) {
+        orientMq.addListener(() => scheduleMobileLayoutRefresh());
+      }
       if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', resizeCanvas);
+        window.visualViewport.addEventListener('resize', () => scheduleMobileLayoutRefresh());
       }
     }
 
@@ -1455,13 +1619,26 @@
       bike: 7
     };
     const CAMERA_ZOOM_DESKTOP = 1.35;
-    const CAMERA_ZOOM_MOBILE = 0.96;
+    const CAMERA_ZOOM_MOBILE = 0.85; // wider FOV on mobile
     const CAMERA_ZOOM_LERP = 0.12;
     const CAMERA_ZOOM_LERP_USER = 0.07; // slower while user-nudged zoom is active
     const CAMERA_ZOOM_HEIGHT_REF = 0.82;
     const CAMERA_ZOOM_USER_RANGE = 0.15; // ±15% around platform base zoom
     const CAMERA_ZOOM_WHEEL_STEP = 0.035;
     const CAMERA_ZOOM_PINCH_SENS = 0.9;
+    // Look-ahead: +15% overall; a bit more once speedRatio clears the threshold.
+    const LOOK_AHEAD = {
+      baseScale: 0.14 * 1.15,
+      fastAt: 0.4,
+      fastMul: 1.12
+    };
+    // Mobile minimap CSS size (px) — lerps between on-foot and driving.
+    const MOBILE_MINIMAP = {
+      foot: 88,
+      drive: 128,
+      lerp: 0.14
+    };
+    let mobileMinimapDisplaySize = MOBILE_MINIMAP.foot;
     const CAMERA_ZOOM_HAPTIC_MS = 8;
     // Spawn / respawn / MP-join: far map → dive to player → ease out to play zoom.
     const SPAWN_CAM = {
@@ -1979,6 +2156,34 @@
     };
     const cameraShake = { trauma: 0 };
     let shakeSample = { x: 0, y: 0, angle: 0 };
+
+    // Car–car crash damage/FX: near-zero at slow bumps, full legacy damage at high impact.
+    // Physics separation still runs below these thresholds; only HP + feedback are scaled.
+    const CAR_CRASH_FEEL = {
+      resolveMin: 0.5,
+      dmgZeroBelow: 1.15,
+      dmgFullAt: 3.5,
+      rawOffset: 0.35,
+      rawMul: 5.2,
+      fxMuteBelow: 0.08,
+      sfxMinScale: 0.22
+    };
+
+    function carCrashSeverity(impactSpeed) {
+      const cfg = CAR_CRASH_FEEL;
+      if (impactSpeed <= cfg.dmgZeroBelow) return 0;
+      if (impactSpeed >= cfg.dmgFullAt) return 1;
+      const u = (impactSpeed - cfg.dmgZeroBelow) /
+        Math.max(0.001, cfg.dmgFullAt - cfg.dmgZeroBelow);
+      return u * u * (3 - 2 * u);
+    }
+
+    function carCrashDamageFromImpact(impactSpeed) {
+      const severity = carCrashSeverity(impactSpeed);
+      if (severity <= 0) return 0;
+      const raw = Math.max(0, impactSpeed - CAR_CRASH_FEEL.rawOffset) * CAR_CRASH_FEEL.rawMul;
+      return Math.round(raw * severity);
+    }
 
     // Mobile-only haptics (navigator.vibrate). Numbers = ms; arrays = vibrate/pause pattern.
     // Local player events only. Tune intensities here.
@@ -7804,9 +8009,17 @@
       }
       camProj.zoomRatio = camProj.zoom / CAMERA_ZOOM_HEIGHT_REF;
       camProj.screenCX = screenWidth / 2 + (deathCam.active ? 0 : player.cameraSideLean * 22);
+      let lookAheadScale = LOOK_AHEAD.baseScale;
+      if (player.cameraLookAhead >= LOOK_AHEAD.fastAt) {
+        const t = Math.min(
+          1,
+          (player.cameraLookAhead - LOOK_AHEAD.fastAt) / Math.max(0.001, 1 - LOOK_AHEAD.fastAt)
+        );
+        lookAheadScale *= 1 + (LOOK_AHEAD.fastMul - 1) * t;
+      }
       const lookAheadShift = deathCam.active
         ? 0
-        : player.cameraLookAhead * 0.14 * (1 - player.cameraRearPeek * 0.7);
+        : player.cameraLookAhead * lookAheadScale * (1 - player.cameraRearPeek * 0.7);
       const rearPeekShift = deathCam.active ? 0 : player.cameraRearPeek * 0.15;
       const introCy = introBlend * SPAWN_CAM.cyNudge;
       const introBob = introBlend > 0
@@ -8322,19 +8535,24 @@
               }
 
               if (first.collisionCooldown === 0 && second.collisionCooldown === 0) {
-                if (impactSpeed > 0.5) {
+                if (impactSpeed > CAR_CRASH_FEEL.resolveMin) {
                   const localInCrash = first === activeVehicle || second === activeVehicle;
                   const crashDriver = localInCrash
                     ? net.localId
                     : (first.driverId || second.driverId || null);
-                  if (localInCrash) {
-                    addCameraShake(SHAKE.mediumCrash);
-                    if (impactSpeed >= HAPTIC.crashMinSpeed) {
+                  const severity = carCrashSeverity(impactSpeed);
+                  const shakeAmt = SHAKE.mediumCrash * severity;
+                  if (localInCrash && severity > CAR_CRASH_FEEL.fxMuteBelow) {
+                    addCameraShake(shakeAmt);
+                    if (
+                      impactSpeed >= HAPTIC.crashMinSpeed &&
+                      severity >= CAR_CRASH_FEEL.sfxMinScale
+                    ) {
                       haptic(HAPTIC.crash);
                       playSfx('crash');
                     }
                   }
-                  const dmg = Math.round(Math.max(0, impactSpeed - 0.35) * 5.2);
+                  const dmg = carCrashDamageFromImpact(impactSpeed);
                   if (dmg > 0) {
                     first.health = Math.max(0, first.health - dmg);
                     second.health = Math.max(0, second.health - dmg);
@@ -8364,7 +8582,7 @@
                         x: first.x,
                         y: first.y,
                         speed: first.speed,
-                        shake: SHAKE.mediumCrash
+                        shake: shakeAmt
                       });
                     }
                   }
@@ -8383,7 +8601,7 @@
                         x: second.x,
                         y: second.y,
                         speed: second.speed,
-                        shake: SHAKE.mediumCrash
+                        shake: shakeAmt
                       });
                     }
                   }
@@ -10584,6 +10802,27 @@
       heartbeatMs: 225
     };
 
+    function updateMobileMinimapSize(instant) {
+      if (!isMobile) return;
+      const driving = player.mode === 'driving' || player.mode === 'biking';
+      const target = driving ? MOBILE_MINIMAP.drive : MOBILE_MINIMAP.foot;
+      if (instant) mobileMinimapDisplaySize = target;
+      else mobileMinimapDisplaySize += (target - mobileMinimapDisplaySize) * MOBILE_MINIMAP.lerp;
+      if (Math.abs(target - mobileMinimapDisplaySize) < 0.35) mobileMinimapDisplaySize = target;
+      const s = Math.round(mobileMinimapDisplaySize);
+      const container = document.getElementById('minimap-container');
+      const mini = document.getElementById('minimap');
+      if (container) {
+        container.style.width = s + 'px';
+        container.style.height = s + 'px';
+      }
+      if (mini) {
+        mini.style.width = s + 'px';
+        mini.style.height = s + 'px';
+      }
+      if (instant) minimapDirty.lastDrawAt = 0;
+    }
+
     function drawMinimapIfNeeded() {
       const now = performance.now();
       const angDiff = isFinite(minimapDirty.angle)
@@ -10802,8 +11041,11 @@
       } else {
         carRow.style.display = 'none';
       }
-      if (isMobile && typeof updateMobileHudAndControls === 'function') {
-        updateMobileHudAndControls();
+      if (isMobile) {
+        updateMobileMinimapSize(false);
+        if (typeof updateMobileHudAndControls === 'function') {
+          updateMobileHudAndControls();
+        }
       }
       updateEnterHint();
     }
@@ -13171,7 +13413,10 @@
 
     updateWantedStarsUi();
     resizeCanvas();
-    if (isMobile) resetMobileSticks();
+    if (isMobile) {
+      updateMobileMinimapSize(true);
+      resetMobileSticks();
+    }
     initCarRadio();
     // Spawn intro starts after first-load boot wipe finishes.
     if (!bootSplash.active) startSpawnCameraIntro();
