@@ -1247,17 +1247,20 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
       pointer-events: none;
     }
-    /* ENTER floats top-right over the game; wordmark sits in the bottom strip */
+    /* ENTER sits top-left of right stick; wordmark sits in the bottom strip */
     body.mobile.mobile-landscape .jj-top-bar {
+      /* Same overlay box as .jj-row so % coords match stick zones */
       position: fixed;
-      top: max(8px, env(safe-area-inset-top, 0px));
-      right: max(12px, env(safe-area-inset-right, 0px));
-      left: auto;
+      top: 5px;
+      left: 0;
+      right: 0;
+      bottom: 10dvh;
       min-height: 0;
       padding: 0;
       z-index: 26;
       pointer-events: none;
       overflow: visible;
+      display: block;
     }
     body.mobile.mobile-landscape .jj-top-bar #interactBtn,
     body.mobile.mobile-landscape .jj-top-bar #enter-hint-mobile {
@@ -1274,10 +1277,23 @@
       letter-spacing: 4px;
       pointer-events: none;
     }
+    /* Right stick rest center ≈ right: 12.2%, bottom: 31.1% (zone 40%/56%, cx 0.72) */
     body.mobile.mobile-landscape #interactBtn {
+      position: absolute;
       width: 42px;
       height: 42px;
       font-size: 9px;
+      right: calc(12.2% + clamp(42px, 13vmin, 59px) + 6px);
+      bottom: calc(31.1% + clamp(42px, 13vmin, 59px) + 6px);
+      left: auto;
+      top: auto;
+    }
+    body.mobile.mobile-landscape #enter-hint-mobile {
+      right: calc(12.2% + clamp(42px, 13vmin, 59px) + 6px);
+      bottom: calc(31.1% + clamp(42px, 13vmin, 59px) + 6px + 46px);
+      left: auto;
+      top: auto;
+      align-items: flex-end;
     }
     /* Twin sticks overlay the game (same controls as portrait) */
     body.mobile.mobile-landscape .jj-row {
@@ -1639,6 +1655,23 @@
       lerp: 0.14
     };
     let mobileMinimapDisplaySize = MOBILE_MINIMAP.foot;
+    // Portrait-only world warp (axis-aligned center stretch / edge compress).
+    // HUD HTML stays flat; damage reticule is redrawn unwarped after the pass.
+    const MOBILE_WARP = {
+      enabled: true,
+      expand: 1.12,       // capture +12% world (zoom out before remap)
+      power: 1.38,        // >1 = wider center cells, tighter edges (try 1.2–1.55)
+      begin: 0.8,         // 0 = warp from center; higher (e.g. 0.45) = warp starts closer to edges
+      slices: 52,         // strips per axis (higher = smoother, costlier)
+      smooth: true,       // bilinear when resampling strips
+      respectReducedMotion: false
+    };
+    const mobileWarpBuffers = {
+      src: null,
+      tmp: null,
+      w: 0,
+      h: 0
+    };
     const CAMERA_ZOOM_HAPTIC_MS = 8;
     // Spawn / respawn / MP-join: far map → dive to player → ease out to play zoom.
     const SPAWN_CAM = {
@@ -2401,7 +2434,16 @@
       let any = 0;
       for (let i = 0; i < 8; i++) any = Math.max(any, damageReticule.sector[i]);
       if (any < 0.02) return;
-      const feet = project(player.x, player.y, 10);
+      let feet = project(player.x, player.y, 10);
+      // Reticule itself stays unwarped; only its anchor follows the warped ped.
+      // Bake shake into the map because the world buffer already includes shake.
+      if (typeof mobileWarpActive === 'function' && mobileWarpActive() &&
+          typeof mobileWarpMapPoint === 'function') {
+        feet = mobileWarpMapPoint(
+          feet.x + shakeSample.x,
+          feet.y + shakeSample.y
+        );
+      }
       const r0 = DAMAGE_RET.r0;
       const r1 = DAMAGE_RET.r1;
       const gap = DAMAGE_RET.gap;
@@ -7995,9 +8037,13 @@
       const deathZoomMul = 1 + (DEATH_CAM.zoomMul - 1) * deathBlend;
       // Spawn intro zoomMul is absolute vs play zoom; still multiplied by user zoom factor.
       const introZoomMul = spawnCamIntro.active ? spawnCamIntro.zoomMul : 1;
-      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * (
+      let zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * (
         deathCam.active ? deathZoomMul : introZoomMul
       ) * (deathCam.active ? 1 : copPunch.zoom);
+      // Pull back so the warp remap can show expand% more world at the edges.
+      if (typeof mobileWarpActive === 'function' && mobileWarpActive()) {
+        zoomTarget /= MOBILE_WARP.expand;
+      }
       if (deathCam.active || spawnCamIntro.active || copKillFx.active) {
         camProj.zoom = zoomTarget;
       } else {
@@ -8794,8 +8840,138 @@
       return item;
     }
 
+    function mobileWarpActive() {
+      if (!MOBILE_WARP.enabled || !isMobile || isMobileLandscape()) return false;
+      if (MOBILE_WARP.respectReducedMotion) {
+        try {
+          if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+        } catch (_) {}
+      }
+      return true;
+    }
+
+    function ensureMobileWarpBuffers() {
+      const w = screenWidth;
+      const h = screenHeight;
+      if (!mobileWarpBuffers.src) {
+        mobileWarpBuffers.src = document.createElement('canvas');
+        mobileWarpBuffers.tmp = document.createElement('canvas');
+      }
+      if (mobileWarpBuffers.w !== w || mobileWarpBuffers.h !== h) {
+        mobileWarpBuffers.src.width = w;
+        mobileWarpBuffers.src.height = h;
+        mobileWarpBuffers.tmp.width = w;
+        mobileWarpBuffers.tmp.height = h;
+        mobileWarpBuffers.w = w;
+        mobileWarpBuffers.h = h;
+      }
+      return mobileWarpBuffers;
+    }
+
+    function mobileWarpBegin() {
+      const b = MOBILE_WARP.begin;
+      if (!(b > 0)) return 0;
+      return Math.min(0.95, b);
+    }
+
+    // Dest norm [-1,1] → source norm (power > 1 = center magnify / edge compress).
+    // Flat/linear until |n| = begin, then power curve toward the edges.
+    function mobileWarpDestToSrcNorm(nd, power, begin) {
+      const a = Math.min(1, Math.abs(nd));
+      if (a < 1e-8) return 0;
+      let t;
+      if (!(begin > 0) || a <= begin) {
+        t = begin > 0 ? a : Math.pow(a, power);
+      } else {
+        const u = (a - begin) / (1 - begin);
+        t = begin + (1 - begin) * Math.pow(u, power);
+      }
+      return (nd < 0 ? -1 : 1) * t;
+    }
+
+    // Inverse: buffer/screen linear → warped screen (for unwarped HUD anchors).
+    function mobileWarpSrcToDestNorm(ns, power, begin) {
+      const a = Math.min(1, Math.abs(ns));
+      if (a < 1e-8) return 0;
+      let t;
+      if (!(begin > 0) || a <= begin) {
+        t = begin > 0 ? a : Math.pow(a, 1 / power);
+      } else {
+        const u = (a - begin) / (1 - begin);
+        t = begin + (1 - begin) * Math.pow(u, 1 / power);
+      }
+      return (ns < 0 ? -1 : 1) * t;
+    }
+
+    function mobileWarpMapPoint(x, y) {
+      const power = MOBILE_WARP.power;
+      const begin = mobileWarpBegin();
+      const nx = (x / Math.max(1, screenWidth)) * 2 - 1;
+      const ny = (y / Math.max(1, screenHeight)) * 2 - 1;
+      const dx = mobileWarpSrcToDestNorm(nx, power, begin);
+      const dy = mobileWarpSrcToDestNorm(ny, power, begin);
+      return {
+        x: (dx + 1) * 0.5 * screenWidth,
+        y: (dy + 1) * 0.5 * screenHeight
+      };
+    }
+
+    function applyMobileWorldWarp(srcCanvas) {
+      const W = screenWidth;
+      const H = screenHeight;
+      if (W < 2 || H < 2) return;
+      const buf = ensureMobileWarpBuffers();
+      const tmp = buf.tmp;
+      const tmpCtx = tmp.getContext('2d');
+      const power = MOBILE_WARP.power;
+      const begin = mobileWarpBegin();
+      const slices = Math.max(8, Math.round(MOBILE_WARP.slices) || 48);
+      const smooth = !!MOBILE_WARP.smooth;
+
+      tmpCtx.imageSmoothingEnabled = smooth;
+      tmpCtx.clearRect(0, 0, W, H);
+      // Pass 1: horizontal remap → tmp
+      for (let i = 0; i < slices; i++) {
+        const u0 = i / slices;
+        const u1 = (i + 1) / slices;
+        const nd0 = u0 * 2 - 1;
+        const nd1 = u1 * 2 - 1;
+        const ns0 = mobileWarpDestToSrcNorm(nd0, power, begin);
+        const ns1 = mobileWarpDestToSrcNorm(nd1, power, begin);
+        const sx0 = (ns0 + 1) * 0.5 * W;
+        const sx1 = (ns1 + 1) * 0.5 * W;
+        const sw = sx1 - sx0;
+        const dw = (u1 - u0) * W;
+        if (Math.abs(sw) < 0.05 || Math.abs(dw) < 0.05) continue;
+        tmpCtx.drawImage(srcCanvas, sx0, 0, sw, H, u0 * W, 0, dw, H);
+      }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.imageSmoothingEnabled = smooth;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = PALETTE.background;
+      ctx.fillRect(0, 0, W, H);
+      // Pass 2: vertical remap tmp → screen
+      for (let i = 0; i < slices; i++) {
+        const u0 = i / slices;
+        const u1 = (i + 1) / slices;
+        const nd0 = u0 * 2 - 1;
+        const nd1 = u1 * 2 - 1;
+        const ns0 = mobileWarpDestToSrcNorm(nd0, power, begin);
+        const ns1 = mobileWarpDestToSrcNorm(nd1, power, begin);
+        const sy0 = (ns0 + 1) * 0.5 * H;
+        const sy1 = (ns1 + 1) * 0.5 * H;
+        const sh = sy1 - sy0;
+        const dh = (u1 - u0) * H;
+        if (Math.abs(sh) < 0.05 || Math.abs(dh) < 0.05) continue;
+        ctx.drawImage(tmp, 0, sy0, W, sh, 0, u0 * H, W, dh);
+      }
+      ctx.imageSmoothingEnabled = false;
+    }
+
     function render() {
       refreshCameraProjection();
+      const warpOn = mobileWarpActive();
 
       ctx.fillStyle = PALETTE.background;
       ctx.fillRect(0, 0, screenWidth, screenHeight);
@@ -8807,7 +8983,7 @@
       renderQueue.length = 0;
 
       // Determine visible grid bounds around player
-      const viewRadius = 14;
+      const viewRadius = warpOn ? 16 : 14;
       const pTileX = Math.floor(player.x / TILE_SIZE);
       const pTileY = Math.floor(player.y / TILE_SIZE);
 
@@ -9056,16 +9232,37 @@
       drawReloadBar();
       drawAtmosphere();
       drawMinimapIfNeeded();
+      ctx.restore();
 
+      // Axis-aligned world warp (portrait mobile): remap buffer → screen, HUD stays flat.
+      if (warpOn) {
+        const buf = ensureMobileWarpBuffers();
+        const srcCtx = buf.src.getContext('2d');
+        srcCtx.imageSmoothingEnabled = false;
+        srcCtx.clearRect(0, 0, screenWidth, screenHeight);
+        srcCtx.drawImage(canvas, 0, 0);
+        applyMobileWorldWarp(buf.src);
+      }
+
+      // Screen-space overlays (unwarped). Reticule anchors via mobileWarpMapPoint when warp is on.
       if (activeVehicle && activeVehicle.health / activeVehicle.maxHealth < 0.45) {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.strokeStyle = `rgba(169, 63, 52, ${
           0.22 + Math.sin(simulationTick * 0.15) * 0.12
         })`;
         ctx.lineWidth = 8;
         ctx.strokeRect(4, 4, screenWidth - 8, screenHeight - 8);
+        ctx.restore();
       }
-      drawDamageReticule();
-      ctx.restore();
+      if (warpOn) {
+        drawDamageReticule();
+      } else {
+        ctx.save();
+        ctx.translate(shakeSample.x, shakeSample.y);
+        drawDamageReticule();
+        ctx.restore();
+      }
       drawBootSplash();
     }
 
@@ -13100,7 +13297,13 @@
 
       function resetVisuals() {
         const r = zoneEl.getBoundingClientRect();
-        const cx = r.width * 0.5;
+        // Landscape: rest sticks closer to the left/right borders (away from middle).
+        const landscape = document.body.classList.contains('mobile-landscape');
+        let cxRatio = 0.5;
+        if (landscape) {
+          cxRatio = zoneEl.classList.contains('left') ? 0.28 : 0.72;
+        }
+        const cx = r.width * cxRatio;
         const cy = r.height * 0.48;
         state.baseX = cx;
         state.baseY = cy;
