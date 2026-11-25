@@ -1438,16 +1438,21 @@
     const CAMERA_ZOOM_WHEEL_STEP = 0.035;
     const CAMERA_ZOOM_PINCH_SENS = 0.9;
     const CAMERA_ZOOM_HAPTIC_MS = 8;
-    // Spawn / respawn / MP-join camera intro: close-up → ease out to normal.
+    // Spawn / respawn / MP-join: far map → dive to player → ease out to play zoom.
     const SPAWN_CAM = {
-      zoomMul: 1.7,
-      holdMs: 280,
-      maxWaitMs: 2000,
+      farBlocks: 3,
+      closeMul: 1.7,
+      overviewHoldMs: 420,
+      diveMs: 500,
+      closeHoldMs: 160,
       easeOutMs: 1100,
-      moveTrigger: 0.85,
       slopeBoost: 0.05,
-      bobAmp: 0.01,
-      cyNudge: 0.028
+      bobAmp: 0.012,
+      cyNudge: 0.028,
+      landShake: 0.16,
+      landHapticMs: 12,
+      whooshVol: 0.55,
+      bedVol: 0.22
     };
     const DEATH_CAM = {
       zoomMul: 2.2,
@@ -6577,12 +6582,15 @@
     const spawnCamIntro = {
       active: false,
       startedAt: 0,
-      easing: false,
-      easeStartedAt: 0,
       originX: 0,
       originY: 0,
+      farMul: 0.4,
+      zoomMul: 1,
+      fxBlend: 0,
+      landed: false,
       blend: 0
     };
+    let spawnIntroAudioStops = [];
 
     const deathCam = {
       active: false,
@@ -6600,6 +6608,9 @@
     function startDeathCam() {
       spawnCamIntro.active = false;
       spawnCamIntro.blend = 0;
+      spawnCamIntro.fxBlend = 0;
+      spawnCamIntro.zoomMul = 1;
+      stopSpawnIntroAudio();
       deathCam.active = true;
       deathCam.startedAt = performance.now();
       deathCam.originX = player.x;
@@ -6647,49 +6658,216 @@
       setMainRadioVolume();
     }
 
+    function easeInOutCubic(t) {
+      const u = Math.max(0, Math.min(1, t));
+      return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+    }
+
+    function easeOutCubic(t) {
+      const u = 1 - Math.max(0, Math.min(1, t));
+      return 1 - u * u * u;
+    }
+
+    function isSpawnIntroLocked() {
+      return !!(spawnCamIntro.active && !deathCam.active && !wasted);
+    }
+
+    function computeSpawnFarZoomMul() {
+      const worldSpan = SPAWN_CAM.farBlocks * ROAD_SPACING * TILE_SIZE;
+      const viewPx = Math.min(screenWidth || 900, screenHeight || 700) * 0.9;
+      const slope = Math.max(0.22, player.cameraSlope || 0.36);
+      // Match project(): ΔscreenY ≈ Δ(rotX+rotY) * slope * (zoom / HEIGHT_REF)
+      const farZoom = (viewPx * CAMERA_ZOOM_HEIGHT_REF) / Math.max(1, worldSpan * slope);
+      const base = Math.max(0.01, getCameraZoomBase() * cameraZoomUserFactor);
+      return Math.max(0.14, Math.min(0.72, farZoom / base));
+    }
+
+    function stopSpawnIntroAudio() {
+      for (let i = 0; i < spawnIntroAudioStops.length; i++) {
+        try { spawnIntroAudioStops[i](); } catch (_) {}
+      }
+      spawnIntroAudioStops.length = 0;
+    }
+
+    function playSpawnIntroAudio() {
+      stopSpawnIntroAudio();
+      unlockSfx();
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const duck = getSfxDuckMul();
+      const overviewSec = SPAWN_CAM.overviewHoldMs / 1000;
+      const diveSec = SPAWN_CAM.diveMs / 1000;
+      const closeSec = SPAWN_CAM.closeHoldMs / 1000;
+      const settleSec = SPAWN_CAM.easeOutMs / 1000;
+      const masterMul = SFX.masterVolume * duck;
+
+      // Soft city bed: brown rumble + low pad, swells on overview, fades after dive.
+      try {
+        const bedLen = Math.max(1, Math.floor(ctx.sampleRate * 2.2));
+        const bedBuf = ctx.createBuffer(1, bedLen, ctx.sampleRate);
+        const bedData = bedBuf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < bedLen; i++) {
+          const white = Math.random() * 2 - 1;
+          last = (last + 0.018 * white) / 1.018;
+          bedData[i] = last * 3.2;
+        }
+        const bedSrc = ctx.createBufferSource();
+        bedSrc.buffer = bedBuf;
+        bedSrc.loop = true;
+        const bedLp = ctx.createBiquadFilter();
+        bedLp.type = 'lowpass';
+        bedLp.frequency.value = 280;
+        const bedGain = ctx.createGain();
+        bedGain.gain.setValueAtTime(0.0001, now);
+        bedGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, masterMul * SPAWN_CAM.bedVol),
+          now + overviewSec * 0.55
+        );
+        bedGain.gain.setValueAtTime(
+          Math.max(0.0001, masterMul * SPAWN_CAM.bedVol),
+          now + overviewSec
+        );
+        bedGain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          now + overviewSec + diveSec + closeSec + settleSec * 0.55
+        );
+        const pad = ctx.createOscillator();
+        pad.type = 'sine';
+        pad.frequency.value = 55;
+        const padGain = ctx.createGain();
+        padGain.gain.setValueAtTime(0.0001, now);
+        padGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, masterMul * SPAWN_CAM.bedVol * 0.45),
+          now + overviewSec * 0.6
+        );
+        padGain.gain.setValueAtTime(
+          Math.max(0.0001, masterMul * SPAWN_CAM.bedVol * 0.45),
+          now + overviewSec
+        );
+        padGain.gain.exponentialRampToValueAtTime(
+          0.0001,
+          now + overviewSec + diveSec + 0.35
+        );
+        bedSrc.connect(bedLp);
+        bedLp.connect(bedGain);
+        bedGain.connect(ctx.destination);
+        pad.connect(padGain);
+        padGain.connect(ctx.destination);
+        bedSrc.start(now);
+        pad.start(now);
+        const bedStopAt = now + overviewSec + diveSec + closeSec + settleSec + 0.2;
+        bedSrc.stop(bedStopAt);
+        pad.stop(bedStopAt);
+        spawnIntroAudioStops.push(() => {
+          try { bedSrc.stop(); } catch (_) {}
+          try { pad.stop(); } catch (_) {}
+          try { bedGain.gain.cancelScheduledValues(ctx.currentTime); bedGain.gain.setValueAtTime(0, ctx.currentTime); } catch (_) {}
+          try { padGain.gain.cancelScheduledValues(ctx.currentTime); padGain.gain.setValueAtTime(0, ctx.currentTime); } catch (_) {}
+        });
+      } catch (_) {}
+
+      // Dive whoosh: bandpass noise that opens then softens as we land.
+      try {
+        const whooshLen = Math.max(1, Math.floor(ctx.sampleRate * Math.max(0.4, diveSec + 0.15)));
+        const whooshBuf = ctx.createBuffer(1, whooshLen, ctx.sampleRate);
+        const whooshData = whooshBuf.getChannelData(0);
+        for (let i = 0; i < whooshLen; i++) {
+          whooshData[i] = Math.random() * 2 - 1;
+        }
+        const whooshSrc = ctx.createBufferSource();
+        whooshSrc.buffer = whooshBuf;
+        const whooshBp = ctx.createBiquadFilter();
+        whooshBp.type = 'bandpass';
+        whooshBp.Q.value = 0.7;
+        const diveStart = now + overviewSec;
+        whooshBp.frequency.setValueAtTime(420, diveStart);
+        whooshBp.frequency.exponentialRampToValueAtTime(2200, diveStart + diveSec * 0.45);
+        whooshBp.frequency.exponentialRampToValueAtTime(380, diveStart + diveSec + 0.08);
+        const whooshGain = ctx.createGain();
+        whooshGain.gain.setValueAtTime(0.0001, diveStart);
+        whooshGain.gain.exponentialRampToValueAtTime(
+          Math.max(0.0001, masterMul * SPAWN_CAM.whooshVol),
+          diveStart + diveSec * 0.28
+        );
+        whooshGain.gain.exponentialRampToValueAtTime(0.0001, diveStart + diveSec + 0.12);
+        whooshSrc.connect(whooshBp);
+        whooshBp.connect(whooshGain);
+        whooshGain.connect(ctx.destination);
+        whooshSrc.start(diveStart);
+        whooshSrc.stop(diveStart + diveSec + 0.2);
+        spawnIntroAudioStops.push(() => {
+          try { whooshSrc.stop(); } catch (_) {}
+          try { whooshGain.gain.cancelScheduledValues(ctx.currentTime); whooshGain.gain.setValueAtTime(0, ctx.currentTime); } catch (_) {}
+        });
+      } catch (_) {}
+    }
+
     function startSpawnCameraIntro() {
       const now = performance.now();
       spawnCamIntro.active = true;
       spawnCamIntro.startedAt = now;
-      spawnCamIntro.easing = false;
-      spawnCamIntro.easeStartedAt = 0;
       spawnCamIntro.originX = player.x;
       spawnCamIntro.originY = player.y;
+      spawnCamIntro.farMul = computeSpawnFarZoomMul();
+      spawnCamIntro.zoomMul = spawnCamIntro.farMul;
+      spawnCamIntro.fxBlend = 0;
+      spawnCamIntro.landed = false;
       spawnCamIntro.blend = 1;
-      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * SPAWN_CAM.zoomMul;
+      const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * spawnCamIntro.farMul;
       camProj.zoom = zoomTarget;
       camProj.zoomRatio = camProj.zoom / CAMERA_ZOOM_HEIGHT_REF;
+      playSpawnIntroAudio();
     }
 
     function updateSpawnCameraIntro(now) {
       if (!spawnCamIntro.active) {
         spawnCamIntro.blend = 0;
+        spawnCamIntro.fxBlend = 0;
+        spawnCamIntro.zoomMul = 1;
         return 0;
       }
       const elapsed = now - spawnCamIntro.startedAt;
-      if (!spawnCamIntro.easing) {
-        if (elapsed >= SPAWN_CAM.holdMs) {
-          const moved = Math.hypot(
-            player.x - spawnCamIntro.originX,
-            player.y - spawnCamIntro.originY
-          ) > SPAWN_CAM.moveTrigger;
-          if (moved || elapsed >= SPAWN_CAM.maxWaitMs) {
-            spawnCamIntro.easing = true;
-            spawnCamIntro.easeStartedAt = now;
-          }
+      const overviewEnd = SPAWN_CAM.overviewHoldMs;
+      const diveEnd = overviewEnd + SPAWN_CAM.diveMs;
+      const closeEnd = diveEnd + SPAWN_CAM.closeHoldMs;
+      const settleEnd = closeEnd + SPAWN_CAM.easeOutMs;
+      const far = spawnCamIntro.farMul;
+      const close = SPAWN_CAM.closeMul;
+
+      if (elapsed < overviewEnd) {
+        spawnCamIntro.zoomMul = far;
+        spawnCamIntro.fxBlend = 0.12 * (elapsed / Math.max(1, overviewEnd));
+      } else if (elapsed < diveEnd) {
+        const u = (elapsed - overviewEnd) / Math.max(1, SPAWN_CAM.diveMs);
+        const s = easeInOutCubic(u);
+        spawnCamIntro.zoomMul = far + (close - far) * s;
+        spawnCamIntro.fxBlend = 0.12 + 0.88 * s;
+      } else if (elapsed < closeEnd) {
+        spawnCamIntro.zoomMul = close;
+        spawnCamIntro.fxBlend = 1;
+        if (!spawnCamIntro.landed) {
+          spawnCamIntro.landed = true;
+          addCameraShake(SPAWN_CAM.landShake);
+          haptic(SPAWN_CAM.landHapticMs);
         }
-        spawnCamIntro.blend = 1;
-        return 1;
-      }
-      const u = Math.min(1, (now - spawnCamIntro.easeStartedAt) / SPAWN_CAM.easeOutMs);
-      const smooth = u * u * (3 - 2 * u);
-      spawnCamIntro.blend = 1 - smooth;
-      if (u >= 1) {
+      } else if (elapsed < settleEnd) {
+        const u = (elapsed - closeEnd) / Math.max(1, SPAWN_CAM.easeOutMs);
+        const s = easeOutCubic(u);
+        spawnCamIntro.zoomMul = close + (1 - close) * s;
+        spawnCamIntro.fxBlend = 1 - s;
+      } else {
         spawnCamIntro.active = false;
         spawnCamIntro.blend = 0;
+        spawnCamIntro.fxBlend = 0;
+        spawnCamIntro.zoomMul = 1;
+        stopSpawnIntroAudio();
         return 0;
       }
-      return spawnCamIntro.blend;
+
+      spawnCamIntro.blend = spawnCamIntro.fxBlend;
+      return spawnCamIntro.fxBlend;
     }
 
     function clampCameraZoomUserFactor(factor) {
@@ -6755,11 +6933,12 @@
         camProj.originY = player.y;
       }
       const deathZoomMul = 1 + (DEATH_CAM.zoomMul - 1) * deathBlend;
-      const introZoomMul = 1 + (SPAWN_CAM.zoomMul - 1) * introBlend;
+      // Spawn intro zoomMul is absolute vs play zoom; still multiplied by user zoom factor.
+      const introZoomMul = spawnCamIntro.active ? spawnCamIntro.zoomMul : 1;
       const zoomTarget = getCameraZoomBase() * cameraZoomUserFactor * (
         deathCam.active ? deathZoomMul : introZoomMul
       );
-      if (deathCam.active || introBlend > 0.0001) {
+      if (deathCam.active || spawnCamIntro.active) {
         camProj.zoom = zoomTarget;
       } else {
         const lerpRate = Math.abs(cameraZoomUserFactor - 1) > 0.0001
@@ -11962,8 +12141,9 @@
     });
 
     function stepSimulation() {
+      const spawnLocked = isSpawnIntroLocked();
       if (isMobile) {
-        if (wasted) {
+        if (wasted || spawnLocked) {
           releaseTouchOwnedCodes();
           mobileAnalogSteer.walk = 0;
           mobileAnalogSteer.drive = 0;
@@ -11975,13 +12155,13 @@
       }
       updatePlayerHealthRegen();
       if (net.role === 'guest') {
-        if (!wasted) {
+        if (!wasted && !spawnLocked) {
           handleInput();
           tryPlayerShoot();
         }
         netGuestTick();
       } else {
-        if (!wasted) {
+        if (!wasted && !spawnLocked) {
           handleInput();
           tryPlayerShoot();
         }
