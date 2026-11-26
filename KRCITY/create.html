@@ -775,7 +775,14 @@
             ctx.fillStyle = colorFor(ch);
             ctx.fillRect(x, y, cell, cell);
             const decoded = Tiles ? Tiles.decode(ch) : null;
-            if (decoded && decoded.def.mark) {
+            if (ch === 'A' || ch === 'N') {
+              ctx.fillStyle = '#2f5a32';
+              ctx.beginPath();
+              ctx.arc(x + cell / 2, y + cell / 2, cell * 0.28, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = '#4a3426';
+              ctx.fillRect(x + cell / 2 - 1, y + cell * 0.55, 2, cell * 0.28);
+            } else if (decoded && decoded.def.mark) {
               ctx.fillStyle = decoded.def.mark;
               ctx.fillRect(x + 4, y + 4, cell - 8, cell - 8);
             } else if (ch === 'L') {

@@ -180,6 +180,168 @@
       overflow: hidden;
       box-shadow: 5px 6px 0 rgba(42, 34, 27, 0.25);
       flex-shrink: 0;
+      pointer-events: auto;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    body.city-map-open #minimap-stack {
+      opacity: 0;
+      visibility: hidden;
+    }
+    body.city-map-open #controls-panel,
+    body.city-map-open #mp-panel {
+      opacity: 0;
+      visibility: hidden;
+    }
+    #city-map-ui {
+      position: absolute;
+      inset: 0;
+      z-index: 28;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.28s ease;
+    }
+    #city-map-ui.show {
+      opacity: 1;
+    }
+    #city-map-close {
+      pointer-events: auto;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid #b7a78e;
+      background: rgba(43, 38, 31, 0.94);
+      color: #ead8ae;
+      font: inherit;
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 3px 4px 0 rgba(42, 34, 27, 0.25);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #city-map-close:active {
+      transform: translate(1px, 1px);
+    }
+    #city-map-legend {
+      position: absolute;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 18px;
+      padding: 8px 16px;
+      background: rgba(43, 38, 31, 0.92);
+      border: 2px solid #b7a78e;
+      color: #ead8ae;
+      font-size: 12px;
+      letter-spacing: 0.6px;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      white-space: nowrap;
+    }
+    #city-map-ui.blips #city-map-legend {
+      opacity: 1;
+    }
+    #city-map-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #city-map-legend i {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
+    }
+    #city-map-legend i.you {
+      background: #d2a84f;
+      border-radius: 2px;
+    }
+    #city-map-legend i.players {
+      background: #5bc0eb;
+      border-radius: 50%;
+    }
+    #city-map-legend i.police {
+      background: #d23a32;
+      transform: rotate(45deg);
+      width: 9px;
+      height: 9px;
+    }
+    #city-map-name {
+      position: absolute;
+      transform: translate(-50%, -145%);
+      padding: 3px 8px;
+      background: rgba(24, 20, 16, 0.94);
+      border: 1px solid #b7a78e;
+      color: #ead8ae;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    /* Map coach: same language as enter-hint (visible while city map is open). */
+    #map-waypoint-hint {
+      position: absolute;
+      left: 16px;
+      top: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+      color: #e9dec8;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+      z-index: 2;
+    }
+    #map-waypoint-hint.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    #map-waypoint-hint .map-waypoint-hint-arrow {
+      color: #c8573f;
+      font-size: 12px;
+      line-height: 1;
+      margin-left: 4px;
+      animation: enter-hint-nudge-y 0.75s ease-in-out infinite;
+    }
+    body.mobile #map-waypoint-hint {
+      left: 50%;
+      right: auto;
+      top: auto;
+      bottom: max(18px, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      align-items: center;
+      text-align: center;
+    }
+    body.mobile #map-waypoint-hint .map-waypoint-hint-text {
+      font-size: 11px;
+      color: #3a3328;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+      white-space: nowrap;
+      background: rgba(233, 222, 200, 0.92);
+      border: 1px solid #8f3a2a;
+      border-radius: 2px;
+      padding: 4px 8px;
+      box-shadow:
+        0 2px 0 #8c7f68,
+        0 3px 6px rgba(40, 30, 15, 0.28);
+    }
+    body.mobile #map-waypoint-hint .map-waypoint-hint-arrow {
+      order: 2;
+      margin-left: 0;
+      margin-top: 2px;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+      animation: enter-hint-nudge-down 0.75s ease-in-out infinite;
     }
     #minimap {
       display: block;
@@ -792,6 +954,18 @@
       width: 40px;
       height: 40px;
       box-shadow: 2px 3px 0 rgba(42, 34, 27, 0.25);
+    }
+    body.mobile #city-map-close {
+      top: 10px;
+      right: 10px;
+      width: 48px;
+      height: 48px;
+    }
+    body.mobile #city-map-legend {
+      bottom: 10px;
+      gap: 12px;
+      padding: 7px 12px;
+      font-size: 11px;
     }
     body.mobile #radioMuteBtn .radio-btn-icon {
       width: 13px;
@@ -1648,6 +1822,8 @@
           <div><span class="key">A / D</span> : Turn (drive / walk arrows)</div>
           <div><span class="key">↑ ↓ ← →</span> : Shoot F / B / L / R (drive)</div>
           <div id="enter-key-row"><span class="key">E</span> : Enter / Exit Car or Bike</div>
+          <div><span class="key">M</span> : Map</div>
+          <div><span class="key">R</span> : Mute radio</div>
           <div id="enter-hint-desktop" role="status" aria-live="polite">
             <span class="enter-hint-arrow" aria-hidden="true">▲</span>
             <span>PRESS TO ENTER</span>
@@ -1710,7 +1886,7 @@
       </div>
       <div id="radio-label" aria-live="polite"></div>
       <div id="radio-live" aria-hidden="true">RADIO LIVE</div>
-      <button id="radioMuteBtn" type="button" aria-label="Mute radio" aria-pressed="false" title="Mute radio (M)">
+      <button id="radioMuteBtn" type="button" aria-label="Mute radio" aria-pressed="false" title="Mute radio (R)">
         <svg class="radio-btn-icon radio-btn-radio" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path fill="currentColor" d="M4.8 7.2 16.6 3.5l.7 2.1L7.2 8.7H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7.3a2 2 0 0 1 1.8-2zm3.7 6.3a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm6 1.2h4.2v2.4H14.5z"/>
         </svg>
@@ -1721,6 +1897,19 @@
           <path fill="currentColor" d="M11.2 5.2 6.8 9H3.5v6H6.8l4.4 3.8V5.2zm10.1.6-1.4-1.4-3.2 3.2-1.5-1.5-1.4 1.4 1.5 1.5-1.5 1.5 1.4 1.4 1.5-1.5 3.2 3.2 1.4-1.4-3.2-3.2 3.2-3.2z"/>
         </svg>
       </button>
+    </div>
+    <div id="city-map-ui" aria-hidden="true">
+      <button id="city-map-close" type="button" aria-label="Close map">×</button>
+      <div id="city-map-legend">
+        <span><i class="you"></i>You</span>
+        <span><i class="players"></i>Players</span>
+        <span><i class="police"></i>Police</span>
+      </div>
+      <div id="map-waypoint-hint" role="status" aria-live="polite">
+        <span class="map-waypoint-hint-arrow" aria-hidden="true">▲</span>
+        <span class="map-waypoint-hint-text">CLICK TO MARK WAYPOINT</span>
+      </div>
+      <div id="city-map-name" hidden></div>
     </div>
     <div id="wasted-overlay">
       <h2>Wasted</h2>
@@ -1733,7 +1922,7 @@
         <div class="jj-wordmark"><span>KR</span>&middot;BOY</div>
         <button id="interactBtn" type="button" aria-label="Enter or exit vehicle">ENTER</button>
         <div id="enter-hint-mobile" role="status" aria-live="polite">
-          <span class="enter-hint-text">PRESS TO ENTER</span>
+          <span class="enter-hint-text">PRESS 2 ENTER CAR</span>
           <span class="enter-hint-arrow" aria-hidden="true">▼</span>
         </div>
       </div>
@@ -1875,7 +2064,9 @@
     const TILE_SIZE = 72;
     const ROAD_SPACING = 13;
     const ROAD_WIDTH = 3;
-    const BUILDING_INSET = 11;
+    // Larger inset = narrower solid footprint + wider alleys between adjacent buildings.
+    // Alley width ≈ 2 × inset (player hitbox 6.5 needs ~13px; 15 → ~30px gaps).
+    const BUILDING_INSET = 13;
     const BUILDING_FOOTPRINT_TILES = 2;
     const Tiles = (typeof KrcityTiles !== 'undefined') ? KrcityTiles : null;
     const PAVEMENT_TILE = Tiles ? Tiles.ID.PAVEMENT : 5;
@@ -1890,6 +2081,8 @@
     // Shared combat / bump radii (larger = easier to hit & collide).
     const HITBOX = {
       player: 6.5,
+      // Player-only: smaller radius used solely against building solids (alleys feel looser).
+      playerBuilding: 5,
       ped: 5.5,
       bike: 7
     };
@@ -2020,6 +2213,18 @@
       walkWarmupTicks: Math.round(2 * 120),
       sprintBuildupTicks: Math.round(2 * 120),
       accelTicks: Math.round(6 * 120)
+    };
+    // Arcade swim: slower than walk, free aim/move, auto-exit onto land.
+    const SWIM = {
+      speed: 0.85,
+      phaseRate: 0.32,
+      kickEvery: 14,
+      ringLife: 50
+    };
+    const WATER_SINK = {
+      duration: 72,
+      bobAmp: 11,
+      splashLife: 40
     };
     // On-foot body facing (sprite) — separate from camera/control heading (player.angle).
     // Aim while shoot input active; else move; else ±45° while turning; else hold last.
@@ -2225,6 +2430,16 @@
             if (ch === 'K') mapDetails.carparks.push({ r, c });
             if (ch === 'T') mapDetails.transformers.push({ r, c });
             if (ch === 'L') mapDetails.limeBays.push({ r, c });
+            if (ch === 'A') {
+              tile = 0;
+              if (!mapDetails.trees) mapDetails.trees = [];
+              mapDetails.trees.push({ r, c });
+            }
+            if (ch === 'N') {
+              tile = PAVEMENT_TILE;
+              if (!mapDetails.trees) mapDetails.trees = [];
+              mapDetails.trees.push({ r, c });
+            }
           }
           map[r][c] = tile;
         }
@@ -2758,6 +2973,29 @@
             { type: 'sawtooth', freq: 920, freqEnd: 480, duration: 0.11 },
             { type: 'triangle', freq: 240, freqEnd: 120, duration: 0.08 }
           ]
+        },
+        splash: {
+          volume: 0.5,
+          layers: [
+            { type: 'noise', duration: 0.16, volume: 0.85, filterFreq: 1100 },
+            { type: 'triangle', freq: 180, freqEnd: 70, duration: 0.14, volume: 0.45 },
+            { type: 'sine', freq: 90, freqEnd: 40, duration: 0.2, volume: 0.55 }
+          ]
+        },
+        treeBreak: {
+          volume: 0.42,
+          layers: [
+            { type: 'noise', duration: 0.12, volume: 0.8, filterFreq: 900 },
+            { type: 'triangle', freq: 140, freqEnd: 55, duration: 0.1, volume: 0.4 }
+          ]
+        },
+        horn: {
+          volume: 0.38,
+          layers: [
+            { type: 'sawtooth', freq: 392, freqEnd: 340, duration: 0.14, volume: 0.85 },
+            { type: 'square', freq: 440, duration: 0.09, volume: 0.42 },
+            { type: 'triangle', freq: 220, freqEnd: 180, duration: 0.11, volume: 0.35 }
+          ]
         }
       }
     };
@@ -2787,6 +3025,125 @@
         src.connect(ctx.destination);
         src.start(0);
       } catch (_) {}
+      ensureAmbientAudio();
+    }
+
+    // Outdoor ambience bed (local player only). Tweak streetVolume / parkVolume freely.
+    const AMBIENT = {
+      streetFile: 'Street:Sidewalk:Plaza.mp3',
+      parkFile: 'Park.mp3',
+      streetVolume: 0.05,
+      parkVolume: 0.52,
+      master: 1,
+      crossfadeSec: 1.35,
+      shootDuck: 0.35,
+      wantedDuck: 0.55,
+      radioDuck: 0.62,
+      // Street bed slowly wanders quieter then recovers (mul of streetVolume).
+      streetVaryMin: 0.42,
+      streetVaryMax: 1,
+      streetVaryHoldSec: [4.5, 11],
+      streetVaryEaseSec: 3.2
+    };
+    const ambient = {
+      street: null,
+      park: null,
+      mix: 0,
+      duck: 1,
+      started: false,
+      streetVary: 1,
+      streetVaryTarget: 1,
+      streetVaryHold: 0
+    };
+
+    function ambientSrcUrl(fileName) {
+      return 'static/sound/' + encodeURIComponent(fileName);
+    }
+
+    function ensureAmbientAudio() {
+      if (ambient.street && ambient.park) return;
+      try {
+        ambient.street = new Audio(ambientSrcUrl(AMBIENT.streetFile));
+        ambient.park = new Audio(ambientSrcUrl(AMBIENT.parkFile));
+        ambient.street.loop = true;
+        ambient.park.loop = true;
+        ambient.street.preload = 'auto';
+        ambient.park.preload = 'auto';
+        ambient.street.volume = 0;
+        ambient.park.volume = 0;
+      } catch (_) {}
+    }
+
+    function updateAmbientAudio(dtSec) {
+      if (!sfxUnlocked) return;
+      ensureAmbientAudio();
+      if (!ambient.street || !ambient.park) return;
+
+      const dt = Math.max(0, dtSec || 0.016);
+      let wantPark = 0;
+      if (!wasted && !bootSplash.active) {
+        const tr = Math.floor(player.y / TILE_SIZE);
+        const tc = Math.floor(player.x / TILE_SIZE);
+        if (tr >= 0 && tc >= 0 && tr < MAP_SIZE && tc < MAP_SIZE) {
+          wantPark = tileIsPark(map[tr][tc]) ? 1 : 0;
+        }
+      }
+      const fadeT = Math.min(1, dt / Math.max(0.05, AMBIENT.crossfadeSec));
+      ambient.mix += (wantPark - ambient.mix) * fadeT;
+
+      let duck = 1;
+      if (getActiveShootCode() || gun.fireCooldown > 0) duck *= AMBIENT.shootDuck;
+      if ((typeof wantedLevel === 'number' ? wantedLevel : 0) > 0) duck *= AMBIENT.wantedDuck;
+      if (
+        radio &&
+        !radio.muted &&
+        radio.fade > 0.08 &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike
+      ) {
+        duck *= AMBIENT.radioDuck;
+      }
+      if (SFX.deathDuck) duck *= 0.15;
+      if (SFX.copKillDuck) duck *= COP_KILL.audioDuck;
+      if (bootSplash.active || wasted) duck = 0;
+      ambient.duck += (duck - ambient.duck) * Math.min(1, dt * 5);
+
+      // Slow random street dynamics: drift quieter for a while, then ease back.
+      ambient.streetVaryHold -= dt;
+      if (ambient.streetVaryHold <= 0) {
+        const lo = Math.max(0.05, Math.min(1, AMBIENT.streetVaryMin));
+        const hi = Math.max(lo, Math.min(1, AMBIENT.streetVaryMax));
+        // Bias toward full level so dips feel occasional, not constant muffling.
+        const roll = Math.random();
+        ambient.streetVaryTarget = roll < 0.55
+          ? hi
+          : lo + Math.random() * (hi - lo);
+        const hold0 = AMBIENT.streetVaryHoldSec[0];
+        const hold1 = AMBIENT.streetVaryHoldSec[1];
+        ambient.streetVaryHold = hold0 + Math.random() * Math.max(0.1, hold1 - hold0);
+      }
+      const varyEase = Math.min(1, dt / Math.max(0.2, AMBIENT.streetVaryEaseSec));
+      ambient.streetVary += (ambient.streetVaryTarget - ambient.streetVary) * varyEase;
+
+      const master = Math.max(0, AMBIENT.master) * ambient.duck;
+      const streetVol = Math.max(
+        0,
+        Math.min(1, AMBIENT.streetVolume * ambient.streetVary * (1 - ambient.mix) * master)
+      );
+      const parkVol = Math.max(0, Math.min(1, AMBIENT.parkVolume * ambient.mix * master));
+      ambient.street.volume = streetVol;
+      ambient.park.volume = parkVol;
+
+      if (!ambient.started && (streetVol > 0.001 || parkVol > 0.001)) {
+        ambient.started = true;
+        const play = (a) => {
+          const p = a.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        };
+        play(ambient.street);
+        play(ambient.park);
+      }
     }
 
     function sfxPitchJitter() {
@@ -2847,6 +3204,47 @@
       if (SFX.deathDuck) mul *= DEATH_CAM.audioDuck;
       if (SFX.copKillDuck) mul *= COP_KILL.audioDuck;
       return mul;
+    }
+
+    // Short bandpass whoosh, same family as the spawn-camera dive.
+    function playMapWhoosh(closing) {
+      const nowMs = performance.now();
+      if (nowMs - cityMap.whooshAt < 180) return;
+      cityMap.whooshAt = nowMs;
+      unlockSfx();
+      const ctx = ensureSfxContext();
+      if (!ctx) return;
+      if (ctx.state !== 'running') ctx.resume().catch(() => {});
+      const now = ctx.currentTime;
+      const master = Math.max(0.0001, SFX.masterVolume * getSfxDuckMul() * 0.9);
+      const dur = 0.46;
+      const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = 0.62;
+      bp.frequency.setValueAtTime(closing ? 1500 : 220, now);
+      bp.frequency.exponentialRampToValueAtTime(closing ? 480 : 1700, now + dur * 0.4);
+      bp.frequency.exponentialRampToValueAtTime(closing ? 160 : 280, now + dur);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(master * 0.72, now + 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      src.connect(bp);
+      bp.connect(gain);
+      gain.connect(ctx.destination);
+      src.start(now);
+      src.stop(now + dur + 0.05);
+      playSfxTone(ctx, {
+        type: 'sine',
+        freq: closing ? 240 : 150,
+        freqEnd: closing ? 80 : 64,
+        duration: 0.38
+      }, now, master * 0.2, 1);
     }
 
     // --- Damage direction reticule (8 sectors) ---
@@ -3508,7 +3906,7 @@
         'aria-label',
         radio.muted ? 'Unmute radio' : 'Mute radio'
       );
-      radio.muteBtnEl.title = radio.muted ? 'Unmute radio (M)' : 'Mute radio (M)';
+      radio.muteBtnEl.title = radio.muted ? 'Unmute radio (R)' : 'Mute radio (R)';
       updateRadioLiveUi();
     }
 
@@ -4416,6 +4814,95 @@
       return tileIsRoad(map[r][c]);
     }
 
+    function tileTypeAtWorld(x, y) {
+      const c = Math.floor(x / TILE_SIZE);
+      const r = Math.floor(y / TILE_SIZE);
+      if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) return -1;
+      return map[r][c];
+    }
+
+    function isWaterWorldAt(x, y) {
+      return tileIsWater(tileTypeAtWorld(x, y));
+    }
+
+    function isLandFootingAt(x, y) {
+      const t = tileTypeAtWorld(x, y);
+      return tileIsWalkable(t) && !tileIsWater(t);
+    }
+
+    const waterFx = {
+      rings: [],
+      splashes: []
+    };
+
+    function waterSurfaceZ() {
+      return Tiles ? Tiles.surfaceZ(TILE_ID.WATER) : -16;
+    }
+
+    function spawnSwimKickRing(x, y) {
+      if (waterFx.rings.length > 48) waterFx.rings.shift();
+      waterFx.rings.push({
+        x, y,
+        life: SWIM.ringLife,
+        maxLife: SWIM.ringLife,
+        radius: 4
+      });
+    }
+
+    function spawnWaterSplash(x, y, big) {
+      const n = big ? 5 : 3;
+      for (let i = 0; i < n; i++) {
+        if (waterFx.splashes.length > 60) waterFx.splashes.shift();
+        waterFx.splashes.push({
+          x: x + (Math.random() - 0.5) * 18,
+          y: y + (Math.random() - 0.5) * 18,
+          life: WATER_SINK.splashLife - i * 4,
+          maxLife: WATER_SINK.splashLife,
+          radius: (big ? 10 : 6) + i * 3
+        });
+      }
+      for (let i = 0; i < (big ? 3 : 1); i++) spawnSwimKickRing(x, y);
+    }
+
+    function updateWaterFx() {
+      for (let i = waterFx.rings.length - 1; i >= 0; i--) {
+        const ring = waterFx.rings[i];
+        ring.life--;
+        ring.radius += 0.55;
+        if (ring.life <= 0) waterFx.rings.splice(i, 1);
+      }
+      for (let i = waterFx.splashes.length - 1; i >= 0; i--) {
+        const s = waterFx.splashes[i];
+        s.life--;
+        s.radius += 0.85;
+        if (s.life <= 0) waterFx.splashes.splice(i, 1);
+      }
+    }
+
+    function drawWaterFx() {
+      const z = waterSurfaceZ() + 0.8;
+      for (let i = 0; i < waterFx.splashes.length; i++) {
+        const s = waterFx.splashes[i];
+        const fade = Math.max(0, s.life / s.maxLife);
+        const p = project(s.x, s.y, z);
+        ctx.strokeStyle = `rgba(190, 220, 235, ${0.35 * fade})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, s.radius * 0.55, s.radius * 0.28, 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      for (let i = 0; i < waterFx.rings.length; i++) {
+        const ring = waterFx.rings[i];
+        const fade = Math.max(0, ring.life / ring.maxLife);
+        const p = project(ring.x, ring.y, z);
+        ctx.strokeStyle = `rgba(170, 205, 220, ${0.28 * fade})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, ring.radius * 0.5, ring.radius * 0.26, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
     function nudgeCorpseOffRoad(x, y) {
       if (!isRoadWorldAt(x, y)) return { x, y };
       for (let rad = 1; rad <= 7; rad++) {
@@ -4435,7 +4922,10 @@
 
     function spawnCorpse(data, broadcast) {
       if (!data) return;
-      const pos = nudgeCorpseOffRoad(data.x, data.y);
+      const inWater = !!(data.floating || isWaterWorldAt(data.x, data.y));
+      const pos = inWater
+        ? { x: data.x, y: data.y }
+        : nudgeCorpseOffRoad(data.x, data.y);
       corpses.push({
         x: pos.x,
         y: pos.y,
@@ -4445,6 +4935,8 @@
         hair: data.hair || null,
         isPolice: !!data.isPolice,
         slim: data.slim != null ? !!data.slim : !data.isPolice,
+        floating: inWater,
+        bobPhase: Math.random() * Math.PI * 2,
         bornAt: performance.now(),
         lifeMs: CORPSE_LIFE_MS
       });
@@ -4458,7 +4950,8 @@
           skin: data.skin || playerSkin,
           hair: data.hair || null,
           isPolice: !!data.isPolice,
-          slim: data.slim != null ? !!data.slim : !data.isPolice
+          slim: data.slim != null ? !!data.slim : !data.isPolice,
+          floating: inWater
         };
         if (net.role === 'guest') netSendToHost(payload);
         else netBroadcast(payload);
@@ -4481,7 +4974,9 @@
     function updateCorpsesAndScorch() {
       const now = performance.now();
       for (let i = corpses.length - 1; i >= 0; i--) {
-        if (now - corpses[i].bornAt >= corpses[i].lifeMs) corpses.splice(i, 1);
+        const c = corpses[i];
+        if (c.floating) c.bobPhase = (c.bobPhase || 0) + 0.045;
+        if (now - c.bornAt >= c.lifeMs) corpses.splice(i, 1);
       }
       for (let i = scorchMarks.length - 1; i >= 0; i--) {
         if (now - scorchMarks[i].bornAt >= scorchMarks[i].lifeMs) scorchMarks.splice(i, 1);
@@ -4532,6 +5027,8 @@
           c.angle,
           0,
           {
+            floating: !!c.floating,
+            bobPhase: c.bobPhase || 0,
             hair: c.hair,
             slim: c.slim,
             corpse: true,
@@ -4562,7 +5059,15 @@
       impactMax: 64,
       holeMax: 48,
       holeLife: 780,
-      fleeRadius: 130
+      fleeRadius: 130,
+      // Stagger nearby civ flee after a gunshot (sim ticks @ 120 TPS).
+      fleeStaggerMaxMs: 150
+    };
+    // Driving AI only: brief panic after being shot.
+    const TRAFFIC_PANIC = {
+      minTicks: Math.round(2 * 120),
+      maxTicks: Math.round(4 * 120),
+      speedMul: 1.85
     };
     const WANTED = {
       maxStars: 5,
@@ -4792,6 +5297,18 @@
     const parkingBays = [];
     const bikeBays = [];
     const cabinets = [];
+    const trees = [];
+    // Tiny trunk collision for walking; vehicles pass through and break on contact.
+    const TREE = {
+      trunkRadius: 3.1,
+      breakSpeed: 0.45,
+      variants: [
+        { scale: 0.82, canopy: '#3a6a38', canopyHi: '#4f8548', trunk: '#4a3426' },
+        { scale: 1.0, canopy: '#2f5a32', canopyHi: '#457a42', trunk: '#3d2a1c' },
+        { scale: 1.2, canopy: '#355e2e', canopyHi: '#4a7a3c', trunk: '#5a3d28' }
+      ]
+    };
+    const treeBreakFx = [];
 
     const BIKE = {
       speed: 4.2,
@@ -5009,6 +5526,125 @@
           }
         }
         cabinets.push({ x, y, w, h, height: 17, side });
+      }
+
+      spawnTreesFromBlueprint();
+    }
+
+    function treeVariantIndex(r, c) {
+      return Math.abs((r * 37 + c * 91) | 0) % TREE.variants.length;
+    }
+
+    function spawnTreesFromBlueprint() {
+      trees.length = 0;
+      const list = mapDetails.trees || [];
+      for (let i = 0; i < list.length; i++) {
+        const { r, c } = list[i];
+        const tile = map[r] && map[r][c];
+        const variant = tileIsPark(tile) ? 'park' : 'sidewalk';
+        const vIdx = treeVariantIndex(r, c);
+        const spec = TREE.variants[vIdx];
+        // Slight jitter so rows of trees don't look stamped.
+        const jx = ((r * 13 + c * 7) % 7) - 3;
+        const jy = ((r * 5 + c * 11) % 7) - 3;
+        trees.push({
+          id: 'tree-' + r + '-' + c,
+          r,
+          c,
+          x: c * TILE_SIZE + TILE_SIZE * 0.5 + jx,
+          y: r * TILE_SIZE + TILE_SIZE * 0.5 + jy,
+          variant,
+          vIdx,
+          scale: spec.scale,
+          canopy: spec.canopy,
+          canopyHi: spec.canopyHi,
+          trunk: spec.trunk,
+          radius: TREE.trunkRadius,
+          broken: false
+        });
+      }
+    }
+
+    function hitsTree(x, y, radius) {
+      for (let i = 0; i < trees.length; i++) {
+        const tree = trees[i];
+        if (tree.broken) continue;
+        if (Math.hypot(x - tree.x, y - tree.y) < tree.radius + radius) return true;
+      }
+      return false;
+    }
+
+    function breakTree(tree, vehicle, fromNet) {
+      if (!tree || tree.broken) return;
+      tree.broken = true;
+      playSfx('treeBreak', attenByDistance(tree.x, tree.y, 35, 420) || 0.55);
+      const burst = 10 + Math.floor(Math.random() * 6);
+      for (let i = 0; i < burst; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const sp = 0.6 + Math.random() * 2.2;
+        treeBreakFx.push({
+          x: tree.x,
+          y: tree.y,
+          z: 12 + Math.random() * 18,
+          vx: Math.cos(ang) * sp,
+          vy: Math.sin(ang) * sp,
+          vz: 1.2 + Math.random() * 2.4,
+          life: 28 + Math.floor(Math.random() * 18),
+          color: Math.random() > 0.35 ? tree.canopy : tree.trunk,
+          size: 2 + Math.random() * 3.5
+        });
+      }
+      if (fromNet) return;
+      if (net.role === 'host') {
+        netBroadcast({ t: 'fx_tree', id: tree.id, x: tree.x, y: tree.y });
+      } else if (net.role === 'guest' && vehicle === activeVehicle) {
+        netSendToHost({ t: 'fx_tree', id: tree.id, x: tree.x, y: tree.y });
+      }
+    }
+
+    function handleVehicleTreeHits() {
+      for (let v = 0; v < vehicles.length; v++) {
+        const vehicle = vehicles[v];
+        if (!vehicle || vehicle.dead || vehicle.sinking) continue;
+        const speed = Math.abs(vehicle.speed != null ? vehicle.speed : 0);
+        const motion = Math.hypot(vehicle.vx || 0, vehicle.vy || 0);
+        const impact = Math.max(speed, motion);
+        // Player / driven cars break on light contact; AI/police need a bit of speed.
+        const driven = vehicle === activeVehicle || !!vehicle.driverId;
+        if (!driven && impact < TREE.breakSpeed) continue;
+        if (driven && impact < 0.12) continue;
+        const hitR = (vehicle.radius || 17) * 0.72;
+        for (let t = 0; t < trees.length; t++) {
+          const tree = trees[t];
+          if (tree.broken) continue;
+          if (Math.hypot(vehicle.x - tree.x, vehicle.y - tree.y) <= hitR + tree.radius + 5) {
+            breakTree(tree, vehicle);
+          }
+        }
+      }
+    }
+
+    function updateTreeBreakFx() {
+      for (let i = treeBreakFx.length - 1; i >= 0; i--) {
+        const bit = treeBreakFx[i];
+        bit.x += bit.vx;
+        bit.y += bit.vy;
+        bit.z += bit.vz;
+        bit.vz -= 0.22;
+        bit.life--;
+        if (bit.life <= 0 || bit.z < 0) treeBreakFx.splice(i, 1);
+      }
+    }
+
+    function drawTreeBreakFx() {
+      for (let i = 0; i < treeBreakFx.length; i++) {
+        const bit = treeBreakFx[i];
+        const p = project(bit.x, bit.y, Math.max(0, bit.z));
+        const fade = Math.max(0.15, bit.life / 40);
+        ctx.fillStyle = bit.color;
+        ctx.globalAlpha = fade;
+        ctx.fillRect(p.x - bit.size * 0.5, p.y - bit.size * 0.5, bit.size, bit.size);
+        ctx.globalAlpha = 1;
       }
     }
 
@@ -5413,6 +6049,11 @@
 
     function onKeyDown(e) {
       if (isTypingInUi(e.target)) return;
+      if (!e.repeat && cityMap.phase !== 'closed' && e.code === 'Escape') {
+        e.preventDefault();
+        closeCityMap(false);
+        return;
+      }
       if (DEBUG_MENU_ENABLED && !e.repeat && (e.code === 'KeyK' || e.key.toLowerCase() === 'k')) {
         e.preventDefault();
         toggleDebugMenu();
@@ -5421,6 +6062,25 @@
       if (DEBUG_MENU_ENABLED && debugState.open && !e.repeat && e.code === 'Escape') {
         e.preventDefault();
         setDebugMenuOpen(false);
+        return;
+      }
+      if (!e.repeat && (e.code === 'KeyM' || e.key.toLowerCase() === 'm')) {
+        e.preventDefault();
+        toggleCityMap();
+        return;
+      }
+      if (!e.repeat && (e.code === 'KeyR' || e.key.toLowerCase() === 'r')) {
+        e.preventDefault();
+        toggleRadioMute();
+        return;
+      }
+      if (cityMap.phase !== 'closed') {
+        e.preventDefault();
+        if (!e.repeat && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
+          placeWaypointAtCrosshair();
+        } else {
+          setCityMapKey(e.code, true);
+        }
         return;
       }
       setKeyPressed(e, true);
@@ -5437,14 +6097,11 @@
       if (!e.repeat && (e.code === 'KeyE' || e.key.toLowerCase() === 'e')) {
         togglePlayerMode();
       }
-      if (!e.repeat && (e.code === 'KeyM' || e.key.toLowerCase() === 'm')) {
-        e.preventDefault();
-        toggleRadioMute();
-      }
     }
 
     function onKeyUp(e) {
       if (isTypingInUi(e.target)) return;
+      setCityMapKey(e.code, false);
       setKeyPressed(e, false);
     }
 
@@ -5469,7 +6126,9 @@
     }
 
     function netVisualAngle() {
-      return player.mode === 'walking' ? player.bodyAngle : player.angle;
+      return (player.mode === 'walking' || player.mode === 'swimming')
+        ? player.bodyAngle
+        : player.angle;
     }
 
     function syncBodyAngleToHeading() {
@@ -5480,7 +6139,7 @@
 
     // Twin-stick / GTA-style foot facing: aim > move > turn-look > hold.
     function updateFootBodyFacing() {
-      if (player.mode !== 'walking') {
+      if (player.mode !== 'walking' && player.mode !== 'swimming') {
         player.bodyAngle = player.angle;
         return;
       }
@@ -5713,6 +6372,10 @@
       }
       if (player.mode === 'walking') {
         handleWalkingInput();
+        if (isWaterWorldAt(player.x, player.y)) enterSwimMode();
+      } else if (player.mode === 'swimming') {
+        handleSwimmingInput();
+        if (isLandFootingAt(player.x, player.y)) exitSwimMode();
       } else {
         resetMobileWalkMove();
         if (player.mode === 'biking') {
@@ -5720,9 +6383,12 @@
         } else {
           handleDrivingInput();
         }
+        if (activeVehicle && !activeVehicle.sinking && isWaterWorldAt(player.x, player.y)) {
+          beginVehicleSink(activeVehicle);
+        }
       }
 
-      if (player.mode === 'walking' && !player.cameraEasing) {
+      if ((player.mode === 'walking' || player.mode === 'swimming') && !player.cameraEasing) {
         player.cameraAngle = player.angle;
       } else if (player.mode === 'driving') {
         const speedRatio = Math.min(player.motionSpeed / Math.max(player.maxSpeed, 0.01), 1);
@@ -6011,7 +6677,7 @@
         player.vx,
         player.vy,
         player.driveRadius,
-        canDriveAt
+        canDriveIntoWaterAt
       );
 
       if (slide.moved) {
@@ -6030,7 +6696,7 @@
             vy: player.vy
           });
         }
-        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
+        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveIntoWaterAt);
         if (wallHit.impact > HAPTIC.crashMinSpeed || absSpeed > HAPTIC.crashMinSpeed) {
           const wallImpact = Math.max(wallHit.impact, absSpeed * 0.7);
           addCameraShake(crashShakeAmount(wallImpact, SHAKE.wallCrash));
@@ -6256,7 +6922,8 @@
           dx = aligned.dx;
           dy = aligned.dy;
         }
-        const slide = trySlideMove(player.x, player.y, dx, dy, player.radius, canWalkAt);
+        // Land + building insets (soft playerBuilding radius); water OK → enterSwimMode after.
+        const slide = trySlideMove(player.x, player.y, dx, dy, player.radius, canPlayerFootAt);
 
         if (slide.moved) {
           player.x = slide.x;
@@ -6270,6 +6937,173 @@
             player.travelAngle = Math.atan2(usedY, usedX);
             // Anim intensity vs tier cap (not ramping footSpeed), so slow accel still reads as a light walk.
             player.moveAmount = Math.min(1, movement / Math.max(tierCap, 0.01));
+          }
+        }
+      }
+      player.speed = 0;
+      updateFootBodyFacing();
+    }
+
+    function enterSwimMode() {
+      if (player.mode === 'swimming' || wasted) return;
+      player.mode = 'swimming';
+      player.footSprinting = false;
+      player.footSprintBuild = 0;
+      player.footWarmup = 0;
+      player.footSpeed = 0;
+      player.speed = 0;
+      player.vx = 0;
+      player.vy = 0;
+      player.drifting = false;
+      player.swimKickTimer = 0;
+      spawnWaterSplash(player.x, player.y, false);
+      playSfx('splash', 0.55);
+    }
+
+    function exitSwimMode() {
+      if (player.mode !== 'swimming') return;
+      player.mode = 'walking';
+      player.swimKickTimer = 0;
+      player.footSpeed = 0;
+      syncBodyAngleToHeading();
+    }
+
+    function handleSwimmingInput() {
+      player.drifting = false;
+      player.audioThrottle = 0;
+      player.audioReverse = false;
+      player.audioSlip = 0;
+      player.vx = 0;
+      player.vy = 0;
+
+      // Same camera turn as walking: ←/→ (and mobile aim stick).
+      const mobileWalkStick = isMobile && mobileTouch && mobileTouch.aim && mobileTouch.aim.active;
+      if (mobileWalkStick) {
+        const a = mobileAnalogSteer.walk;
+        if (a === 0) {
+          player.steerRate = softReleaseSteer(
+            player.steerRate,
+            MOBILE_STEER_FEEL.walkRelease,
+            0.00045
+          );
+        } else {
+          const intent = a < 0 ? -1 : 1;
+          const maxRate = player.turnSpeed * MOBILE_STEER_FEEL.walkMaxScale * Math.abs(a);
+          player.steerRate = accelerateSteer(
+            player.steerRate,
+            intent,
+            maxRate,
+            MOBILE_STEER_FEEL.walkAccel
+          );
+        }
+      } else {
+        const footDiagonalAim = !isMobile &&
+          (anyCodeHeld('ArrowUp') || anyCodeHeld('ArrowDown'));
+        const intent = footDiagonalAim
+          ? 0
+          : steerIntent(
+              anyCodeHeld('ArrowLeft'),
+              anyCodeHeld('ArrowRight')
+            );
+        if (intent === 0 && (isMobile || footDiagonalAim)) {
+          player.steerRate = softReleaseSteer(
+            player.steerRate,
+            isMobile ? MOBILE_STEER_FEEL.walkRelease : STEER_FEEL.walkRelease,
+            0.00045
+          );
+        } else {
+          player.steerRate = accelerateSteer(
+            player.steerRate,
+            intent,
+            player.turnSpeed,
+            STEER_FEEL.walkAccel
+          );
+        }
+      }
+      player.angle += player.steerRate;
+
+      let forward = 0;
+      let right = 0;
+      player.motionSpeed = 0;
+      player.moveAmount = 0;
+      const mobileMoveStick = isMobile && mobileTouch && mobileTouch.move && mobileTouch.move.active;
+      const smoothMag = Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y);
+      let inputMag = 0;
+      if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
+        const targetX = mobileMoveStick ? mobileAnalogMove.x : 0;
+        const targetY = mobileMoveStick ? mobileAnalogMove.y : 0;
+        const targetMag = Math.hypot(targetX, targetY);
+        const blend = targetMag < 0.0001
+          ? MOBILE_WALK_FEEL.releaseSmooth
+          : MOBILE_WALK_FEEL.smooth;
+        mobileWalkSmooth.x += (targetX - mobileWalkSmooth.x) * blend;
+        mobileWalkSmooth.y += (targetY - mobileWalkSmooth.y) * blend;
+        if (Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y) < MOBILE_WALK_FEEL.stopEpsilon) {
+          mobileWalkSmooth.x = 0;
+          mobileWalkSmooth.y = 0;
+        }
+        inputMag = Math.min(1, Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y));
+      } else {
+        resetMobileWalkMove();
+        let wantF = 0;
+        let wantR = 0;
+        if (keys['w']) wantF = 1;
+        if (keys['s']) wantF = -0.7;
+        if (keys['d']) wantR = 1;
+        if (keys['a']) wantR = -1;
+        inputMag = Math.min(1, Math.hypot(wantF, wantR));
+      }
+
+      const moveSpeed = inputMag * SWIM.speed;
+      player.walkSpeed = moveSpeed;
+      player.footSpeed = moveSpeed;
+
+      if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
+        if (inputMag > 0.0001 && moveSpeed > 0) {
+          right = (mobileWalkSmooth.x / inputMag) * moveSpeed;
+          forward = (mobileWalkSmooth.y / inputMag) * moveSpeed;
+        }
+      } else {
+        let wantF = 0;
+        let wantR = 0;
+        if (keys['w']) wantF = 1;
+        if (keys['s']) wantF = -0.7;
+        if (keys['d']) wantR = 1;
+        if (keys['a']) wantR = -1;
+        const wantMag = Math.hypot(wantF, wantR);
+        if (wantMag > 0.0001 && moveSpeed > 0) {
+          forward = (wantF / wantMag) * moveSpeed;
+          right = (wantR / wantMag) * moveSpeed;
+        }
+      }
+
+      if (forward !== 0 || right !== 0) {
+        let dx = Math.cos(player.angle) * forward - Math.sin(player.angle) * right;
+        let dy = Math.sin(player.angle) * forward + Math.cos(player.angle) * right;
+        if (isMobile && (mobileMoveStick || Math.hypot(mobileWalkSmooth.x, mobileWalkSmooth.y) > MOBILE_WALK_FEEL.stopEpsilon)) {
+          const aligned = alignMobileWalkWorldMove(
+            dx, dy, mobileWalkSmooth.x, mobileWalkSmooth.y
+          );
+          dx = aligned.dx;
+          dy = aligned.dy;
+        }
+        const slide = trySlideMove(player.x, player.y, dx, dy, player.radius, canSwimAt);
+        if (slide.moved) {
+          player.x = slide.x;
+          player.y = slide.y;
+          const usedX = slide.usedX ? dx : 0;
+          const usedY = slide.usedY ? dy : 0;
+          const movement = Math.hypot(usedX, usedY);
+          player.walkPhase += movement * SWIM.phaseRate;
+          player.motionSpeed = movement;
+          if (movement > 0.01) {
+            player.travelAngle = Math.atan2(usedY, usedX);
+            player.moveAmount = Math.min(1, movement / Math.max(SWIM.speed, 0.01));
+            player.swimKickTimer = (player.swimKickTimer || 0) + 1;
+            if (player.swimKickTimer >= SWIM.kickEvery) {
+              player.swimKickTimer = 0;
+              spawnSwimKickRing(player.x, player.y);
+            }
           }
         }
       }
@@ -6348,7 +7182,7 @@
         player.vx,
         player.vy,
         player.driveRadius,
-        canDriveAt
+        canDriveIntoWaterAt
       );
 
       if (slide.moved) {
@@ -6358,7 +7192,7 @@
           applySmoothWallScrape(player, slide, headingX, headingY);
         }
       } else if (Math.hypot(player.vx, player.vy) > crawl) {
-        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
+        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveIntoWaterAt);
         if (wallHit.impact > 0.8 || absSpeed > 0.8) {
           const wallImpact = Math.max(wallHit.impact, absSpeed * 0.7);
           addCameraShake(crashShakeAmount(wallImpact, SHAKE.wallCrash));
@@ -6416,7 +7250,8 @@
 
 
     function togglePlayerMode() {
-      if (wasted) return;
+      if (wasted || cityMap.phase !== 'closed') return;
+      if (player.mode === 'swimming') return; // no enter-vehicle while swimming
       if (player.mode === 'walking') {
         const nearestVehicle = vehicles
           .map(vehicle => ({
@@ -6660,8 +7495,7 @@
       };
     }
 
-    function putPlayerOnFoot(x, y) {
-      player.mode = 'walking';
+    function putPlayerOnFoot(x, y, forceSwim) {
       player.x = x;
       player.y = y;
       player.speed = 0;
@@ -6673,6 +7507,12 @@
       player.cameraAngle = player.angle;
       player.steerRate = 0;
       syncBodyAngleToHeading();
+      if (forceSwim || isWaterWorldAt(x, y)) {
+        player.mode = 'swimming';
+        player.swimKickTimer = 0;
+      } else {
+        player.mode = 'walking';
+      }
     }
 
     function ejectPlayerFromCar(vehicle) {
@@ -6682,6 +7522,127 @@
       activeVehicle = null;
       restoreWalkDriveStats();
       putPlayerOnFoot(spot.x, spot.y);
+    }
+
+    function spawnSwimmingNpcDriver(vehicle) {
+      if (!vehicle) return;
+      const coat = pedestrianColors[Math.floor(Math.random() * pedestrianColors.length)];
+      const skin = skinTones[Math.floor(Math.random() * skinTones.length)];
+      const hair = hairTones[Math.floor(Math.random() * hairTones.length)];
+      pedestrians.push({
+        id: `swim-eject-${simulationTick}-${Math.floor(Math.random() * 999)}`,
+        x: vehicle.x,
+        y: vehicle.y,
+        angle: vehicle.angle + Math.PI + (Math.random() - 0.5) * 0.6,
+        speed: SWIM.speed * 0.9,
+        radius: HITBOX.ped,
+        walkPhase: Math.random() * Math.PI * 2,
+        coat,
+        skin,
+        hair,
+        idleTimer: 0,
+        fleeing: false,
+        fleeTimer: 0,
+        health: 1,
+        isPolice: false,
+        swimming: true,
+        swimKickTimer: 0
+      });
+    }
+
+    function ejectIntoWaterFromVehicle(vehicle) {
+      if (!vehicle) return;
+      // Local player
+      if (activeVehicle === vehicle) {
+        if (!vehicle.isBike) onExitCarRadio(vehicle);
+        vehicle.driverId = null;
+        activeVehicle = null;
+        restoreWalkDriveStats();
+        putPlayerOnFoot(vehicle.x, vehicle.y, true);
+        spawnWaterSplash(vehicle.x, vehicle.y, true);
+        return;
+      }
+      // Remote MP driver (host authority)
+      if (vehicle.driverId && net.role === 'host' && net.players.has(vehicle.driverId)) {
+        const rp = net.players.get(vehicle.driverId);
+        vehicle.driverId = null;
+        if (rp) {
+          rp.vehicleId = null;
+          rp.mode = 'swimming';
+          rp.x = vehicle.x;
+          rp.y = vehicle.y;
+          rp.speed = 0;
+          rp.vx = 0;
+          rp.vy = 0;
+          netSendToPeer(rp.id, {
+            t: 'eject',
+            vehicleId: vehicle.id,
+            x: vehicle.x,
+            y: vehicle.y,
+            swim: true
+          });
+        }
+        return;
+      }
+      // NPC / AI traffic — spawn a swimming driver
+      if (!vehicle.driverId) {
+        spawnSwimmingNpcDriver(vehicle);
+        if (vehicle.isPoliceCar) {
+          // already spawned civilian swim ped; police car just sinks
+        }
+      }
+    }
+
+    function beginVehicleSink(vehicle) {
+      if (!vehicle || vehicle.dead || vehicle.sinking) return;
+      vehicle.sinking = true;
+      vehicle.sinkTick = 0;
+      vehicle.ai = false;
+      vehicle.parked = false;
+      vehicle.speed = 0;
+      vehicle.turn = null;
+      vehicle.turnIntent = null;
+      ejectIntoWaterFromVehicle(vehicle);
+      spawnWaterSplash(vehicle.x, vehicle.y, true);
+      playSfx('splash', attenByDistance(vehicle.x, vehicle.y, 40, 520) || 0.7);
+      addCameraShake(SHAKE.mediumRunover * 0.55);
+      const payload = { t: 'fx_sink', vehicleId: vehicle.id, x: vehicle.x, y: vehicle.y };
+      if (net.role === 'host') netBroadcast(payload);
+      else if (net.role === 'guest') netSendToHost(payload);
+    }
+
+    function updateSinkingVehicles() {
+      for (let i = vehicles.length - 1; i >= 0; i--) {
+        const vehicle = vehicles[i];
+        if (!vehicle.sinking) {
+          // AI / abandoned vehicles that somehow sit on water
+          if (
+            (net.role === 'host' || net.role === 'solo') &&
+            !vehicle.driverId &&
+            vehicle !== activeVehicle &&
+            isWaterWorldAt(vehicle.x, vehicle.y)
+          ) {
+            beginVehicleSink(vehicle);
+          }
+          continue;
+        }
+        vehicle.sinkTick = (vehicle.sinkTick || 0) + 1;
+        vehicle.speed = 0;
+        if (vehicle.sinkTick === 8 || vehicle.sinkTick === 20) {
+          spawnWaterSplash(vehicle.x, vehicle.y, false);
+        }
+        if (vehicle.sinkTick >= WATER_SINK.duration) {
+          if (activeVehicle === vehicle) {
+            activeVehicle = null;
+            restoreWalkDriveStats();
+            if (player.mode === 'driving' || player.mode === 'biking') {
+              putPlayerOnFoot(vehicle.x, vehicle.y, true);
+            }
+          }
+          if (vehicle.driverId) vehicle.driverId = null;
+          vehicles.splice(i, 1);
+        }
+      }
     }
 
     function notePlayerTookDamage() {
@@ -6829,7 +7790,10 @@
       spawnCorpse({
         x: player.x,
         y: player.y,
-        angle: player.mode === 'walking' ? player.bodyAngle : player.angle,
+        angle: (player.mode === 'walking' || player.mode === 'swimming')
+          ? player.bodyAngle
+          : player.angle,
+        floating: isWaterWorldAt(player.x, player.y),
         coat: net.localCoat,
         skin: playerSkin,
         hair: playerHair,
@@ -7646,6 +8610,7 @@
         netSendToHost({ t: 'shoot', x: origin.x, y: origin.y, angle: shootAngle });
       } else {
         fireBullet('player', origin.x, origin.y, shootAngle, COMBAT.bulletSpeed, net.localId, true);
+        fleePedsNearShot(origin.x, origin.y, true);
       }
       addCameraShake(SHAKE.minorFire);
       haptic(HAPTIC.fire);
@@ -7657,6 +8622,9 @@
 
     function makePedFleeFrom(x, y, ped) {
       if (!ped || ped.isPolice) return;
+      ped.fleeDelay = null;
+      ped.pendingFleeX = null;
+      ped.pendingFleeY = null;
       ped.fleeing = true;
       ped.fleeTimer = 160 + Math.floor(Math.random() * 80);
       ped.speed = 1.35 + Math.random() * 0.35;
@@ -7664,13 +8632,42 @@
       ped.idleTimer = 0;
     }
 
-    function fleePedsNearShot(x, y) {
+    function fleePedsNearShot(x, y, stagger) {
+      const maxDelay = Math.max(
+        0,
+        Math.round(((COMBAT.fleeStaggerMaxMs || 150) / 1000) * 120)
+      );
       pedestrians.forEach(ped => {
         if (ped.isPolice) return;
-        if (Math.hypot(ped.x - x, ped.y - y) <= COMBAT.fleeRadius) {
+        if (Math.hypot(ped.x - x, ped.y - y) > COMBAT.fleeRadius) return;
+        if (!stagger || maxDelay <= 0) {
           makePedFleeFrom(x, y, ped);
+          return;
         }
+        ped.pendingFleeX = x;
+        ped.pendingFleeY = y;
+        ped.fleeDelay = Math.floor(Math.random() * (maxDelay + 1));
+        if (ped.fleeDelay <= 0) makePedFleeFrom(x, y, ped);
       });
+    }
+
+    function playCarHornAt(x, y) {
+      const atten = attenByDistance(x, y, 36, 460);
+      if (atten < 0.04) return;
+      playSfx('horn', atten);
+    }
+
+    function panicDrivingAiCar(vehicle) {
+      if (!vehicle || vehicle.dead || vehicle.isBike) return;
+      if (!vehicle.ai || vehicle.parked) return;
+      if (vehicle.isPoliceCar) return;
+      if (vehicle === activeVehicle || vehicle.driverId) return;
+      const wasPanicking = (vehicle.panicTimer || 0) > 0;
+      const span = Math.max(0, TRAFFIC_PANIC.maxTicks - TRAFFIC_PANIC.minTicks);
+      vehicle.panicTimer = TRAFFIC_PANIC.minTicks + Math.floor(Math.random() * (span + 1));
+      vehicle.turn = null;
+      vehicle.turnIntent = 'straight';
+      if (!wasPanicking) playCarHornAt(vehicle.x, vehicle.y);
     }
 
     function killPedestrian(ped, byPlayer) {
@@ -7823,6 +8820,8 @@
       } else if (net.role === 'host' && vehicle.driverId && vehicle.driverId !== net.localId) {
         netSendToPeer(vehicle.driverId, { t: 'shake', amount: SHAKE.gunHitMounted });
       }
+      // Driving AI traffic panics and peels out; parked cars stay put.
+      if (vehicle.health > 0) panicDrivingAiCar(vehicle);
       if (vehicle.health > 0) return;
       runExplosions([vehicle], byPlayer);
     }
@@ -8046,7 +9045,7 @@
           fleePedsNearShot(bullet.x, bullet.y);
         } else if (targetKind === 'localPlayer') {
           const wasAlive = !wasted;
-          if (player.mode === 'walking' || (activeVehicle && activeVehicle.isBike)) {
+          if (player.mode === 'walking' || player.mode === 'swimming' || (activeVehicle && activeVehicle.isBike)) {
             hurtPlayer(COMBAT.playerGunDamage, 'gun', bullet.x, bullet.y);
           } else if (activeVehicle) {
             damageVehicleFromBullet(activeVehicle, COMBAT.carDamage, shooterId);
@@ -8058,7 +9057,7 @@
           fleePedsNearShot(bullet.x, bullet.y);
         } else if (targetKind === 'remotePlayer' && target) {
           const veh = target.vehicleId ? vehicles.find(v => v.id === target.vehicleId) : null;
-          if (target.mode === 'walking' || (veh && veh.isBike) || !veh) {
+          if (target.mode === 'walking' || target.mode === 'swimming' || (veh && veh.isBike) || !veh) {
             hurtGuestPlayer(target, COMBAT.playerGunDamage, 'gun', shooterId);
           } else {
             damageVehicleFromBullet(veh, COMBAT.carDamage, shooterId);
@@ -8067,7 +9066,7 @@
         }
       } else if (bullet.owner === 'police') {
         if (targetKind === 'player') {
-          if (player.mode === 'walking') {
+          if (player.mode === 'walking' || player.mode === 'swimming') {
             hurtPlayer(COMBAT.policeGunDamagePed, 'gun', bullet.x, bullet.y);
           } else if (activeVehicle) {
             if (activeVehicle.isBike) {
@@ -8079,7 +9078,7 @@
           }
         } else if (targetKind === 'remotePlayer' && target) {
           const veh = target.vehicleId ? vehicles.find(v => v.id === target.vehicleId) : null;
-          if (target.mode === 'walking' || (veh && veh.isBike) || !veh) {
+          if (target.mode === 'walking' || target.mode === 'swimming' || (veh && veh.isBike) || !veh) {
             hurtGuestPlayer(target, COMBAT.policeGunDamagePed, 'gun', null);
           } else {
             damageVehicleFromBullet(veh, COMBAT.policeGunDamageCar, false);
@@ -8341,7 +9340,7 @@
     }
 
     function drawEnterVehicleMarker() {
-      if (wasted || player.mode !== 'walking') return;
+      if (wasted || (player.mode !== 'walking' && player.mode !== 'swimming')) return;
       const vehicle = findNearestEnterableVehicle();
       if (!vehicle) return;
 
@@ -8597,7 +9596,7 @@
       if (player.hitCooldown > 0) player.hitCooldown--;
       if (player.blastCooldown > 0) player.blastCooldown--;
       if (player.gunHitCooldown > 0) player.gunHitCooldown--;
-      if (!wasted && player.mode === 'walking' && player.hitCooldown === 0) {
+      if (!wasted && (player.mode === 'walking' || player.mode === 'swimming') && player.hitCooldown === 0) {
         for (let i = 0; i < vehicles.length; i++) {
           const vehicle = vehicles[i];
           const dist = Math.hypot(player.x - vehicle.x, player.y - vehicle.y);
@@ -8629,7 +9628,7 @@
           if (rp.hitCooldown > 0) rp.hitCooldown--;
           if (rp.blastCooldown > 0) rp.blastCooldown--;
           if (rp.gunHitCooldown > 0) rp.gunHitCooldown--;
-          if (rp.wasted || rp.mode !== 'walking' || rp.hitCooldown > 0) return;
+          if (rp.wasted || (rp.mode !== 'walking' && rp.mode !== 'swimming') || rp.hitCooldown > 0) return;
           for (let i = 0; i < vehicles.length; i++) {
             const vehicle = vehicles[i];
             if (vehicle.driverId === rp.id) continue;
@@ -8748,6 +9747,10 @@
         }
       }
       return false;
+    }
+
+    function hitsFootObstacle(x, y, radius) {
+      return hitsCabinet(x, y, radius) || hitsTree(x, y, radius);
     }
 
     function isInParkingBay(x, y) {
@@ -8893,7 +9896,7 @@
       }
     }
 
-    function canDriveAt(x, y, radius) {
+    function canDriveAt(x, y, radius, allowWater) {
       if (hitsCabinet(x, y, radius)) return false;
       const samples = [
         [x - radius, y - radius],
@@ -8909,46 +9912,87 @@
           return false;
         }
         const type = map[tileY][tileX];
+        if (tileIsWater(type)) return !!allowWater;
         return tileIsDrivable(type) || tileIsWalkable(type) || isInParkingBay(sx, sy);
       });
     }
 
-    function canWalkAt(x, y, radius) {
-      if (hitsCabinet(x, y, radius)) return false;
+    function canDriveIntoWaterAt(x, y, radius) {
+      return canDriveAt(x, y, radius, true);
+    }
+
+    function canSwimAt(x, y, radius) {
+      if (hitsFootObstacle(x, y, radius)) return false;
       const samples = [
         [x - radius, y - radius],
         [x + radius, y - radius],
         [x + radius, y + radius],
         [x - radius, y + radius]
       ];
-
       return samples.every(([sx, sy]) => {
         const tileX = Math.floor(sx / TILE_SIZE);
         const tileY = Math.floor(sy / TILE_SIZE);
-        if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) {
-          return false;
-        }
-
-        if (tileIsWalkable(map[tileY][tileX])) {
-          return true;
-        }
-
-        const cover = findBuildingAnchorCovering(tileX, tileY);
-        if (!cover) return false;
-        const footprintSize = TILE_SIZE * cover.footprint;
-        const localX = sx - cover.c * TILE_SIZE;
-        const localY = sy - cover.r * TILE_SIZE;
-        const inset = cover.footprint > 1 ? BUILDING_INSET : 4;
-        const insideBuilding = localX >= inset &&
-          localX <= footprintSize - inset &&
-          localY >= inset &&
-          localY <= footprintSize - inset;
-        return !insideBuilding;
+        if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) return false;
+        const type = map[tileY][tileX];
+        return tileIsWater(type) || tileIsWalkable(type);
       });
     }
 
+    function cornerSamples(x, y, radius) {
+      return [
+        [x - radius, y - radius],
+        [x + radius, y - radius],
+        [x + radius, y + radius],
+        [x - radius, y + radius]
+      ];
+    }
+
+    function sampleInsideBuildingSolid(sx, sy) {
+      const tileX = Math.floor(sx / TILE_SIZE);
+      const tileY = Math.floor(sy / TILE_SIZE);
+      if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) return false;
+      if (!tileIsBuilding(map[tileY][tileX])) return false;
+      const cover = findBuildingAnchorCovering(tileX, tileY);
+      if (!cover) return true;
+      const footprintSize = TILE_SIZE * cover.footprint;
+      const localX = sx - cover.c * TILE_SIZE;
+      const localY = sy - cover.r * TILE_SIZE;
+      const inset = cover.footprint > 1 ? BUILDING_INSET : 4;
+      return localX >= inset &&
+        localX <= footprintSize - inset &&
+        localY >= inset &&
+        localY <= footprintSize - inset;
+    }
+
+    // buildingRadius: optional softer radius used only vs building solids (player alleys).
+    // allowWater: walking step may enter water (swim mode kicks in after).
+    function canWalkAt(x, y, radius, buildingRadius, allowWater) {
+      if (hitsFootObstacle(x, y, radius)) return false;
+      const bRad = buildingRadius != null ? buildingRadius : radius;
+
+      // Full radius: bounds / water / must be walkable or a building tile (inset handled soft).
+      const fullOk = cornerSamples(x, y, radius).every(([sx, sy]) => {
+        const tileX = Math.floor(sx / TILE_SIZE);
+        const tileY = Math.floor(sy / TILE_SIZE);
+        if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) return false;
+        const type = map[tileY][tileX];
+        if (tileIsWater(type)) return !!allowWater;
+        if (tileIsWalkable(type)) return true;
+        return !!findBuildingAnchorCovering(tileX, tileY);
+      });
+      if (!fullOk) return false;
+
+      // Soft (or normal) radius must stay outside building solids.
+      return cornerSamples(x, y, bRad).every(([sx, sy]) => !sampleInsideBuildingSolid(sx, sy));
+    }
+
+    // Player foot move: water OK for swim transition; softer vs building edges only.
+    function canPlayerFootAt(x, y, radius) {
+      return canWalkAt(x, y, radius, HITBOX.playerBuilding, true);
+    }
+
     function canPedestrianUseSurface(x, y, radius) {
-      if (hitsCabinet(x, y, radius)) return false;
+      if (hitsFootObstacle(x, y, radius)) return false;
       const samples = [
         [x - radius, y - radius],
         [x + radius, y - radius],
@@ -8977,7 +10021,8 @@
       id0: null,
       id1: null,
       startDist: 0,
-      startFactor: 1
+      startFactor: 1,
+      forMap: false
     };
 
     const camProj = {
@@ -9321,6 +10366,7 @@
     }
 
     function adjustCameraZoomUserFactor(delta) {
+      if (cityMap.phase !== 'closed') return false;
       return setCameraZoomUserFactor(cameraZoomUserFactor + delta);
     }
 
@@ -9335,8 +10381,1207 @@
       return null;
     }
 
+    // Full-city map. Blends the live isometric camera into a north-up plan.
+    const CITY_MAP = {
+      openMs: 1350,
+      closeMs: 1050,
+      blipFadeMs: 420,
+      yScale: 0.84,
+      padX: 32,
+      padTop: 58,
+      padBottom: 84,
+      zoomDefaultMul: 1.7,
+      zoomMaxMul: 8,
+      panSpeed: 540,
+      stickPanSpeed: 190,
+      stickPanDeadzone: 0.34,
+      stickPanCurve: 1.9,
+      snapRadius: 58
+    };
+    const cityMap = {
+      phase: 'closed',
+      blend: 0,
+      fromBlend: 0,
+      blipAlpha: 0,
+      fromBlip: 0,
+      startedAt: 0,
+      landedAt: 0,
+      whooshAt: 0,
+      fastDraw: false,
+      hoverId: null,
+      hoverKind: null,
+      hits: [],
+      frame: null,
+      ui: null,
+      nameEl: null,
+      waypointHintEl: null,
+      keys: { w: false, a: false, s: false, d: false, zoomIn: false, zoomOut: false },
+      nav: {
+        ready: false,
+        focusX: 0,
+        focusY: 0,
+        zoom: 1,
+        lastAt: 0,
+        reticleX: 0,
+        reticleY: 0,
+        reticleReady: false,
+        snap: null
+      },
+      drag: { active: false, id: null, cx: 0, cy: 0, moved: false, pinch: false }
+    };
+
+    function easeCityMap(t) {
+      const u = Math.max(0, Math.min(1, t));
+      if (u < 0.28) {
+        const k = u / 0.28;
+        return 0.18 * k * k;
+      }
+      if (u < 0.72) {
+        const k = (u - 0.28) / 0.44;
+        return 0.18 + 0.64 * (k * k * (3 - 2 * k));
+      }
+      const k = (u - 0.72) / 0.28;
+      return 0.82 + 0.18 * (1 - Math.pow(1 - k, 3));
+    }
+
+    function cityMapBlocked() {
+      return !!(
+        wasted ||
+        deathCam.active ||
+        spawnCamIntro.active ||
+        bootSplash.active ||
+        (copKillFx && copKillFx.active)
+      );
+    }
+
+    function cityMapFitZoom() {
+      const world = MAP_SIZE * TILE_SIZE;
+      const padX = Math.max(16, Math.min(CITY_MAP.padX, screenWidth * 0.06));
+      const availW = Math.max(80, screenWidth - padX * 2);
+      const availH = Math.max(80, screenHeight - CITY_MAP.padTop - CITY_MAP.padBottom);
+      return Math.min(availW / world, availH / (world * CITY_MAP.yScale));
+    }
+
+    function setCityMapZoom(next) {
+      const fit = cityMapFitZoom();
+      const z = Math.max(fit, Math.min(fit * CITY_MAP.zoomMaxMul, next));
+      cityMap.nav.zoom = z;
+    }
+
+    function clampCityMapFocus() {
+      const span = MAP_SIZE * TILE_SIZE;
+      cityMap.nav.focusX = Math.max(0, Math.min(span, cityMap.nav.focusX));
+      cityMap.nav.focusY = Math.max(0, Math.min(span, cityMap.nav.focusY));
+    }
+
+    function clearCityMapInput() {
+      const keys = cityMap.keys;
+      keys.w = false;
+      keys.a = false;
+      keys.s = false;
+      keys.d = false;
+      keys.zoomIn = false;
+      keys.zoomOut = false;
+      cityMap.drag.active = false;
+      cityMap.drag.id = null;
+      cityMap.drag.moved = false;
+      cityMap.drag.pinch = false;
+    }
+
+    function setCityMapKey(code, down) {
+      if (code === 'KeyW') cityMap.keys.w = down;
+      else if (code === 'KeyA') cityMap.keys.a = down;
+      else if (code === 'KeyS') cityMap.keys.s = down;
+      else if (code === 'KeyD') cityMap.keys.d = down;
+      else if (code === 'ArrowUp') cityMap.keys.zoomIn = down;
+      else if (code === 'ArrowDown') cityMap.keys.zoomOut = down;
+    }
+
+    function refreshCityMapFrame() {
+      const fit = cityMapFitZoom();
+      const availH = Math.max(80, screenHeight - CITY_MAP.padTop - CITY_MAP.padBottom);
+      if (!cityMap.nav.ready) {
+        const z = Math.max(fit, Math.min(fit * CITY_MAP.zoomMaxMul, fit * CITY_MAP.zoomDefaultMul));
+        cityMap.nav.focusX = player.x;
+        cityMap.nav.focusY = player.y;
+        cityMap.nav.zoom = z;
+        cityMap.nav.ready = true;
+        cityMap.nav.reticleReady = false;
+        cityMap.nav.snap = null;
+      }
+      if (cityMap.phase === 'opening') {
+        cityMap.nav.focusX = player.x;
+        cityMap.nav.focusY = player.y;
+      }
+      cityMap.nav.zoom = Math.max(fit, Math.min(fit * CITY_MAP.zoomMaxMul, cityMap.nav.zoom));
+      clampCityMapFocus();
+      const zoom = cityMap.nav.zoom;
+      cityMap.frame = {
+        cx: cityMap.nav.focusX,
+        cy: cityMap.nav.focusY,
+        zoom: zoom,
+        yScale: CITY_MAP.yScale,
+        ox: screenWidth * 0.5,
+        oy: CITY_MAP.padTop + availH * 0.5,
+        zLift: zoom * 0.42
+      };
+    }
+
+    function cityMapCenterScreen() {
+      const f = cityMap.frame;
+      if (!f) return { x: screenWidth * 0.5, y: screenHeight * 0.5 };
+      if (typeof mobileWarpActive === 'function' && mobileWarpActive()) {
+        return mobileWarpMapPoint(f.ox, f.oy);
+      }
+      return { x: f.ox, y: f.oy };
+    }
+
+    function updateCityMapNav(now) {
+      if (!cityMap.nav.ready) return;
+      if (!cityMap.nav.lastAt) {
+        cityMap.nav.lastAt = now;
+        return;
+      }
+      const dt = Math.min(0.05, Math.max(0, (now - cityMap.nav.lastAt) / 1000));
+      cityMap.nav.lastAt = now;
+      if (dt <= 0) return;
+
+      let px = 0;
+      let py = 0;
+      if (cityMap.keys.a) px -= 1;
+      if (cityMap.keys.d) px += 1;
+      if (cityMap.keys.w) py -= 1;
+      if (cityMap.keys.s) py += 1;
+      if (typeof mobileTouch !== 'undefined' && mobileTouch.move.active) {
+        if (Math.hypot(mobileTouch.move.vx, mobileTouch.move.vy) > 0.18) {
+          px += mobileTouch.move.vx;
+          py += mobileTouch.move.vy;
+        }
+      }
+      const mag = Math.hypot(px, py);
+      if (mag > 1) {
+        px /= mag;
+        py /= mag;
+      }
+      const z = Math.max(0.0001, cityMap.nav.zoom);
+      if (mag > 0) {
+        cityMap.nav.focusX += (px * CITY_MAP.panSpeed * dt) / z;
+        cityMap.nav.focusY += (py * CITY_MAP.panSpeed * dt) / (z * CITY_MAP.yScale);
+        clampCityMapFocus();
+      }
+
+      let zoomDir = 0;
+      if (cityMap.keys.zoomIn) zoomDir += 1;
+      if (cityMap.keys.zoomOut) zoomDir -= 1;
+      if (typeof mobileTouch !== 'undefined' && mobileTouch.aim.active) {
+        const vy = mobileTouch.aim.vy;
+        if (vy < -0.2) zoomDir += Math.min(1, -vy);
+        else if (vy > 0.2) zoomDir -= Math.min(1, vy);
+      }
+      zoomDir = Math.max(-1.5, Math.min(1.5, zoomDir));
+      if (zoomDir) setCityMapZoom(cityMap.nav.zoom * Math.exp(zoomDir * 1.15 * dt));
+    }
+
+    function projectOverview(wx, wy, wz) {
+      const f = cityMap.frame;
+      const z = wz || 0;
+      return {
+        x: f.ox + (wx - f.cx) * f.zoom,
+        y: f.oy + (wy - f.cy) * f.zoom * f.yScale - z * f.zLift,
+        depth: wy + z
+      };
+    }
+
+    function syncCityMapChrome() {
+      const ui = cityMap.ui;
+      if (!ui) return;
+      const active = cityMap.phase !== 'closed';
+      ui.classList.toggle('show', active);
+      ui.classList.toggle('blips', cityMap.blipAlpha > 0.04);
+      ui.setAttribute('aria-hidden', active ? 'false' : 'true');
+      document.body.classList.toggle('city-map-open', active);
+      if (canvas) canvas.style.cursor = (active && cityMap.blipAlpha > 0.4) ? 'crosshair' : '';
+      if (!active || cityMap.blipAlpha < 0.45) {
+        if (cityMap.nameEl) cityMap.nameEl.hidden = true;
+      }
+    }
+
+    function updateCityMap(now) {
+      if (cityMap.phase !== 'closed' && cityMapBlocked()) {
+        cityMap.phase = 'closed';
+        cityMap.blend = 0;
+        cityMap.blipAlpha = 0;
+        cityMap.hoverId = null;
+        cityMap.hoverKind = null;
+        cityMap.fastDraw = false;
+        cityMap.nav.snap = null;
+        hideMapWaypointHint();
+        clearCityMapInput();
+        syncCityMapChrome();
+        return;
+      }
+      if (cityMap.phase === 'opening') {
+        const t = Math.min(1, (now - cityMap.startedAt) / CITY_MAP.openMs);
+        cityMap.blend = cityMap.fromBlend + (1 - cityMap.fromBlend) * easeCityMap(t);
+        cityMap.blipAlpha = 0;
+        if (t >= 1) {
+          cityMap.phase = 'open';
+          cityMap.blend = 1;
+          cityMap.landedAt = now;
+        }
+      } else if (cityMap.phase === 'closing') {
+        const t = Math.min(1, (now - cityMap.startedAt) / CITY_MAP.closeMs);
+        cityMap.blend = cityMap.fromBlend * (1 - easeCityMap(t));
+        cityMap.blipAlpha = cityMap.fromBlip * (1 - Math.min(1, t * 2.4));
+        if (t >= 1) {
+          cityMap.phase = 'closed';
+          cityMap.blend = 0;
+          cityMap.blipAlpha = 0;
+          cityMap.hoverId = null;
+          cityMap.hoverKind = null;
+          cityMap.nav.snap = null;
+          hideMapWaypointHint();
+        }
+      } else if (cityMap.phase === 'open') {
+        cityMap.blend = 1;
+        const u = Math.min(1, (now - cityMap.landedAt) / CITY_MAP.blipFadeMs);
+        cityMap.blipAlpha = easeOutCubic(u);
+      }
+      cityMap.fastDraw = cityMap.blend > 0.2;
+      if (cityMap.phase === 'open') updateCityMapNav(now);
+      if (cityMap.blend > 0) refreshCityMapFrame();
+      syncCityMapChrome();
+    }
+
+    function brakeForCityMap() {
+      player.speed *= 0.86;
+      player.vx *= 0.86;
+      player.vy *= 0.86;
+      player.steerRate *= 0.8;
+      player.motionSpeed *= 0.86;
+      if (Math.abs(player.speed) < 0.05) player.speed = 0;
+      if (activeVehicle && (player.mode === 'driving' || player.mode === 'biking')) {
+        activeVehicle.speed = player.speed;
+      }
+    }
+
+    // Per map-open coach: show once on first markable-icon hover/snap; hide on
+    // waypoint place/clear or map close; can show again on the next open.
+    const mapWaypointHint = {
+      visible: false,
+      armed: true
+    };
+
+    function isMarkableMapIconKind(kind) {
+      return kind === 'player' || kind === 'police-car' || kind === 'police-foot';
+    }
+
+    function syncMapWaypointHintDom() {
+      const el = cityMap.waypointHintEl;
+      if (!el) return;
+      const textEl = el.querySelector('.map-waypoint-hint-text');
+      const arrowEl = el.querySelector('.map-waypoint-hint-arrow');
+      if (textEl) {
+        textEl.textContent = isMobile ? 'TAP TO MARK WAYPOINT' : 'CLICK TO MARK WAYPOINT';
+      }
+      if (arrowEl) arrowEl.textContent = isMobile ? '▼' : '▲';
+      el.classList.toggle('show', !!mapWaypointHint.visible);
+    }
+
+    function hideMapWaypointHint() {
+      if (!mapWaypointHint.visible) {
+        syncMapWaypointHintDom();
+        return;
+      }
+      mapWaypointHint.visible = false;
+      syncMapWaypointHintDom();
+    }
+
+    function armMapWaypointHintForOpen() {
+      mapWaypointHint.armed = true;
+      mapWaypointHint.visible = false;
+      syncMapWaypointHintDom();
+    }
+
+    function noteMapWaypointHintIconFocus() {
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.45) return;
+      if (!mapWaypointHint.armed || mapWaypointHint.visible) return;
+      mapWaypointHint.visible = true;
+      mapWaypointHint.armed = false;
+      syncMapWaypointHintDom();
+    }
+
+    function dismissMapWaypointHint() {
+      mapWaypointHint.armed = false;
+      hideMapWaypointHint();
+    }
+
+    function openCityMap() {
+      if (cityMapBlocked()) return;
+      if (cityMap.phase === 'open' || cityMap.phase === 'opening') return;
+      cityMap.phase = 'opening';
+      cityMap.fromBlend = cityMap.blend;
+      cityMap.startedAt = performance.now();
+      cityMap.blipAlpha = 0;
+      cityMap.hoverId = null;
+      cityMap.hoverKind = null;
+      armMapWaypointHintForOpen();
+      clearCityMapInput();
+      cityMap.nav.ready = false;
+      cityMap.nav.lastAt = 0;
+      cityMap.nav.reticleReady = false;
+      cityMap.nav.snap = null;
+      clearHeldKeys();
+      playMapWhoosh(false);
+      syncCityMapChrome();
+    }
+
+    function closeCityMap(instant) {
+      if (cityMap.phase === 'closed') return;
+      hideMapWaypointHint();
+      if (instant) {
+        cityMap.phase = 'closed';
+        cityMap.blend = 0;
+        cityMap.blipAlpha = 0;
+        cityMap.hoverId = null;
+        cityMap.hoverKind = null;
+        cityMap.fastDraw = false;
+        cityMap.nav.snap = null;
+        clearCityMapInput();
+        syncCityMapChrome();
+        return;
+      }
+      if (cityMap.phase === 'closing') return;
+      clearCityMapInput();
+      cityMap.phase = 'closing';
+      cityMap.fromBlend = cityMap.blend;
+      cityMap.fromBlip = cityMap.blipAlpha;
+      cityMap.startedAt = performance.now();
+      playMapWhoosh(true);
+      syncCityMapChrome();
+    }
+
+    function toggleCityMap() {
+      if (cityMap.phase === 'opening' || cityMap.phase === 'open') closeCityMap(false);
+      else openCityMap();
+    }
+
+    function cityMapScreenPoint(wx, wy) {
+      const p = project(wx, wy, 6);
+      if (typeof mobileWarpActive === 'function' && mobileWarpActive()) {
+        return mobileWarpMapPoint(p.x, p.y);
+      }
+      return p;
+    }
+
+    function drawCityMapMarker(x, y, draw) {
+      ctx.save();
+      ctx.translate(x, y);
+      draw();
+      ctx.restore();
+    }
+
+    function updateCityMapNameTag() {
+      const tag = cityMap.nameEl;
+      if (!tag) return;
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.45) {
+        tag.hidden = true;
+        return;
+      }
+      let hit = null;
+      if (cityMap.hoverId != null && cityMap.hoverKind) {
+        for (let i = 0; i < cityMap.hits.length; i++) {
+          if (cityMap.hits[i].kind === cityMap.hoverKind && cityMap.hits[i].id === cityMap.hoverId) {
+            hit = cityMap.hits[i];
+            break;
+          }
+        }
+      }
+      if (!hit && cityMap.nav.snap && isMarkableMapIconKind(cityMap.nav.snap.kind)) {
+        hit = cityMap.nav.snap;
+      }
+      if (!hit) {
+        tag.hidden = true;
+        return;
+      }
+      const label = hit.name ||
+        (hit.kind === 'police-car' || hit.kind === 'police-foot' ? 'Police' : '');
+      if (!label) {
+        tag.hidden = true;
+        return;
+      }
+      tag.hidden = false;
+      tag.textContent = label;
+      tag.style.left = Math.round(hit.x) + 'px';
+      tag.style.top = Math.round(hit.y) + 'px';
+    }
+
+    function drawCityMapBlips() {
+      if (cityMap.blipAlpha <= 0.01) {
+        cityMap.hits.length = 0;
+        drawCityMapCrosshair();
+        return;
+      }
+      cityMap.hits.length = 0;
+      const alpha = cityMap.blipAlpha;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#181410';
+
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
+        if (!vehicle.isPoliceCar || vehicle === activeVehicle || vehicle.driverId) continue;
+        const p = cityMapScreenPoint(vehicle.x, vehicle.y);
+        cityMap.hits.push({
+          kind: 'police-car',
+          id: vehicle.id,
+          name: '',
+          x: p.x,
+          y: p.y
+        });
+        drawCityMapMarker(p.x, p.y, () => {
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = '#d23a32';
+          ctx.fillRect(-4.5, -4.5, 9, 9);
+          ctx.strokeRect(-4.5, -4.5, 9, 9);
+        });
+      }
+
+      for (let i = 0; i < pedestrians.length; i++) {
+        const ped = pedestrians[i];
+        if (!ped.isPolice) continue;
+        const p = cityMapScreenPoint(ped.x, ped.y);
+        cityMap.hits.push({
+          kind: 'police-foot',
+          id: ped.id,
+          name: '',
+          x: p.x,
+          y: p.y
+        });
+        drawCityMapMarker(p.x, p.y, () => {
+          ctx.rotate(Math.PI / 4);
+          ctx.fillStyle = '#d23a32';
+          ctx.fillRect(-3.5, -3.5, 7, 7);
+          ctx.strokeRect(-3.5, -3.5, 7, 7);
+        });
+      }
+
+      if (net.players.size > 0) {
+        net.players.forEach(rp => {
+          if (!rp || rp.wasted) return;
+          const p = cityMapScreenPoint(rp.x, rp.y);
+          ctx.fillStyle = rp.coat || '#5bc0eb';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          cityMap.hits.push({
+            kind: 'player',
+            id: rp.id,
+            name: rp.name || 'Player',
+            x: p.x,
+            y: p.y
+          });
+        });
+      }
+
+      const heading = (player.mode === 'walking' || player.mode === 'swimming')
+        ? player.bodyAngle
+        : player.angle;
+      const you = cityMapScreenPoint(player.x, player.y);
+      cityMap.hits.push({ kind: 'you', id: 'you', name: '', x: you.x, y: you.y });
+      const face = Math.atan2(Math.sin(heading) * CITY_MAP.yScale, Math.cos(heading));
+      drawCityMapMarker(you.x, you.y, () => {
+        ctx.rotate(face);
+        ctx.fillStyle = '#d2a84f';
+        if (player.mode === 'walking' || player.mode === 'swimming') {
+          ctx.beginPath();
+          ctx.moveTo(9, 0);
+          ctx.lineTo(-7, 5.5);
+          ctx.lineTo(-3.5, 0);
+          ctx.lineTo(-7, -5.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          const w = player.mode === 'biking' ? 8 : 13;
+          const h = player.mode === 'biking' ? 4 : 7;
+          ctx.fillRect(-w / 2, -h / 2, w, h);
+          ctx.strokeRect(-w / 2, -h / 2, w, h);
+        }
+      });
+
+      ctx.restore();
+
+      if (waypoint.active && alpha > 0.2) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = '#102428';
+        ctx.fillStyle = '#7ee8f5';
+        ctx.lineWidth = 1.5;
+        if (waypoint.kind === 'point') {
+          const pin = cityMapScreenPoint(waypoint.x, waypoint.y);
+          cityMap.hits.push({ kind: 'pin', id: 'pin', name: '', x: pin.x, y: pin.y });
+          drawCityMapMarker(pin.x, pin.y, () => {
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-5.5, -5.5, 11, 11);
+            ctx.strokeRect(-5.5, -5.5, 11, 11);
+          });
+        } else {
+          const pin = cityMapScreenPoint(waypoint.liveX, waypoint.liveY);
+          ctx.beginPath();
+          ctx.arc(pin.x, pin.y, 10, 0, Math.PI * 2);
+          ctx.strokeStyle = '#7ee8f5';
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      updateCityMapNameTag();
+      drawCityMapCrosshair();
+    }
+
+    function updateCityMapSnap() {
+      const center = cityMapCenterScreen();
+      if (!cityMap.nav.reticleReady) {
+        cityMap.nav.reticleX = center.x;
+        cityMap.nav.reticleY = center.y;
+        cityMap.nav.reticleReady = true;
+      }
+      const radius = CITY_MAP.snapRadius;
+      let best = null;
+      let bestD = radius * radius;
+      if (cityMap.phase === 'open' && cityMap.blipAlpha > 0.45) {
+        for (let i = 0; i < cityMap.hits.length; i++) {
+          const hit = cityMap.hits[i];
+          if (hit.kind !== 'player' && hit.kind !== 'police-car' && hit.kind !== 'police-foot') continue;
+          const dx = hit.x - center.x;
+          const dy = hit.y - center.y;
+          const d = dx * dx + dy * dy;
+          if (d < bestD) {
+            bestD = d;
+            best = hit;
+          }
+        }
+      }
+      const tx = best ? best.x : center.x;
+      const ty = best ? best.y : center.y;
+      const ease = best ? 0.16 : 0.22;
+      cityMap.nav.reticleX += (tx - cityMap.nav.reticleX) * ease;
+      cityMap.nav.reticleY += (ty - cityMap.nav.reticleY) * ease;
+      cityMap.nav.snap = best;
+      if (best && isMarkableMapIconKind(best.kind)) noteMapWaypointHintIconFocus();
+    }
+
+    function drawCityMapCrosshair() {
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.05 || !cityMap.frame) return;
+      updateCityMapSnap();
+      const x = cityMap.nav.reticleX;
+      const y = cityMap.nav.reticleY;
+      const snapped = !!cityMap.nav.snap;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, cityMap.blipAlpha);
+      ctx.strokeStyle = snapped ? '#7ee8f5' : 'rgba(255, 248, 230, 0.95)';
+      ctx.lineWidth = 1.6;
+      const arm = snapped ? 8 : 9;
+      const gap = snapped ? 3 : 4;
+      ctx.beginPath();
+      ctx.moveTo(x - arm, y);
+      ctx.lineTo(x - gap, y);
+      ctx.moveTo(x + gap, y);
+      ctx.lineTo(x + arm, y);
+      ctx.moveTo(x, y - arm);
+      ctx.lineTo(x, y - gap);
+      ctx.moveTo(x, y + gap);
+      ctx.lineTo(x, y + arm);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y, snapped ? 12 : 10, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function onCityMapPointerDown(e) {
+      if (e.button != null && e.button !== 0) return;
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.5) return;
+      if (cityMap.drag.active) {
+        cityMap.drag.moved = true;
+        cityMap.drag.pinch = true;
+        return;
+      }
+      const pt = cityMapPointerXY(e);
+      cityMap.drag.active = true;
+      cityMap.drag.id = e.pointerId;
+      cityMap.drag.cx = pt.x;
+      cityMap.drag.cy = pt.y;
+      cityMap.drag.moved = false;
+      cityMap.drag.pinch = false;
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+
+    function onCityMapPointerMove(e) {
+      if (cityMap.drag.active && cityMap.drag.id === e.pointerId && cityMap.phase === 'open') {
+        const dragPt = cityMapPointerXY(e);
+        const rect = canvas.getBoundingClientRect();
+        const slop = 12 * (canvas.width / Math.max(1, rect.width));
+        if (!cityMap.drag.moved &&
+            Math.hypot(dragPt.x - cityMap.drag.cx, dragPt.y - cityMap.drag.cy) >= slop) {
+          cityMap.drag.moved = true;
+        }
+        if (cityMap.drag.moved && !cityMap.drag.pinch && !cameraPinch.active) {
+          const prev = cityMapScreenToWorld(cityMap.drag.cx, cityMap.drag.cy);
+          const next = cityMapScreenToWorld(dragPt.x, dragPt.y);
+          if (prev && next && cityMap.nav.ready) {
+            cityMap.nav.focusX += prev.wx - next.wx;
+            cityMap.nav.focusY += prev.wy - next.wy;
+            clampCityMapFocus();
+          }
+          cityMap.drag.cx = dragPt.x;
+          cityMap.drag.cy = dragPt.y;
+        }
+      }
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.45) {
+        cityMap.hoverId = null;
+        cityMap.hoverKind = null;
+        return;
+      }
+      const pt = cityMapPointerXY(e);
+      let best = null;
+      let bestD = 18 * 18;
+      for (let i = 0; i < cityMap.hits.length; i++) {
+        const hit = cityMap.hits[i];
+        if (!isMarkableMapIconKind(hit.kind)) continue;
+        const dx = hit.x - pt.x;
+        const dy = hit.y - pt.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) {
+          bestD = d;
+          best = hit;
+        }
+      }
+      cityMap.hoverId = best ? best.id : null;
+      cityMap.hoverKind = best ? best.kind : null;
+      if (best) noteMapWaypointHintIconFocus();
+    }
+
+    function bindCityMapUi() {
+      cityMap.ui = document.getElementById('city-map-ui');
+      cityMap.nameEl = document.getElementById('city-map-name');
+      cityMap.waypointHintEl = document.getElementById('map-waypoint-hint');
+      syncMapWaypointHintDom();
+      const closeBtn = document.getElementById('city-map-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => closeCityMap(false));
+      }
+      const mini = document.getElementById('minimap-container');
+      if (mini) {
+        mini.addEventListener('pointerup', (e) => {
+          if (e.button != null && e.button !== 0) return;
+          if (cityMap.phase !== 'closed') return;
+          e.preventDefault();
+          e.stopPropagation();
+          openCityMap();
+        });
+      }
+      canvas.addEventListener('pointerdown', onCityMapPointerDown);
+      canvas.addEventListener('pointermove', onCityMapPointerMove);
+      canvas.addEventListener('pointerup', onCityMapPointerUp);
+      canvas.addEventListener('pointercancel', (e) => {
+        if (cityMap.drag.id !== e.pointerId) return;
+        cityMap.drag.active = false;
+        cityMap.drag.id = null;
+        cityMap.drag.moved = true;
+      });
+      canvas.addEventListener('pointerleave', () => {
+        cityMap.hoverId = null;
+        cityMap.hoverKind = null;
+        if (cityMap.nameEl) cityMap.nameEl.hidden = true;
+      });
+    }
+
+    // Street waypoint. One at a time. A road route leads to a fixed pin,
+    // or follows a player / police unit until you catch them.
+    const WP_ARRIVE = TILE_SIZE * 1.75;
+    const WP_LANE = 11;
+    const waypoint = {
+      active: false,
+      kind: 'point',
+      id: null,
+      x: 0,
+      y: 0,
+      liveX: 0,
+      liveY: 0,
+      path: [],
+      lastKey: ''
+    };
+
+    function playWaypointPing(kind) {
+      unlockSfx();
+      const actx = ensureSfxContext();
+      if (!actx) return;
+      if (actx.state !== 'running') actx.resume().catch(() => {});
+      const now = actx.currentTime;
+      const master = Math.max(0.0001, SFX.masterVolume * getSfxDuckMul());
+      if (kind === 'set') {
+        playSfxTone(actx, { type: 'square', freq: 660, freqEnd: 1180, duration: 0.055 }, now, master * 0.62, 1);
+        playSfxTone(actx, { type: 'triangle', freq: 1180, duration: 0.07 }, now + 0.03, master * 0.42, 1);
+      } else if (kind === 'arrive') {
+        playSfxTone(actx, { type: 'sine', freq: 520, freqEnd: 860, duration: 0.07 }, now, master * 0.28, 1);
+        playSfxTone(actx, { type: 'triangle', freq: 860, duration: 0.09 }, now + 0.045, master * 0.16, 1);
+      } else if (kind === 'cancel') {
+        playSfxTone(actx, { type: 'sine', freq: 920, freqEnd: 340, duration: 0.05 }, now, master * 0.36, 1);
+        playSfxTone(actx, { type: 'triangle', freq: 340, duration: 0.06 }, now + 0.028, master * 0.2, 1);
+      }
+    }
+
+    function clearWaypoint(reason) {
+      if (!waypoint.active) return;
+      waypoint.active = false;
+      waypoint.id = null;
+      waypoint.path = [];
+      waypoint.lastKey = '';
+      if (reason === 'arrive') playWaypointPing('arrive');
+      else if (reason === 'cancel') playWaypointPing('cancel');
+      if (reason === 'cancel') dismissMapWaypointHint();
+    }
+
+    function nearestRoadTile(tx, ty) {
+      tx = Math.max(0, Math.min(MAP_SIZE - 1, tx | 0));
+      ty = Math.max(0, Math.min(MAP_SIZE - 1, ty | 0));
+      if (tileIsRoad(map[ty][tx])) return { tx: tx, ty: ty };
+      const seen = new Uint8Array(MAP_SIZE * MAP_SIZE);
+      const qx = new Int16Array(MAP_SIZE * MAP_SIZE);
+      const qy = new Int16Array(MAP_SIZE * MAP_SIZE);
+      let h = 0;
+      let t = 0;
+      seen[ty * MAP_SIZE + tx] = 1;
+      qx[t] = tx;
+      qy[t] = ty;
+      t++;
+      while (h < t) {
+        const cx = qx[h];
+        const cy = qy[h];
+        h++;
+        const nbs = [cx + 1, cy, cx - 1, cy, cx, cy + 1, cx, cy - 1];
+        for (let i = 0; i < 8; i += 2) {
+          const nx = nbs[i];
+          const ny = nbs[i + 1];
+          if (nx < 0 || ny < 0 || nx >= MAP_SIZE || ny >= MAP_SIZE) continue;
+          const k = ny * MAP_SIZE + nx;
+          if (seen[k]) continue;
+          seen[k] = 1;
+          if (tileIsRoad(map[ny][nx])) return { tx: nx, ty: ny };
+          qx[t] = nx;
+          qy[t] = ny;
+          t++;
+        }
+      }
+      return { tx: tx, ty: ty };
+    }
+
+    function bfsRoadTilePath(stx, sty, gtx, gty) {
+      if (!tileIsRoad(map[sty][stx]) || !tileIsRoad(map[gty][gtx])) return null;
+      const prev = new Int32Array(MAP_SIZE * MAP_SIZE);
+      prev.fill(-2);
+      const q = new Int32Array(MAP_SIZE * MAP_SIZE);
+      let h = 0;
+      let t = 0;
+      const sk = sty * MAP_SIZE + stx;
+      const gk = gty * MAP_SIZE + gtx;
+      prev[sk] = -1;
+      q[t++] = sk;
+      while (h < t) {
+        const k = q[h++];
+        if (k === gk) {
+          const out = [];
+          let cur = k;
+          while (cur !== -1) {
+            out.push({ tx: cur % MAP_SIZE, ty: (cur / MAP_SIZE) | 0 });
+            cur = prev[cur];
+          }
+          out.reverse();
+          return out;
+        }
+        const cx = k % MAP_SIZE;
+        const cy = (k / MAP_SIZE) | 0;
+        const nbs = [cx + 1, cy, cx - 1, cy, cx, cy + 1, cx, cy - 1];
+        for (let i = 0; i < 8; i += 2) {
+          const nx = nbs[i];
+          const ny = nbs[i + 1];
+          if (nx < 0 || ny < 0 || nx >= MAP_SIZE || ny >= MAP_SIZE) continue;
+          if (!tileIsRoad(map[ny][nx])) continue;
+          const nk = ny * MAP_SIZE + nx;
+          if (prev[nk] !== -2) continue;
+          prev[nk] = k;
+          q[t++] = nk;
+        }
+      }
+      return null;
+    }
+
+    function offsetWaypointLane(points, off) {
+      if (!points || points.length < 2) return points ? points.slice() : [];
+      const out = [];
+      for (let i = 0; i < points.length - 1; i++) {
+        const ax = points[i].x;
+        const ay = points[i].y;
+        const bx = points[i + 1].x;
+        const by = points[i + 1].y;
+        let dx = bx - ax;
+        let dy = by - ay;
+        const len = Math.hypot(dx, dy);
+        if (len < 1) continue;
+        dx /= len;
+        dy /= len;
+        const lx = dy * off;
+        const ly = -dx * off;
+        if (!out.length) out.push({ x: ax + lx, y: ay + ly });
+        out.push({ x: bx + lx, y: by + ly });
+      }
+      return out;
+    }
+
+    function simplifyWaypointCorners(pts) {
+      if (pts.length < 3) return pts;
+      const out = [pts[0]];
+      for (let i = 1; i < pts.length - 1; i++) {
+        const a = out[out.length - 1];
+        const b = pts[i];
+        const c = pts[i + 1];
+        if ((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x) !== 0) out.push(b);
+      }
+      out.push(pts[pts.length - 1]);
+      return out;
+    }
+
+    function resolveWaypointTarget() {
+      if (!waypoint.active) return false;
+      if (waypoint.kind === 'point') {
+        waypoint.liveX = waypoint.x;
+        waypoint.liveY = waypoint.y;
+        return true;
+      }
+      let found = false;
+      if (waypoint.kind === 'player') {
+        const rp = net.players.get(waypoint.id);
+        if (rp && !rp.wasted) {
+          waypoint.liveX = rp.x;
+          waypoint.liveY = rp.y;
+          found = true;
+        }
+      } else if (waypoint.kind === 'police-car') {
+        for (let i = 0; i < vehicles.length; i++) {
+          const vehicle = vehicles[i];
+          if (vehicle.id === waypoint.id && vehicle.isPoliceCar) {
+            waypoint.liveX = vehicle.x;
+            waypoint.liveY = vehicle.y;
+            found = true;
+            break;
+          }
+        }
+      } else if (waypoint.kind === 'police-foot') {
+        for (let i = 0; i < pedestrians.length; i++) {
+          const ped = pedestrians[i];
+          if (ped.id === waypoint.id && ped.isPolice) {
+            waypoint.liveX = ped.x;
+            waypoint.liveY = ped.y;
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) return false;
+      const road = nearestRoadTile(
+        Math.floor(waypoint.liveX / TILE_SIZE),
+        Math.floor(waypoint.liveY / TILE_SIZE)
+      );
+      waypoint.x = (road.tx + 0.5) * TILE_SIZE;
+      waypoint.y = (road.ty + 0.5) * TILE_SIZE;
+      return true;
+    }
+
+    function refreshWaypointPath() {
+      waypoint.path = [];
+      if (!waypoint.active) return;
+      const ps = nearestRoadTile(
+        Math.floor(player.x / TILE_SIZE),
+        Math.floor(player.y / TILE_SIZE)
+      );
+      const gs = nearestRoadTile(
+        Math.floor(waypoint.x / TILE_SIZE),
+        Math.floor(waypoint.y / TILE_SIZE)
+      );
+      const tiles = bfsRoadTilePath(ps.tx, ps.ty, gs.tx, gs.ty);
+      let mid = [];
+      if (tiles && tiles.length >= 2) {
+        const centers = [];
+        for (let i = 0; i < tiles.length; i++) {
+          centers.push({
+            x: (tiles[i].tx + 0.5) * TILE_SIZE,
+            y: (tiles[i].ty + 0.5) * TILE_SIZE
+          });
+        }
+        mid = offsetWaypointLane(simplifyWaypointCorners(centers), WP_LANE);
+      }
+      const path = [{ x: player.x, y: player.y }];
+      for (let i = 0; i < mid.length; i++) path.push(mid[i]);
+      path.push({ x: waypoint.liveX, y: waypoint.liveY });
+      waypoint.path = path;
+      if (typeof minimapDirty !== 'undefined') minimapDirty.lastDrawAt = 0;
+    }
+
+    function syncWaypointEnds() {
+      const path = waypoint.path;
+      if (path.length < 2) return;
+      path[0].x = player.x;
+      path[0].y = player.y;
+      const last = path[path.length - 1];
+      last.x = waypoint.liveX;
+      last.y = waypoint.liveY;
+    }
+
+    function updateWaypoint() {
+      if (wasted) {
+        if (waypoint.active) clearWaypoint('silent');
+        return;
+      }
+      if (!waypoint.active) return;
+      if (!resolveWaypointTarget()) {
+        clearWaypoint('silent');
+        return;
+      }
+      if (Math.hypot(player.x - waypoint.liveX, player.y - waypoint.liveY) <= WP_ARRIVE) {
+        clearWaypoint('arrive');
+        return;
+      }
+      const key = ((player.x / TILE_SIZE) | 0) + ',' + ((player.y / TILE_SIZE) | 0) +
+        '>' + ((waypoint.x / TILE_SIZE) | 0) + ',' + ((waypoint.y / TILE_SIZE) | 0);
+      if (key !== waypoint.lastKey || waypoint.path.length < 2) {
+        waypoint.lastKey = key;
+        refreshWaypointPath();
+      } else {
+        syncWaypointEnds();
+      }
+    }
+
+    function placeWaypoint(kind, id, wx, wy) {
+      let liveX = wx;
+      let liveY = wy;
+      let roadX = wx;
+      let roadY = wy;
+      if (kind === 'point') {
+        const road = nearestRoadTile(
+          Math.floor(wx / TILE_SIZE),
+          Math.floor(wy / TILE_SIZE)
+        );
+        roadX = (road.tx + 0.5) * TILE_SIZE;
+        roadY = (road.ty + 0.5) * TILE_SIZE;
+        liveX = roadX;
+        liveY = roadY;
+        if (waypoint.active && waypoint.kind === 'point' &&
+            Math.hypot(waypoint.x - roadX, waypoint.y - roadY) < TILE_SIZE * 0.75) {
+          clearWaypoint('cancel');
+          return;
+        }
+      }
+      if (Math.hypot(player.x - liveX, player.y - liveY) <= WP_ARRIVE) return;
+      waypoint.active = true;
+      waypoint.kind = kind;
+      waypoint.id = id;
+      waypoint.x = roadX;
+      waypoint.y = roadY;
+      waypoint.liveX = liveX;
+      waypoint.liveY = liveY;
+      waypoint.lastKey = '';
+      waypoint.path = [];
+      if (kind !== 'point') {
+        if (!resolveWaypointTarget()) {
+          waypoint.active = false;
+          return;
+        }
+        if (Math.hypot(player.x - waypoint.liveX, player.y - waypoint.liveY) <= WP_ARRIVE) {
+          waypoint.active = false;
+          return;
+        }
+      }
+      playWaypointPing('set');
+      refreshWaypointPath();
+      dismissMapWaypointHint();
+    }
+
+    function cityMapPointerXY(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) * (canvas.width / Math.max(1, rect.width)),
+        y: (e.clientY - rect.top) * (canvas.height / Math.max(1, rect.height))
+      };
+    }
+
+    function nearestCityMapHit(x, y, maxDist) {
+      let best = null;
+      let bestD = maxDist * maxDist;
+      for (let i = 0; i < cityMap.hits.length; i++) {
+        const hit = cityMap.hits[i];
+        const dx = hit.x - x;
+        const dy = hit.y - y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) {
+          bestD = d;
+          best = hit;
+        }
+      }
+      return best;
+    }
+
+    function cityMapScreenToWorld(sx, sy) {
+      let x = sx;
+      let y = sy;
+      if (typeof mobileWarpActive === 'function' && mobileWarpActive()) {
+        const power = MOBILE_WARP.power;
+        const begin = mobileWarpBegin();
+        const nx = (sx / Math.max(1, screenWidth)) * 2 - 1;
+        const ny = (sy / Math.max(1, screenHeight)) * 2 - 1;
+        const ux = mobileWarpDestToSrcNorm(nx, power, begin);
+        const uy = mobileWarpDestToSrcNorm(ny, power, begin);
+        x = (ux + 1) * 0.5 * screenWidth;
+        y = (uy + 1) * 0.5 * screenHeight;
+      }
+      const f = cityMap.frame;
+      if (!f || !(f.zoom > 0)) return null;
+      return {
+        wx: f.cx + (x - f.ox) / f.zoom,
+        wy: f.cy + (y - f.oy) / (f.zoom * f.yScale)
+      };
+    }
+
+    function onCityMapPointerUp(e) {
+      if (e.button != null && e.button !== 0) return;
+      const dragging = cityMap.drag.active && cityMap.drag.id === e.pointerId;
+      const suppress = dragging && (cityMap.drag.moved || cityMap.drag.pinch || cameraPinch.active);
+      if (dragging) {
+        cityMap.drag.active = false;
+        cityMap.drag.id = null;
+        if (!cameraPinch.active) cityMap.drag.pinch = false;
+        if (suppress) return;
+      } else if (cityMap.phase === 'open' && (cityMap.drag.pinch || cameraPinch.active)) {
+        return;
+      }
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.5) return;
+      const pt = cityMapPointerXY(e);
+      const hit = nearestCityMapHit(pt.x, pt.y, 20);
+      if (hit) {
+        if (hit.kind === 'you') return;
+        if (hit.kind === 'pin') {
+          clearWaypoint('cancel');
+          return;
+        }
+        if (hit.kind === 'player' || hit.kind === 'police-car' || hit.kind === 'police-foot') {
+          if (waypoint.active && waypoint.kind === hit.kind && waypoint.id === hit.id) {
+            clearWaypoint('cancel');
+            return;
+          }
+          placeWaypoint(hit.kind, hit.id, 0, 0);
+          return;
+        }
+      }
+      const world = cityMapScreenToWorld(pt.x, pt.y);
+      if (!world) return;
+      const span = MAP_SIZE * TILE_SIZE;
+      if (world.wx < 0 || world.wy < 0 || world.wx >= span || world.wy >= span) return;
+      placeWaypoint('point', null, world.wx, world.wy);
+    }
+
+    function placeWaypointAtCrosshair() {
+      if (cityMap.phase !== 'open' || cityMap.blipAlpha < 0.5) return;
+      const snap = cityMap.nav.snap;
+      if (snap && (snap.kind === 'player' || snap.kind === 'police-car' || snap.kind === 'police-foot')) {
+        if (waypoint.active && waypoint.kind === snap.kind && waypoint.id === snap.id) {
+          clearWaypoint('cancel');
+          return;
+        }
+        placeWaypoint(snap.kind, snap.id, 0, 0);
+        return;
+      }
+      const center = cityMapCenterScreen();
+      const rx = cityMap.nav.reticleReady ? cityMap.nav.reticleX : center.x;
+      const ry = cityMap.nav.reticleReady ? cityMap.nav.reticleY : center.y;
+      const hit = nearestCityMapHit(rx, ry, 20);
+      if (hit && hit.kind === 'pin') {
+        clearWaypoint('cancel');
+        return;
+      }
+      if (hit && hit.kind === 'you') return;
+      const world = cityMapScreenToWorld(rx, ry);
+      if (!world) return;
+      const span = MAP_SIZE * TILE_SIZE;
+      if (world.wx < 0 || world.wy < 0 || world.wx >= span || world.wy >= span) return;
+      placeWaypoint('point', null, world.wx, world.wy);
+    }
+
+    function strokeWaypointPath(drawCtx, points, glowWidth, coreWidth) {
+      if (!points || points.length < 2) return;
+      drawCtx.save();
+      drawCtx.lineJoin = 'round';
+      drawCtx.lineCap = 'round';
+      drawCtx.beginPath();
+      drawCtx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) drawCtx.lineTo(points[i].x, points[i].y);
+      drawCtx.strokeStyle = 'rgba(0, 168, 186, 0.55)';
+      drawCtx.lineWidth = glowWidth;
+      drawCtx.stroke();
+      drawCtx.setLineDash([8, 7]);
+      drawCtx.lineDashOffset = -((performance.now() / 42) % 15);
+      drawCtx.strokeStyle = 'rgba(214, 255, 255, 0.92)';
+      drawCtx.lineWidth = coreWidth;
+      drawCtx.stroke();
+      drawCtx.restore();
+    }
+
+    function drawWaypointRouteWorld() {
+      if (!waypoint.active || waypoint.path.length < 2) return;
+      const far = Math.max(0, Math.min(1, cityMap.blend));
+      const screenPts = [];
+      for (let i = 0; i < waypoint.path.length; i++) {
+        const p = project(waypoint.path[i].x, waypoint.path[i].y, 2);
+        screenPts.push(p);
+      }
+      strokeWaypointPath(ctx, screenPts, 7 * (1 - far) + 2.6 * far, 2.2 * (1 - far) + 1.35 * far);
+    }
+
+    function drawWaypointWorldPin() {
+      if (!waypoint.active || cityMap.blend > 0.55 || waypoint.kind !== 'point') return;
+      const p = project(waypoint.x, waypoint.y, 12);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#7ee8f5';
+      ctx.strokeStyle = '#102428';
+      ctx.lineWidth = 2;
+      ctx.fillRect(-6, -6, 12, 12);
+      ctx.strokeRect(-6, -6, 12, 12);
+      ctx.restore();
+    }
+
+    function drawWaypointOnMinimap(worldToMini, center, radius) {
+      if (!waypoint.active || waypoint.path.length < 2) return;
+      const pts = [];
+      for (let i = 0; i < waypoint.path.length; i++) {
+        pts.push(worldToMini(waypoint.path[i].x, waypoint.path[i].y));
+      }
+      strokeWaypointPath(miniCtx, pts, 3.2, 1.3);
+      const pin = worldToMini(waypoint.liveX, waypoint.liveY);
+      if (Math.hypot(pin.x - center, pin.y - center) > radius - 3) return;
+      miniCtx.save();
+      miniCtx.translate(pin.x, pin.y);
+      miniCtx.rotate(Math.PI / 4);
+      miniCtx.fillStyle = '#7ee8f5';
+      miniCtx.fillRect(-2.5, -2.5, 5, 5);
+      miniCtx.restore();
+    }
+
     function refreshCameraProjection() {
       const now = performance.now();
+      updateCityMap(now);
       const deathBlend = updateDeathCam(now);
       const introBlend = deathCam.active ? 0 : updateSpawnCameraIntro(now);
       const copPunch = (!deathCam.active && !spawnCamIntro.active)
@@ -9402,6 +11647,20 @@
 
     // Restricted zoom: mouse wheel over the game canvas only.
     canvas.addEventListener('wheel', e => {
+      if (cityMap.phase !== 'closed') {
+        e.preventDefault();
+        if (cityMap.phase !== 'open' || !cityMap.nav.ready) return;
+        let delta;
+        if (e.deltaMode === 0) {
+          delta = -e.deltaY * 0.0015;
+        } else {
+          delta = -Math.sign(e.deltaY || 1) * 0.16;
+        }
+        delta = Math.max(-0.28, Math.min(0.28, delta));
+        if (Math.abs(delta) < 0.002) return;
+        setCityMapZoom(cityMap.nav.zoom * Math.exp(delta));
+        return;
+      }
       if (isCameraZoomBlockedByTextFocus()) return;
       e.preventDefault();
       let delta;
@@ -9417,23 +11676,40 @@
     }, { passive: false });
 
     function project(wx, wy, wz) {
+      const b = cityMap.blend;
+      if (b > 0.999) {
+        if (!cityMap.frame) refreshCityMapFrame();
+        return projectOverview(wx, wy, wz);
+      }
       const relX = wx - camProj.originX;
       const relY = wy - camProj.originY;
       const rotX = relX * camProj.cos - relY * camProj.sin;
       const rotY = relX * camProj.sin + relY * camProj.cos;
-      return {
+      const iso = {
         x: camProj.screenCX + (rotX - rotY) * camProj.zoom,
         y: camProj.screenCYBase + (rotX + rotY) * camProj.slopeTerm - wz * camProj.zoomRatio,
         depth: rotX + rotY
       };
+      if (b < 0.001) return iso;
+      if (!cityMap.frame) refreshCityMapFrame();
+      const top = projectOverview(wx, wy, wz);
+      return {
+        x: iso.x + (top.x - iso.x) * b,
+        y: iso.y + (top.y - iso.y) * b,
+        depth: iso.depth + (top.depth - iso.depth) * b
+      };
     }
 
     function projectDepth(wx, wy) {
+      const b = cityMap.blend;
+      if (b > 0.999) return wy;
       const relX = wx - camProj.originX;
       const relY = wy - camProj.originY;
       const rotX = relX * camProj.cos - relY * camProj.sin;
       const rotY = relX * camProj.sin + relY * camProj.cos;
-      return rotX + rotY;
+      const iso = rotX + rotY;
+      if (b < 0.001) return iso;
+      return iso + (wy - iso) * b;
     }
 
     const AI_LOD = {
@@ -9521,15 +11797,18 @@
           continue;
         }
 
-        if (vehicle.turn) {
+        if (vehicle.turn && !((vehicle.panicTimer || 0) > 0)) {
           updateVehicleTurn(vehicle);
           continue;
+        }
+        if (vehicle.turn && (vehicle.panicTimer || 0) > 0) {
+          vehicle.turn = null;
         }
 
         const dx = vehicle.x - px;
         const dy = vehicle.y - py;
         const distSq = dx * dx + dy * dy;
-        const lod = shouldUpdateAiLod(vehicle.id, distSq, false);
+        const lod = shouldUpdateAiLod(vehicle.id, distSq, (vehicle.panicTimer || 0) > 0);
         if (!lod.run) continue;
         const stepScale = lod.step;
 
@@ -9537,8 +11816,23 @@
         const damageMultiplier = carHealthSpeedMult(vehicle);
         let targetSpeed = vehicle.baseSpeed * damageMultiplier;
         const farSimple = lod.step >= AI_LOD.farStride;
+        const panicking = (vehicle.panicTimer || 0) > 0;
 
-        if (!farSimple) {
+        if (panicking) {
+          vehicle.panicTimer = Math.max(0, vehicle.panicTimer - stepScale);
+          vehicle.turnIntent = 'straight';
+          targetSpeed = vehicle.baseSpeed * TRAFFIC_PANIC.speedMul * damageMultiplier;
+          // Ignore lights / turns while panicking; still soft-brake for a car right ahead.
+          if (lod.step <= AI_LOD.midStride) {
+            const leadDistance = findLeadVehicleDistance(vehicle, direction);
+            if (leadDistance < 55) {
+              targetSpeed = Math.min(
+                targetSpeed,
+                vehicle.baseSpeed * TRAFFIC_PANIC.speedMul * Math.max(0.35, (leadDistance - 18) / 55)
+              );
+            }
+          }
+        } else if (!farSimple) {
           const intersection = findIntersectionAhead(vehicle, direction);
 
           if (intersection && intersection.distance < TILE_SIZE * 4) {
@@ -9585,7 +11879,8 @@
         }
 
         vehicle.targetSpeed = targetSpeed;
-        vehicle.speed += (targetSpeed - vehicle.speed) * Math.min(1, 0.08 * stepScale);
+        const speedEase = panicking ? 0.16 : 0.08;
+        vehicle.speed += (targetSpeed - vehicle.speed) * Math.min(1, speedEase * stepScale);
         const move = vehicle.speed * stepScale;
         const nx = vehicle.x + direction.x * move;
         const ny = vehicle.y + direction.y * move;
@@ -9594,7 +11889,7 @@
         const insideCity = nx >= margin && nx <= worldLimit &&
           ny >= margin && ny <= worldLimit;
 
-        if (insideCity) {
+        if (insideCity && !isWaterWorldAt(nx, ny)) {
           vehicle.x = nx;
           vehicle.y = ny;
           const lane = getLeftLaneCenter(vehicle.roadBase, vehicle.dirIndex);
@@ -9605,6 +11900,7 @@
             vehicle.x += (lane - vehicle.x) * laneBlend;
           }
         } else {
+          // Map edge or water ahead — U-turn (NPCs avoid driving into water).
           vehicle.dirIndex = (vehicle.dirIndex + 2) % 4;
           vehicle.dir = vehicle.dirIndex * (Math.PI / 2);
           vehicle.angle = vehicle.dir;
@@ -9619,8 +11915,11 @@
           }
         }
         vehicle.angle = vehicle.dir;
+        if (isWaterWorldAt(vehicle.x, vehicle.y)) beginVehicleSink(vehicle);
       }
       handleVehicleCollisions();
+      updateSinkingVehicles();
+      updateWaterFx();
     }
 
     function updatePedestrians() {
@@ -9633,10 +11932,61 @@
         const pdx = pedestrian.x - px;
         const pdy = pedestrian.y - py;
         const distSq = pdx * pdx + pdy * pdy;
-        const lod = shouldUpdateAiLod(pedestrian.id || i, distSq, !!pedestrian.fleeing);
+        const lod = shouldUpdateAiLod(
+          pedestrian.id || i,
+          distSq,
+          !!pedestrian.fleeing || !!pedestrian.swimming || pedestrian.fleeDelay != null
+        );
         if (!lod.run) continue;
         const stepScale = lod.step;
         const moveSpeed = pedestrian.speed * stepScale;
+
+        if (pedestrian.fleeDelay != null) {
+          pedestrian.fleeDelay -= stepScale;
+          if (pedestrian.fleeDelay <= 0) {
+            const fx = pedestrian.pendingFleeX != null ? pedestrian.pendingFleeX : px;
+            const fy = pedestrian.pendingFleeY != null ? pedestrian.pendingFleeY : py;
+            makePedFleeFrom(fx, fy, pedestrian);
+          }
+        }
+
+        if (pedestrian.swimming) {
+          if (isLandFootingAt(pedestrian.x, pedestrian.y)) {
+            pedestrian.swimming = false;
+            pedestrian.speed = 0.55 + Math.random() * 0.45;
+            continue;
+          }
+          // Seek nearby land footing.
+          let bestAng = pedestrian.angle;
+          let found = false;
+          for (let a = 0; a < 8; a++) {
+            const ang = pedestrian.angle + (a * Math.PI) / 4;
+            const tx = pedestrian.x + Math.cos(ang) * 28;
+            const ty = pedestrian.y + Math.sin(ang) * 28;
+            if (isLandFootingAt(tx, ty)) {
+              bestAng = ang;
+              found = true;
+              break;
+            }
+          }
+          if (found) pedestrian.angle = bestAng;
+          const swimSpeed = SWIM.speed * 0.85 * stepScale;
+          const nextX = pedestrian.x + Math.cos(pedestrian.angle) * swimSpeed;
+          const nextY = pedestrian.y + Math.sin(pedestrian.angle) * swimSpeed;
+          if (canSwimAt(nextX, nextY, pedestrian.radius)) {
+            pedestrian.x = nextX;
+            pedestrian.y = nextY;
+            pedestrian.walkPhase += swimSpeed * SWIM.phaseRate;
+            pedestrian.swimKickTimer = (pedestrian.swimKickTimer || 0) + 1;
+            if (pedestrian.swimKickTimer >= SWIM.kickEvery) {
+              pedestrian.swimKickTimer = 0;
+              spawnSwimKickRing(pedestrian.x, pedestrian.y);
+            }
+          } else {
+            pedestrian.angle += Math.PI / 2;
+          }
+          continue;
+        }
 
         if (pedestrian.fleeing) {
           pedestrian.fleeTimer -= stepScale;
@@ -10154,11 +12504,13 @@
           vehicle: null,
           pedestrian: null,
           intersection: null,
-          cabinet: null
+          cabinet: null,
+          tree: null
         };
         renderPool[i] = item;
       } else {
         item.ghostAlpha = 0;
+        item.tree = null;
       }
       renderQueue.push(item);
       return item;
@@ -10301,7 +12653,8 @@
       ctx.fillRect(0, 0, screenWidth, screenHeight);
 
       ctx.save();
-      ctx.translate(shakeSample.x, shakeSample.y);
+      const mapShake = cityMap.blend > 0.05 ? 0 : 1;
+      ctx.translate(shakeSample.x * mapShake, shakeSample.y * mapShake);
 
       groundQueue.length = 0;
       renderQueue.length = 0;
@@ -10315,10 +12668,27 @@
       const pTileX = Math.floor(player.x / TILE_SIZE);
       const pTileY = Math.floor(player.y / TILE_SIZE);
 
-      const startX = Math.max(0, pTileX - viewRadius);
-      const endX = Math.min(MAP_SIZE, pTileX + viewRadius);
-      const startY = Math.max(0, pTileY - viewRadius);
-      const endY = Math.min(MAP_SIZE, pTileY + viewRadius);
+      let startX;
+      let endX;
+      let startY;
+      let endY;
+      if (cityMap.blend > 0.03) {
+        const reveal = Math.min(1, (cityMap.blend - 0.03) / 0.72);
+        const full = Math.ceil(MAP_SIZE * 0.5) + 2;
+        const radius = Math.ceil(viewRadius + (full - viewRadius) * reveal);
+        const mid = (MAP_SIZE - 1) * 0.5;
+        const focusC = pTileX + (mid - pTileX) * reveal;
+        const focusR = pTileY + (mid - pTileY) * reveal;
+        startX = Math.max(0, Math.floor(focusC - radius));
+        endX = Math.min(MAP_SIZE, Math.ceil(focusC + radius));
+        startY = Math.max(0, Math.floor(focusR - radius));
+        endY = Math.min(MAP_SIZE, Math.ceil(focusR + radius));
+      } else {
+        startX = Math.max(0, pTileX - viewRadius);
+        endX = Math.min(MAP_SIZE, pTileX + viewRadius);
+        startY = Math.max(0, pTileY - viewRadius);
+        endY = Math.min(MAP_SIZE, pTileY + viewRadius);
+      }
 
       // Collect grid tiles
       for (let r = startY; r < endY; r++) {
@@ -10347,6 +12717,7 @@
       }
 
       for (let i = 0; i < intersections.length; i++) {
+        if (cityMap.fastDraw) break;
         const intersection = intersections[i];
         const tileX = intersection.x / TILE_SIZE;
         const tileY = intersection.y / TILE_SIZE;
@@ -10368,6 +12739,14 @@
       const vEndY = endY + vehPad;
       for (let i = 0; i < vehicles.length; i++) {
         const vehicle = vehicles[i];
+        if (cityMap.fastDraw &&
+            vehicle !== activeVehicle &&
+            !vehicle.driverId &&
+            !vehicle.isPoliceCar) continue;
+        if (cityMap.blipAlpha > 0.15 &&
+            vehicle.isPoliceCar &&
+            vehicle !== activeVehicle &&
+            !vehicle.driverId) continue;
         const keep =
           vehicle === activeVehicle ||
           vehicle.driverId === net.localId ||
@@ -10387,6 +12766,7 @@
       }
 
       for (let i = 0; i < cabinets.length; i++) {
+        if (cityMap.fastDraw) break;
         const cabinet = cabinets[i];
         const cx = cabinet.x + cabinet.w / 2;
         const cy = cabinet.y + cabinet.h / 2;
@@ -10402,7 +12782,24 @@
         item.intersection = null;
       }
 
-      if (player.mode === 'walking' && !wasted) {
+      for (let i = 0; i < trees.length; i++) {
+        if (cityMap.fastDraw) break;
+        const tree = trees[i];
+        if (tree.broken) continue;
+        const tileX = tree.x / TILE_SIZE;
+        const tileY = tree.y / TILE_SIZE;
+        if (tileX < startX || tileX > endX || tileY < startY || tileY > endY) continue;
+        const item = acquireRenderItem();
+        item.type = 'tree';
+        item.tree = tree;
+        item.depth = projectDepth(tree.x, tree.y);
+        item.vehicle = null;
+        item.pedestrian = null;
+        item.intersection = null;
+        item.cabinet = null;
+      }
+
+      if ((player.mode === 'walking' || player.mode === 'swimming') && !wasted && cityMap.blipAlpha < 0.35) {
         const item = acquireRenderItem();
         item.type = 'pedestrian';
         item.depth = projectDepth(player.x, player.y);
@@ -10414,6 +12811,8 @@
 
       for (let i = 0; i < pedestrians.length; i++) {
         const pedestrian = pedestrians[i];
+        if (cityMap.fastDraw && !pedestrian.isPolice) continue;
+        if (cityMap.blipAlpha > 0.15 && pedestrian.isPolice) continue;
         const tileX = pedestrian.x / TILE_SIZE;
         const tileY = pedestrian.y / TILE_SIZE;
         if (tileX < startX || tileX > endX || tileY < startY || tileY > endY) continue;
@@ -10428,7 +12827,8 @@
 
       if (net.players.size > 0) {
         net.players.forEach(rp => {
-          if (rp.wasted || rp.mode !== 'walking') return;
+          if (rp.wasted || (rp.mode !== 'walking' && rp.mode !== 'swimming')) return;
+          if (cityMap.blipAlpha > 0.2) return;
           const tileX = rp.x / TILE_SIZE;
           const tileY = rp.y / TILE_SIZE;
           if (tileX < startX || tileX > endX || tileY < startY || tileY > endY) return;
@@ -10448,30 +12848,34 @@
       for (let i = 0; i < groundQueue.length; i++) {
         drawTile(groundQueue[i], true);
       }
-      drawParkingBays();
-      drawBikeBays();
-      drawScorchMarks();
-      drawSkidMarks();
-      drawCorpses();
-      ctx.beginPath();
-      for (let i = 0; i < groundQueue.length; i++) {
-        const tile = groundQueue[i];
-        if (tileIsBuilding(tile.tileType) && isBuildingAnchor(tile.r, tile.c)) {
-          appendBuildingShadowPath(tile);
+      drawWaypointRouteWorld();
+      if (!cityMap.fastDraw) {
+        drawParkingBays();
+        drawBikeBays();
+        drawScorchMarks();
+        drawSkidMarks();
+        drawCorpses();
+        drawWaterFx();
+        ctx.beginPath();
+        for (let i = 0; i < groundQueue.length; i++) {
+          const tile = groundQueue[i];
+          if (tileIsBuilding(tile.tileType) && isBuildingAnchor(tile.r, tile.c)) {
+            appendBuildingShadowPath(tile);
+          }
         }
-      }
-      for (let i = 0; i < renderQueue.length; i++) {
-        const item = renderQueue[i];
-        if (item.type === 'trafficLight') {
-          appendTrafficLightShadowPath(item.intersection);
+        for (let i = 0; i < renderQueue.length; i++) {
+          const item = renderQueue[i];
+          if (item.type === 'trafficLight') {
+            appendTrafficLightShadowPath(item.intersection);
+          }
         }
+        ctx.fillStyle = PALETTE.shadow;
+        ctx.fill();
       }
-      ctx.fillStyle = PALETTE.shadow;
-      ctx.fill();
 
       // Painter's Algorithm Depth Sort (Back to Front)
       renderQueue.sort((a, b) => a.depth - b.depth);
-      updateBuildingGhostAlphas();
+      if (!cityMap.fastDraw) updateBuildingGhostAlphas();
 
       // Draw raised objects and vehicles.
       for (let i = 0; i < renderQueue.length; i++) {
@@ -10512,7 +12916,8 @@
             {
               hair: playerHair,
               showGun: aiming,
-              gunAngle: shootAim ? shootAim.angle : player.bodyAngle
+              gunAngle: shootAim ? shootAim.angle : player.bodyAngle,
+              swimming: player.mode === 'swimming'
             }
           );
         } else if (item.type === 'remotePlayer') {
@@ -10527,7 +12932,10 @@
             false,
             item.pedestrian.travelAngle,
             item.pedestrian.moveAmount,
-            { hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat) }
+            {
+              hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat),
+              swimming: item.pedestrian.mode === 'swimming'
+            }
           );
         } else if (item.type === 'npcPedestrian') {
           syncEntityTravel(item.pedestrian);
@@ -10543,24 +12951,31 @@
             item.pedestrian.moveAmount,
             {
               hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat),
-              slim: !item.pedestrian.isPolice
+              slim: !item.pedestrian.isPolice,
+              swimming: !!item.pedestrian.swimming
             }
           );
         } else if (item.type === 'trafficLight') {
           drawTrafficLights(item.intersection);
         } else if (item.type === 'cabinet') {
           drawCabinet(item.cabinet);
+        } else if (item.type === 'tree') {
+          drawTree(item.tree);
         }
       }
 
       drawWreckFx();
+      drawTreeBreakFx();
       drawCombatFx();
-      drawEnterVehicleMarker();
-      drawRemotePlayerLabels();
-      drawReloadBar();
+      if (cityMap.blend < 0.35) {
+        drawEnterVehicleMarker();
+        drawRemotePlayerLabels();
+        drawReloadBar();
+      }
       drawAtmosphere();
+      drawWaypointWorldPin();
       if (DEBUG_MENU_ENABLED && debugState.hitboxes) drawDebugHitboxes();
-      drawMinimapIfNeeded();
+      if (cityMap.phase === 'closed') drawMinimapIfNeeded();
       ctx.restore();
 
       // Axis-aligned world warp (portrait mobile): remap buffer → screen, HUD stays flat.
@@ -10592,8 +13007,9 @@
         drawDamageReticule();
         ctx.restore();
       }
-      drawMpOffscreenArrows();
+      if (cityMap.blend < 0.2) drawMpOffscreenArrows();
       drawBootSplash();
+      drawCityMapBlips();
     }
 
     function appendBuildingShadowPath(tile) {
@@ -10858,6 +13274,11 @@
       const g3 = project(wx, wy + TILE_SIZE, 0);
 
       if (groundOnly) {
+        if (cityMap.fastDraw) {
+          ctx.fillStyle = tileGroundFill(tileType) || PALETTE.grass;
+          fillQuad(g0, g1, g2, g3);
+          return;
+        }
         if (!tileIsWater(tileType)) {
           ctx.fillStyle = tileGroundFill(tileType);
           fillQuad(g0, g1, g2, g3);
@@ -10910,6 +13331,20 @@
         } else {
           drawSurfaceWear(tile, 1);
         }
+        return;
+      }
+
+      if (cityMap.fastDraw) {
+        const bx = wx + BUILDING_INSET;
+        const by = wy + BUILDING_INSET;
+        const size = TILE_SIZE * BUILDING_FOOTPRINT_TILES - BUILDING_INSET * 2;
+        const h = BUILDING_HEIGHTS[tileType] || 40;
+        const r0 = project(bx, by, h);
+        const r1 = project(bx + size, by, h);
+        const r2 = project(bx + size, by + size, h);
+        const r3 = project(bx, by + size, h);
+        ctx.fillStyle = (PALETTE.roofs && PALETTE.roofs[tileType]) || '#817d75';
+        fillQuad(r0, r1, r2, r3);
         return;
       }
 
@@ -11429,21 +13864,169 @@
         }
       };
 
-      const ground = project(wx, wy, 0);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
-      ctx.beginPath();
-      ctx.ellipse(ground.x, ground.y, 7, 3.2, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // City hire bike: white step-through frame, black wheels, lime front basket.
+      const R = 5.05;
+      const rearF = -7.7;
+      const frontF = 7.9;
+      const frameCol = BIKE.frame;
+      const tube = Math.max(2.3, camProj.zoom * 2.45);
+      const worldPt = (side, forward, z) => {
+        const w = toWorld(side, forward, z);
+        return project(w.x, w.y, w.z);
+      };
+      const strokeTube = (sideA, fwdA, zA, sideB, fwdB, zB, color, width) => {
+        const p1 = worldPt(sideA, fwdA, zA);
+        const p2 = worldPt(sideB, fwdB, zB);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = 'rgba(22, 22, 22, 0.92)';
+        ctx.lineWidth = width + 1.25;
+        ctx.stroke();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      };
+      const fillDisc = (forward, zCenter, radius, side, color, steps) => {
+        const n = steps || 18;
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) {
+          const t = (i / n) * Math.PI * 2;
+          const p = worldPt(side, forward + Math.sin(t) * radius, zCenter + Math.cos(t) * radius);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+      };
 
-      // Wheels
-      drawBox(1.1, 1.4, 8, 0, 3.2, BIKE.tyre);
-      drawBox(1.1, 1.4, -8, 0, 3.2, BIKE.tyre);
-      // Lime ends + white frame (mockup style)
-      drawBox(2.4, 2.2, 7, 2.5, 6.5, BIKE.lime);
-      drawBox(2.2, 5.5, 0, 2.8, 6.2, BIKE.frame);
-      drawBox(2.4, 2.2, -7, 2.5, 6.5, BIKE.lime);
-      // Handlebar hint
-      drawBox(4.2, 0.55, 8.5, 5.5, 7.2, '#2a2a2a');
+      const nearSide = worldPt(-1, 0, R).depth >= worldPt(1, 0, R).depth ? -1 : 1;
+      const sideGap = 1.05;
+
+      const drawWheel = (forward) => {
+        const far = -nearSide * sideGap;
+        const near = nearSide * sideGap;
+        fillDisc(forward, R, R, far, '#0c0c0c', 16);
+        fillDisc(forward, R, R, near, BIKE.tyre, 18);
+        fillDisc(forward, R, R * 0.68, near, '#323232', 14);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#c8c8c8';
+        ctx.lineWidth = Math.max(1, tube * 0.32);
+        for (let i = 0; i < 4; i++) {
+          const t = (i / 4) * Math.PI * 2 + 0.55;
+          const p1 = worldPt(near, forward, R);
+          const p2 = worldPt(
+            near,
+            forward + Math.sin(t) * R * 0.64,
+            R + Math.cos(t) * R * 0.64
+          );
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+        fillDisc(forward, R, R * 0.2, near, '#ececec', 10);
+        fillDisc(forward, R, R * 0.08, near, '#8a8a8a', 8);
+
+        const guard = R + 0.95;
+        ctx.beginPath();
+        for (let i = 0; i <= 8; i++) {
+          const ang = -1.5 + (i / 8) * 3;
+          const p = worldPt(0, forward + Math.sin(ang) * guard, R + Math.cos(ang) * guard);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = 'rgba(20, 20, 20, 0.9)';
+        ctx.lineWidth = tube * 0.82 + 1.2;
+        ctx.stroke();
+        ctx.strokeStyle = frameCol;
+        ctx.lineWidth = tube * 0.82;
+        ctx.stroke();
+      };
+
+      const drawBasket = () => {
+        const halfW = 2.7;
+        const halfL = 1.65;
+        const fwd = frontF + 2.35;
+        const z1 = 13.35;
+        drawBox(halfW, halfL, fwd, 8.15, z1, BIKE.lime);
+        const lip = 0.48;
+        const inner = [
+          [-halfW + lip, fwd - halfL + lip],
+          [halfW - lip, fwd - halfL + lip],
+          [halfW - lip, fwd + halfL + lip],
+          [-halfW + lip, fwd + halfL + lip]
+        ].map(([side, forward]) => worldPt(side, forward, z1 + 0.08));
+        ctx.fillStyle = '#6e8800';
+        fillQuad(inner[0], inner[1], inner[2], inner[3]);
+      };
+
+      const bbF = -0.15;
+      const bbZ = 2.85;
+      const headLowF = 6.35;
+      const headLowZ = 8.55;
+      const headTopF = 5.65;
+      const headTopZ = 12.7;
+
+      const drawFork = () => {
+        strokeTube(0.7, headLowF, headLowZ, 0.7, frontF, R, frameCol, tube * 0.68);
+        strokeTube(-0.7, headLowF, headLowZ, -0.7, frontF, R, frameCol, tube * 0.68);
+        strokeTube(0, headLowF, headLowZ, 0, headTopF, headTopZ, frameCol, tube * 1.05);
+      };
+      const drawBars = () => {
+        strokeTube(0, headTopF, headTopZ, 0, 6.7, 13.55, '#242424', tube * 0.62);
+        drawBox(3.25, 0.32, 6.85, 13.15, 14.25, '#1a1a1a');
+      };
+      const drawSaddle = () => {
+        drawBox(0.72, 1.85, -5.15, 12.55, 13.85, '#1b1b1b');
+      };
+      const drawFrame = () => {
+        fillDisc(bbF, bbZ, 1.55, nearSide * 0.35, '#3a3a3a', 12);
+        fillDisc(bbF, bbZ, 0.42, nearSide * 0.5, '#d2d2d2', 8);
+        strokeTube(0, bbF, bbZ, 0, headLowF, headLowZ, frameCol, tube * 1.2);
+        strokeTube(0, bbF, bbZ, 0, -4.7, 12.7, frameCol, tube * 1.12);
+        strokeTube(0, bbF, bbZ, 0, rearF, R, frameCol, tube * 0.88);
+        strokeTube(0, -3.9, 10.1, 0, rearF, R + 0.15, frameCol, tube * 0.82);
+        strokeTube(0, bbF, bbZ, 1.45, 1.35, 1.75, '#2c2c2c', tube * 0.5);
+        strokeTube(0, bbF, bbZ, -1.45, -1.65, 1.75, '#2c2c2c', tube * 0.5);
+        drawBox(0.95, 0.3, 1.35, 1.2, 2.05, '#161616', 1.7);
+        drawBox(0.95, 0.3, -1.65, 1.2, 2.05, '#161616', -1.7);
+      };
+
+      ctx.save();
+      const shadow = [
+        toWorld(-3.4, rearF - R - 0.4, 0),
+        toWorld(3.4, rearF - R - 0.4, 0),
+        toWorld(3.4, frontF + R + 2.8, 0),
+        toWorld(-3.4, frontF + R + 2.8, 0)
+      ].map(point => project(point.x, point.y, 0));
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+      fillQuad(shadow[0], shadow[1], shadow[2], shadow[3]);
+
+      const drawFront = () => {
+        drawFork();
+        drawWheel(frontF);
+        drawBars();
+        drawBasket();
+      };
+      const drawRear = () => {
+        drawWheel(rearF);
+        drawSaddle();
+      };
+      if (worldPt(0, frontF, R).depth >= worldPt(0, rearF, R).depth) {
+        drawRear();
+        drawFrame();
+        drawFront();
+      } else {
+        drawFront();
+        drawFrame();
+        drawRear();
+      }
+      ctx.restore();
 
       if (withRider) {
         const localRider = bike === activeVehicle && player.mode === 'biking';
@@ -11451,6 +14034,7 @@
         const aiming = !!(localRider && (shootAim || gun.fireCooldown > 0));
         drawPedestrian(wx, wy, angle, 0, riderCoat, riderSkin, false, angle, 0, {
           seated: true,
+          zLift: 5,
           hair: riderHair || hairToneFromCoat(riderCoat),
           showGun: aiming,
           gunAngle: shootAim ? shootAim.angle : angle
@@ -11483,6 +14067,70 @@
           );
         });
       });
+    }
+
+    function drawTree(tree) {
+      if (!tree || tree.broken) return;
+      const s = tree.scale || 1;
+      const trunkH = 22 * s;
+      const trunkW = 2.4 * s;
+      const canopyR = 14 * s;
+      const canopyZ0 = trunkH * 0.55;
+      const canopyZ1 = trunkH + 16 * s;
+
+      // Soft leaf shadow
+      const shadow = project(tree.x, tree.y, 0.4);
+      ctx.fillStyle = 'rgba(30, 42, 28, 0.28)';
+      ctx.beginPath();
+      ctx.ellipse(shadow.x, shadow.y + 2, canopyR * 0.55, canopyR * 0.28, 0.25, 0, Math.PI * 2);
+      ctx.fill();
+
+      const tw = trunkW;
+      ctx.fillStyle = shadeHex(tree.trunk, -28);
+      fillQuad(
+        project(tree.x - tw, tree.y - tw, 0),
+        project(tree.x + tw, tree.y - tw, 0),
+        project(tree.x + tw, tree.y + tw, 0),
+        project(tree.x - tw, tree.y + tw, 0)
+      );
+      // Trunk walls
+      ctx.fillStyle = shadeHex(tree.trunk, -18);
+      fillQuad(
+        project(tree.x - tw, tree.y + tw, 0),
+        project(tree.x + tw, tree.y + tw, 0),
+        project(tree.x + tw, tree.y + tw, trunkH),
+        project(tree.x - tw, tree.y + tw, trunkH)
+      );
+      ctx.fillStyle = shadeHex(tree.trunk, 10);
+      fillQuad(
+        project(tree.x + tw, tree.y - tw, 0),
+        project(tree.x + tw, tree.y + tw, 0),
+        project(tree.x + tw, tree.y + tw, trunkH),
+        project(tree.x + tw, tree.y - tw, trunkH)
+      );
+      ctx.fillStyle = tree.trunk;
+      fillQuad(
+        project(tree.x - tw, tree.y - tw, trunkH),
+        project(tree.x + tw, tree.y - tw, trunkH),
+        project(tree.x + tw, tree.y + tw, trunkH),
+        project(tree.x - tw, tree.y + tw, trunkH)
+      );
+
+      // Layered canopy blobs
+      const lobes = [
+        { ox: 0, oy: 0, z: (canopyZ0 + canopyZ1) * 0.55, r: canopyR, col: tree.canopy },
+        { ox: -5 * s, oy: 3 * s, z: canopyZ0 + 6 * s, r: canopyR * 0.72, col: shadeHex(tree.canopy, -14) },
+        { ox: 5 * s, oy: -2 * s, z: canopyZ0 + 8 * s, r: canopyR * 0.7, col: tree.canopyHi },
+        { ox: 1 * s, oy: 5 * s, z: canopyZ1 - 4 * s, r: canopyR * 0.55, col: shadeHex(tree.canopyHi, 8) }
+      ];
+      for (let i = 0; i < lobes.length; i++) {
+        const lobe = lobes[i];
+        const p = project(tree.x + lobe.ox, tree.y + lobe.oy, lobe.z);
+        ctx.fillStyle = lobe.col;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, lobe.r * 0.42, lobe.r * 0.34, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     function drawCabinet(cab) {
@@ -11719,11 +14367,21 @@
       const angle = vehicle.angle;
       const color = vehicle.color;
       const layout = getCarLayout(vehicle.carClass);
+      const sinkZ = vehicle.sinking
+        ? waterSurfaceZ() * Math.min(1, (vehicle.sinkTick || 0) / WATER_SINK.duration) +
+          Math.sin((vehicle.sinkTick || 0) * 0.35) * WATER_SINK.bobAmp *
+          (1 - Math.min(1, (vehicle.sinkTick || 0) / WATER_SINK.duration))
+        : 0;
+      const sinkFade = vehicle.sinking
+        ? Math.max(0.15, 1 - (vehicle.sinkTick || 0) / WATER_SINK.duration)
+        : 1;
       const toWorld = (side, forward, z) => ({
         x: wx + Math.cos(angle) * forward - Math.sin(angle) * side,
         y: wy + Math.sin(angle) * forward + Math.cos(angle) * side,
-        z
+        z: (z || 0) + sinkZ
       });
+      ctx.save();
+      ctx.globalAlpha *= sinkFade;
 
       const shadowCorners = [
         toWorld(-layout.shadowW, -layout.shadowL, 0),
@@ -11999,6 +14657,7 @@
           );
         }
       }
+      ctx.restore();
     }
 
     function scratchSeed(id, i) {
@@ -12343,18 +15002,19 @@
       return camProj.zoom / Math.max(0.01, getCameraZoomBase());
     }
 
-    function drawHeldPistol(wx, wy, faceAngle, shootAngle, skinColor) {
+    function drawHeldPistol(wx, wy, faceAngle, shootAngle, skinColor, handZ) {
+      const z = handZ == null ? 11 : handZ;
       const rightX = -Math.sin(faceAngle);
       const rightY = Math.cos(faceAngle);
       const handSide = 5.2;
       const handFwd = 2.5;
       const hx = wx + rightX * handSide + Math.cos(faceAngle) * handFwd;
       const hy = wy + rightY * handSide + Math.sin(faceAngle) * handFwd;
-      const hand = project(hx, hy, 11);
+      const hand = project(hx, hy, z);
       const tip = project(
         hx + Math.cos(shootAngle) * 10,
         hy + Math.sin(shootAngle) * 10,
-        11
+        z
       );
       const ang = Math.atan2(tip.y - hand.y, tip.x - hand.x);
       const s = Math.max(0.55, pedZoomScale() * 1.35);
@@ -12395,15 +15055,24 @@
     function drawPedestrian(wx, wy, angle, walkPhase, coatColor, skinColor, isPolice, travelAngle, moveAmount, opts) {
       const seated = !!(opts && opts.seated);
       const corpse = !!(opts && opts.corpse);
+      const swimming = !!(opts && opts.swimming);
+      const floating = !!(opts && opts.floating);
       const slim = !!(opts && opts.slim);
       const alpha = opts && opts.alpha != null ? opts.alpha : 1;
       const hair = resolvePedHair(opts && opts.hair, coatColor);
       const skin = skinColor || skinTones[0];
       const atlas = getPedAtlas(skin, hair, isPolice);
       const dir = angleToSpriteDir(angle || 0);
-      const frame = corpse ? 0 : pedWalkFrame(walkPhase, seated ? 0 : moveAmount, seated);
+      const frame = corpse
+        ? 0
+        : pedWalkFrame(walkPhase, seated ? 0 : (swimming ? Math.max(0.2, moveAmount || 0) : moveAmount), seated);
       const { w, h, drawScale } = PED_SPRITE;
-      const ground = project(wx, wy, 0);
+      const zWater = waterSurfaceZ();
+      const bob = (swimming || floating)
+        ? Math.sin((opts && opts.bobPhase) != null ? opts.bobPhase : (walkPhase || 0) * 1.4) * 1.8
+        : 0;
+      const zLift = (opts && opts.zLift) || 0;
+      const ground = project(wx, wy, (swimming || floating) ? (zWater + 1.2 + bob * 0.15) : zLift);
       const zoomMul = pedZoomScale();
       let dw = w * drawScale * zoomMul;
       let dh = h * drawScale * zoomMul;
@@ -12412,28 +15081,40 @@
         dh *= 0.82;
         dw *= 0.96;
       }
+      if (swimming) {
+        dw *= 1.05;
+        dh *= 0.42;
+      }
 
       ctx.save();
       ctx.imageSmoothingEnabled = false;
       ctx.globalAlpha = alpha;
 
       if (corpse) {
-        // Light blood pool under body
-        ctx.fillStyle = 'rgba(150, 32, 32, 0.38)';
-        ctx.beginPath();
-        ctx.ellipse(ground.x, ground.y + 1, dw * 0.42, dh * 0.11, 0.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = 'rgba(110, 18, 18, 0.22)';
-        ctx.beginPath();
-        ctx.ellipse(ground.x + dw * 0.08, ground.y + 2, dw * 0.28, dh * 0.07, -0.25, 0, Math.PI * 2);
-        ctx.fill();
+        if (!floating) {
+          // Light blood pool under body
+          ctx.fillStyle = 'rgba(150, 32, 32, 0.38)';
+          ctx.beginPath();
+          ctx.ellipse(ground.x, ground.y + 1, dw * 0.42, dh * 0.11, 0.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(110, 18, 18, 0.22)';
+          ctx.beginPath();
+          ctx.ellipse(ground.x + dw * 0.08, ground.y + 2, dw * 0.28, dh * 0.07, -0.25, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = 'rgba(170, 205, 220, 0.28)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(ground.x, ground.y + 2, dw * 0.38, dh * 0.1, 0.15, 0, Math.PI * 2);
+          ctx.stroke();
+        }
 
-        // Flat lying pose: rotate sprite onto the ground plane
+        // Flat lying pose: rotate sprite onto the ground / water plane
         const faceScreen = Math.atan2(
           Math.sin(angle - player.cameraAngle),
           Math.cos(angle - player.cameraAngle)
         );
-        ctx.translate(ground.x, ground.y);
+        ctx.translate(ground.x, ground.y + (floating ? bob * 0.35 : 0));
         ctx.rotate(faceScreen + Math.PI / 2);
         ctx.drawImage(
           atlas,
@@ -12450,12 +15131,49 @@
         return;
       }
 
+      if (swimming) {
+        const faceScreen = Math.atan2(
+          Math.sin(angle - player.cameraAngle),
+          Math.cos(angle - player.cameraAngle)
+        );
+        ctx.fillStyle = 'rgba(40, 70, 90, 0.22)';
+        ctx.beginPath();
+        ctx.ellipse(ground.x, ground.y + 2, dw * 0.34, dh * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.translate(ground.x, ground.y + bob * 0.4);
+        ctx.rotate(faceScreen + Math.PI / 2);
+        ctx.drawImage(
+          atlas,
+          frame * w,
+          dir * h,
+          w,
+          h,
+          -dw * 0.5,
+          -dh * 0.55,
+          dw,
+          dh
+        );
+        ctx.restore();
+        if (opts && opts.showGun) {
+          drawHeldPistol(
+            wx,
+            wy,
+            angle || 0,
+            opts.gunAngle != null ? opts.gunAngle : (angle || 0),
+            skin,
+            11 + zLift
+          );
+        }
+        return;
+      }
+
       const dx = ground.x - dw * 0.5;
       const dy = ground.y - dh * (seated ? 0.78 : 0.88);
+      const shadowPt = zLift ? project(wx, wy, 0) : ground;
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
       ctx.beginPath();
-      ctx.ellipse(ground.x, ground.y + 1, dw * 0.26, dh * 0.065, 0, 0, Math.PI * 2);
+      ctx.ellipse(shadowPt.x, shadowPt.y + 1, dw * 0.26, dh * 0.065, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.drawImage(atlas, frame * w, dir * h, w, h, dx, dy, dw, dh);
@@ -12467,7 +15185,8 @@
           wy,
           angle || 0,
           opts.gunAngle != null ? opts.gunAngle : (angle || 0),
-          skin
+          skin,
+          11 + zLift
         );
       }
     }
@@ -12640,6 +15359,7 @@
       }
 
       // Player stays centered; heading always points up.
+      drawWaypointOnMinimap(worldToMini, center, radius);
       miniCtx.fillStyle = '#d2a84f';
       miniCtx.beginPath();
       miniCtx.arc(center, center, 3.5, 0, Math.PI * 2);
@@ -12680,6 +15400,8 @@
 
     // Session-only coach mark: PRESS TO ENTER (resets on refresh)
     let enterHintDismissed = false;
+    let enterHintNearSince = 0;
+    const ENTER_HINT_DELAY_MS = 4000;
     const enterHintDesktopEl = document.getElementById('enter-hint-desktop');
     const enterHintMobileEl = document.getElementById('enter-hint-mobile');
     const controlsPanelEl = document.getElementById('controls-panel');
@@ -12689,24 +15411,35 @@
         enterHintDismissed = true;
       }
 
+      const mapOpen = typeof cityMap !== 'undefined' && cityMap.phase !== 'closed';
       const nearVehicle = !enterHintDismissed &&
         !wasted &&
+        !mapOpen &&
         player.mode === 'walking' &&
         typeof findNearestEnterableVehicle === 'function' &&
         !!findNearestEnterableVehicle();
 
+      if (nearVehicle) {
+        if (!enterHintNearSince) enterHintNearSince = performance.now();
+      } else {
+        enterHintNearSince = 0;
+      }
+      const ready = nearVehicle &&
+        enterHintNearSince > 0 &&
+        (performance.now() - enterHintNearSince) >= ENTER_HINT_DELAY_MS;
+
       if (enterHintDesktopEl) {
-        enterHintDesktopEl.classList.toggle('show', nearVehicle && !isMobile);
+        enterHintDesktopEl.classList.toggle('show', ready && !isMobile);
       }
       if (controlsPanelEl) {
-        controlsPanelEl.classList.toggle('enter-hint-active', nearVehicle && !isMobile);
+        controlsPanelEl.classList.toggle('enter-hint-active', ready && !isMobile);
       }
       if (enterHintMobileEl) {
-        enterHintMobileEl.classList.toggle('show', nearVehicle && isMobile);
+        enterHintMobileEl.classList.toggle('show', ready && isMobile);
       }
       const interactBtn = document.getElementById('interactBtn');
       if (interactBtn) {
-        interactBtn.classList.toggle('hint-pulse', nearVehicle && isMobile);
+        interactBtn.classList.toggle('hint-pulse', ready && isMobile);
       }
     }
 
@@ -12780,12 +15513,14 @@
     function modeToCode(mode) {
       if (mode === 'driving') return 1;
       if (mode === 'biking') return 2;
+      if (mode === 'swimming') return 3;
       return 0;
     }
 
     function codeToMode(code) {
       if (code === 1) return 'driving';
       if (code === 2) return 'biking';
+      if (code === 3) return 'swimming';
       return 'walking';
     }
 
@@ -13334,6 +16069,7 @@
           peerId,
           true
         );
+        fleePedsNearShot(sx, sy, true);
         playShootSfxAt(sx, sy);
       } else if (msg.t === 'respawn') {
         rp.wasted = false;
@@ -13365,8 +16101,20 @@
           skin: msg.skin,
           hair: msg.hair,
           isPolice: !!msg.isPolice,
-          slim: msg.slim
+          slim: msg.slim,
+          floating: !!msg.floating
         }, false);
+        netBroadcast(msg, peerId);
+      } else if (msg.t === 'fx_sink') {
+        const v = vehicles.find(item => item.id === msg.vehicleId);
+        if (v && !v.sinking) beginVehicleSink(v);
+        else {
+          spawnWaterSplash(msg.x || 0, msg.y || 0, true);
+          netBroadcast(msg, peerId);
+        }
+      } else if (msg.t === 'fx_tree') {
+        const tree = trees.find(item => item.id === msg.id);
+        if (tree && !tree.broken) breakTree(tree, null, true);
         netBroadcast(msg, peerId);
       } else if (msg.t === 'fx_scorch') {
         spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
@@ -13485,8 +16233,24 @@
           activeVehicle.driverId = null;
           activeVehicle = null;
           restoreWalkDriveStats();
-          putPlayerOnFoot(msg.x, msg.y);
+          putPlayerOnFoot(msg.x, msg.y, !!msg.swim);
         }
+      } else if (msg.t === 'fx_sink') {
+        const v = vehicles.find(item => item.id === msg.vehicleId);
+        if (v && !v.sinking) {
+          v.sinking = true;
+          v.sinkTick = 0;
+          v.ai = false;
+          v.speed = 0;
+          spawnWaterSplash(msg.x != null ? msg.x : v.x, msg.y != null ? msg.y : v.y, true);
+          playSfx('splash', 0.65);
+        } else if (!v) {
+          spawnWaterSplash(msg.x || 0, msg.y || 0, true);
+          playSfx('splash', 0.5);
+        }
+      } else if (msg.t === 'fx_tree') {
+        const tree = trees.find(item => item.id === msg.id);
+        if (tree && !tree.broken) breakTree(tree, null, true);
       } else if (msg.t === 'hit') {
         if (DEBUG_MENU_ENABLED && debugState.invincible) {
           player.hp = PLAYER_MAX_HP;
@@ -13568,10 +16332,9 @@
           skin: msg.skin,
           hair: msg.hair,
           isPolice: !!msg.isPolice,
-          slim: msg.slim
+          slim: msg.slim,
+          floating: !!msg.floating
         }, false);
-      } else if (msg.t === 'fx_scorch') {
-        spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
       } else if (msg.t === 'fx_muzzle') {
         spawnMuzzleFlash(msg.x, msg.y, msg.angle);
         if (msg.p !== 0) playShootSfxAt(msg.x, msg.y);
@@ -14767,13 +17530,16 @@
       if (!isMobile) return;
 
       if (interactBtnEl) {
-        if (wasted) {
+        if (cityMap.phase !== 'closed') {
+          interactBtnEl.textContent = 'ENTER';
+          interactBtnEl.classList.add('available');
+        } else if (wasted) {
           interactBtnEl.textContent = 'ENTER';
           interactBtnEl.classList.remove('available');
         } else if (player.mode === 'driving' || player.mode === 'biking') {
           interactBtnEl.textContent = 'EXIT';
           interactBtnEl.classList.add('available');
-        } else if (findNearestEnterableVehicle()) {
+        } else if (player.mode !== 'swimming' && findNearestEnterableVehicle()) {
           interactBtnEl.textContent = 'ENTER';
           interactBtnEl.classList.add('available');
         } else {
@@ -14813,7 +17579,7 @@
       if (wasted) return;
 
       const driving = player.mode === 'driving';
-      const walking = player.mode === 'walking';
+      const walking = player.mode === 'walking' || player.mode === 'swimming';
       const mounted = isMountedVehicle();
 
       // Left joystick → WASD (Move / Drive & Steer). Walk/drive use analog where applicable.
@@ -15107,11 +17873,17 @@
         if (e.touches.length >= 2) {
           const t0 = e.touches[0];
           const t1 = e.touches[1];
+          const mapZoom = cityMap.phase === 'open' && cityMap.nav.ready;
           cameraPinch.active = true;
           cameraPinch.id0 = t0.identifier;
           cameraPinch.id1 = t1.identifier;
           cameraPinch.startDist = Math.max(12, touchPairDistance(t0, t1));
-          cameraPinch.startFactor = cameraZoomUserFactor;
+          cameraPinch.forMap = mapZoom;
+          cameraPinch.startFactor = mapZoom ? cityMap.nav.zoom : cameraZoomUserFactor;
+          if (mapZoom) {
+            cityMap.drag.pinch = true;
+            cityMap.drag.moved = true;
+          }
         }
       }, { passive: false });
 
@@ -15124,7 +17896,11 @@
         const dist = Math.max(12, touchPairDistance(t0, t1));
         const ratio = dist / cameraPinch.startDist;
         const eased = 1 + (ratio - 1) * CAMERA_ZOOM_PINCH_SENS;
-        setCameraZoomUserFactor(cameraPinch.startFactor * eased);
+        if (cameraPinch.forMap) {
+          if (cityMap.phase === 'open') setCityMapZoom(cameraPinch.startFactor * eased);
+        } else if (cityMap.phase === 'closed') {
+          setCameraZoomUserFactor(cameraPinch.startFactor * eased);
+        }
       }, { passive: false });
 
       const endCanvasPinch = e => {
@@ -15135,6 +17911,8 @@
         cameraPinch.active = false;
         cameraPinch.id0 = null;
         cameraPinch.id1 = null;
+        cameraPinch.forMap = false;
+        if (!cityMap.drag.active) cityMap.drag.pinch = false;
       };
       canvas.addEventListener('touchend', endCanvasPinch, { passive: false });
       canvas.addEventListener('touchcancel', endCanvasPinch, { passive: false });
@@ -15153,6 +17931,11 @@
       );
 
       bindMobileTap(interactBtnEl, () => {
+        if (cityMap.phase !== 'closed') {
+          placeWaypointAtCrosshair();
+          haptic(12);
+          return;
+        }
         if (wasted) return;
         if (!interactBtnEl.classList.contains('available')) return;
         togglePlayerMode();
@@ -15190,8 +17973,10 @@
     function stepSimulation() {
       if (bootSplash.active) return;
       const spawnLocked = isSpawnIntroLocked();
+      const mapLocked = cityMap.phase !== 'closed';
+      if (mapLocked) brakeForCityMap();
       if (isMobile) {
-        if (wasted || spawnLocked) {
+        if (wasted || spawnLocked || mapLocked) {
           releaseTouchOwnedCodes();
           mobileAnalogSteer.walk = 0;
           mobileAnalogSteer.drive = 0;
@@ -15207,13 +17992,18 @@
       updatePlayerHealthRegen();
       updateDamageReticule();
       if (net.role === 'guest') {
-        if (!wasted && !spawnLocked) {
+        if (!wasted && !spawnLocked && !mapLocked) {
           handleInput();
           tryPlayerShoot();
         }
+        updateSinkingVehicles();
+        updateWaterFx();
+        handleVehicleTreeHits();
+        updateTreeBreakFx();
+        updateCorpsesAndScorch();
         netGuestTick();
       } else {
-        if (!wasted && !spawnLocked) {
+        if (!wasted && !spawnLocked && !mapLocked) {
           handleInput();
           tryPlayerShoot();
         }
@@ -15226,20 +18016,24 @@
           updatePolice();
           updatePoliceSpawning();
           handleVehiclePedHits();
+          handleVehicleTreeHits();
           updateWanted();
           updateBullets();
           updateSkidMarks();
           updateBillboardEffects();
           handlePlayerCarHits();
           updateWreckFx();
+          updateTreeBreakFx();
         } else {
           updateWreckFx();
+          updateTreeBreakFx();
         }
         if (net.role === 'host') {
           netHostTick();
         }
       }
       updateCameraShake();
+      updateWaypoint();
     }
 
     let radioLastTs = 0;
@@ -15277,6 +18071,7 @@
 
       updateCorpsesAndScorch();
       updateCarRadio(radioDt);
+      updateAmbientAudio(radioDt);
       updateDriveAudio();
       render();
       updateHud();
@@ -15754,6 +18549,7 @@
       resetMobileSticks();
     }
     initCarRadio();
+    bindCityMapUi();
     initDebugMenu();
     // Spawn intro starts after first-load boot wipe finishes.
     if (!bootSplash.active) startSpawnCameraIntro();

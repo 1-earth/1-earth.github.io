@@ -18,6 +18,7 @@
  *   Z plaza  — walkable open ground (id PLAZA)
  *   W water  — non-walkable / non-drivable (id WATER)
  *   K/T/L/I  — detail props on pavement or road
+ *   A/N      — trees on park / sidewalk (same detail bucket)
  */
 (function (root) {
   'use strict';
@@ -156,11 +157,25 @@
       color: '#b8e000'
     },
     Z: { id: TILE_ID.PLAZA, name: 'Plaza', detail: null, color: '#a89a82' },
-    W: { id: TILE_ID.WATER, name: 'Water', detail: null, color: '#2a4a5c' }
+    W: { id: TILE_ID.WATER, name: 'Water', detail: null, color: '#2a4a5c' },
+    A: {
+      id: TILE_ID.PARK,
+      name: 'Tree (park)',
+      detail: 'trees',
+      color: '#2f5a32',
+      mark: '#1e3d22'
+    },
+    N: {
+      id: TILE_ID.PAVEMENT,
+      name: 'Tree (sidewalk)',
+      detail: 'trees',
+      color: '#beb39d',
+      mark: '#2f5a32'
+    }
   };
 
   /** Builder palette / hotkey order. */
-  const TILE_ORDER = ['R', 'I', 'P', 'S', 'Z', 'W', '2', '3', '4', 'K', 'T', 'L'];
+  const TILE_ORDER = ['R', 'I', 'P', 'S', 'Z', 'W', 'A', 'N', '2', '3', '4', 'K', 'T', 'L'];
 
   function baseOf(id) {
     return TILE_BASE[id] || null;
