@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KR CITY 2</title>
+  <title>KR CITY</title>
+  <meta name="description" content="enter the matrix (KR CITY Beta v2, work in progress)">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.1-earth.world/KRCITY/">
+  <meta property="og:title" content="KR CITY">
+  <meta property="og:description" content="enter the matrix (KR CITY Beta v2, work in progress)">
+  <meta property="og:image" content="https://www.1-earth.world/KRCITY/static/img/cover.png">
+  <meta property="og:image:alt" content="KR CITY">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="KR CITY">
+  <meta name="twitter:description" content="enter the matrix (KR CITY Beta v2, work in progress)">
+  <meta name="twitter:image" content="https://www.1-earth.world/KRCITY/static/img/cover.png">
+  <link rel="icon" href="static/img/KRICON.png" type="image/png">
+  <link rel="apple-touch-icon" href="static/img/KRICON.png">
   <style>
     * {
       box-sizing: border-box;
@@ -1534,6 +1547,7 @@
     }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="tile-registry.js"></script>
   <script src="map-data.js"></script>
 </head>
 <body>
@@ -1863,7 +1877,12 @@
     const ROAD_WIDTH = 3;
     const BUILDING_INSET = 11;
     const BUILDING_FOOTPRINT_TILES = 2;
-    const PAVEMENT_TILE = 5;
+    const Tiles = (typeof KrcityTiles !== 'undefined') ? KrcityTiles : null;
+    const PAVEMENT_TILE = Tiles ? Tiles.ID.PAVEMENT : 5;
+    const TILE_ID = Tiles ? Tiles.ID : {
+      PARK: 0, ROAD: 1, BUILDING_LOW: 2, BUILDING_MID: 3, BUILDING_TALL: 4,
+      PAVEMENT: 5, PLAZA: 6, WATER: 7
+    };
     const map = [];
 
     // Ped visual size + camera zoom (tune here; collision radius stays unchanged).
@@ -2039,7 +2058,37 @@
     const SCORCH_LIFE_MS = 10000;
 
     // Tile Types: 0 = Park, 1 = Road, 2-4 = Buildings, 5 = Pavement
-    const BUILDING_HEIGHTS = { 0: 0, 1: 0, 2: 100, 3: 120, 4: 180, 5: 0 };
+    const BUILDING_HEIGHTS = Tiles
+      ? Tiles.buildingHeightsMap()
+      : { 0: 0, 1: 0, 2: 100, 3: 120, 4: 180, 5: 0, 6: 0, 7: 0 };
+
+    function tileFlags(id) {
+      return Tiles ? Tiles.flags(id) : {};
+    }
+    function tileIsRoad(id) { return Tiles ? Tiles.isRoad(id) : id === 1; }
+    function tileIsWalkable(id) {
+      if (Tiles) return Tiles.isWalkable(id);
+      return id <= 1 || id === PAVEMENT_TILE || id === 6;
+    }
+    function tileIsDrivable(id) { return Tiles ? Tiles.isDrivable(id) : id === 1; }
+    function tileIsPavement(id) { return Tiles ? Tiles.isPavement(id) : id === PAVEMENT_TILE; }
+    function tileIsPark(id) { return Tiles ? Tiles.isPark(id) : id === 0; }
+    function tileIsBuilding(id) { return Tiles ? Tiles.isBuilding(id) : (id >= 2 && id <= 4); }
+    function tileIsPlaza(id) { return Tiles ? Tiles.isPlaza(id) : id === 6; }
+    function tileIsWater(id) { return Tiles ? Tiles.isWater(id) : id === 7; }
+    function tileGroundFill(id) {
+      if (Tiles) {
+        const g = Tiles.gameGroundColor(id);
+        if (g) return g;
+        if (Tiles.isRoad(id)) return PALETTE.road;
+        if (Tiles.isPark(id)) return PALETTE.grass;
+        if (Tiles.isPavement(id)) return PALETTE.sidewalk;
+        return Tiles.colorForId(id);
+      }
+      if (id === 1) return PALETTE.road;
+      if (id === 0) return PALETTE.grass;
+      return PALETTE.sidewalk;
+    }
 
     // Warm, weathered urban palette.
     const PALETTE = {
@@ -2070,12 +2119,10 @@
     }
 
     // Blueprint markers collected while loading map-data.js (carparks, cabinets, etc.).
-    const mapDetails = {
-      carparks: [],
-      transformers: [],
-      limeBays: [],
-      trafficLights: []
-    };
+    // Buckets come from tile-registry detail fields (auto-extends for new props).
+    const mapDetails = Tiles
+      ? Tiles.emptyDetails()
+      : { carparks: [], transformers: [], limeBays: [], trafficLights: [] };
     const buildingAnchor = [];
 
     function isBuildingAnchor(r, c) {
@@ -2095,7 +2142,7 @@
       for (let r = 0; r < MAP_SIZE - 1; r++) {
         for (let c = 0; c < MAP_SIZE - 1; c++) {
           const t = map[r][c];
-          if (t < 2 || t > 4) continue;
+          if (!tileIsBuilding(t)) continue;
           if (claimed[r][c] || claimed[r][c + 1] || claimed[r + 1][c] || claimed[r + 1][c + 1]) continue;
           if (
             map[r][c + 1] === t &&
@@ -2115,7 +2162,7 @@
     function findBuildingAnchorCovering(tileX, tileY) {
       if (tileY < 0 || tileX < 0 || tileY >= MAP_SIZE || tileX >= MAP_SIZE) return null;
       const t = map[tileY][tileX];
-      if (t < 2 || t > 4) return null;
+      if (!tileIsBuilding(t)) return null;
       for (let ar = Math.max(0, tileY - 1); ar <= tileY; ar++) {
         for (let ac = Math.max(0, tileX - 1); ac <= tileX; ac++) {
           if (!isBuildingAnchor(ar, ac)) continue;
@@ -2146,10 +2193,7 @@
         throw new Error('KRCITY_MAP size mismatch');
       }
 
-      mapDetails.carparks.length = 0;
-      mapDetails.transformers.length = 0;
-      mapDetails.limeBays.length = 0;
-      mapDetails.trafficLights.length = 0;
+      Object.keys(mapDetails).forEach(key => { mapDetails[key].length = 0; });
 
       for (let r = 0; r < MAP_SIZE; r++) {
         map[r] = [];
@@ -2157,24 +2201,30 @@
         for (let c = 0; c < MAP_SIZE; c++) {
           const ch = row.charAt(c);
           let tile = PAVEMENT_TILE;
-          if (ch === 'R') tile = 1;
-          else if (ch === 'I') {
-            tile = 1;
-            mapDetails.trafficLights.push({ r, c });
-          } else if (ch === 'P') tile = 0;
-          else if (ch === 'S') tile = PAVEMENT_TILE;
-          else if (ch === '2') tile = 2;
-          else if (ch === '3') tile = 3;
-          else if (ch === '4') tile = 4;
-          else if (ch === 'K') {
-            tile = PAVEMENT_TILE;
-            mapDetails.carparks.push({ r, c });
-          } else if (ch === 'T') {
-            tile = PAVEMENT_TILE;
-            mapDetails.transformers.push({ r, c });
-          } else if (ch === 'L') {
-            tile = PAVEMENT_TILE;
-            mapDetails.limeBays.push({ r, c });
+          if (Tiles) {
+            const decoded = Tiles.decode(ch);
+            if (decoded) {
+              tile = decoded.id;
+              if (decoded.detail) {
+                if (!mapDetails[decoded.detail]) mapDetails[decoded.detail] = [];
+                mapDetails[decoded.detail].push({ r, c });
+              }
+            } else {
+              console.warn('[KRCITY map] unknown char "' + ch + '" at', r, c);
+            }
+          } else {
+            // Legacy fallback if tile-registry.js failed to load
+            if (ch === 'R' || ch === 'I') tile = 1;
+            else if (ch === 'P') tile = 0;
+            else if (ch === '2') tile = 2;
+            else if (ch === '3') tile = 3;
+            else if (ch === '4') tile = 4;
+            else if (ch === 'Z') tile = 6;
+            else if (ch === 'W') tile = 7;
+            if (ch === 'I') mapDetails.trafficLights.push({ r, c });
+            if (ch === 'K') mapDetails.carparks.push({ r, c });
+            if (ch === 'T') mapDetails.transformers.push({ r, c });
+            if (ch === 'L') mapDetails.limeBays.push({ r, c });
           }
           map[r][c] = tile;
         }
@@ -2191,7 +2241,7 @@
     function isStreetTile(r, c) {
       if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) return false;
       const type = map[r][c];
-      return type === 1 || type === PAVEMENT_TILE;
+      return tileIsRoad(type) || tileIsPavement(type) || tileIsPlaza(type);
     }
 
     function spawnBillboards() {
@@ -2200,7 +2250,7 @@
         for (let c = 0; c < MAP_SIZE; c++) {
           if (!isBuildingAnchor(r, c)) continue;
           const tileType = map[r][c];
-          if (tileType !== 3 && tileType !== 4) continue;
+          if (tileType !== TILE_ID.BUILDING_MID && tileType !== TILE_ID.BUILDING_TALL) continue;
           const faces = [];
           if (isStreetTile(r - 1, c) || isStreetTile(r - 1, c + 1)) faces.push(0);
           if (isStreetTile(r, c + 2) || isStreetTile(r + 1, c + 2)) faces.push(1);
@@ -4363,7 +4413,7 @@
       const c = Math.floor(x / TILE_SIZE);
       const r = Math.floor(y / TILE_SIZE);
       if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) return false;
-      return map[r][c] === 1;
+      return tileIsRoad(map[r][c]);
     }
 
     function nudgeCorpseOffRoad(x, y) {
@@ -4377,7 +4427,7 @@
           const r = Math.floor(ny / TILE_SIZE);
           if (r < 0 || c < 0 || r >= MAP_SIZE || c >= MAP_SIZE) continue;
           const t = map[r][c];
-          if (t === PAVEMENT_TILE || t === 0) return { x: nx, y: ny };
+          if (tileIsPavement(t) || tileIsPark(t) || tileIsPlaza(t)) return { x: nx, y: ny };
         }
       }
       return { x, y };
@@ -4708,7 +4758,8 @@
     const pedestrianTiles = [];
     for (let r = 0; r < MAP_SIZE; r++) {
       for (let c = 0; c < MAP_SIZE; c++) {
-        if (map[r][c] === PAVEMENT_TILE || map[r][c] === 0) {
+        const t = map[r][c];
+        if (tileIsPavement(t) || tileIsPark(t) || tileIsPlaza(t)) {
           pedestrianTiles.push({ r, c });
         }
       }
@@ -4770,11 +4821,11 @@
           const nr = r + dr;
           const nc = c + dc;
           if (nr < 0 || nc < 0 || nr >= MAP_SIZE || nc >= MAP_SIZE) continue;
-          if (map[nr][nc] !== 1) continue;
-          const roadN = nr > 0 && map[nr - 1][nc] === 1;
-          const roadS = nr < MAP_SIZE - 1 && map[nr + 1][nc] === 1;
-          const roadW = nc > 0 && map[nr][nc - 1] === 1;
-          const roadE = nc < MAP_SIZE - 1 && map[nr][nc + 1] === 1;
+          if (!tileIsRoad(map[nr][nc])) continue;
+          const roadN = nr > 0 && tileIsRoad(map[nr - 1][nc]);
+          const roadS = nr < MAP_SIZE - 1 && tileIsRoad(map[nr + 1][nc]);
+          const roadW = nc > 0 && tileIsRoad(map[nr][nc - 1]);
+          const roadE = nc < MAP_SIZE - 1 && tileIsRoad(map[nr][nc + 1]);
           if ((roadN || roadS) && (roadW || roadE)) return true;
         }
       }
@@ -4782,11 +4833,11 @@
     }
 
     function roadSideOfPavement(r, c) {
-      if (map[r][c] !== PAVEMENT_TILE) return null;
-      const north = r > 0 && map[r - 1][c] === 1;
-      const south = r < MAP_SIZE - 1 && map[r + 1][c] === 1;
-      const west = c > 0 && map[r][c - 1] === 1;
-      const east = c < MAP_SIZE - 1 && map[r][c + 1] === 1;
+      if (!tileIsPavement(map[r][c])) return null;
+      const north = r > 0 && tileIsRoad(map[r - 1][c]);
+      const south = r < MAP_SIZE - 1 && tileIsRoad(map[r + 1][c]);
+      const west = c > 0 && tileIsRoad(map[r][c - 1]);
+      const east = c < MAP_SIZE - 1 && tileIsRoad(map[r][c + 1]);
       const count = (north ? 1 : 0) + (south ? 1 : 0) + (west ? 1 : 0) + (east ? 1 : 0);
       if (count !== 1) return null;
       if (north) return 'n';
@@ -8857,9 +8908,8 @@
         if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) {
           return false;
         }
-        return map[tileY][tileX] <= 1 ||
-          map[tileY][tileX] === PAVEMENT_TILE ||
-          isInParkingBay(sx, sy);
+        const type = map[tileY][tileX];
+        return tileIsDrivable(type) || tileIsWalkable(type) || isInParkingBay(sx, sy);
       });
     }
 
@@ -8879,7 +8929,7 @@
           return false;
         }
 
-        if (map[tileY][tileX] <= 1 || map[tileY][tileX] === PAVEMENT_TILE) {
+        if (tileIsWalkable(map[tileY][tileX])) {
           return true;
         }
 
@@ -8912,7 +8962,7 @@
           return false;
         }
         const type = map[tileY][tileX];
-        return type === PAVEMENT_TILE || type === 0;
+        return tileIsPavement(type) || tileIsPark(type) || tileIsPlaza(type);
       });
     }
 
@@ -9956,7 +10006,7 @@
     const GHOST_FADE_SPEED = 0.15;
     const GHOST_AABB_PAD = 100;
     const GHOST_WALL_FADE = 0.9;
-    const GHOST_ROOF_FADE = 0.45;
+    const GHOST_ROOF_FADE = 0.65;
 
     function subjectScreenHeight(mode) {
       return mode === 'driving' || mode === 'biking' ? 14 : 20 * PED_SCALE;
@@ -10279,7 +10329,7 @@
           const depth = projectDepth(wx + TILE_SIZE / 2, wy + TILE_SIZE / 2);
           acquireGroundTile(r, c, type, wx, wy, depth);
 
-          if (type >= 2 && type <= 4 && isBuildingAnchor(r, c)) {
+          if (tileIsBuilding(type) && isBuildingAnchor(r, c)) {
             const item = acquireRenderItem();
             item.type = 'building';
             item.r = r;
@@ -10406,7 +10456,7 @@
       ctx.beginPath();
       for (let i = 0; i < groundQueue.length; i++) {
         const tile = groundQueue[i];
-        if (tile.tileType >= 2 && tile.tileType <= 4 && isBuildingAnchor(tile.r, tile.c)) {
+        if (tileIsBuilding(tile.tileType) && isBuildingAnchor(tile.r, tile.c)) {
           appendBuildingShadowPath(tile);
         }
       }
@@ -10727,6 +10777,75 @@
       ctx.drawImage(atmosGrainCanvas, 0, 0);
     }
 
+    // Sunken water: surface below street + basin walls where water meets land.
+    function drawWaterBasin(tile, wx, wy, r, c) {
+      const base = Tiles ? Tiles.baseOf(tile.tileType) : null;
+      const zWater = Tiles ? Tiles.surfaceZ(tile.tileType) : -16;
+      const waterFill = tileGroundFill(tile.tileType);
+      const wallLit = (base && base.basinWall) || '#243848';
+      const wallShade = (base && base.basinWallShade) || '#1a2c38';
+
+      const neighborWater = (dr, dc) => {
+        const rr = r + dr;
+        const cc = c + dc;
+        return rr >= 0 && cc >= 0 && rr < MAP_SIZE && cc < MAP_SIZE &&
+          tileIsWater(map[rr][cc]);
+      };
+
+      // Basin walls from street level (z=0) down to water — back faces first.
+      const faces = [
+        { // north
+          open: !neighborWater(-1, 0),
+          a: [wx, wy], b: [wx + TILE_SIZE, wy],
+          color: wallShade, depth: project(wx + TILE_SIZE / 2, wy, zWater / 2).depth
+        },
+        { // east
+          open: !neighborWater(0, 1),
+          a: [wx + TILE_SIZE, wy], b: [wx + TILE_SIZE, wy + TILE_SIZE],
+          color: wallLit, depth: project(wx + TILE_SIZE, wy + TILE_SIZE / 2, zWater / 2).depth
+        },
+        { // south
+          open: !neighborWater(1, 0),
+          a: [wx + TILE_SIZE, wy + TILE_SIZE], b: [wx, wy + TILE_SIZE],
+          color: wallLit, depth: project(wx + TILE_SIZE / 2, wy + TILE_SIZE, zWater / 2).depth
+        },
+        { // west
+          open: !neighborWater(0, -1),
+          a: [wx, wy + TILE_SIZE], b: [wx, wy],
+          color: wallShade, depth: project(wx, wy + TILE_SIZE / 2, zWater / 2).depth
+        }
+      ];
+      faces.sort((a, b) => a.depth - b.depth);
+      for (let i = 0; i < faces.length; i++) {
+        const face = faces[i];
+        if (!face.open) continue;
+        ctx.fillStyle = face.color;
+        fillQuad(
+          project(face.a[0], face.a[1], 0),
+          project(face.b[0], face.b[1], 0),
+          project(face.b[0], face.b[1], zWater),
+          project(face.a[0], face.a[1], zWater)
+        );
+      }
+
+      // Water surface (depressed).
+      ctx.fillStyle = waterFill;
+      fillQuad(
+        project(wx, wy, zWater),
+        project(wx + TILE_SIZE, wy, zWater),
+        project(wx + TILE_SIZE, wy + TILE_SIZE, zWater),
+        project(wx, wy + TILE_SIZE, zWater)
+      );
+
+      // Soft highlight ripple
+      ctx.strokeStyle = 'rgba(160, 200, 220, 0.22)';
+      ctx.lineWidth = 1.2;
+      drawProjectedLine(
+        project(wx + TILE_SIZE * 0.2, wy + TILE_SIZE * 0.35, zWater + 0.4),
+        project(wx + TILE_SIZE * 0.75, wy + TILE_SIZE * 0.55, zWater + 0.4)
+      );
+    }
+
     // --- 3D BUILDING & GROUND RENDERER ---
     function drawTile(tile, groundOnly) {
       const { wx, wy, tileType, r, c } = tile;
@@ -10739,12 +10858,12 @@
       const g3 = project(wx, wy + TILE_SIZE, 0);
 
       if (groundOnly) {
-        ctx.fillStyle = tileType === 1
-          ? PALETTE.road
-          : (tileType === 0 ? PALETTE.grass : PALETTE.sidewalk);
-        fillQuad(g0, g1, g2, g3);
+        if (!tileIsWater(tileType)) {
+          ctx.fillStyle = tileGroundFill(tileType);
+          fillQuad(g0, g1, g2, g3);
+        }
 
-        if (tileType === PAVEMENT_TILE) {
+        if (tileIsPavement(tileType)) {
           const p0 = project(wx, wy, 2);
           const p1 = project(wx + TILE_SIZE, wy, 2);
           const p2 = project(wx + TILE_SIZE, wy + TILE_SIZE, 2);
@@ -10755,7 +10874,7 @@
           ctx.lineWidth = 1;
           strokeQuad(p0, p1, p2, p3);
           drawSurfaceWear(tile, 3);
-        } else if (tileType === 1) {
+        } else if (tileIsRoad(tileType)) {
           // Lane dashes from blueprint neighbors (not ROAD_SPACING grid).
           const laneAxis = roadLaneDashAxis(r, c);
           if (laneAxis) {
@@ -10777,6 +10896,17 @@
           }
           drawCrosswalks(tile);
           drawSurfaceWear(tile, 1);
+        } else if (tileIsPlaza(tileType)) {
+          // Slight raised feel without full sidewalk kerb.
+          const p0 = project(wx, wy, 1);
+          const p1 = project(wx + TILE_SIZE, wy, 1);
+          const p2 = project(wx + TILE_SIZE, wy + TILE_SIZE, 1);
+          const p3 = project(wx, wy + TILE_SIZE, 1);
+          ctx.fillStyle = tileGroundFill(tileType);
+          fillQuad(p0, p1, p2, p3);
+          drawSurfaceWear(tile, 2);
+        } else if (tileIsWater(tileType)) {
+          drawWaterBasin(tile, wx, wy, r, c);
         } else {
           drawSurfaceWear(tile, 1);
         }
@@ -10851,7 +10981,7 @@
         ctx.globalAlpha = 1;
 
         if (edgeBoost) {
-          ctx.globalAlpha = Math.min(1, 0.35 + ghostAlpha * 0.65);
+          ctx.globalAlpha = Math.min(1, 0.12 + ghostAlpha * 0.22);
           ctx.strokeStyle = '#6a5f50';
           ctx.lineWidth = 1.5 + ghostAlpha * 0.5;
           strokeQuad(bottomA, bottomB, topB, topA);
@@ -10873,7 +11003,7 @@
 
       ctx.strokeStyle = '#51483c';
       ctx.lineWidth = edgeBoost ? 1.5 + ghostAlpha * 0.5 : 1;
-      if (edgeBoost) ctx.globalAlpha = Math.min(1, 0.45 + ghostAlpha * 0.55);
+      if (edgeBoost) ctx.globalAlpha = Math.min(1, 0.14 + ghostAlpha * 0.2);
       strokeQuad(r0, r1, r2, r3);
       ctx.globalAlpha = 1;
 
@@ -10928,7 +11058,7 @@
         project(x, y + markSize * 0.65, z)
       );
 
-      if (tile.tileType === PAVEMENT_TILE && hash % 3 === 0) {
+      if (tileIsPavement(tile.tileType) && hash % 3 === 0) {
         ctx.strokeStyle = 'rgba(76, 65, 53, 0.2)';
         ctx.lineWidth = 1;
         drawProjectedLine(
@@ -11097,11 +11227,11 @@
     }
 
     function isMapRoadTile(r, c) {
-      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && map[r][c] === 1;
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && tileIsRoad(map[r][c]);
     }
 
     function isMapSidewalkTile(r, c) {
-      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && map[r][c] === PAVEMENT_TILE;
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && tileIsPavement(map[r][c]);
     }
 
     function roadNeighborFlags(r, c) {
@@ -12440,9 +12570,13 @@
           const posTR = worldToMini((c + 1) * TILE_SIZE, r * TILE_SIZE);
           const posBR = worldToMini((c + 1) * TILE_SIZE, (r + 1) * TILE_SIZE);
           const posBL = worldToMini(c * TILE_SIZE, (r + 1) * TILE_SIZE);
-          miniCtx.fillStyle = type === 1
+          miniCtx.fillStyle = tileIsRoad(type)
             ? '#29251f'
-            : (type === PAVEMENT_TILE ? '#b9ad97' : (type > 1 ? '#9b8068' : '#355936'));
+            : (tileIsPavement(type)
+              ? '#b9ad97'
+              : (tileIsBuilding(type)
+                ? '#9b8068'
+                : (Tiles ? Tiles.colorForId(type) : (type > 1 ? '#9b8068' : '#355936'))));
           miniCtx.beginPath();
           miniCtx.moveTo(pos.x, pos.y);
           miniCtx.lineTo(posTR.x, posTR.y);

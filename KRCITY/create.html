@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>KR CITY — Map Builder</title>
+  <link rel="icon" href="static/img/KRICON.png" type="image/png">
+  <link rel="apple-touch-icon" href="static/img/KRICON.png">
+  <script src="tile-registry.js"></script>
   <script src="map-data.js"></script>
   <style>
     :root {
@@ -286,22 +289,21 @@
       const ROAD_SPACING = 13;
       const STORAGE_KEY = 'krcity-map-editor-v1';
       const MAX_HISTORY = 60;
-      const VALID_CHARS = 'RIPS234KTL';
-
-      const TILES = [
-        { ch: 'R', name: 'Road', key: 'R', color: '#29251f' },
-        { ch: 'I', name: 'Traffic light', key: 'I', color: '#29251f', mark: '#c9a227' },
-        { ch: 'P', name: 'Park', key: 'P', color: '#355936' },
-        { ch: 'S', name: 'Sidewalk', key: 'S', color: '#beb39d' },
-        { ch: '2', name: 'Building low', key: '2', color: '#9d988f' },
-        { ch: '3', name: 'Building mid', key: '3', color: '#817d75' },
-        { ch: '4', name: 'Building tall', key: '4', color: '#68655f' },
-        { ch: 'K', name: 'Car park', key: 'K', color: '#2a2620' },
-        { ch: 'T', name: 'Transformer', key: 'T', color: '#3c5641' },
-        { ch: 'L', name: 'Lime bay', key: 'L', color: '#b8e000' }
-      ];
-
-      const BUILDING_H = { '2': 18, '3': 26, '4': 38 };
+      const Tiles = window.KrcityTiles;
+      if (!Tiles) {
+        console.error('[KR MAP BUILDER] tile-registry.js missing');
+      }
+      const VALID_CHARS = Tiles ? Tiles.validCharsString() : 'RIPS234KTLZW';
+      const TILES = Tiles ? Tiles.builderTiles() : [];
+      const BUILDING_H = {};
+      if (Tiles) {
+        Tiles.ORDER.forEach(ch => {
+          const h = Tiles.previewHeight(ch);
+          if (h) BUILDING_H[ch] = h;
+        });
+      } else {
+        Object.assign(BUILDING_H, { '2': 18, '3': 26, '4': 38 });
+      }
 
       const canvas = document.getElementById('mapCanvas');
       const ctx = canvas.getContext('2d');
@@ -361,30 +363,10 @@
       }
 
       function validateMap(rows, mapSize) {
-        const errors = [];
-        if (!Array.isArray(rows)) return { ok: false, errors: ['rows must be an array'] };
-        if (rows.length !== mapSize) errors.push('rows length ' + rows.length + ' !== size ' + mapSize);
-        for (let r = 0; r < rows.length; r++) {
-          const row = rows[r];
-          if (typeof row !== 'string') {
-            errors.push('rows[' + r + '] is not a string');
-            continue;
-          }
-          if (row.length !== mapSize) {
-            errors.push('rows[' + r + '] length ' + row.length + ' !== size ' + mapSize);
-          }
-          for (let c = 0; c < row.length; c++) {
-            const ch = row.charAt(c);
-            if (!VALID_CHARS.includes(ch)) {
-              errors.push('unknown char "' + ch + '" at rows[' + r + '][' + c + ']');
-              if (errors.length > 40) {
-                errors.push('… further errors truncated');
-                return { ok: false, errors };
-              }
-            }
-          }
+        if (Tiles && typeof Tiles.validateBlueprint === 'function') {
+          return Tiles.validateBlueprint({ size: mapSize, rows });
         }
-        return { ok: errors.length === 0, errors };
+        return { ok: false, errors: ['tile-registry.js not loaded'] };
       }
 
       function refreshValidation() {
@@ -631,11 +613,18 @@
       }
 
       function colorFor(ch) {
+        if (Tiles) return Tiles.colorForChar(ch);
         const t = TILES.find(x => x.ch === ch);
         return t ? t.color : '#777';
       }
 
-      function isRoadChar(ch) { return ch === 'R' || ch === 'I'; }
+      function isRoadChar(ch) {
+        if (Tiles) {
+          const d = Tiles.decode(ch);
+          return !!(d && d.base.flags.road);
+        }
+        return ch === 'R' || ch === 'I';
+      }
       function isRoadAt(r, c) { return inBounds(r, c) && isRoadChar(grid[r][c]); }
 
       function roadFlags(r, c) {
@@ -784,10 +773,10 @@
             const x = c * cell;
             const y = r * cell;
             ctx.fillStyle = colorFor(ch);
-            if (ch === 'R' || ch === 'I') ctx.fillStyle = '#29251f';
             ctx.fillRect(x, y, cell, cell);
-            if (ch === 'I') {
-              ctx.fillStyle = '#c9a227';
+            const decoded = Tiles ? Tiles.decode(ch) : null;
+            if (decoded && decoded.def.mark) {
+              ctx.fillStyle = decoded.def.mark;
               ctx.fillRect(x + 4, y + 4, cell - 8, cell - 8);
             } else if (ch === 'L') {
               ctx.fillStyle = '#1a1a1a';
@@ -890,14 +879,42 @@
           diamond(-h, colorFor(ch));
         } else {
           let fill = colorFor(ch);
-          if (ch === 'R' || ch === 'I') fill = '#29251f';
-          if (ch === 'P') fill = '#355936';
-          if (ch === 'S' || ch === 'K' || ch === 'T' || ch === 'L') fill = '#beb39d';
-          diamond(0, fill);
-          if (ch === 'I') {
-            ctx.fillStyle = '#c9a227';
+          const decoded = Tiles ? Tiles.decode(ch) : null;
+          // Props on pavement still read as sidewalk in iso; accents drawn after.
+          if (decoded && decoded.base.flags.pavement) fill = '#beb39d';
+          if (decoded && decoded.base.flags.road) fill = '#29251f';
+          if (decoded && decoded.base.gameGround) fill = decoded.base.gameGround;
+
+          const surfaceZ = decoded && typeof decoded.base.surfaceZ === 'number'
+            ? decoded.base.surfaceZ
+            : 0;
+          // Iso preview: positive yOff drops the diamond (matches sunken water in game).
+          const yOff = surfaceZ < 0 ? Math.abs(surfaceZ) * 0.55 : 0;
+          if (yOff > 0) {
+            const wall = (decoded && decoded.base.basinWall) || '#243848';
+            const shade = (decoded && decoded.base.basinWallShade) || '#1a2c38';
             ctx.beginPath();
-            ctx.arc(cx, cy + halfH, 3, 0, Math.PI * 2);
+            ctx.moveTo(cx - halfW, cy + halfH);
+            ctx.lineTo(cx, cy + halfH * 2);
+            ctx.lineTo(cx, cy + halfH * 2 + yOff);
+            ctx.lineTo(cx - halfW, cy + halfH + yOff);
+            ctx.closePath();
+            ctx.fillStyle = shade;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx + halfW, cy + halfH);
+            ctx.lineTo(cx, cy + halfH * 2);
+            ctx.lineTo(cx, cy + halfH * 2 + yOff);
+            ctx.lineTo(cx + halfW, cy + halfH + yOff);
+            ctx.closePath();
+            ctx.fillStyle = wall;
+            ctx.fill();
+          }
+          diamond(yOff, fill);
+          if (decoded && decoded.def.mark) {
+            ctx.fillStyle = decoded.def.mark;
+            ctx.beginPath();
+            ctx.arc(cx, cy + halfH + yOff, 3, 0, Math.PI * 2);
             ctx.fill();
           }
           if (isRoadChar(ch)) {
@@ -1000,56 +1017,30 @@
           return;
         }
         const rowsLit = rows.map(r => JSON.stringify(r)).join(',\n    ');
-        const out = `/* KRCITY map blueprint — edited in create.html */\n` +
+        const legend = Tiles ? Tiles.legendObject() : {};
+        const legendLit = Object.keys(legend).map(ch => {
+          const key = /^[A-Za-z]$/.test(ch) ? ch : JSON.stringify(ch);
+          return `      ${key}: ${JSON.stringify(legend[ch])}`;
+        }).join(',\n');
+        const out = `/* KRCITY map blueprint — edited in create.html\n` +
+` * Tile alphabet / flags / validation: tile-registry.js (load that first).\n` +
+` */\n` +
 `(function (root) {\n` +
 `  const KRCITY_MAP = {\n` +
 `    size: ${size},\n` +
-`    legend: {\n` +
-`      R: 'road',\n` +
-`      I: 'road+trafficLight',\n` +
-`      P: 'park',\n` +
-`      S: 'sidewalk',\n` +
-`      '2': 'buildingLow',\n` +
-`      '3': 'buildingMid',\n` +
-`      '4': 'buildingTall',\n` +
-`      K: 'carpark',\n` +
-`      T: 'transformer',\n` +
-`      L: 'limeBay'\n` +
-`    },\n` +
+`    // Legend is informational; authority is tile-registry.js\n` +
+`    legend: {\n${legendLit}\n    },\n` +
 `    rows: [\n    ${rowsLit}\n    ]\n` +
 `  };\n\n` +
-`  function validateKrcityMap(blueprint) {\n` +
-`    const errors = [];\n` +
-`    if (!blueprint || typeof blueprint !== 'object') {\n` +
-`      return { ok: false, errors: ['KRCITY_MAP is missing or not an object'] };\n` +
-`    }\n` +
-`    const size = blueprint.size | 0;\n` +
-`    if (size <= 0) errors.push('size must be a positive integer');\n` +
-`    const rows = blueprint.rows;\n` +
-`    if (!Array.isArray(rows)) {\n` +
-`      errors.push('rows must be an array of strings');\n` +
-`      return { ok: false, errors };\n` +
-`    }\n` +
-`    if (rows.length !== size) errors.push('rows length ' + rows.length + ' !== size ' + size);\n` +
-`    for (let r = 0; r < rows.length; r++) {\n` +
-`      const row = rows[r];\n` +
-`      if (typeof row !== 'string') { errors.push('rows[' + r + '] is not a string'); continue; }\n` +
-`      if (row.length !== size) errors.push('rows[' + r + '] length ' + row.length + ' !== size ' + size);\n` +
-`      for (let c = 0; c < row.length; c++) {\n` +
-`        const ch = row.charAt(c);\n` +
-`        if (!'RIPS234KTL'.includes(ch)) {\n` +
-`          errors.push('unknown char "' + ch + '" at rows[' + r + '][' + c + ']');\n` +
-`          if (errors.length > 40) {\n` +
-`            errors.push('… further errors truncated');\n` +
-`            return { ok: false, errors };\n` +
-`          }\n` +
-`        }\n` +
-`      }\n` +
-`    }\n` +
-`    return { ok: errors.length === 0, errors };\n` +
-`  }\n\n` +
 `  root.KRCITY_MAP = KRCITY_MAP;\n` +
-`  root.validateKrcityMap = validateKrcityMap;\n` +
+`  if (typeof root.validateKrcityMap !== 'function') {\n` +
+`    root.validateKrcityMap = function (blueprint) {\n` +
+`      if (root.KrcityTiles && typeof root.KrcityTiles.validateBlueprint === 'function') {\n` +
+`        return root.KrcityTiles.validateBlueprint(blueprint);\n` +
+`      }\n` +
+`      return { ok: false, errors: ['tile-registry.js not loaded'] };\n` +
+`    };\n` +
+`  }\n` +
 `})(typeof window !== 'undefined' ? window : globalThis);\n`;
 
         const blob = new Blob([out], { type: 'text/javascript' });
