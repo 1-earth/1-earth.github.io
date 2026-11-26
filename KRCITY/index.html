@@ -1147,20 +1147,18 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      letter-spacing: 1.5px;
-      padding-left: 10px;
-      padding-right: 12px;
+      gap: 0;
+      letter-spacing: 0;
+      padding: 4px 8px;
+      margin-bottom: 8px;
     }
-    #mobileMpBtn .mp-icon {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
+    #mobileMpBtn .mp-logo {
+      width: 28px;
+      height: 28px;
       display: block;
-      color: #69b3a2;
-    }
-    #mobileMpBtn .mp-label {
-      letter-spacing: 2px;
+      object-fit: contain;
+      flex-shrink: 0;
+      pointer-events: none;
     }
     .jj-pill:active:not(:disabled) {
       background: linear-gradient(180deg, #d9ceb7 0%, #bbae93 100%);
@@ -1221,7 +1219,7 @@
       top: 5px;
       left: 5px;
       right: 5px;
-      bottom: 10dvh;
+      bottom: 5px;
       width: auto;
       height: auto;
       border-radius: 2px;
@@ -1233,28 +1231,31 @@
         0 2px 8px rgba(40, 30, 15, 0.3);
     }
     body.mobile.mobile-landscape #pad {
-      height: 10dvh;
+      height: 0;
       left: 0;
       right: 0;
       bottom: 0;
       z-index: 20;
       pointer-events: none;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      padding-bottom: 0;
+      overflow: visible;
     }
     body.mobile.mobile-landscape .jj-plate {
-      padding: 0 12px;
-      border-top: 1px solid rgba(40, 30, 15, 0.14);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      background: transparent;
       pointer-events: none;
+      overflow: visible;
     }
-    /* ENTER sits top-left of right stick; wordmark sits in the bottom strip */
+    /* ENTER sits near right stick; wordmark floats above MP */
     body.mobile.mobile-landscape .jj-top-bar {
       /* Same overlay box as .jj-row so % coords match stick zones */
       position: fixed;
       top: 5px;
       left: 0;
       right: 0;
-      bottom: 10dvh;
+      bottom: 5px;
       min-height: 0;
       padding: 0;
       z-index: 26;
@@ -1270,7 +1271,7 @@
       position: fixed;
       left: 50%;
       top: auto;
-      bottom: calc(env(safe-area-inset-bottom, 0px) + 2.6dvh);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 36px);
       transform: translateX(-50%);
       z-index: 24;
       font-size: 9px;
@@ -1301,7 +1302,7 @@
       left: 0;
       right: 0;
       top: 5px;
-      bottom: 10dvh;
+      bottom: 5px;
       z-index: 18;
       flex: none;
       min-height: 0;
@@ -1330,27 +1331,36 @@
       height: clamp(40px, 12vmin, 56px);
     }
     body.mobile.mobile-landscape #pad .label { display: none; }
+    /* No speaker bar — only the MP pill floats at the bottom */
     body.mobile.mobile-landscape .jj-bottom {
-      position: relative;
-      height: 100%;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: auto;
       min-height: 0;
-      padding: 0;
-      gap: clamp(14px, 4vw, 28px);
-      pointer-events: auto;
+      padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+      gap: 0;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      pointer-events: none;
       z-index: 22;
     }
     body.mobile.mobile-landscape .jj-speaker {
-      height: 12px;
-      opacity: 0.5;
+      display: none;
     }
-    body.mobile.mobile-landscape .jj-pill {
+    body.mobile.mobile-landscape .jj-pill,
+    body.mobile.mobile-landscape #mobileMpBtn {
+      pointer-events: auto;
       padding: 4px 12px;
       font-size: 9px;
     }
     body.mobile.mobile-landscape #left-panels {
-      bottom: calc(10dvh + 6px);
+      bottom: 12px;
       max-width: min(260px, calc(100% - 16px));
-      max-height: calc(100dvh - 10dvh - 24px);
+      max-height: calc(100dvh - 28px);
     }
     body.mobile.mobile-landscape #minimap-stack {
       top: 6px;
@@ -1507,10 +1517,7 @@
       <div class="jj-bottom">
         <div class="jj-speaker left" aria-hidden="true"></div>
         <button id="mobileMpBtn" class="jj-pill" type="button" aria-label="Multiplayer">
-          <svg class="mp-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M8.5 11a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5zm7 0a3.25 3.25 0 1 0 0-6.5 3.25 3.25 0 0 0 0 6.5zM3.75 19.25c0-2.85 2.4-4.75 4.75-4.75h.5c.55 0 1.08.1 1.57.28A5.4 5.4 0 0 0 9.5 17.1v2.15H3.75zm7.5 0V17.2c0-1.55.95-2.95 2.4-3.5.55.2 1.14.3 1.75.3h.5c2.35 0 4.75 1.9 4.75 4.75H11.25z"/>
-          </svg>
-          <span class="mp-label">MP</span>
+          <img class="mp-logo" src="static/img/communityicon.png" alt="" width="28" height="28" decoding="async">
         </button>
         <div class="jj-speaker right" aria-hidden="true"></div>
       </div>
@@ -1700,7 +1707,7 @@
       slopeBoost: 0.05,
       bobAmp: 0.012,
       cyNudge: 0.028,
-      landShake: 0.16,
+      landShake: 0.4,
       landHapticMs: 12,
       whooshVol: 0.55,
       bedVol: 0.22
@@ -1742,6 +1749,17 @@
       walkWarmupTicks: Math.round(2 * 120),
       sprintBuildupTicks: Math.round(2 * 120),
       accelTicks: Math.round(6 * 120)
+    };
+    // On-foot body facing (sprite) — separate from camera/control heading (player.angle).
+    // Aim while shoot input active; else move; else ±45° while turning; else hold last.
+    const FOOT_FACE = {
+      ease: 0.28,
+      turnLookRad: Math.PI / 4,
+      // true: face travel always (incl. S / backpedal). false: keep camera-forward when mostly backing.
+      faceBackpedalMove: true,
+      moveEps: 0.01,
+      turnSteerEps: 0.0008,
+      backpedalDot: -0.25
     };
     const DAMAGE_RET = {
       PUNCH: 0.9,
@@ -1926,6 +1944,7 @@
     // while a turn key is held. At 60fps: 0.05 ≈ 0.33s to full, 0.10 ≈ 0.17s, 1 = instant.
     const STEER_FEEL = {
       walkAccel: 0.05,
+      walkRelease: 0.78,
       driveAccel: 0.06,
       driveRelease: 0.78
     };
@@ -2155,6 +2174,10 @@
       footSprintBuild: 0,
       footSprinting: false,
       travelAngle: 34 * (Math.PI / 180),
+      // Sprite facing on foot (camera stays on player.angle).
+      bodyAngle: 34 * (Math.PI / 180),
+      // +1 = last vertical was forward/up, -1 = back/down (for turn look offset).
+      lastVerticalSign: 1,
       moveAmount: 0,
       radius: HITBOX.player,
       driveRadius: PLAYER_WALK_DRIVE.driveRadius,
@@ -2204,21 +2227,40 @@
     const SKID_SLIP_MIN = 0.32;
 
     // Camera shake: trauma 0–1, squared for punch; decays each frame.
+    // Tiers: shoot/gun/drift = medium punch; ped vs car = strong jolt; crashes scale soft→hard.
     const SHAKE = {
       maxTrauma: 1,
-      decay: 0.86,
+      decay: 0.8,
       maxOffset: 32,
-      maxAngle: 0.035,
-      minorFire: 0.11,
-      minorWall: 0.2,
-      mediumRunover: 0.34,
-      mediumCrash: 0.38,
-      bigBlast: 0.72,
-      tinyGunHit: 0.1,
+      maxAngle: 0.09,
+      minorFire: 0.48,
+      gunHit: 0.52,
+      gunHitMounted: 0.58,
+      tinyGunHit: 0.52,
+      drift: 0.4,
+      pedestrianCarHit: 0.78,
+      minorWall: 0.72,
+      wallCrash: 0.72,
+      mediumRunover: 0.62,
+      mediumCrash: 0.78,
+      bigBlast: 0.95,
       blastNear: ROAD_SPACING * TILE_SIZE * 1.15
     };
     const cameraShake = { trauma: 0 };
     let shakeSample = { x: 0, y: 0, angle: 0 };
+
+    // Soft bump → hard slam. Returns 0 below a light threshold.
+    function crashShakeAmount(impactSpeed, maxAmt) {
+      const softFloor = 0.45;
+      if (!(impactSpeed > softFloor) || !(maxAmt > 0)) return 0;
+      const softFull = CAR_CRASH_FEEL.dmgZeroBelow;
+      if (impactSpeed <= softFull) {
+        const u = (impactSpeed - softFloor) / Math.max(0.001, softFull - softFloor);
+        return maxAmt * (0.18 + 0.28 * u * u);
+      }
+      const severity = carCrashSeverity(impactSpeed);
+      return maxAmt * (0.4 + 0.6 * severity);
+    }
 
     // Car–car crash damage/FX: near-zero at slow bumps, full legacy damage at high impact.
     // Physics separation still runs below these thresholds; only HP + feedback are scaled.
@@ -2283,12 +2325,15 @@
       deathDuck: false,
       copKillDuck: false,
       sounds: {
+        // Punchy pistol: deep thump + mid body + noise crack + tiny click (layers play together).
         shoot: {
-          type: 'square',
-          freq: 920,
-          freqEnd: 380,
-          duration: 0.055,
-          volume: 0.32
+          volume: 0.62,
+          layers: [
+            { type: 'sine', freq: 95, freqEnd: 42, duration: 0.1, volume: 1 },
+            { type: 'triangle', freq: 255, freqEnd: 95, duration: 0.06, volume: 0.55 },
+            { type: 'noise', duration: 0.045, volume: 0.72, filterFreq: 3200 },
+            { type: 'square', freq: 1950, freqEnd: 780, duration: 0.016, volume: 0.26 }
+          ]
         },
         drift: {
           type: 'noise',
@@ -2649,7 +2694,7 @@
       } catch (_) {}
     }
 
-    function playSfx(name) {
+    function playSfx(name, volumeMul = 1) {
       const def = SFX.sounds[name];
       if (!def) return;
       const ctx = ensureSfxContext();
@@ -2660,7 +2705,22 @@
       const when = ctx.currentTime + 0.001;
       const pitch = sfxPitchJitter();
       const duck = name === 'death' ? 1 : getSfxDuckMul();
-      const gainValue = Math.max(0.0001, SFX.masterVolume * duck * (def.volume != null ? def.volume : 1));
+      const mul = Math.max(0, volumeMul == null ? 1 : volumeMul);
+      if (mul <= 0.001) return;
+      const gainValue = Math.max(
+        0.0001,
+        SFX.masterVolume * duck * (def.volume != null ? def.volume : 1) * mul
+      );
+
+      if (def.layers && def.layers.length) {
+        for (let i = 0; i < def.layers.length; i++) {
+          const layer = def.layers[i];
+          const layerGain = gainValue * (layer.volume != null ? layer.volume : 1);
+          if (layer.type === 'noise') playSfxNoise(ctx, layer, when, layerGain, pitch);
+          else playSfxTone(ctx, layer, when, layerGain, pitch);
+        }
+        return;
+      }
 
       if (def.notes && def.notes.length) {
         let t = when;
@@ -2679,6 +2739,12 @@
       }
 
       playSfxTone(ctx, def, when, gainValue, pitch);
+    }
+
+    function playShootSfxAt(x, y) {
+      const atten = attenByDistance(x, y, 70, 480);
+      if (atten < 0.05) return;
+      playSfx('shoot', atten);
     }
 
     function playKillSfxFor(attackerId) {
@@ -3843,6 +3909,10 @@
     const wreckFx = [];
     const bullets = [];
     const muzzleFlashes = [];
+    const gunSmoke = [];
+    const shellCasings = [];
+    const bulletImpacts = [];
+    const bulletHoles = [];
     const corpses = [];
     const scorchMarks = [];
     let wasted = false;
@@ -3993,7 +4063,13 @@
       playerGunDamage: 12,
       policeGunDamagePed: 14,
       policeGunDamageCar: 9,
-      muzzleLife: 4,
+      muzzleLife: 6,
+      muzzleFlashLen: 26,
+      gunSmokeMax: 56,
+      shellMax: 42,
+      impactMax: 64,
+      holeMax: 48,
+      holeLife: 780,
       fleeRadius: 130
     };
     const WANTED = {
@@ -4635,6 +4711,9 @@
         const facing = pickSpawnFacingAngle(walkSpot.x, walkSpot.y, spawnBay.side);
         player.angle = facing;
         player.cameraAngle = facing;
+        player.bodyAngle = facing;
+        player.travelAngle = facing;
+        player.lastVerticalSign = 1;
       }
     }
 
@@ -4863,15 +4942,16 @@
     // World muzzle point: side shots leave the vehicle window, not the hood.
     function getShootOrigin(shootCode, shootAngle) {
       if (!isMountedVehicle()) {
-        // Right hand relative to facing (y-down world), then out along aim.
-        const rightX = -Math.sin(player.angle);
-        const rightY = Math.cos(player.angle);
+        // Right hand relative to body facing (y-down world), then out along aim.
+        const face = player.bodyAngle;
+        const rightX = -Math.sin(face);
+        const rightY = Math.cos(face);
         const handSide = 5.2;
         const handFwd = 2.5;
         const along = 9;
         return {
-          x: player.x + rightX * handSide + Math.cos(player.angle) * handFwd + Math.cos(shootAngle) * along,
-          y: player.y + rightY * handSide + Math.sin(player.angle) * handFwd + Math.sin(shootAngle) * along
+          x: player.x + rightX * handSide + Math.cos(face) * handFwd + Math.cos(shootAngle) * along,
+          y: player.y + rightY * handSide + Math.sin(face) * handFwd + Math.sin(shootAngle) * along
         };
       }
       const rel = shortestAngleDiff(shootAngle, player.angle);
@@ -4934,6 +5014,72 @@
       if (diff > Math.PI) diff -= Math.PI * 2;
       if (diff < -Math.PI) diff += Math.PI * 2;
       return diff;
+    }
+
+    function approachAngle(current, target, ease) {
+      const d = shortestAngleDiff(current, target);
+      if (Math.abs(d) < 0.001) return target;
+      return current + d * Math.max(0, Math.min(1, ease));
+    }
+
+    function netVisualAngle() {
+      return player.mode === 'walking' ? player.bodyAngle : player.angle;
+    }
+
+    function syncBodyAngleToHeading() {
+      player.bodyAngle = player.angle;
+      player.travelAngle = player.angle;
+      player.lastVerticalSign = 1;
+    }
+
+    // Twin-stick / GTA-style foot facing: aim > move > turn-look > hold.
+    function updateFootBodyFacing() {
+      if (player.mode !== 'walking') {
+        player.bodyAngle = player.angle;
+        return;
+      }
+
+      const shootAim = getShootAim();
+      let target = null;
+
+      if (shootAim) {
+        target = shootAim.angle;
+        const aimRel = shortestAngleDiff(player.angle, shootAim.angle);
+        player.lastVerticalSign = Math.cos(aimRel) >= 0 ? 1 : -1;
+      } else {
+        const moving = player.motionSpeed > FOOT_FACE.moveEps;
+        const turning = Math.abs(player.steerRate) > FOOT_FACE.turnSteerEps;
+
+        if (moving) {
+          const moveRel = shortestAngleDiff(player.angle, player.travelAngle);
+          const fwdDot = Math.cos(moveRel);
+          if (fwdDot >= 0) player.lastVerticalSign = 1;
+          else player.lastVerticalSign = -1;
+
+          // Prefer input vertical when present (strafe alone keeps prior sign).
+          if (isMobile && mobileTouch && mobileTouch.move && mobileTouch.move.active) {
+            if (mobileWalkSmooth.y > 0.12) player.lastVerticalSign = 1;
+            else if (mobileWalkSmooth.y < -0.12) player.lastVerticalSign = -1;
+          } else {
+            if (keys['w']) player.lastVerticalSign = 1;
+            else if (keys['s']) player.lastVerticalSign = -1;
+          }
+
+          if (FOOT_FACE.faceBackpedalMove || fwdDot >= FOOT_FACE.backpedalDot) {
+            target = player.travelAngle;
+          } else {
+            target = player.angle;
+          }
+        } else if (turning) {
+          const base = player.angle + (player.lastVerticalSign < 0 ? Math.PI : 0);
+          const turnSign = player.steerRate < 0 ? -1 : 1;
+          target = base + turnSign * FOOT_FACE.turnLookRad;
+        }
+      }
+
+      if (target != null) {
+        player.bodyAngle = approachAngle(player.bodyAngle, target, FOOT_FACE.ease);
+      }
     }
 
     function steerIntent(wantLeft, wantRight) {
@@ -5440,7 +5586,8 @@
         }
         const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
         if (wallHit.impact > HAPTIC.crashMinSpeed || absSpeed > HAPTIC.crashMinSpeed) {
-          addCameraShake(SHAKE.minorWall);
+          const wallImpact = Math.max(wallHit.impact, absSpeed * 0.7);
+          addCameraShake(crashShakeAmount(wallImpact, SHAKE.wallCrash));
           haptic(HAPTIC.crashWall);
           playSfx('crashWall');
         }
@@ -5478,6 +5625,7 @@
         if (now - hapticDriftAt >= HAPTIC.driftIntervalMs) {
           hapticDriftAt = now;
           haptic(HAPTIC.driftPulse);
+          addCameraShake(SHAKE.drift);
         }
       }
 
@@ -5525,15 +5673,21 @@
           );
         }
       } else {
-        const intent = steerIntent(
-          anyCodeHeld('ArrowLeft'),
-          anyCodeHeld('ArrowRight')
-        );
-        if (isMobile && intent === 0) {
-          // Soft unwind after lifting the stick (active becomes false).
+        // Desktop on foot: lone ←/→ turn. With ↑/↓ held, ←/→ only feed diagonal
+        // aim (getShootAim) — suppress turn and ease steer out so facing/camera lock.
+        const footDiagonalAim = !isMobile &&
+          (anyCodeHeld('ArrowUp') || anyCodeHeld('ArrowDown'));
+        const intent = footDiagonalAim
+          ? 0
+          : steerIntent(
+              anyCodeHeld('ArrowLeft'),
+              anyCodeHeld('ArrowRight')
+            );
+        if (intent === 0 && (isMobile || footDiagonalAim)) {
+          // Soft unwind after lifting the stick, or mid-turn into diagonal shoot.
           player.steerRate = softReleaseSteer(
             player.steerRate,
-            MOBILE_STEER_FEEL.walkRelease,
+            isMobile ? MOBILE_STEER_FEEL.walkRelease : STEER_FEEL.walkRelease,
             0.00045
           );
         } else {
@@ -5674,6 +5828,7 @@
         }
       }
       player.speed = 0;
+      updateFootBodyFacing();
     }
 
     function handleBikingInput() {
@@ -5758,7 +5913,10 @@
         }
       } else if (Math.hypot(player.vx, player.vy) > crawl) {
         const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
-        if (wallHit.impact > 0.8 || absSpeed > 0.8) addCameraShake(SHAKE.minorWall);
+        if (wallHit.impact > 0.8 || absSpeed > 0.8) {
+          const wallImpact = Math.max(wallHit.impact, absSpeed * 0.7);
+          addCameraShake(crashShakeAmount(wallImpact, SHAKE.wallCrash));
+        }
       }
       player.motionSpeed = Math.hypot(player.vx, player.vy);
 
@@ -5843,6 +6001,7 @@
           player.x = activeVehicle.x;
           player.y = activeVehicle.y;
           player.angle = activeVehicle.angle;
+          syncBodyAngleToHeading();
           player.cameraEasing = true;
           player.steerRate = 0;
           player.speed = 0;
@@ -5877,6 +6036,7 @@
         player.x = activeVehicle.x;
         player.y = activeVehicle.y;
         player.angle = activeVehicle.angle;
+        syncBodyAngleToHeading();
         player.cameraEasing = true;
         player.steerRate = 0;
         player.speed = activeVehicle.speed;
@@ -5907,6 +6067,7 @@
         player.cameraEasing = false;
         player.cameraAngle = player.angle;
         player.steerRate = 0;
+        syncBodyAngleToHeading();
         activeVehicle = null;
         restoreWalkDriveStats();
         if (net.role === 'guest') {
@@ -5936,6 +6097,7 @@
         player.cameraEasing = false;
         player.cameraAngle = player.angle;
         player.steerRate = 0;
+        syncBodyAngleToHeading();
         exiting.speed = 0;
         exiting.driverId = null;
         exiting.parked = isInParkingBay(exiting.x, exiting.y);
@@ -6064,6 +6226,7 @@
       player.cameraEasing = false;
       player.cameraAngle = player.angle;
       player.steerRate = 0;
+      syncBodyAngleToHeading();
     }
 
     function ejectPlayerFromCar(vehicle) {
@@ -6106,11 +6269,15 @@
       } else {
         triggerDamageReticuleOmni();
       }
-      if (kind === 'car') player.hitCooldown = 42;
+      if (kind === 'car') {
+        player.hitCooldown = 42;
+        addCameraShake(SHAKE.pedestrianCarHit);
+      }
       if (kind === 'blast') player.blastCooldown = 18;
       if (kind === 'gun') {
         player.gunHitCooldown = 10;
-        addCameraShake(SHAKE.tinyGunHit);
+        const mounted = player.mode === 'driving' || player.mode === 'biking';
+        addCameraShake(mounted ? SHAKE.gunHitMounted : SHAKE.gunHit);
       }
       if (player.hp <= 0) {
         triggerWasted();
@@ -6215,7 +6382,7 @@
       spawnCorpse({
         x: player.x,
         y: player.y,
-        angle: player.angle,
+        angle: player.mode === 'walking' ? player.bodyAngle : player.angle,
         coat: net.localCoat,
         skin: playerSkin,
         hair: playerHair,
@@ -6844,12 +7011,124 @@
       return type >= 2 && type <= 4;
     }
 
+    function spawnGunSmoke(x, y, angle) {
+      const back = angle + Math.PI;
+      for (let i = 0; i < 3 && gunSmoke.length < COMBAT.gunSmokeMax; i++) {
+        gunSmoke.push({
+          x: x + (Math.random() - 0.5) * 3.5,
+          y: y + (Math.random() - 0.5) * 3.5,
+          z: 8 + Math.random() * 3,
+          vx: Math.cos(back) * (0.12 + Math.random() * 0.28) + (Math.random() - 0.5) * 0.22,
+          vy: Math.sin(back) * (0.12 + Math.random() * 0.28) + (Math.random() - 0.5) * 0.22,
+          vz: 0.22 + Math.random() * 0.22,
+          life: 16 + Math.floor(Math.random() * 14),
+          maxLife: 30
+        });
+      }
+    }
+
+    function spawnShellCasing(x, y, angle) {
+      if (shellCasings.length >= COMBAT.shellMax) shellCasings.shift();
+      const side = (Math.random() < 0.5 ? 1 : -1);
+      const eject = angle + side * (Math.PI * 0.5) + (Math.random() - 0.5) * 0.45;
+      const speed = 1.15 + Math.random() * 1.05;
+      shellCasings.push({
+        x: x + Math.cos(eject) * 2,
+        y: y + Math.sin(eject) * 2,
+        z: 9 + Math.random() * 2,
+        vx: Math.cos(eject) * speed,
+        vy: Math.sin(eject) * speed,
+        vz: 1.35 + Math.random() * 0.9,
+        rot: Math.random() * Math.PI * 2,
+        rotV: side * (0.25 + Math.random() * 0.35),
+        life: 48 + Math.floor(Math.random() * 22),
+        maxLife: 70
+      });
+    }
+
     function spawnMuzzleFlash(x, y, angle) {
       muzzleFlashes.push({
         x, y, angle,
         life: COMBAT.muzzleLife,
         maxLife: COMBAT.muzzleLife
       });
+      spawnGunSmoke(x, y, angle);
+      spawnShellCasing(x, y, angle);
+    }
+
+    function spawnBulletImpact(x, y, travelAngle) {
+      const inward = travelAngle + Math.PI;
+      if (bulletHoles.length >= COMBAT.holeMax) bulletHoles.shift();
+      bulletHoles.push({
+        x: x - Math.cos(travelAngle) * 2,
+        y: y - Math.sin(travelAngle) * 2,
+        life: COMBAT.holeLife,
+        maxLife: COMBAT.holeLife
+      });
+      const sparkCount = 5 + Math.floor(Math.random() * 4);
+      for (let i = 0; i < sparkCount && bulletImpacts.length < COMBAT.impactMax; i++) {
+        const a = inward + (Math.random() - 0.5) * 1.4;
+        const s = 0.9 + Math.random() * 2.4;
+        bulletImpacts.push({
+          x, y,
+          z: 7 + Math.random() * 4,
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s,
+          vz: 0.6 + Math.random() * 1.4,
+          life: 8 + Math.floor(Math.random() * 8),
+          maxLife: 16
+        });
+      }
+    }
+
+    function updateGunFeelFx() {
+      for (let i = muzzleFlashes.length - 1; i >= 0; i--) {
+        muzzleFlashes[i].life--;
+        if (muzzleFlashes[i].life <= 0) muzzleFlashes.splice(i, 1);
+      }
+      for (let i = gunSmoke.length - 1; i >= 0; i--) {
+        const puff = gunSmoke[i];
+        puff.x += puff.vx;
+        puff.y += puff.vy;
+        puff.z += puff.vz;
+        puff.vx *= 0.96;
+        puff.vy *= 0.96;
+        puff.vz *= 0.94;
+        puff.life--;
+        if (puff.life <= 0) gunSmoke.splice(i, 1);
+      }
+      for (let i = shellCasings.length - 1; i >= 0; i--) {
+        const shell = shellCasings[i];
+        shell.x += shell.vx;
+        shell.y += shell.vy;
+        shell.z += shell.vz;
+        shell.vz -= 0.18;
+        shell.vx *= 0.985;
+        shell.vy *= 0.985;
+        shell.rot += shell.rotV;
+        if (shell.z <= 1.2) {
+          shell.z = 1.2;
+          shell.vz *= -0.28;
+          shell.vx *= 0.72;
+          shell.vy *= 0.72;
+          shell.rotV *= 0.6;
+        }
+        shell.life--;
+        if (shell.life <= 0) shellCasings.splice(i, 1);
+      }
+      for (let i = bulletImpacts.length - 1; i >= 0; i--) {
+        const spark = bulletImpacts[i];
+        spark.x += spark.vx;
+        spark.y += spark.vy;
+        spark.z += spark.vz;
+        spark.vz *= 0.9;
+        spark.life--;
+        if (spark.life <= 0) bulletImpacts.splice(i, 1);
+      }
+      for (let i = bulletHoles.length - 1; i >= 0; i--) {
+        bulletHoles[i].life--;
+        if (bulletHoles[i].life <= 0) bulletHoles.splice(i, 1);
+      }
     }
 
     function fireBullet(owner, x, y, angle, speed, shooterId = net.localId, muzzleReady = false) {
@@ -6879,7 +7158,13 @@
       spawnMuzzleFlash(mx, my, angle);
       if (net.role === 'host') {
         const excludeId = owner === 'player' && shooterId !== net.localId ? shooterId : null;
-        netBroadcast({ t: 'fx_muzzle', x: mx, y: my, angle }, excludeId);
+        netBroadcast({
+          t: 'fx_muzzle',
+          x: mx,
+          y: my,
+          angle,
+          p: owner === 'player' ? 1 : 0
+        }, excludeId);
       }
     }
 
@@ -7087,9 +7372,9 @@
       }
       vehicle.health = Math.max(0, vehicle.health - amount);
       if (vehicle === activeVehicle) {
-        addCameraShake(SHAKE.tinyGunHit);
+        addCameraShake(SHAKE.gunHitMounted);
       } else if (net.role === 'host' && vehicle.driverId && vehicle.driverId !== net.localId) {
-        netSendToPeer(vehicle.driverId, { t: 'shake', amount: SHAKE.tinyGunHit });
+        netSendToPeer(vehicle.driverId, { t: 'shake', amount: SHAKE.gunHitMounted });
       }
       if (vehicle.health > 0) return;
       runExplosions([vehicle], byPlayer);
@@ -7342,7 +7627,7 @@
               hurtPlayer(COMBAT.policeGunDamagePed, 'gun', bullet.x, bullet.y);
             } else {
               damageVehicleFromBullet(activeVehicle, COMBAT.policeGunDamageCar, false);
-              addCameraShake(SHAKE.tinyGunHit);
+              addCameraShake(SHAKE.gunHitMounted);
             }
           }
         } else if (targetKind === 'remotePlayer' && target) {
@@ -7364,7 +7649,11 @@
         bullet.life--;
 
         let hit = false;
-        if (bullet.life <= 0 || bulletHitsSolid(bullet.x, bullet.y) || !isOnPlayableMap(bullet.x, bullet.y)) {
+        const hitSolid = bulletHitsSolid(bullet.x, bullet.y);
+        if (bullet.life <= 0 || hitSolid || !isOnPlayableMap(bullet.x, bullet.y)) {
+          if (hitSolid) {
+            spawnBulletImpact(bullet.x, bullet.y, Math.atan2(bullet.vy, bullet.vx));
+          }
           hit = true;
         }
 
@@ -7437,10 +7726,7 @@
         if (hit) bullets.splice(i, 1);
       }
 
-      for (let i = muzzleFlashes.length - 1; i >= 0; i--) {
-        muzzleFlashes[i].life--;
-        if (muzzleFlashes[i].life <= 0) muzzleFlashes.splice(i, 1);
-      }
+      updateGunFeelFx();
     }
 
     function drawCombatFx() {
@@ -7451,6 +7737,41 @@
         ctx.fillStyle = color;
         ctx.fillRect(Math.round(x) - (size >> 1), Math.round(y) - (size >> 1), size, size);
       };
+
+      bulletHoles.forEach(hole => {
+        const fade = Math.min(1, hole.life / Math.min(90, hole.maxLife));
+        const pos = project(hole.x, hole.y, 2.5);
+        const alpha = 0.55 * fade;
+        pix(pos.x, pos.y, 3, `rgba(18, 14, 10, ${alpha})`);
+        pix(pos.x - 1, pos.y, 2, `rgba(40, 32, 24, ${alpha * 0.7})`);
+      });
+
+      gunSmoke.forEach(puff => {
+        const fade = puff.life / puff.maxLife;
+        const pos = project(puff.x, puff.y, puff.z);
+        const r = 2.5 + (1 - fade) * 7;
+        ctx.fillStyle = `rgba(78, 74, 68, ${0.22 * fade})`;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = `rgba(120, 114, 104, ${0.12 * fade})`;
+        ctx.beginPath();
+        ctx.arc(pos.x + 1, pos.y - 1, r * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      shellCasings.forEach(shell => {
+        const fade = Math.min(1, shell.life / 18);
+        const pos = project(shell.x, shell.y, shell.z);
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(shell.rot);
+        ctx.fillStyle = `rgba(196, 158, 72, ${0.9 * fade})`;
+        ctx.fillRect(-2, -1, 4, 2);
+        ctx.fillStyle = `rgba(232, 206, 120, ${0.75 * fade})`;
+        ctx.fillRect(-2, -1, 1, 2);
+        ctx.restore();
+      });
 
       bullets.forEach(bullet => {
         const hot = bullet.owner === 'police' ? '#ffe08a' : '#fff6c8';
@@ -7470,22 +7791,40 @@
 
       muzzleFlashes.forEach(flash => {
         const fade = flash.life / flash.maxLife;
+        const cos = Math.cos(flash.angle);
+        const sin = Math.sin(flash.angle);
+        const flashLen = COMBAT.muzzleFlashLen;
         const base = project(flash.x, flash.y, 9);
         const tip = project(
-          flash.x + Math.cos(flash.angle) * 9,
-          flash.y + Math.sin(flash.angle) * 9,
-          11
+          flash.x + cos * flashLen,
+          flash.y + sin * flashLen,
+          12
         );
         const bx = Math.round(base.x);
         const by = Math.round(base.y);
         const tx = Math.round(tip.x);
         const ty = Math.round(tip.y);
+        const screenAng = Math.atan2(ty - by, tx - bx);
+        const screenLen = Math.hypot(tx - bx, ty - by);
         const outer = `rgba(255, 170, 60, ${0.85 * fade})`;
         const mid = `rgba(255, 210, 90, ${0.9 * fade})`;
         const inner = `rgba(255, 245, 200, ${0.95 * fade})`;
 
-        // Larger blocky plus / diamond muzzle
-        pix(bx, by, 7, inner);
+        // Long rectangular blast along shot direction (split-second streak).
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(screenAng);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = `rgba(255, 150, 40, ${0.55 * fade})`;
+        ctx.fillRect(0, -4, screenLen + 2, 8);
+        ctx.fillStyle = `rgba(255, 210, 90, ${0.75 * fade})`;
+        ctx.fillRect(0, -2.5, screenLen * 0.92, 5);
+        ctx.fillStyle = `rgba(255, 250, 220, ${0.95 * fade})`;
+        ctx.fillRect(0, -1.2, screenLen * 0.7, 2.4);
+        ctx.restore();
+
+        // Bright core / diamond burst at the muzzle
+        pix(bx, by, 8, inner);
         pix(bx - 7, by, 5, mid);
         pix(bx + 7, by, 5, mid);
         pix(bx, by - 7, 5, mid);
@@ -7498,16 +7837,34 @@
         pix(bx + 5, by - 5, 4, outer);
         pix(bx - 5, by + 5, 4, outer);
         pix(bx + 5, by + 5, 4, outer);
-        pix(tx, ty, 5, mid);
-        pix(tx + Math.sign(tx - bx || 1) * 5, ty + Math.sign(ty - by || 1) * 3, 4, outer);
-        pix(tx + Math.sign(tx - bx || 1) * 9, ty + Math.sign(ty - by || 1) * 5, 3, outer);
-        if (fade > 0.45) {
+        if (fade > 0.4) {
+          pix(bx, by, 4, '#ffffff');
           pix(bx - 3, by - 3, 3, inner);
           pix(bx + 3, by - 3, 3, inner);
           pix(bx - 3, by + 3, 3, inner);
           pix(bx + 3, by + 3, 3, inner);
         }
       });
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      bulletImpacts.forEach(spark => {
+        const fade = spark.life / spark.maxLife;
+        const pos = project(spark.x, spark.y, spark.z);
+        const tail = project(
+          spark.x - spark.vx * 1.6,
+          spark.y - spark.vy * 1.6,
+          Math.max(0, spark.z - spark.vz * 1.2)
+        );
+        ctx.strokeStyle = `rgba(255, 220, 120, ${0.85 * fade})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(tail.x, tail.y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        pix(pos.x, pos.y, 2, `rgba(255, 245, 200, ${0.95 * fade})`);
+      });
+      ctx.restore();
 
       ctx.restore();
     }
@@ -9107,8 +9464,8 @@
                     ? net.localId
                     : (first.driverId || second.driverId || null);
                   const severity = carCrashSeverity(impactSpeed);
-                  const shakeAmt = SHAKE.mediumCrash * severity;
-                  if (localInCrash && severity > CAR_CRASH_FEEL.fxMuteBelow) {
+                  const shakeAmt = crashShakeAmount(impactSpeed, SHAKE.mediumCrash);
+                  if (localInCrash && shakeAmt > 0.01) {
                     addCameraShake(shakeAmt);
                     if (
                       impactSpeed >= HAPTIC.crashMinSpeed &&
@@ -9693,7 +10050,7 @@
           drawPedestrian(
             player.x,
             player.y,
-            player.angle,
+            player.bodyAngle,
             player.walkPhase,
             net.localCoat,
             playerSkin,
@@ -9703,7 +10060,7 @@
             {
               hair: playerHair,
               showGun: aiming,
-              gunAngle: shootAim ? shootAim.angle : player.angle
+              gunAngle: shootAim ? shootAim.angle : player.bodyAngle
             }
           );
         } else if (item.type === 'remotePlayer') {
@@ -11842,7 +12199,7 @@
         net.localId,
         netRound1(player.x),
         netRound1(player.y),
-        netRound3(player.angle),
+        netRound3(netVisualAngle()),
         modeToCode(player.mode),
         netRound1(player.walkPhase),
         activeVehicle ? activeVehicle.id : null,
@@ -12351,15 +12708,18 @@
         rp.vy = 0;
       } else if (msg.t === 'shoot') {
         if (rp.wasted) return;
+        const sx = Number(msg.x) || rp.x;
+        const sy = Number(msg.y) || rp.y;
         fireBullet(
           'player',
-          Number(msg.x) || rp.x,
-          Number(msg.y) || rp.y,
+          sx,
+          sy,
           Number(msg.angle) || rp.angle,
           COMBAT.bulletSpeed,
           peerId,
           true
         );
+        playShootSfxAt(sx, sy);
       } else if (msg.t === 'respawn') {
         rp.wasted = false;
         rp.hp = PLAYER_MAX_HP;
@@ -12475,6 +12835,7 @@
           player.x = v.x;
           player.y = v.y;
           player.angle = msg.angle != null ? msg.angle : v.angle;
+          syncBodyAngleToHeading();
           player.cameraEasing = true;
           player.steerRate = 0;
           player.speed = 0;
@@ -12494,6 +12855,7 @@
           player.x = msg.x != null ? msg.x : v.x;
           player.y = msg.y != null ? msg.y : v.y;
           player.angle = msg.angle != null ? msg.angle : v.angle;
+          syncBodyAngleToHeading();
           player.cameraEasing = true;
           player.steerRate = 0;
           player.speed = msg.speed || 0;
@@ -12520,8 +12882,12 @@
         } else {
           triggerDamageReticuleOmni();
         }
-        if (msg.kind === 'gun') addCameraShake(SHAKE.tinyGunHit);
-        else if (msg.kind === 'car') addCameraShake(SHAKE.mediumCrash);
+        if (msg.kind === 'gun') {
+          const mounted = player.mode === 'driving' || player.mode === 'biking';
+          addCameraShake(mounted ? SHAKE.gunHitMounted : SHAKE.gunHit);
+        } else if (msg.kind === 'car') {
+          addCameraShake(SHAKE.pedestrianCarHit);
+        }
         if (player.mode === 'walking' && msg.shoveX != null && msg.shoveY != null) {
           if (canWalkAt(msg.shoveX, msg.shoveY, player.radius)) {
             player.x = msg.shoveX;
@@ -12559,7 +12925,7 @@
           playSfx('crash');
         }
       } else if (msg.t === 'shake') {
-        addCameraShake(msg.amount || SHAKE.tinyGunHit);
+        addCameraShake(msg.amount || SHAKE.gunHit);
       } else if (msg.t === 'wanted') {
         setWantedLevel(msg.level || 0);
         renderMpPlayersList();
@@ -12589,6 +12955,7 @@
         spawnScorchMark(msg.x, msg.y, msg.r || 18, false);
       } else if (msg.t === 'fx_muzzle') {
         spawnMuzzleFlash(msg.x, msg.y, msg.angle);
+        if (msg.p !== 0) playShootSfxAt(msg.x, msg.y);
       } else if (msg.t === 'fx_skid') {
         skidMarks.push({ x: msg.x, y: msg.y, angle: msg.a, life: SKID_LIFE });
         if (skidMarks.length > SKID_MAX) skidMarks.splice(0, skidMarks.length - SKID_MAX);
@@ -12612,7 +12979,7 @@
           t: 'state',
           x: netRound1(player.x),
           y: netRound1(player.y),
-          a: netRound3(player.angle),
+          a: netRound3(netVisualAngle()),
           vx: netRound1(player.vx),
           vy: netRound1(player.vy),
           sp: netRound1(player.speed),
@@ -12702,14 +13069,13 @@
         b.x += b.vx;
         b.y += b.vy;
         b.life--;
-        if (b.life <= 0 || bulletHitsSolid(b.x, b.y) || !isOnPlayableMap(b.x, b.y)) {
+        const hitSolid = bulletHitsSolid(b.x, b.y);
+        if (b.life <= 0 || hitSolid || !isOnPlayableMap(b.x, b.y)) {
+          if (hitSolid) spawnBulletImpact(b.x, b.y, Math.atan2(b.vy, b.vx));
           bullets.splice(i, 1);
         }
       }
-      for (let i = muzzleFlashes.length - 1; i >= 0; i--) {
-        muzzleFlashes[i].life--;
-        if (muzzleFlashes[i].life <= 0) muzzleFlashes.splice(i, 1);
-      }
+      updateGunFeelFx();
       updateSkidMarks();
       updateBillboardEffects();
       updateWreckFx();
@@ -13799,10 +14165,11 @@
       if (mobileMpBtnEl) {
         const open = mpPanel.classList.contains('mobile-open');
         const inRoom = net.role !== 'solo';
-        const mpLabelEl = mobileMpBtnEl.querySelector('.mp-label');
-        const mpText = inRoom ? `MP·${net.players.size + 1}` : 'MP';
-        if (mpLabelEl) mpLabelEl.textContent = mpText;
-        else mobileMpBtnEl.textContent = mpText;
+        const count = net.players.size + 1;
+        mobileMpBtnEl.setAttribute(
+          'aria-label',
+          inRoom ? `Multiplayer · ${count} players` : 'Multiplayer'
+        );
         mobileMpBtnEl.classList.toggle('active', open || inRoom);
       }
 
