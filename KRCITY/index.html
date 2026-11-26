@@ -195,6 +195,38 @@
       opacity: 1;
       transform: translateY(0);
     }
+    #radio-live {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      max-width: 168px;
+      padding: 2px 8px;
+      font-size: 8px;
+      letter-spacing: 1.5px;
+      text-align: center;
+      color: #9fe0b4;
+      background: rgba(28, 42, 32, 0.9);
+      border: 1px solid #4f7a5a;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #radio-live.show {
+      display: inline-flex;
+    }
+    #radio-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3ecf7a;
+      box-shadow: 0 0 6px rgba(62, 207, 122, 0.85);
+      animation: radio-live-blink 1.1s ease-in-out infinite;
+    }
+    @keyframes radio-live-blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
     #radioMuteBtn {
       display: none;
       align-items: center;
@@ -760,6 +792,12 @@
     body.mobile #radioMuteBtn .radio-btn-mute {
       width: 16px;
       height: 16px;
+    }
+    body.mobile #radio-live {
+      max-width: 104px;
+      font-size: 7px;
+      letter-spacing: 1.2px;
+      padding: 2px 6px;
     }
     body.mobile #radio-label {
       max-width: 112px;
@@ -1366,13 +1404,207 @@
       top: 6px;
       right: 6px;
     }
+
+    /* --- Secret debug menu (toggle DEBUG_MENU_ENABLED in JS) --- */
+    #debug-corner-hotspot {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 52px;
+      height: 52px;
+      z-index: 40;
+      pointer-events: auto;
+      background: transparent;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #debug-menu {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 56px 12px 12px;
+      background: rgba(18, 14, 10, 0.28);
+      pointer-events: auto;
+    }
+    #debug-menu.open {
+      display: flex;
+    }
+    #debug-menu .debug-panel {
+      width: min(280px, calc(100vw - 24px));
+      max-height: calc(100dvh - 72px);
+      overflow: auto;
+      padding: 10px 12px 12px;
+      background: rgba(36, 30, 24, 0.96);
+      border: 1px solid #8a7a62;
+      box-shadow: 4px 5px 0 rgba(30, 24, 18, 0.35);
+      color: #ead8ae;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+    }
+    #debug-menu .debug-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 1.4px;
+      color: #f0d48a;
+    }
+    #debug-menu .debug-close {
+      border: 1px solid #8a7a62;
+      background: #2a241c;
+      color: #ead8ae;
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+    #debug-menu .debug-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin: 6px 0;
+    }
+    #debug-menu .debug-section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #5a4f3f;
+    }
+    #debug-menu .debug-section-title {
+      margin-bottom: 6px;
+      color: #cbb892;
+      letter-spacing: 1px;
+      font-size: 10px;
+    }
+    #debug-menu label.debug-check {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    #debug-menu select,
+    #debug-menu button.debug-btn {
+      font: inherit;
+      color: #ead8ae;
+      background: #2a241c;
+      border: 1px solid #8a7a62;
+      padding: 5px 8px;
+      cursor: pointer;
+    }
+    #debug-menu select {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    #debug-menu button.debug-btn:active {
+      transform: translate(1px, 1px);
+    }
+    #debug-menu .debug-hint {
+      margin-top: 8px;
+      color: #9a8d76;
+      font-size: 9px;
+      line-height: 1.35;
+    }
+    #debug-fps-hud {
+      display: none;
+      position: absolute;
+      top: 10px;
+      left: 58px;
+      z-index: 35;
+      padding: 2px 6px;
+      font: 11px/1.2 "Courier New", Courier, monospace;
+      color: #9fe0b4;
+      background: rgba(28, 42, 32, 0.85);
+      border: 1px solid #4f7a5a;
+      pointer-events: none;
+      letter-spacing: 0.8px;
+    }
+    #debug-fps-hud.show {
+      display: block;
+    }
+    body.mobile #debug-fps-hud {
+      top: 8px;
+      left: 54px;
+      font-size: 10px;
+    }
   </style>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="map-data.js"></script>
 </head>
 <body>
 
   <div id="game-container">
     <canvas id="screen"></canvas>
+    <div id="debug-corner-hotspot" aria-hidden="true" title=""></div>
+    <div id="debug-fps-hud" aria-hidden="true">FPS --</div>
+    <div id="debug-menu" aria-hidden="true">
+      <div class="debug-panel" role="dialog" aria-label="Debug menu">
+        <div class="debug-head">
+          <span>DEBUG</span>
+          <button type="button" class="debug-close" id="debug-close" aria-label="Close">×</button>
+        </div>
+        <div class="debug-row">
+          <label class="debug-check"><input type="checkbox" id="debug-invincible"> Invincible (HP)</label>
+        </div>
+        <div class="debug-row">
+          <label class="debug-check"><input type="checkbox" id="debug-free-zoom"> Free zoom</label>
+        </div>
+        <div class="debug-row">
+          <span>Zoom</span>
+          <button type="button" class="debug-btn" id="debug-zoom-out">−</button>
+          <button type="button" class="debug-btn" id="debug-zoom-in">+</button>
+          <button type="button" class="debug-btn" id="debug-zoom-reset">Reset</button>
+        </div>
+        <div class="debug-row">
+          <span>Draw dist</span>
+          <button type="button" class="debug-btn" id="debug-dist-out">−</button>
+          <button type="button" class="debug-btn" id="debug-dist-in">+</button>
+          <button type="button" class="debug-btn" id="debug-dist-reset">Reset</button>
+          <span id="debug-dist-label">14</span>
+        </div>
+        <div class="debug-row">
+          <label class="debug-check"><input type="checkbox" id="debug-hitboxes"> Hitboxes</label>
+        </div>
+        <div class="debug-row">
+          <label class="debug-check"><input type="checkbox" id="debug-fps"> FPS</label>
+        </div>
+        <div class="debug-section">
+          <div class="debug-section-title">SPAWN (in front)</div>
+          <div class="debug-row">
+            <select id="debug-vehicle-type" aria-label="Vehicle type">
+              <option value="normal">Car</option>
+              <option value="van">Van</option>
+              <option value="sports">Sports</option>
+              <option value="impreza">Impreza</option>
+              <option value="bike">Bike</option>
+            </select>
+            <button type="button" class="debug-btn" id="debug-spawn-vehicle">Spawn</button>
+          </div>
+          <div class="debug-row">
+            <button type="button" class="debug-btn" id="debug-spawn-police-car">Police car</button>
+            <button type="button" class="debug-btn" id="debug-spawn-police">Police foot</button>
+          </div>
+          <div class="debug-row">
+            <button type="button" class="debug-btn" id="debug-spawn-civ">Civilian</button>
+          </div>
+        </div>
+        <div class="debug-section">
+          <div class="debug-section-title">TELEPORT</div>
+          <div class="debug-row">
+            <select id="debug-tp-peer" aria-label="Player">
+              <option value="">No other players</option>
+            </select>
+            <button type="button" class="debug-btn" id="debug-tp-go">Go</button>
+          </div>
+        </div>
+        <div class="debug-hint">K / Esc / outside click / top-left tap · set DEBUG_MENU_ENABLED = false to disable</div>
+      </div>
+    </div>
     <div id="wanted-stars" aria-label="Wanted level">
       <span class="star" data-star="1">★</span><span class="star" data-star="2">★</span><span class="star" data-star="3">★</span><span class="star" data-star="4">★</span><span class="star" data-star="5">★</span>
     </div>
@@ -1463,6 +1695,7 @@
         <canvas id="minimap" width="160" height="160"></canvas>
       </div>
       <div id="radio-label" aria-live="polite"></div>
+      <div id="radio-live" aria-hidden="true">RADIO LIVE</div>
       <button id="radioMuteBtn" type="button" aria-label="Mute radio" aria-pressed="false" title="Mute radio (M)">
         <svg class="radio-btn-icon radio-btn-radio" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path fill="currentColor" d="M4.8 7.2 16.6 3.5l.7 2.1L7.2 8.7H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7.3a2 2 0 0 1 1.8-2zm3.7 6.3a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm6 1.2h4.2v2.4H14.5z"/>
@@ -1624,7 +1857,7 @@
     }
 
     // --- WORLD CONFIGURATION ---
-    const MAP_SIZE = 57;
+    const MAP_SIZE = 78;
     const TILE_SIZE = 72;
     const ROAD_SPACING = 13;
     const ROAD_WIDTH = 3;
@@ -1649,6 +1882,25 @@
     const CAMERA_ZOOM_USER_RANGE = 0.15; // ±15% around platform base zoom
     const CAMERA_ZOOM_WHEEL_STEP = 0.035;
     const CAMERA_ZOOM_PINCH_SENS = 0.9;
+    // Secret debug menu (K / top-left tap). Set false to remove from this build.
+    const DEBUG_MENU_ENABLED = true;
+    const DEBUG_ZOOM_MIN = 0.22;
+    const DEBUG_ZOOM_MAX = 4.5;
+    const DEBUG_VIEW_RADIUS_BASE_DESKTOP = 14;
+    const DEBUG_VIEW_RADIUS_BASE_WARP = 16;
+    const DEBUG_VIEW_RADIUS_BOOST_MAX = 40;
+    const debugState = {
+      open: false,
+      invincible: false,
+      freeZoom: false,
+      hitboxes: false,
+      showFps: false,
+      renderDistBoost: 0,
+      spawnSeq: 0,
+      fps: 0,
+      fpsFrames: 0,
+      fpsLast: 0
+    };
     // Look-ahead: +15% overall; a bit more once speedRatio clears the threshold.
     const LOOK_AHEAD = {
       baseScale: 0.14 * 1.15,
@@ -1787,7 +2039,7 @@
     const SCORCH_LIFE_MS = 10000;
 
     // Tile Types: 0 = Park, 1 = Road, 2-4 = Buildings, 5 = Pavement
-    const BUILDING_HEIGHTS = { 0: 0, 1: 0, 2: 40, 3: 80, 4: 130, 5: 0 };
+    const BUILDING_HEIGHTS = { 0: 0, 1: 0, 2: 100, 3: 120, 4: 180, 5: 0 };
 
     // Warm, weathered urban palette.
     const PALETTE = {
@@ -1817,52 +2069,120 @@
       return index % ROAD_SPACING < ROAD_WIDTH;
     }
 
+    // Blueprint markers collected while loading map-data.js (carparks, cabinets, etc.).
+    const mapDetails = {
+      carparks: [],
+      transformers: [],
+      limeBays: [],
+      trafficLights: []
+    };
+    const buildingAnchor = [];
+
     function isBuildingAnchor(r, c) {
-      const localRow = r % ROAD_SPACING;
-      const localCol = c % ROAD_SPACING;
-      const firstBuildingTile = ROAD_WIDTH + 1;
-      return localRow >= firstBuildingTile &&
-        localCol >= firstBuildingTile &&
-        (localRow - firstBuildingTile) % BUILDING_FOOTPRINT_TILES === 0 &&
-        (localCol - firstBuildingTile) % BUILDING_FOOTPRINT_TILES === 0;
+      return !!(buildingAnchor[r] && buildingAnchor[r][c]);
     }
 
-    // Broad avenues surround 10x10 blocks with 4x4 large buildings inside.
-    for (let r = 0; r < MAP_SIZE; r++) {
-      map[r] = [];
-      for (let c = 0; c < MAP_SIZE; c++) {
-        const roadRow = isRoadIndex(r);
-        const roadCol = isRoadIndex(c);
-        const blockRow = Math.floor(r / ROAD_SPACING);
-        const blockCol = Math.floor(c / ROAD_SPACING);
-        const parkBlock = (blockRow * 3 + blockCol * 5) % 9 === 0;
-        const localRow = r % ROAD_SPACING;
-        const localCol = c % ROAD_SPACING;
-        const blockEdge = localRow === ROAD_WIDTH ||
-          localRow === ROAD_SPACING - 1 ||
-          localCol === ROAD_WIDTH ||
-          localCol === ROAD_SPACING - 1;
-
-        if (roadRow || roadCol) {
-          map[r][c] = 1;
-        } else if (parkBlock) {
-          map[r][c] = 0;
-        } else if (blockEdge) {
-          map[r][c] = PAVEMENT_TILE;
-        } else {
-          const firstBuildingTile = ROAD_WIDTH + 1;
-          const buildingRow = Math.floor((localRow - firstBuildingTile) / BUILDING_FOOTPRINT_TILES);
-          const buildingCol = Math.floor((localCol - firstBuildingTile) / BUILDING_FOOTPRINT_TILES);
-          const typeSeed = (
-            blockRow * 7 +
-            blockCol * 11 +
-            buildingRow * 5 +
-            buildingCol * 3
-          ) % 12;
-          map[r][c] = typeSeed > 8 ? 4 : (typeSeed > 4 ? 3 : 2);
+    function computeBuildingAnchors() {
+      const claimed = [];
+      for (let r = 0; r < MAP_SIZE; r++) {
+        buildingAnchor[r] = [];
+        claimed[r] = [];
+        for (let c = 0; c < MAP_SIZE; c++) {
+          buildingAnchor[r][c] = false;
+          claimed[r][c] = false;
+        }
+      }
+      for (let r = 0; r < MAP_SIZE - 1; r++) {
+        for (let c = 0; c < MAP_SIZE - 1; c++) {
+          const t = map[r][c];
+          if (t < 2 || t > 4) continue;
+          if (claimed[r][c] || claimed[r][c + 1] || claimed[r + 1][c] || claimed[r + 1][c + 1]) continue;
+          if (
+            map[r][c + 1] === t &&
+            map[r + 1][c] === t &&
+            map[r + 1][c + 1] === t
+          ) {
+            buildingAnchor[r][c] = true;
+            claimed[r][c] = true;
+            claimed[r][c + 1] = true;
+            claimed[r + 1][c] = true;
+            claimed[r + 1][c + 1] = true;
+          }
         }
       }
     }
+
+    function findBuildingAnchorCovering(tileX, tileY) {
+      if (tileY < 0 || tileX < 0 || tileY >= MAP_SIZE || tileX >= MAP_SIZE) return null;
+      const t = map[tileY][tileX];
+      if (t < 2 || t > 4) return null;
+      for (let ar = Math.max(0, tileY - 1); ar <= tileY; ar++) {
+        for (let ac = Math.max(0, tileX - 1); ac <= tileX; ac++) {
+          if (!isBuildingAnchor(ar, ac)) continue;
+          if (map[ar][ac] !== t) continue;
+          if (tileX >= ac && tileX <= ac + 1 && tileY >= ar && tileY <= ar + 1) {
+            return { r: ar, c: ac, footprint: BUILDING_FOOTPRINT_TILES };
+          }
+        }
+      }
+      return { r: tileY, c: tileX, footprint: 1 };
+    }
+
+    function loadMapFromBlueprint() {
+      const blueprint = typeof KRCITY_MAP !== 'undefined' ? KRCITY_MAP : null;
+      const result = typeof validateKrcityMap === 'function'
+        ? validateKrcityMap(blueprint)
+        : { ok: false, errors: ['validateKrcityMap missing — is map-data.js loaded?'] };
+      if (!result.ok) {
+        console.error('[KRCITY map] Blueprint validation failed:');
+        (result.errors || ['unknown error']).forEach(err => console.error('  •', err));
+        throw new Error('Invalid KRCITY_MAP blueprint');
+      }
+      if (blueprint.size !== MAP_SIZE) {
+        console.error(
+          '[KRCITY map] blueprint.size (' + blueprint.size +
+          ') !== MAP_SIZE (' + MAP_SIZE + '). Update MAP_SIZE or map-data.js.'
+        );
+        throw new Error('KRCITY_MAP size mismatch');
+      }
+
+      mapDetails.carparks.length = 0;
+      mapDetails.transformers.length = 0;
+      mapDetails.limeBays.length = 0;
+      mapDetails.trafficLights.length = 0;
+
+      for (let r = 0; r < MAP_SIZE; r++) {
+        map[r] = [];
+        const row = blueprint.rows[r];
+        for (let c = 0; c < MAP_SIZE; c++) {
+          const ch = row.charAt(c);
+          let tile = PAVEMENT_TILE;
+          if (ch === 'R') tile = 1;
+          else if (ch === 'I') {
+            tile = 1;
+            mapDetails.trafficLights.push({ r, c });
+          } else if (ch === 'P') tile = 0;
+          else if (ch === 'S') tile = PAVEMENT_TILE;
+          else if (ch === '2') tile = 2;
+          else if (ch === '3') tile = 3;
+          else if (ch === '4') tile = 4;
+          else if (ch === 'K') {
+            tile = PAVEMENT_TILE;
+            mapDetails.carparks.push({ r, c });
+          } else if (ch === 'T') {
+            tile = PAVEMENT_TILE;
+            mapDetails.transformers.push({ r, c });
+          } else if (ch === 'L') {
+            tile = PAVEMENT_TILE;
+            mapDetails.limeBays.push({ r, c });
+          }
+          map[r][c] = tile;
+        }
+      }
+      computeBuildingAnchors();
+    }
+
+    loadMapFromBlueprint();
 
     const billboardImage = new Image();
     billboardImage.src = 'static/img/KR.png';
@@ -2931,6 +3251,7 @@
       prox: new Map(),
       netCache: new Map(),
       labelEl: null,
+      liveEl: null,
       muteBtnEl: null,
       labelHideAt: 0,
       lastSyncAt: 0,
@@ -3100,8 +3421,10 @@
 
     function initCarRadio() {
       radio.labelEl = document.getElementById('radio-label');
+      radio.liveEl = document.getElementById('radio-live');
       radio.muteBtnEl = document.getElementById('radioMuteBtn');
       updateRadioMuteUi();
+      updateRadioLiveUi();
       if (radio.muteBtnEl) {
         let lastTap = 0;
         radio.muteBtnEl.addEventListener('touchend', e => {
@@ -3136,6 +3459,89 @@
         radio.muted ? 'Unmute radio' : 'Mute radio'
       );
       radio.muteBtnEl.title = radio.muted ? 'Unmute radio (M)' : 'Mute radio (M)';
+      updateRadioLiveUi();
+    }
+
+    function updateRadioLiveUi() {
+      if (!radio.liveEl) return;
+      const live = !wasted &&
+        !radio.muted &&
+        player.mode === 'driving' &&
+        activeVehicle &&
+        !activeVehicle.isBike &&
+        radio.audio &&
+        radio.trackIndex >= 0 &&
+        radio.fade > 0.15 &&
+        !radio.audio.paused;
+      radio.liveEl.classList.toggle('show', !!live);
+      radio.liveEl.setAttribute('aria-hidden', live ? 'false' : 'true');
+    }
+
+    function pickNextRadioTrackIndex(prev) {
+      let idx = Math.floor(Math.random() * RADIO_TRACKS.length);
+      if (RADIO_TRACKS.length > 1) {
+        let guard = 0;
+        while (idx === prev && guard++ < 12) {
+          idx = Math.floor(Math.random() * RADIO_TRACKS.length);
+        }
+      }
+      return idx;
+    }
+
+    function getRadioTrackDurationSec(trackIndex) {
+      const a = radio.buffers[trackIndex];
+      if (a && isFinite(a.duration) && a.duration > 1) return a.duration;
+      return 210;
+    }
+
+    function writeRadioMemory(vehicleId, trackIndex, time, frozen) {
+      if (vehicleId == null || trackIndex < 0) return;
+      radio.memory.set(vehicleId, {
+        trackIndex,
+        time: Math.max(0, time || 0),
+        leftAt: frozen ? 0 : performance.now(),
+        frozen: !!frozen
+      });
+    }
+
+    // Advance parked-car radio by wall-clock time (station keeps playing while you're out).
+    function resolveRadioMemoryNow(mem) {
+      if (!mem || mem.trackIndex < 0 || mem.trackIndex >= RADIO_TRACKS.length) return null;
+      let idx = mem.trackIndex;
+      let t = Math.max(0, mem.time || 0);
+      if (mem.frozen || !mem.leftAt) {
+        return { trackIndex: idx, time: t };
+      }
+      let elapsed = Math.max(0, (performance.now() - mem.leftAt) / 1000);
+      const gapSec = Math.max(0, RADIO.gapMs / 1000);
+      let guard = 0;
+      while (elapsed > 0.0005 && guard++ < 96) {
+        const dur = Math.max(1, getRadioTrackDurationSec(idx));
+        const remaining = Math.max(0, dur - t);
+        if (elapsed < remaining) {
+          t += elapsed;
+          elapsed = 0;
+          break;
+        }
+        elapsed -= remaining;
+        idx = pickNextRadioTrackIndex(idx);
+        t = 0;
+        if (elapsed <= gapSec) {
+          elapsed = 0;
+          break;
+        }
+        elapsed -= gapSec;
+      }
+      return { trackIndex: idx, time: t };
+    }
+
+    function freezeRadioMemoryVehicle(vehicleId) {
+      if (vehicleId == null) return;
+      const mem = radio.memory.get(vehicleId);
+      if (!mem) return;
+      const resolved = resolveRadioMemoryNow(mem);
+      if (!resolved) return;
+      writeRadioMemory(vehicleId, resolved.trackIndex, resolved.time, true);
     }
 
     function randomRadioStart(audio) {
@@ -3193,18 +3599,12 @@
       showRadioLabel('RADIO · ' + RADIO_TRACKS[idx].label);
       broadcastRadioState(true);
       prefetchRadioTracks(1);
+      updateRadioLiveUi();
     }
 
     function queueNextRadioTrackFromStart(vehicle) {
       if (!vehicle || radio.muted) return;
-      const prev = radio.trackIndex;
-      let idx = Math.floor(Math.random() * RADIO_TRACKS.length);
-      if (RADIO_TRACKS.length > 1) {
-        let guard = 0;
-        while (idx === prev && guard++ < 12) {
-          idx = Math.floor(Math.random() * RADIO_TRACKS.length);
-        }
-      }
+      const idx = pickNextRadioTrackIndex(radio.trackIndex);
       radio.memory.delete(vehicle.id);
       radio.awaitingNext = {
         vehicleId: vehicle.id,
@@ -3230,6 +3630,8 @@
         }
         radio.audio = null;
         radio.trackIndex = -1;
+        freezeRadioMemoryVehicle(vehicle.id);
+        updateRadioLiveUi();
         return;
       }
 
@@ -3237,8 +3639,11 @@
       let idx;
       let startAt;
       if (mem && mem.trackIndex >= 0 && mem.trackIndex < RADIO_TRACKS.length) {
-        idx = mem.trackIndex;
-        startAt = Math.max(0, mem.time || 0);
+        const resolved = resolveRadioMemoryNow(mem);
+        idx = resolved ? resolved.trackIndex : mem.trackIndex;
+        startAt = resolved ? Math.max(0, resolved.time) : Math.max(0, mem.time || 0);
+        // Snapshot resolved position; exit will mark it live again.
+        writeRadioMemory(vehicle.id, idx, startAt, true);
       } else {
         idx = Math.floor(Math.random() * RADIO_TRACKS.length);
         startAt = -1;
@@ -3247,6 +3652,7 @@
       radio.pendingEnterId = vehicle.id;
       if (radio.ready[idx] && radio.buffers[idx]) {
         playLoadedRadioTrack(vehicle, idx, startAt);
+        updateRadioLiveUi();
         return;
       }
 
@@ -3254,21 +3660,37 @@
         if (radio.muted) return;
         if (player.mode !== 'driving' || !activeVehicle || activeVehicle.id !== vehicle.id) return;
         playLoadedRadioTrack(vehicle, idx, startAt);
+        updateRadioLiveUi();
       });
       prefetchRadioTracks(1);
+      updateRadioLiveUi();
     }
 
     function stopCarRadio(saveVehicle) {
-      if (saveVehicle && radio.vehicleId != null && radio.audio && radio.trackIndex >= 0) {
-        radio.memory.set(radio.vehicleId, {
-          trackIndex: radio.trackIndex,
-          time: radio.audio.currentTime || 0
-        });
+      if (saveVehicle && radio.vehicleId != null) {
+        if (radio.audio && radio.trackIndex >= 0) {
+          writeRadioMemory(
+            radio.vehicleId,
+            radio.trackIndex,
+            radio.audio.currentTime || 0,
+            !!radio.muted
+          );
+        } else {
+          // Already faded/muted: keep memory, but freeze if muted so time stops.
+          const mem = radio.memory.get(radio.vehicleId);
+          if (mem) {
+            if (radio.muted) freezeRadioMemoryVehicle(radio.vehicleId);
+            else if (mem.frozen || !mem.leftAt) {
+              writeRadioMemory(radio.vehicleId, mem.trackIndex, mem.time || 0, false);
+            }
+          }
+        }
       }
       radio.awaitingNext = null;
       radio.fadeTarget = 0;
       radio.pendingEnterId = null;
       broadcastRadioState(false);
+      updateRadioLiveUi();
     }
 
     function finishRadioFadeOut() {
@@ -3287,16 +3709,35 @@
       updateRadioMuteUi();
       if (radio.muted) {
         if (radio.vehicleId != null && radio.audio && radio.trackIndex >= 0) {
-          radio.memory.set(radio.vehicleId, {
-            trackIndex: radio.trackIndex,
-            time: radio.audio.currentTime || 0
+          writeRadioMemory(
+            radio.vehicleId,
+            radio.trackIndex,
+            radio.audio.currentTime || 0,
+            true
+          );
+        } else if (radio.vehicleId != null) {
+          freezeRadioMemoryVehicle(radio.vehicleId);
+        } else if (activeVehicle && !activeVehicle.isBike) {
+          freezeRadioMemoryVehicle(activeVehicle.id);
+        } else {
+          // Mute while on foot: freeze every live parked timeline so time stops.
+          radio.memory.forEach((mem, vehicleId) => {
+            if (mem && !mem.frozen) freezeRadioMemoryVehicle(vehicleId);
           });
         }
         radio.awaitingNext = null;
         radio.fadeTarget = 0;
         broadcastRadioState(false);
+        updateRadioLiveUi();
       } else if (player.mode === 'driving' && activeVehicle && !activeVehicle.isBike) {
         startCarRadioForVehicle(activeVehicle, true);
+      } else {
+        // Unmute on foot: parked cars resume living timelines from frozen points.
+        radio.memory.forEach((mem, vehicleId) => {
+          if (!mem || mem.trackIndex < 0) return;
+          writeRadioMemory(vehicleId, mem.trackIndex, mem.time || 0, false);
+        });
+        updateRadioLiveUi();
       }
     }
 
@@ -3482,6 +3923,7 @@
         broadcastRadioState(true);
       }
 
+      updateRadioLiveUi();
       updateProximityRadios();
     }
 
@@ -4322,12 +4764,18 @@
     };
 
     function isJunctionPavement(r, c) {
+      // Sidewalk beside a road cell that has both horizontal and vertical road links.
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
           const nr = r + dr;
           const nc = c + dc;
           if (nr < 0 || nc < 0 || nr >= MAP_SIZE || nc >= MAP_SIZE) continue;
-          if (isRoadIndex(nr) && isRoadIndex(nc)) return true;
+          if (map[nr][nc] !== 1) continue;
+          const roadN = nr > 0 && map[nr - 1][nc] === 1;
+          const roadS = nr < MAP_SIZE - 1 && map[nr + 1][nc] === 1;
+          const roadW = nc > 0 && map[nr][nc - 1] === 1;
+          const roadE = nc < MAP_SIZE - 1 && map[nr][nc + 1] === 1;
+          if ((roadN || roadS) && (roadW || roadE)) return true;
         }
       }
       return false;
@@ -4436,104 +4884,49 @@
     }
 
     function spawnStreetFurniture() {
+      // Blueprint-only: K = carpark, T = transformer (no procedural scatter).
       const BAY_LENGTH = 42;
       const BAY_DEPTH = 28;
-      const BAY_GAP = 8;
       const ROAD_OVERLAP = 12;
-      const pairSpan = BAY_LENGTH * 2 + BAY_GAP;
-      const usedTiles = new Set();
-      const tileKey = (r, c) => `${r},${c}`;
 
-      const frontageByGroup = new Map();
-      for (let r = 0; r < MAP_SIZE; r++) {
-        for (let c = 0; c < MAP_SIZE; c++) {
-          if (map[r][c] !== PAVEMENT_TILE || isJunctionPavement(r, c)) continue;
-          const side = roadSideOfPavement(r, c);
-          if (!side) continue;
-          const groupKey = (side === 'n' || side === 's') ? `h-${r}-${side}` : `v-${c}-${side}`;
-          if (!frontageByGroup.has(groupKey)) frontageByGroup.set(groupKey, []);
-          frontageByGroup.get(groupKey).push({ r, c, side });
+      for (let i = 0; i < mapDetails.carparks.length; i++) {
+        const { r, c } = mapDetails.carparks[i];
+        const side = roadSideOfPavement(r, c) || 'n';
+        const tileX = c * TILE_SIZE;
+        const tileY = r * TILE_SIZE;
+        let x;
+        let y;
+        let w;
+        let h;
+        let angle;
+        if (side === 'n' || side === 's') {
+          w = BAY_LENGTH;
+          h = BAY_DEPTH;
+          x = tileX + (TILE_SIZE - BAY_LENGTH) / 2;
+          y = side === 'n'
+            ? tileY - ROAD_OVERLAP
+            : tileY + TILE_SIZE - BAY_DEPTH + ROAD_OVERLAP;
+          angle = 0;
+        } else {
+          w = BAY_DEPTH;
+          h = BAY_LENGTH;
+          y = tileY + (TILE_SIZE - BAY_LENGTH) / 2;
+          x = side === 'w'
+            ? tileX - ROAD_OVERLAP
+            : tileX + TILE_SIZE - BAY_DEPTH + ROAD_OVERLAP;
+          angle = Math.PI / 2;
         }
+        parkingBays.push({
+          x, y, w, h, angle, side,
+          cx: x + w / 2,
+          cy: y + h / 2,
+          occupied: false
+        });
       }
 
-      const pairSlots = [];
-      frontageByGroup.forEach(tiles => {
-        const side = tiles[0].side;
-        tiles.sort((a, b) => (side === 'n' || side === 's') ? a.c - b.c : a.r - b.r);
-        for (let i = 0; i < tiles.length - 1; i++) {
-          const a = tiles[i];
-          const b = tiles[i + 1];
-          const consecutive = (side === 'n' || side === 's')
-            ? a.r === b.r && b.c === a.c + 1
-            : a.c === b.c && b.r === a.r + 1;
-          if (consecutive) pairSlots.push([a, b]);
-        }
-      });
-      shuffleInPlace(pairSlots);
-
-      const pairBudget = Math.min(16, Math.max(6, Math.floor(pairSlots.length * 0.1)));
-      let placedPairs = 0;
-      for (let s = 0; s < pairSlots.length && placedPairs < pairBudget; s++) {
-        const [a, b] = pairSlots[s];
-        if (usedTiles.has(tileKey(a.r, a.c)) || usedTiles.has(tileKey(b.r, b.c))) continue;
-        usedTiles.add(tileKey(a.r, a.c));
-        usedTiles.add(tileKey(b.r, b.c));
-        placedPairs++;
-
-        const side = a.side;
-        const alongX = side === 'n' || side === 's';
-        const originX = Math.min(a.c, b.c) * TILE_SIZE;
-        const originY = Math.min(a.r, b.r) * TILE_SIZE;
-        const startAlong = (TILE_SIZE * 2 - pairSpan) / 2;
-
-        const addBay = alongOffset => {
-          let x;
-          let y;
-          let w;
-          let h;
-          let angle;
-          if (alongX) {
-            w = BAY_LENGTH;
-            h = BAY_DEPTH;
-            x = originX + startAlong + alongOffset;
-            y = side === 'n'
-              ? originY - ROAD_OVERLAP
-              : originY + TILE_SIZE - BAY_DEPTH + ROAD_OVERLAP;
-            angle = 0;
-          } else {
-            w = BAY_DEPTH;
-            h = BAY_LENGTH;
-            y = originY + startAlong + alongOffset;
-            x = side === 'w'
-              ? originX - ROAD_OVERLAP
-              : originX + TILE_SIZE - BAY_DEPTH + ROAD_OVERLAP;
-            angle = Math.PI / 2;
-          }
-          parkingBays.push({
-            x, y, w, h, angle, side,
-            cx: x + w / 2,
-            cy: y + h / 2,
-            occupied: false
-          });
-        };
-        addBay(0);
-        addBay(BAY_LENGTH + BAY_GAP);
-      }
-
-      const cabinetCandidates = [];
-      for (let r = 0; r < MAP_SIZE; r++) {
-        for (let c = 0; c < MAP_SIZE; c++) {
-          if (map[r][c] !== PAVEMENT_TILE || isJunctionPavement(r, c)) continue;
-          if (usedTiles.has(tileKey(r, c))) continue;
-          const side = roadSideOfPavement(r, c);
-          if (!side) continue;
-          cabinetCandidates.push({ r, c, side });
-        }
-      }
-      shuffleInPlace(cabinetCandidates);
-      const cabinetBudget = Math.min(22, Math.max(10, Math.floor(cabinetCandidates.length * 0.07)));
-      for (let i = 0; i < cabinetBudget; i++) {
-        const { r, c, side } = cabinetCandidates[i];
+      for (let i = 0; i < mapDetails.transformers.length; i++) {
+        const { r, c } = mapDetails.transformers[i];
+        const side = roadSideOfPavement(r, c) || 'n';
         const againstKerb = (r * 13 + c * 7) % 2 === 0;
         const along = 14;
         const depth = 10;
@@ -4573,22 +4966,13 @@
     }
 
     function spawnBikeHire() {
+      // Blueprint-only: L markers.
       const BAY_DEPTH = 34;
       const ROAD_OVERLAP = 10;
-      const candidates = [];
 
-      for (let r = 0; r < MAP_SIZE; r++) {
-        for (let c = 0; c < MAP_SIZE; c++) {
-          if (map[r][c] !== PAVEMENT_TILE || isJunctionPavement(r, c)) continue;
-          const side = roadSideOfPavement(r, c);
-          if (!side) continue;
-          candidates.push({ r, c, side });
-        }
-      }
-      shuffleInPlace(candidates);
-
-      for (let i = 0; i < candidates.length && bikeBays.length < BIKE.bayCount; i++) {
-        const { r, c, side } = candidates[i];
+      for (let i = 0; i < mapDetails.limeBays.length; i++) {
+        const { r, c } = mapDetails.limeBays[i];
+        const side = roadSideOfPavement(r, c) || 'n';
         const bikeCount = BIKE.bikesMin + Math.floor(Math.random() * (BIKE.bikesMax - BIKE.bikesMin + 1));
         const along = bikeCount * BIKE.slotSpacing + 10;
         const tileX = c * TILE_SIZE;
@@ -4762,18 +5146,19 @@
 
     const intersections = [];
     let simulationTick = 0;
-    for (let roadY = 0; roadY < MAP_SIZE; roadY += ROAD_SPACING) {
-      for (let roadX = 0; roadX < MAP_SIZE; roadX += ROAD_SPACING) {
-        intersections.push({
-          id: `${roadX}-${roadY}`,
-          roadX,
-          roadY,
-          x: (roadX + ROAD_WIDTH / 2) * TILE_SIZE,
-          y: (roadY + ROAD_WIDTH / 2) * TILE_SIZE,
-          phaseOffset: ((roadX + roadY) / ROAD_SPACING % 2) * 300,
-          occupant: null
-        });
-      }
+    for (let i = 0; i < mapDetails.trafficLights.length; i++) {
+      const { r, c } = mapDetails.trafficLights[i];
+      const roadX = Math.floor(c / ROAD_SPACING) * ROAD_SPACING;
+      const roadY = Math.floor(r / ROAD_SPACING) * ROAD_SPACING;
+      intersections.push({
+        id: `tl-${c}-${r}`,
+        roadX,
+        roadY,
+        x: (c + 0.5) * TILE_SIZE,
+        y: (r + 0.5) * TILE_SIZE,
+        phaseOffset: ((c + r) % 2) * 300,
+        occupant: null
+      });
     }
 
     function getSignalAxis(intersection) {
@@ -4977,6 +5362,16 @@
 
     function onKeyDown(e) {
       if (isTypingInUi(e.target)) return;
+      if (DEBUG_MENU_ENABLED && !e.repeat && (e.code === 'KeyK' || e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        toggleDebugMenu();
+        return;
+      }
+      if (DEBUG_MENU_ENABLED && debugState.open && !e.repeat && e.code === 'Escape') {
+        e.preventDefault();
+        setDebugMenuOpen(false);
+        return;
+      }
       setKeyPressed(e, true);
       if (e.code === 'ArrowLeft' || e.code === 'ArrowRight' ||
           e.code === 'ArrowUp' || e.code === 'ArrowDown') {
@@ -5336,7 +5731,7 @@
       }
 
       const speedRatio = Math.min(player.motionSpeed / Math.max(player.maxSpeed, BIKE.speed), 1);
-      const targetSlope = 0.36 - speedRatio * 0.14;
+      const targetSlope = 0.26 - speedRatio * 0.14;
       player.cameraSlope += (targetSlope - player.cameraSlope) * 0.06;
       player.cameraLookAhead += (speedRatio - player.cameraLookAhead) * 0.055;
       const shootAim = getShootAim();
@@ -6258,6 +6653,7 @@
 
     function hurtPlayer(amount, kind, fromX, fromY) {
       if (wasted || amount <= 0) return;
+      if (DEBUG_MENU_ENABLED && debugState.invincible) return;
       if (kind === 'car' && player.hitCooldown > 0) return;
       if (kind === 'blast' && player.blastCooldown > 0) return;
       if (kind === 'gun' && player.gunHitCooldown > 0) return;
@@ -7905,13 +8301,13 @@
       const y = Math.round(pos.y + bob);
 
       ctx.save();
-      ctx.font = '26px "Courier New", Courier, monospace';
+      ctx.font = '42px "Courier New", Courier, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.strokeStyle = 'rgba(20, 16, 12, 0.72)';
       ctx.strokeText('˯', x, y);
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#e53935';
       ctx.fillText('˯', x, y);
       ctx.restore();
     }
@@ -8000,6 +8396,7 @@
         ? fromPlayer
         : (fromPlayer ? net.localId : null);
       if (radio.vehicleId === vehicle.id) onExitCarRadio(vehicle);
+      if (radio.memory) radio.memory.delete(vehicle.id);
       if (radio.netCache && radio.netCache.has(vehicle.id)) radio.netCache.delete(vehicle.id);
       if (radio.prox && radio.prox.has(vehicle.id)) {
         const proxSlot = radio.prox.get(vehicle.id);
@@ -8486,18 +8883,16 @@
           return true;
         }
 
-        const firstBuildingTile = ROAD_WIDTH + 1;
-        const anchorTileX = tileX -
-          ((tileX % ROAD_SPACING - firstBuildingTile) % BUILDING_FOOTPRINT_TILES);
-        const anchorTileY = tileY -
-          ((tileY % ROAD_SPACING - firstBuildingTile) % BUILDING_FOOTPRINT_TILES);
-        const footprintSize = TILE_SIZE * BUILDING_FOOTPRINT_TILES;
-        const localX = sx - anchorTileX * TILE_SIZE;
-        const localY = sy - anchorTileY * TILE_SIZE;
-        const insideBuilding = localX >= BUILDING_INSET &&
-          localX <= footprintSize - BUILDING_INSET &&
-          localY >= BUILDING_INSET &&
-          localY <= footprintSize - BUILDING_INSET;
+        const cover = findBuildingAnchorCovering(tileX, tileY);
+        if (!cover) return false;
+        const footprintSize = TILE_SIZE * cover.footprint;
+        const localX = sx - cover.c * TILE_SIZE;
+        const localY = sy - cover.r * TILE_SIZE;
+        const inset = cover.footprint > 1 ? BUILDING_INSET : 4;
+        const insideBuilding = localX >= inset &&
+          localX <= footprintSize - inset &&
+          localY >= inset &&
+          localY <= footprintSize - inset;
         return !insideBuilding;
       });
     }
@@ -8841,6 +9236,9 @@
     }
 
     function clampCameraZoomUserFactor(factor) {
+      if (DEBUG_MENU_ENABLED && debugState.freeZoom) {
+        return Math.max(DEBUG_ZOOM_MIN, Math.min(DEBUG_ZOOM_MAX, factor));
+      }
       const min = 1 - CAMERA_ZOOM_USER_RANGE;
       const max = 1 + CAMERA_ZOOM_USER_RANGE;
       return Math.max(min, Math.min(max, factor));
@@ -9556,7 +9954,7 @@
     const buildingGhostAlpha = new Map();
     const occlusionSubjects = [];
     const GHOST_FADE_SPEED = 0.15;
-    const GHOST_AABB_PAD = 10;
+    const GHOST_AABB_PAD = 20;
     const GHOST_WALL_FADE = 0.72;
     const GHOST_ROOF_FADE = 0.45;
 
@@ -9859,7 +10257,11 @@
       renderQueue.length = 0;
 
       // Determine visible grid bounds around player
-      const viewRadius = warpOn ? 16 : 14;
+      const viewRadiusBase = warpOn ? DEBUG_VIEW_RADIUS_BASE_WARP : DEBUG_VIEW_RADIUS_BASE_DESKTOP;
+      const viewRadiusBoost = (DEBUG_MENU_ENABLED && debugState.renderDistBoost > 0)
+        ? debugState.renderDistBoost
+        : 0;
+      const viewRadius = viewRadiusBase + viewRadiusBoost;
       const pTileX = Math.floor(player.x / TILE_SIZE);
       const pTileY = Math.floor(player.y / TILE_SIZE);
 
@@ -10107,6 +10509,7 @@
       drawRemotePlayerLabels();
       drawReloadBar();
       drawAtmosphere();
+      if (DEBUG_MENU_ENABLED && debugState.hitboxes) drawDebugHitboxes();
       drawMinimapIfNeeded();
       ctx.restore();
 
@@ -10353,25 +10756,25 @@
           strokeQuad(p0, p1, p2, p3);
           drawSurfaceWear(tile, 3);
         } else if (tileType === 1) {
-          // Directional lane markings make the street network legible.
-          const roadRow = isRoadIndex(r);
-          const roadCol = isRoadIndex(c);
-          ctx.strokeStyle = PALETTE.roadLine;
-          ctx.lineWidth = 1.2;
-          ctx.setLineDash([9, 8]);
-
-          if (roadRow && !roadCol) {
-            drawProjectedLine(
-              project(wx, wy + TILE_SIZE / 2, 1),
-              project(wx + TILE_SIZE, wy + TILE_SIZE / 2, 1)
-            );
-          } else if (roadCol && !roadRow) {
-            drawProjectedLine(
-              project(wx + TILE_SIZE / 2, wy, 1),
-              project(wx + TILE_SIZE / 2, wy + TILE_SIZE, 1)
-            );
+          // Lane dashes from blueprint neighbors (not ROAD_SPACING grid).
+          const laneAxis = roadLaneDashAxis(r, c);
+          if (laneAxis) {
+            ctx.strokeStyle = PALETTE.roadLine;
+            ctx.lineWidth = 1.2;
+            ctx.setLineDash([9, 8]);
+            if (laneAxis === 'horizontal') {
+              drawProjectedLine(
+                project(wx, wy + TILE_SIZE / 2, 1),
+                project(wx + TILE_SIZE, wy + TILE_SIZE / 2, 1)
+              );
+            } else {
+              drawProjectedLine(
+                project(wx + TILE_SIZE / 2, wy, 1),
+                project(wx + TILE_SIZE / 2, wy + TILE_SIZE, 1)
+              );
+            }
+            ctx.setLineDash([]);
           }
-          ctx.setLineDash([]);
           drawCrosswalks(tile);
           drawSurfaceWear(tile, 1);
         } else {
@@ -10693,40 +11096,118 @@
       ctx.restore();
     }
 
+    function isMapRoadTile(r, c) {
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && map[r][c] === 1;
+    }
+
+    function isMapSidewalkTile(r, c) {
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && map[r][c] === PAVEMENT_TILE;
+    }
+
+    function roadNeighborFlags(r, c) {
+      return {
+        n: isMapRoadTile(r - 1, c),
+        s: isMapRoadTile(r + 1, c),
+        w: isMapRoadTile(r, c - 1),
+        e: isMapRoadTile(r, c + 1)
+      };
+    }
+
+    function roadRunVertical(r, c) {
+      let r0 = r;
+      let r1 = r;
+      while (isMapRoadTile(r0 - 1, c)) r0--;
+      while (isMapRoadTile(r1 + 1, c)) r1++;
+      return { r0, r1, thickness: r1 - r0 + 1 };
+    }
+
+    function roadRunHorizontal(r, c) {
+      let c0 = c;
+      let c1 = c;
+      while (isMapRoadTile(r, c0 - 1)) c0--;
+      while (isMapRoadTile(r, c1 + 1)) c1++;
+      return { c0, c1, thickness: c1 - c0 + 1 };
+    }
+
+    // True junction / plaza: long asphalt run on BOTH axes (not a 3-wide strip,
+    // which always has neighbors on the short axis).
+    function isRoadClearZone(r, c) {
+      if (!isMapRoadTile(r, c)) return false;
+      const v = roadRunVertical(r, c);
+      const h = roadRunHorizontal(r, c);
+      return v.thickness >= 5 && h.thickness >= 5;
+    }
+
+    // One center-line dash along the corridor; skip clear zone + edge strips.
+    function roadLaneDashAxis(r, c) {
+      if (!isMapRoadTile(r, c) || isRoadClearZone(r, c)) return null;
+
+      const nb = roadNeighborFlags(r, c);
+      const v = roadRunVertical(r, c);
+      const h = roadRunHorizontal(r, c);
+
+      // E–W corridor: thin N–S strip, longer E–W → horizontal dashes on center row.
+      if (v.thickness >= 2 && v.thickness <= 4 && h.thickness > v.thickness && (nb.e || nb.w)) {
+        if (r === ((v.r0 + v.r1) >> 1)) return 'horizontal';
+      }
+
+      // N–S corridor: thin E–W strip, longer N–S → vertical dashes on center col.
+      if (h.thickness >= 2 && h.thickness <= 4 && v.thickness > h.thickness && (nb.n || nb.s)) {
+        if (c === ((h.c0 + h.c1) >> 1)) return 'vertical';
+      }
+
+      // Single-tile-wide stubs / alleys.
+      if (v.thickness === 1 && h.thickness >= 2 && (nb.e || nb.w) && !nb.n && !nb.s) {
+        return 'horizontal';
+      }
+      if (h.thickness === 1 && v.thickness >= 2 && (nb.n || nb.s) && !nb.e && !nb.w) {
+        return 'vertical';
+      }
+
+      return null;
+    }
+
     function drawCrosswalks(tile) {
-      const localRow = tile.r % ROAD_SPACING;
-      const localCol = tile.c % ROAD_SPACING;
+      const { r, c, wx, wy } = tile;
+      if (!isMapRoadTile(r, c) || isRoadClearZone(r, c)) return;
+
+      // Zebra only on the approach ring: road tile that edges a clear-zone cross.
+      const clearW = isRoadClearZone(r, c - 1);
+      const clearE = isRoadClearZone(r, c + 1);
+      const clearN = isRoadClearZone(r - 1, c);
+      const clearS = isRoadClearZone(r + 1, c);
+      if (!clearW && !clearE && !clearN && !clearS) return;
+
       ctx.strokeStyle = 'rgba(224, 216, 196, 0.62)';
       ctx.lineWidth = 5;
-      const roadWidth = ROAD_WIDTH * TILE_SIZE;
       const stripeCount = 8;
 
-      // Along horizontal roads just outside the west/east intersection edges.
-      // Draw only the stripes that fall on this tile so later road tiles
-      // cannot paint over a neighbour's crossing.
-      if (localRow < ROAD_WIDTH &&
-        (localCol === ROAD_WIDTH || localCol === ROAD_SPACING - 1)) {
-        const roadOriginY = tile.wy - localRow * TILE_SIZE;
+      // E/W approach (horizontal corridor): stripes span the N–S road width.
+      if (clearW || clearE) {
+        const v = roadRunVertical(r, c);
+        const y0 = v.r0 * TILE_SIZE;
+        const span = Math.max(TILE_SIZE, (v.r1 + 1) * TILE_SIZE - y0);
         for (let i = 1; i <= stripeCount; i++) {
-          const y = roadOriginY + i * roadWidth / (stripeCount + 1);
-          if (y < tile.wy || y > tile.wy + TILE_SIZE) continue;
+          const y = y0 + i * span / (stripeCount + 1);
+          if (y < wy || y > wy + TILE_SIZE) continue;
           drawProjectedLine(
-            project(tile.wx + 10, y, 1.2),
-            project(tile.wx + TILE_SIZE - 10, y, 1.2)
+            project(wx + 10, y, 1.2),
+            project(wx + TILE_SIZE - 10, y, 1.2)
           );
         }
       }
 
-      // Along vertical roads just outside the north/south intersection edges.
-      if (localCol < ROAD_WIDTH &&
-        (localRow === ROAD_WIDTH || localRow === ROAD_SPACING - 1)) {
-        const roadOriginX = tile.wx - localCol * TILE_SIZE;
+      // N/S approach (vertical corridor): stripes span the E–W road width.
+      if (clearN || clearS) {
+        const h = roadRunHorizontal(r, c);
+        const x0 = h.c0 * TILE_SIZE;
+        const span = Math.max(TILE_SIZE, (h.c1 + 1) * TILE_SIZE - x0);
         for (let i = 1; i <= stripeCount; i++) {
-          const x = roadOriginX + i * roadWidth / (stripeCount + 1);
-          if (x < tile.wx || x > tile.wx + TILE_SIZE) continue;
+          const x = x0 + i * span / (stripeCount + 1);
+          if (x < wx || x > wx + TILE_SIZE) continue;
           drawProjectedLine(
-            project(x, tile.wy + 10, 1.2),
-            project(x, tile.wy + TILE_SIZE - 10, 1.2)
+            project(x, wy + 10, 1.2),
+            project(x, wy + TILE_SIZE - 10, 1.2)
           );
         }
       }
@@ -12873,6 +13354,10 @@
           putPlayerOnFoot(msg.x, msg.y);
         }
       } else if (msg.t === 'hit') {
+        if (DEBUG_MENU_ENABLED && debugState.invincible) {
+          player.hp = PLAYER_MAX_HP;
+          return;
+        }
         if (typeof msg.hp === 'number') player.hp = Math.max(0, msg.hp);
         else player.hp = Math.max(0, player.hp - (msg.amount || 0));
         notePlayerTookDamage();
@@ -13761,6 +14246,7 @@
         }
         mpPlayersEl.appendChild(row);
       });
+      if (DEBUG_MENU_ENABLED && debugState.open) refreshDebugTeleportList();
     }
 
     function netLeaveRoom(statusMsg) {
@@ -14660,7 +15146,471 @@
       updateDriveAudio();
       render();
       updateHud();
+      if (DEBUG_MENU_ENABLED && debugState.showFps) updateDebugFpsHud();
       requestAnimationFrame(loop);
+    }
+
+    // --- SECRET DEBUG MENU ---
+    // Kill switch: DEBUG_MENU_ENABLED at top. When false, UI stays inert / hidden.
+    function setDebugMenuOpen(open) {
+      if (!DEBUG_MENU_ENABLED) return;
+      debugState.open = !!open;
+      const menu = document.getElementById('debug-menu');
+      if (menu) {
+        menu.classList.toggle('open', debugState.open);
+        menu.setAttribute('aria-hidden', debugState.open ? 'false' : 'true');
+      }
+      if (debugState.open) {
+        refreshDebugTeleportList();
+        const distLabel = document.getElementById('debug-dist-label');
+        if (distLabel) {
+          const base = (typeof mobileWarpActive === 'function' && mobileWarpActive())
+            ? DEBUG_VIEW_RADIUS_BASE_WARP
+            : DEBUG_VIEW_RADIUS_BASE_DESKTOP;
+          distLabel.textContent = String(base + (debugState.renderDistBoost || 0));
+        }
+      }
+    }
+
+    function toggleDebugMenu() {
+      if (!DEBUG_MENU_ENABLED) return;
+      setDebugMenuOpen(!debugState.open);
+    }
+
+    function updateDebugFpsHud() {
+      const el = document.getElementById('debug-fps-hud');
+      if (!el) return;
+      const now = performance.now();
+      debugState.fpsFrames++;
+      if (!debugState.fpsLast) debugState.fpsLast = now;
+      const elapsed = now - debugState.fpsLast;
+      if (elapsed >= 500) {
+        debugState.fps = Math.round((debugState.fpsFrames * 1000) / elapsed);
+        debugState.fpsFrames = 0;
+        debugState.fpsLast = now;
+        el.textContent = 'FPS ' + debugState.fps;
+      }
+    }
+
+    function debugSpawnClearOfEntities(x, y, radius) {
+      for (let i = 0; i < vehicles.length; i++) {
+        const v = vehicles[i];
+        if (!v || v.dead) continue;
+        if (Math.hypot(v.x - x, v.y - y) < radius + (v.radius || 17) + 5) return false;
+      }
+      for (let i = 0; i < pedestrians.length; i++) {
+        const ped = pedestrians[i];
+        if (!ped) continue;
+        if (Math.hypot(ped.x - x, ped.y - y) < radius + (ped.radius || HITBOX.ped) + 3) return false;
+      }
+      if (Math.hypot(player.x - x, player.y - y) < radius + (player.radius || HITBOX.player) + 8) {
+        return false;
+      }
+      return true;
+    }
+
+    function findDebugSpawnSpot(radius, mode) {
+      const facing = player.angle || 0;
+      const distances = [40, 56, 72, 88, 108, 32, 128];
+      const spreads = [0, 0.22, -0.22, 0.45, -0.45, 0.7, -0.7, 1.0, -1.0, 1.35, -1.35];
+      for (let d = 0; d < distances.length; d++) {
+        for (let s = 0; s < spreads.length; s++) {
+          const ang = facing + spreads[s];
+          const x = player.x + Math.cos(ang) * distances[d];
+          const y = player.y + Math.sin(ang) * distances[d];
+          if (!isOnPlayableMap(x, y)) continue;
+          if (mode === 'walk' && !canWalkAt(x, y, radius)) continue;
+          if (mode === 'drive' && !canDriveAt(x, y, radius)) continue;
+          if (!debugSpawnClearOfEntities(x, y, radius)) continue;
+          return { x, y, angle: facing };
+        }
+      }
+      return null;
+    }
+
+    function debugNextId(prefix) {
+      debugState.spawnSeq++;
+      return prefix + '-' + debugState.spawnSeq + '-' + (simulationTick | 0);
+    }
+
+    function debugSpawnVehicleOfType(classId) {
+      if (classId === 'bike') {
+        const spot = findDebugSpawnSpot(BIKE.radius + 2, 'drive');
+        if (!spot) return false;
+        vehicles.push({
+          id: debugNextId('debug-bike'),
+          type: 'bike',
+          isBike: true,
+          x: spot.x,
+          y: spot.y,
+          angle: spot.angle,
+          speed: 0,
+          radius: BIKE.radius,
+          driveRadius: BIKE.radius,
+          color: BIKE.lime,
+          ai: false,
+          parked: true,
+          bayId: null,
+          slotIndex: null,
+          maxHealth: 40,
+          health: 40,
+          collisionCooldown: 0,
+          vx: 0,
+          vy: 0
+        });
+        return true;
+      }
+      const spec = getCarSpec(classId);
+      const spot = findDebugSpawnSpot((spec.driveRadius || 13) + 2, 'drive');
+      if (!spot) return false;
+      const car = {
+        id: debugNextId('debug-car'),
+        type: 'car',
+        x: spot.x,
+        y: spot.y,
+        angle: spot.angle,
+        dir: spot.angle,
+        speed: 0,
+        baseSpeed: 0,
+        targetSpeed: 0,
+        color: pickCarColor(classId),
+        ai: false,
+        parked: true,
+        turn: null,
+        turnIntent: null,
+        lastIntersection: null,
+        collisionCooldown: 0,
+        vx: 0,
+        vy: 0,
+        steerRate: 0,
+        drifting: false
+      };
+      assignCarClass(car, classId, false);
+      vehicles.push(car);
+      return true;
+    }
+
+    function debugSpawnPoliceCar() {
+      const spot = findDebugSpawnSpot(15, 'drive');
+      if (!spot) return false;
+      policeCarSpawnId++;
+      const cruisingSpeed = WANTED.policeRoamSpeed;
+      const car = {
+        id: debugNextId('debug-police-car'),
+        type: 'car',
+        x: spot.x,
+        y: spot.y,
+        axis: Math.abs(Math.cos(spot.angle)) >= Math.abs(Math.sin(spot.angle))
+          ? 'horizontal'
+          : 'vertical',
+        roadBase: 0,
+        dirIndex: 0,
+        dir: spot.angle,
+        angle: spot.angle,
+        speed: 0,
+        baseSpeed: cruisingSpeed,
+        targetSpeed: 0,
+        color: UK_POLICE.white,
+        ai: true,
+        turn: null,
+        turnIntent: null,
+        lastIntersection: null,
+        collisionCooldown: 0,
+        isPoliceCar: true,
+        vx: 0,
+        vy: 0,
+        steerRate: 0,
+        drifting: false
+      };
+      assignCarClass(car, 'normal', false);
+      car.maxHealth = 55;
+      car.health = 55;
+      vehicles.push(car);
+      return true;
+    }
+
+    function debugSpawnPoliceFoot() {
+      const spot = findDebugSpawnSpot(HITBOX.ped + 2, 'walk');
+      if (!spot) return false;
+      pedestrians.push({
+        id: debugNextId('debug-police'),
+        x: spot.x,
+        y: spot.y,
+        angle: spot.angle,
+        speed: WANTED.policeSpeed,
+        radius: HITBOX.ped,
+        walkPhase: 0,
+        coat: POLICE_LOOK.coat,
+        skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[Math.floor(Math.random() * hairTones.length)],
+        idleTimer: 0,
+        fleeing: false,
+        fleeTimer: 0,
+        isPolice: true,
+        health: WANTED.policeHp,
+        maxHealth: WANTED.policeHp,
+        shootCooldown: 20
+      });
+      return true;
+    }
+
+    function debugSpawnCivilian() {
+      const spot = findDebugSpawnSpot(HITBOX.ped + 2, 'walk');
+      if (!spot) return false;
+      pedestrians.push({
+        id: debugNextId('debug-civ'),
+        x: spot.x,
+        y: spot.y,
+        angle: spot.angle,
+        speed: 0.55 + Math.random() * 0.45,
+        radius: HITBOX.ped,
+        walkPhase: Math.random() * Math.PI * 2,
+        coat: pedestrianColors[Math.floor(Math.random() * pedestrianColors.length)],
+        skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+        hair: hairTones[Math.floor(Math.random() * hairTones.length)],
+        idleTimer: Math.floor(Math.random() * 40),
+        health: 1,
+        isPolice: false
+      });
+      return true;
+    }
+
+    function debugTeleportToPeer(peerId) {
+      if (!peerId || !net.players) return false;
+      const rp = net.players.get(peerId);
+      if (!rp || rp.wasted) return false;
+      const pos = getRemotePlayerWorldPos(rp);
+      if (!pos) return false;
+      if (activeVehicle) {
+        const v = activeVehicle;
+        if (!v.isBike) onExitCarRadio(v);
+        v.driverId = null;
+        v.speed = 0;
+        v.vx = 0;
+        v.vy = 0;
+        if (v.isBike) tryParkBikeInNearbyBay(v);
+        else v.parked = isInParkingBay(v.x, v.y);
+        activeVehicle = null;
+        restoreWalkDriveStats();
+        player.mode = 'walking';
+      }
+      player.x = pos.x;
+      player.y = pos.y;
+      player.vx = 0;
+      player.vy = 0;
+      player.speed = 0;
+      player.motionSpeed = 0;
+      if (typeof rp.angle === 'number') player.angle = rp.angle;
+      return true;
+    }
+
+    function refreshDebugTeleportList() {
+      const sel = document.getElementById('debug-tp-peer');
+      if (!sel) return;
+      const prev = sel.value;
+      const peers = [];
+      if (net.players && net.players.size) {
+        net.players.forEach(rp => {
+          if (!rp || rp.id === net.localId || rp.wasted) return;
+          peers.push({
+            id: rp.id,
+            name: (rp.name || 'Player').slice(0, 14)
+          });
+        });
+      }
+      if (!peers.length) {
+        sel.innerHTML = '<option value="">No other players</option>';
+        return;
+      }
+      sel.innerHTML = peers.map(p =>
+        '<option value="' + p.id + '"' + (p.id === prev ? ' selected' : '') + '>' +
+        p.name + '</option>'
+      ).join('');
+    }
+
+    function drawDebugHitboxes() {
+      ctx.save();
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+
+      const ring = (x, y, radius, color) => {
+        const a = project(x + radius, y, 1);
+        const b = project(x - radius, y, 1);
+        const c = project(x, y + radius, 1);
+        const d = project(x, y - radius, 1);
+        const cx = (a.x + b.x + c.x + d.x) * 0.25;
+        const cy = (a.y + b.y + c.y + d.y) * 0.25;
+        const rx = Math.max(3, Math.hypot(a.x - b.x, a.y - b.y) * 0.5);
+        const ry = Math.max(3, Math.hypot(c.x - d.x, c.y - d.y) * 0.5);
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      };
+
+      if (!wasted) {
+        const pr = player.mode === 'driving' || player.mode === 'biking'
+          ? (player.driveRadius || 10)
+          : (player.radius || HITBOX.player);
+        ring(player.x, player.y, pr, 'rgba(80, 220, 120, 0.95)');
+      }
+      for (let i = 0; i < pedestrians.length; i++) {
+        const ped = pedestrians[i];
+        if (!ped) continue;
+        ring(ped.x, ped.y, ped.radius || HITBOX.ped,
+          ped.isPolice ? 'rgba(90, 150, 255, 0.9)' : 'rgba(255, 210, 90, 0.85)');
+      }
+      for (let i = 0; i < vehicles.length; i++) {
+        const v = vehicles[i];
+        if (!v || v.dead) continue;
+        ring(v.x, v.y, v.radius || 17,
+          v.isPoliceCar ? 'rgba(120, 170, 255, 0.9)' : 'rgba(255, 90, 90, 0.85)');
+      }
+      if (net.players) {
+        net.players.forEach(rp => {
+          if (!rp || rp.wasted || rp.id === net.localId) return;
+          const pos = getRemotePlayerWorldPos(rp);
+          if (!pos) return;
+          const rr = rp.mode === 'driving' || rp.mode === 'biking' ? 13 : (player.radius || HITBOX.player);
+          ring(pos.x, pos.y, rr, 'rgba(200, 120, 255, 0.9)');
+        });
+      }
+      ctx.restore();
+    }
+
+    function initDebugMenu() {
+      const hotspot = document.getElementById('debug-corner-hotspot');
+      const menu = document.getElementById('debug-menu');
+      const fpsHud = document.getElementById('debug-fps-hud');
+      if (!DEBUG_MENU_ENABLED) {
+        if (hotspot) hotspot.style.display = 'none';
+        if (menu) menu.style.display = 'none';
+        if (fpsHud) fpsHud.style.display = 'none';
+        return;
+      }
+
+      const invEl = document.getElementById('debug-invincible');
+      const zoomEl = document.getElementById('debug-free-zoom');
+      const hitEl = document.getElementById('debug-hitboxes');
+      const fpsEl = document.getElementById('debug-fps');
+      const vehicleTypeEl = document.getElementById('debug-vehicle-type');
+
+      if (invEl) {
+        invEl.checked = debugState.invincible;
+        invEl.addEventListener('change', () => {
+          debugState.invincible = !!invEl.checked;
+          if (debugState.invincible) player.hp = PLAYER_MAX_HP;
+        });
+      }
+      if (zoomEl) {
+        zoomEl.checked = debugState.freeZoom;
+        zoomEl.addEventListener('change', () => {
+          debugState.freeZoom = !!zoomEl.checked;
+          cameraZoomUserFactor = clampCameraZoomUserFactor(cameraZoomUserFactor);
+        });
+      }
+      if (hitEl) {
+        hitEl.checked = debugState.hitboxes;
+        hitEl.addEventListener('change', () => {
+          debugState.hitboxes = !!hitEl.checked;
+        });
+      }
+      if (fpsEl) {
+        fpsEl.checked = debugState.showFps;
+        fpsEl.addEventListener('change', () => {
+          debugState.showFps = !!fpsEl.checked;
+          if (fpsHud) {
+            fpsHud.classList.toggle('show', debugState.showFps);
+            fpsHud.setAttribute('aria-hidden', debugState.showFps ? 'false' : 'true');
+          }
+          debugState.fpsFrames = 0;
+          debugState.fpsLast = 0;
+        });
+      }
+
+      const bind = (id, fn) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          fn();
+        });
+      };
+      bind('debug-close', () => setDebugMenuOpen(false));
+      bind('debug-zoom-in', () => {
+        if (!debugState.freeZoom && zoomEl) {
+          debugState.freeZoom = true;
+          zoomEl.checked = true;
+        }
+        adjustCameraZoomUserFactor(0.12);
+      });
+      bind('debug-zoom-out', () => {
+        if (!debugState.freeZoom && zoomEl) {
+          debugState.freeZoom = true;
+          zoomEl.checked = true;
+        }
+        adjustCameraZoomUserFactor(-0.12);
+      });
+      bind('debug-zoom-reset', () => {
+        setCameraZoomUserFactor(1);
+      });
+
+      const distLabel = document.getElementById('debug-dist-label');
+      const syncDistLabel = () => {
+        if (!distLabel) return;
+        const base = (typeof mobileWarpActive === 'function' && mobileWarpActive())
+          ? DEBUG_VIEW_RADIUS_BASE_WARP
+          : DEBUG_VIEW_RADIUS_BASE_DESKTOP;
+        distLabel.textContent = String(base + (debugState.renderDistBoost || 0));
+      };
+      syncDistLabel();
+      bind('debug-dist-in', () => {
+        debugState.renderDistBoost = Math.min(
+          DEBUG_VIEW_RADIUS_BOOST_MAX,
+          (debugState.renderDistBoost || 0) + 2
+        );
+        syncDistLabel();
+      });
+      bind('debug-dist-out', () => {
+        debugState.renderDistBoost = Math.max(0, (debugState.renderDistBoost || 0) - 2);
+        syncDistLabel();
+      });
+      bind('debug-dist-reset', () => {
+        debugState.renderDistBoost = 0;
+        syncDistLabel();
+      });
+
+      bind('debug-spawn-vehicle', () => {
+        const type = vehicleTypeEl ? vehicleTypeEl.value : 'normal';
+        debugSpawnVehicleOfType(type);
+      });
+      bind('debug-spawn-police-car', () => { debugSpawnPoliceCar(); });
+      bind('debug-spawn-police', () => { debugSpawnPoliceFoot(); });
+      bind('debug-spawn-civ', () => { debugSpawnCivilian(); });
+      bind('debug-tp-go', () => {
+        const sel = document.getElementById('debug-tp-peer');
+        if (sel && sel.value) debugTeleportToPeer(sel.value);
+      });
+
+      if (hotspot) {
+        const openFromCorner = e => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleDebugMenu();
+        };
+        hotspot.addEventListener('click', openFromCorner);
+        hotspot.addEventListener('touchend', openFromCorner, { passive: false });
+      }
+
+      if (menu) {
+        menu.addEventListener('click', e => {
+          if (e.target === menu) setDebugMenuOpen(false);
+        });
+        const panel = menu.querySelector('.debug-panel');
+        if (panel) {
+          panel.addEventListener('click', e => e.stopPropagation());
+        }
+      }
     }
 
     updateWantedStarsUi();
@@ -14670,6 +15620,7 @@
       resetMobileSticks();
     }
     initCarRadio();
+    initDebugMenu();
     // Spawn intro starts after first-load boot wipe finishes.
     if (!bootSplash.active) startSpawnCameraIntro();
     requestAnimationFrame(loop);

@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KR CITY — Map Builder</title>
+  <script src="map-data.js"></script>
+  <style>
+    :root {
+      --bg: #4a4338;
+      --panel: #d9ceb7;
+      --panel-dark: #bbae93;
+      --ink: #2a2217;
+      --muted: #6a5d48;
+      --line: #8c7f68;
+      --accent: #8f3a2a;
+      --ok: #3c6a4a;
+      --road: #29251f;
+      --grass: #355936;
+      --sidewalk: #beb39d;
+      --roof2: #9d988f;
+      --roof3: #817d75;
+      --roof4: #68655f;
+      --carpark: #2a2620;
+      --lime: #b8e000;
+      --cabinet: #3c5641;
+      --light: #c9a227;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: "Courier New", Courier, monospace;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    body {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100%;
+    }
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: linear-gradient(180deg, #e8dcc4 0%, var(--panel) 100%);
+      border-bottom: 2px solid var(--line);
+      box-shadow: 0 2px 0 #8c7f68;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 2px;
+      white-space: nowrap;
+    }
+    header h1 span {
+      display: inline-block;
+      padding: 2px 6px;
+      margin-right: 4px;
+      background: #2a2217;
+      color: #e9dec8;
+      border-radius: 2px;
+    }
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    button, .file-btn {
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-weight: bold;
+      color: var(--ink);
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--muted);
+      background: linear-gradient(180deg, #f5ecd7 0%, var(--panel-dark) 100%);
+      box-shadow: 0 2px 0 var(--line);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active, .file-btn:active {
+      transform: translateY(2px);
+      box-shadow: none;
+    }
+    button.active {
+      border-color: var(--accent);
+      color: #6f2217;
+      box-shadow: 0 2px 0 var(--line), 0 0 0 1px rgba(200, 87, 63, 0.35);
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .file-btn { display: inline-block; }
+    .file-btn input { display: none; }
+    .link-game {
+      text-decoration: none;
+      color: var(--ink);
+    }
+    aside {
+      overflow: auto;
+      padding: 12px;
+      background: #cfc3ab;
+      border-right: 2px solid var(--line);
+    }
+    .section {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(40, 30, 15, 0.18);
+    }
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+    }
+    .tool-grid, .tile-grid {
+      display: grid;
+      gap: 6px;
+    }
+    .tool-grid { grid-template-columns: 1fr 1fr; }
+    .tile-grid { grid-template-columns: repeat(2, 1fr); }
+    .tile-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+      padding: 6px 8px;
+    }
+    .swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.35);
+      flex-shrink: 0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+    }
+    .hint {
+      font-size: 10px;
+      line-height: 1.35;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .status-line {
+      font-size: 11px;
+      margin: 4px 0;
+    }
+    .status-line.ok { color: var(--ok); }
+    .status-line.bad { color: var(--accent); }
+    main {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      background: #665e51;
+      overflow: hidden;
+    }
+    #mapCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .hud {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 10px;
+      background: rgba(30, 24, 16, 0.78);
+      color: #f0e6d4;
+      border: 1px solid rgba(217, 206, 183, 0.35);
+      border-radius: 6px;
+      font-size: 11px;
+      pointer-events: none;
+      max-width: min(420px, calc(100% - 20px));
+    }
+    .toast {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      background: rgba(30, 24, 16, 0.9);
+      color: #f0e6d4;
+      border-radius: 8px;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 5;
+    }
+    .toast.show { opacity: 1; }
+    kbd {
+      display: inline-block;
+      padding: 0 4px;
+      border: 1px solid rgba(40,30,15,0.35);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.35);
+      font-size: 10px;
+    }
+    @media (max-width: 860px) {
+      body {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+      }
+      aside {
+        border-right: none;
+        border-bottom: 2px solid var(--line);
+        max-height: 42vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>KR</span> MAP BUILDER</h1>
+    <div class="header-actions">
+      <button type="button" id="btnUndo" title="Undo (Ctrl/Cmd+Z)">Undo</button>
+      <button type="button" id="btnRedo" title="Redo (Ctrl/Cmd+Shift+Z)">Redo</button>
+      <button type="button" id="btnViewTop" class="active">Top-down</button>
+      <button type="button" id="btnViewIso">Isometric</button>
+      <label class="file-btn">Import<input type="file" id="importFile" accept=".js,.json,application/json,text/javascript"></label>
+      <button type="button" id="btnExport">Export map-data.js</button>
+      <button type="button" id="btnReload">Load map-data.js</button>
+      <a class="file-btn link-game" href="index.html">Open game</a>
+    </div>
+  </header>
+
+  <aside>
+    <div class="section">
+      <h2>MODE</h2>
+      <div class="tool-grid">
+        <button type="button" data-mode="paint" class="active">Paint</button>
+        <button type="button" data-mode="erase">Erase</button>
+        <button type="button" data-mode="eyedrop">Eyedrop</button>
+        <button type="button" data-mode="fill">Flood fill</button>
+        <button type="button" data-mode="stamp2">2×2 stamp</button>
+        <button type="button" data-mode="block">Block fill</button>
+      </div>
+      <p class="hint">Erase paints <kbd>S</kbd>. Block fill covers one 13×13 period. 2×2 stamp places a valid building footprint.</p>
+    </div>
+
+    <div class="section">
+      <h2>TILES</h2>
+      <div class="tile-grid" id="tilePalette"></div>
+      <p class="hint">Hotkeys: <kbd>R</kbd> <kbd>I</kbd> <kbd>P</kbd> <kbd>S</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>K</kbd> <kbd>T</kbd> <kbd>L</kbd> · Space = erase · <kbd>E</kbd> eyedrop · <kbd>F</kbd> fill · <kbd>B</kbd> block · <kbd>G</kbd> 2×2</p>
+    </div>
+
+    <div class="section">
+      <h2>VIEW</h2>
+      <div class="tool-grid">
+        <button type="button" id="btnZoomIn">Zoom +</button>
+        <button type="button" id="btnZoomOut">Zoom −</button>
+        <button type="button" id="btnZoomReset">Reset view</button>
+        <button type="button" id="btnClearAutosave">Clear autosave</button>
+      </div>
+      <p class="hint">Scroll to zoom. Middle-drag / Alt-drag / right-drag to pan. Paint with left mouse.</p>
+    </div>
+
+    <div class="section">
+      <h2>STATUS</h2>
+      <div class="status-line" id="statusCursor">Tile —</div>
+      <div class="status-line" id="statusTool">Tool —</div>
+      <div class="status-line ok" id="statusValid">Map valid</div>
+      <div class="status-line" id="statusSave">Autosave ready</div>
+    </div>
+  </aside>
+
+  <main>
+    <canvas id="mapCanvas"></canvas>
+    <div class="toast" id="toast"></div>
+    <div class="hud" id="hud">
+      Zoom & pan the canvas · Export downloads a drop-in map-data.js
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const ROAD_SPACING = 13;
+      const STORAGE_KEY = 'krcity-map-editor-v1';
+      const MAX_HISTORY = 60;
+      const VALID_CHARS = 'RIPS234KTL';
+
+      const TILES = [
+        { ch: 'R', name: 'Road', key: 'R', color: '#29251f' },
+        { ch: 'I', name: 'Traffic light', key: 'I', color: '#29251f', mark: '#c9a227' },
+        { ch: 'P', name: 'Park', key: 'P', color: '#355936' },
+        { ch: 'S', name: 'Sidewalk', key: 'S', color: '#beb39d' },
+        { ch: '2', name: 'Building low', key: '2', color: '#9d988f' },
+        { ch: '3', name: 'Building mid', key: '3', color: '#817d75' },
+        { ch: '4', name: 'Building tall', key: '4', color: '#68655f' },
+        { ch: 'K', name: 'Car park', key: 'K', color: '#2a2620' },
+        { ch: 'T', name: 'Transformer', key: 'T', color: '#3c5641' },
+        { ch: 'L', name: 'Lime bay', key: 'L', color: '#b8e000' }
+      ];
+
+      const BUILDING_H = { '2': 18, '3': 26, '4': 38 };
+
+      const canvas = document.getElementById('mapCanvas');
+      const ctx = canvas.getContext('2d');
+      const toastEl = document.getElementById('toast');
+      const statusCursor = document.getElementById('statusCursor');
+      const statusTool = document.getElementById('statusTool');
+      const statusValid = document.getElementById('statusValid');
+      const statusSave = document.getElementById('statusSave');
+      const hud = document.getElementById('hud');
+
+      let size = 78;
+      let grid = [];
+      let mode = 'paint';
+      let brush = 'R';
+      let viewMode = 'top'; // top | iso
+      let history = [];
+      let historyIndex = -1;
+      let painting = false;
+      let panDrag = null;
+      let hover = { r: -1, c: -1 };
+      let dirtyPaint = false;
+      let autosaveTimer = null;
+
+      const camera = {
+        x: 0,
+        y: 0,
+        zoom: 1,
+        minZoom: 0.25,
+        maxZoom: 6
+      };
+
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toastEl.classList.remove('show'), 2200);
+      }
+
+      function emptyGrid(fill) {
+        const rows = [];
+        for (let r = 0; r < size; r++) {
+          rows.push(Array(size).fill(fill || 'S'));
+        }
+        return rows;
+      }
+
+      function cloneGrid(src) {
+        return src.map(row => row.slice());
+      }
+
+      function gridFromRows(rows) {
+        return rows.map(row => row.split(''));
+      }
+
+      function rowsFromGrid(g) {
+        return g.map(row => row.join(''));
+      }
+
+      function validateMap(rows, mapSize) {
+        const errors = [];
+        if (!Array.isArray(rows)) return { ok: false, errors: ['rows must be an array'] };
+        if (rows.length !== mapSize) errors.push('rows length ' + rows.length + ' !== size ' + mapSize);
+        for (let r = 0; r < rows.length; r++) {
+          const row = rows[r];
+          if (typeof row !== 'string') {
+            errors.push('rows[' + r + '] is not a string');
+            continue;
+          }
+          if (row.length !== mapSize) {
+            errors.push('rows[' + r + '] length ' + row.length + ' !== size ' + mapSize);
+          }
+          for (let c = 0; c < row.length; c++) {
+            const ch = row.charAt(c);
+            if (!VALID_CHARS.includes(ch)) {
+              errors.push('unknown char "' + ch + '" at rows[' + r + '][' + c + ']');
+              if (errors.length > 40) {
+                errors.push('… further errors truncated');
+                return { ok: false, errors };
+              }
+            }
+          }
+        }
+        return { ok: errors.length === 0, errors };
+      }
+
+      function refreshValidation() {
+        const result = validateMap(rowsFromGrid(grid), size);
+        if (result.ok) {
+          statusValid.textContent = 'Map valid · ' + size + '×' + size;
+          statusValid.className = 'status-line ok';
+        } else {
+          statusValid.textContent = 'Invalid: ' + result.errors[0];
+          statusValid.className = 'status-line bad';
+        }
+        return result;
+      }
+
+      function pushHistory() {
+        const snap = rowsFromGrid(grid).join('\n');
+        if (historyIndex >= 0 && history[historyIndex] === snap) return;
+        history = history.slice(0, historyIndex + 1);
+        history.push(snap);
+        if (history.length > MAX_HISTORY) history.shift();
+        historyIndex = history.length - 1;
+        updateUndoButtons();
+      }
+
+      function applySnapshot(snap) {
+        const lines = snap.split('\n');
+        size = lines.length;
+        grid = gridFromRows(lines);
+        refreshValidation();
+        scheduleDraw();
+      }
+
+      function undo() {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        applySnapshot(history[historyIndex]);
+        queueAutosave();
+        updateUndoButtons();
+      }
+
+      function redo() {
+        if (historyIndex >= history.length - 1) return;
+        historyIndex++;
+        applySnapshot(history[historyIndex]);
+        queueAutosave();
+        updateUndoButtons();
+      }
+
+      function updateUndoButtons() {
+        document.getElementById('btnUndo').disabled = historyIndex <= 0;
+        document.getElementById('btnRedo').disabled = historyIndex >= history.length - 1;
+      }
+
+      function queueAutosave() {
+        statusSave.textContent = 'Saving…';
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(() => {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+              size,
+              rows: rowsFromGrid(grid),
+              savedAt: Date.now()
+            }));
+            statusSave.textContent = 'Autosaved ' + new Date().toLocaleTimeString();
+          } catch (err) {
+            statusSave.textContent = 'Autosave failed';
+          }
+        }, 350);
+      }
+
+      function loadFromBlueprint() {
+        if (typeof KRCITY_MAP === 'undefined' || !KRCITY_MAP.rows) {
+          toast('map-data.js not loaded');
+          size = 78;
+          grid = emptyGrid('S');
+          return;
+        }
+        const check = typeof validateKrcityMap === 'function'
+          ? validateKrcityMap(KRCITY_MAP)
+          : validateMap(KRCITY_MAP.rows, KRCITY_MAP.size | 0);
+        if (!check.ok) {
+          console.error(check.errors);
+          toast('map-data.js invalid — see console');
+        }
+        size = KRCITY_MAP.size | 0;
+        grid = gridFromRows(KRCITY_MAP.rows);
+      }
+
+      function tryRestoreAutosave() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return false;
+          const data = JSON.parse(raw);
+          if (!data || !Array.isArray(data.rows)) return false;
+          const check = validateMap(data.rows, data.size | data.rows.length);
+          if (!check.ok) return false;
+          size = data.size | data.rows.length;
+          grid = gridFromRows(data.rows);
+          toast('Restored autosave');
+          return true;
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function setMode(next) {
+        mode = next;
+        document.querySelectorAll('[data-mode]').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+        });
+        updateToolStatus();
+      }
+
+      function setBrush(ch) {
+        brush = ch;
+        document.querySelectorAll('.tile-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.ch === brush);
+        });
+        if (mode === 'erase' || mode === 'eyedrop') setMode('paint');
+        updateToolStatus();
+      }
+
+      function updateToolStatus() {
+        const tile = TILES.find(t => t.ch === brush);
+        statusTool.textContent = 'Mode ' + mode + ' · brush ' + brush + (tile ? ' (' + tile.name + ')' : '');
+      }
+
+      function buildPalette() {
+        const root = document.getElementById('tilePalette');
+        root.innerHTML = '';
+        TILES.forEach(tile => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'tile-btn' + (tile.ch === brush ? ' active' : '');
+          btn.dataset.ch = tile.ch;
+          btn.innerHTML = '<span class="swatch" style="background:' + tile.color + '"></span><span>' +
+            tile.ch + ' ' + tile.name + '</span>';
+          btn.addEventListener('click', () => setBrush(tile.ch));
+          root.appendChild(btn);
+        });
+      }
+
+      function inBounds(r, c) {
+        return r >= 0 && c >= 0 && r < size && c < size;
+      }
+
+      function setTile(r, c, ch, record) {
+        if (!inBounds(r, c)) return false;
+        if (grid[r][c] === ch) return false;
+        grid[r][c] = ch;
+        dirtyPaint = true;
+        return true;
+      }
+
+      function paintStamp2(r, c, ch) {
+        if (!'234'.includes(ch)) ch = '2';
+        let changed = false;
+        for (let dr = 0; dr < 2; dr++) {
+          for (let dc = 0; dc < 2; dc++) {
+            if (setTile(r + dr, c + dc, ch)) changed = true;
+          }
+        }
+        return changed;
+      }
+
+      function paintBlock(r, c, ch) {
+        const br0 = Math.floor(r / ROAD_SPACING) * ROAD_SPACING;
+        const bc0 = Math.floor(c / ROAD_SPACING) * ROAD_SPACING;
+        let changed = false;
+        for (let rr = br0; rr < br0 + ROAD_SPACING; rr++) {
+          for (let cc = bc0; cc < bc0 + ROAD_SPACING; cc++) {
+            if (setTile(rr, cc, ch)) changed = true;
+          }
+        }
+        return changed;
+      }
+
+      function floodFill(sr, sc, ch) {
+        if (!inBounds(sr, sc)) return false;
+        const target = grid[sr][sc];
+        if (target === ch) return false;
+        const stack = [[sr, sc]];
+        const seen = new Set();
+        let changed = false;
+        while (stack.length) {
+          const [r, c] = stack.pop();
+          const key = r + ',' + c;
+          if (seen.has(key) || !inBounds(r, c)) continue;
+          if (grid[r][c] !== target) continue;
+          seen.add(key);
+          if (setTile(r, c, ch)) changed = true;
+          stack.push([r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]);
+        }
+        return changed;
+      }
+
+      function applyAt(r, c) {
+        let changed = false;
+        if (mode === 'eyedrop') {
+          if (inBounds(r, c)) setBrush(grid[r][c]);
+          return false;
+        }
+        if (mode === 'erase') changed = setTile(r, c, 'S');
+        else if (mode === 'fill') changed = floodFill(r, c, brush);
+        else if (mode === 'stamp2') changed = paintStamp2(r, c, '234'.includes(brush) ? brush : '2');
+        else if (mode === 'block') changed = paintBlock(r, c, brush);
+        else changed = setTile(r, c, brush);
+        return changed;
+      }
+
+      function screenToWorld(sx, sy) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (sx - rect.left - camera.x) / camera.zoom;
+        const y = (sy - rect.top - camera.y) / camera.zoom;
+        return { x, y };
+      }
+
+      function worldToTileTop(wx, wy, cell) {
+        return {
+          c: Math.floor(wx / cell),
+          r: Math.floor(wy / cell)
+        };
+      }
+
+      function worldToTileIso(wx, wy, cell) {
+        // Inverse of: sx = (c - r) * halfW + origin; sy = (c + r) * halfH + origin
+        const halfW = cell * 0.5;
+        const halfH = cell * 0.25;
+        const originX = size * halfW;
+        const originY = 40;
+        const dx = wx - originX;
+        const dy = wy - originY;
+        const c = (dx / halfW + dy / halfH) / 2;
+        const r = (dy / halfH - dx / halfW) / 2;
+        return { c: Math.floor(c), r: Math.floor(r) };
+      }
+
+      function pickTile(clientX, clientY) {
+        const w = screenToWorld(clientX, clientY);
+        const cell = viewMode === 'top' ? 14 : 18;
+        return viewMode === 'top'
+          ? worldToTileTop(w.x, w.y, cell)
+          : worldToTileIso(w.x, w.y, cell);
+      }
+
+      function colorFor(ch) {
+        const t = TILES.find(x => x.ch === ch);
+        return t ? t.color : '#777';
+      }
+
+      function isRoadChar(ch) { return ch === 'R' || ch === 'I'; }
+      function isRoadAt(r, c) { return inBounds(r, c) && isRoadChar(grid[r][c]); }
+
+      function roadFlags(r, c) {
+        return {
+          n: isRoadAt(r - 1, c),
+          s: isRoadAt(r + 1, c),
+          w: isRoadAt(r, c - 1),
+          e: isRoadAt(r, c + 1)
+        };
+      }
+
+      function runVertical(r, c) {
+        let r0 = r, r1 = r;
+        while (isRoadAt(r0 - 1, c)) r0--;
+        while (isRoadAt(r1 + 1, c)) r1++;
+        return { r0, r1, thickness: r1 - r0 + 1 };
+      }
+
+      function runHorizontal(r, c) {
+        let c0 = c, c1 = c;
+        while (isRoadAt(r, c0 - 1)) c0--;
+        while (isRoadAt(r, c1 + 1)) c1++;
+        return { c0, c1, thickness: c1 - c0 + 1 };
+      }
+
+      // Junction/plaza: long run on BOTH axes (3-wide strips alone are not junctions).
+      function isClearZone(r, c) {
+        if (!isRoadAt(r, c)) return false;
+        const v = runVertical(r, c);
+        const h = runHorizontal(r, c);
+        return v.thickness >= 5 && h.thickness >= 5;
+      }
+
+      function laneDashAxis(r, c) {
+        if (!isRoadAt(r, c) || isClearZone(r, c)) return null;
+        const nb = roadFlags(r, c);
+        const v = runVertical(r, c);
+        const h = runHorizontal(r, c);
+        if (v.thickness >= 2 && v.thickness <= 4 && h.thickness > v.thickness && (nb.e || nb.w)) {
+          if (r === ((v.r0 + v.r1) >> 1)) return 'horizontal';
+        }
+        if (h.thickness >= 2 && h.thickness <= 4 && v.thickness > h.thickness && (nb.n || nb.s)) {
+          if (c === ((h.c0 + h.c1) >> 1)) return 'vertical';
+        }
+        if (v.thickness === 1 && h.thickness >= 2 && (nb.e || nb.w) && !nb.n && !nb.s) return 'horizontal';
+        if (h.thickness === 1 && v.thickness >= 2 && (nb.n || nb.s) && !nb.e && !nb.w) return 'vertical';
+        return null;
+      }
+
+      function zebraApproach(r, c) {
+        if (!isRoadAt(r, c) || isClearZone(r, c)) return null;
+        const clearW = isClearZone(r, c - 1);
+        const clearE = isClearZone(r, c + 1);
+        const clearN = isClearZone(r - 1, c);
+        const clearS = isClearZone(r + 1, c);
+        if (!clearW && !clearE && !clearN && !clearS) return null;
+        return { clearW, clearE, clearN, clearS };
+      }
+
+      function drawTopZebra(r, c, x, y, cell) {
+        const ap = zebraApproach(r, c);
+        if (!ap) return;
+        ctx.fillStyle = 'rgba(224, 216, 196, 0.7)';
+        const stripes = 4;
+        if (ap.clearW || ap.clearE) {
+          const v = runVertical(r, c);
+          const span = (v.r1 - v.r0 + 1) * cell;
+          const y0 = v.r0 * cell;
+          for (let i = 1; i <= stripes; i++) {
+            const yy = y0 + i * span / (stripes + 1);
+            if (yy < y || yy > y + cell) continue;
+            ctx.fillRect(x + 2, yy - 0.75, cell - 4, 1.5);
+          }
+        }
+        if (ap.clearN || ap.clearS) {
+          const h = runHorizontal(r, c);
+          const span = (h.c1 - h.c0 + 1) * cell;
+          const x0 = h.c0 * cell;
+          for (let i = 1; i <= stripes; i++) {
+            const xx = x0 + i * span / (stripes + 1);
+            if (xx < x || xx > x + cell) continue;
+            ctx.fillRect(xx - 0.75, y + 2, 1.5, cell - 4);
+          }
+        }
+      }
+
+      function drawIsoZebra(r, c, cx, cy, halfW, halfH) {
+        const ap = zebraApproach(r, c);
+        if (!ap) return;
+        ctx.strokeStyle = 'rgba(224, 216, 196, 0.75)';
+        ctx.lineWidth = 2 / camera.zoom;
+        const ew = ap.clearW || ap.clearE;
+        const ns = ap.clearN || ap.clearS;
+        for (let i = 0; i < 3; i++) {
+          const t = (i + 1) / 4;
+          ctx.beginPath();
+          if (ew && !ns) {
+            const yy = cy + halfH * (0.4 + t);
+            ctx.moveTo(cx - halfW * 0.35, yy);
+            ctx.lineTo(cx + halfW * 0.35, yy);
+          } else if (ns && !ew) {
+            const xx = cx - halfW * 0.35 + halfW * 0.7 * t;
+            ctx.moveTo(xx, cy + halfH * 0.45);
+            ctx.lineTo(xx, cy + halfH * 1.55);
+          } else {
+            const yy = cy + halfH * (0.4 + t);
+            ctx.moveTo(cx - halfW * 0.35, yy);
+            ctx.lineTo(cx + halfW * 0.35, yy);
+          }
+          ctx.stroke();
+        }
+      }
+
+      function resizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        scheduleDraw();
+      }
+
+      let drawQueued = false;
+      function scheduleDraw() {
+        if (drawQueued) return;
+        drawQueued = true;
+        requestAnimationFrame(() => {
+          drawQueued = false;
+          draw();
+        });
+      }
+
+      function drawTop() {
+        const cell = 14;
+        const w = size * cell;
+        const h = size * cell;
+        ctx.save();
+        ctx.translate(camera.x, camera.y);
+        ctx.scale(camera.zoom, camera.zoom);
+        ctx.fillStyle = '#665e51';
+        ctx.fillRect(-40, -40, w + 80, h + 80);
+
+        for (let r = 0; r < size; r++) {
+          for (let c = 0; c < size; c++) {
+            const ch = grid[r][c];
+            const x = c * cell;
+            const y = r * cell;
+            ctx.fillStyle = colorFor(ch);
+            if (ch === 'R' || ch === 'I') ctx.fillStyle = '#29251f';
+            ctx.fillRect(x, y, cell, cell);
+            if (ch === 'I') {
+              ctx.fillStyle = '#c9a227';
+              ctx.fillRect(x + 4, y + 4, cell - 8, cell - 8);
+            } else if (ch === 'L') {
+              ctx.fillStyle = '#1a1a1a';
+              ctx.fillRect(x + 3, y + cell / 2 - 1, cell - 6, 2);
+            } else if (ch === 'T') {
+              ctx.fillStyle = '#2f4534';
+              ctx.fillRect(x + 5, y + 4, cell - 10, cell - 8);
+            } else if (ch === 'K') {
+              ctx.strokeStyle = 'rgba(224,216,196,0.7)';
+              ctx.strokeRect(x + 2, y + 2, cell - 4, cell - 4);
+            }
+
+            if (isRoadChar(ch)) {
+              const axis = laneDashAxis(r, c);
+              if (axis) {
+                ctx.strokeStyle = '#d8cfba';
+                ctx.lineWidth = 1.1 / camera.zoom;
+                ctx.setLineDash([5, 4]);
+                ctx.beginPath();
+                if (axis === 'horizontal') {
+                  ctx.moveTo(x + 1, y + cell / 2);
+                  ctx.lineTo(x + cell - 1, y + cell / 2);
+                } else {
+                  ctx.moveTo(x + cell / 2, y + 1);
+                  ctx.lineTo(x + cell / 2, y + cell - 1);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+              }
+              drawTopZebra(r, c, x, y, cell);
+            }
+          }
+        }
+
+        // Block grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 1 / camera.zoom;
+        for (let i = 0; i <= size; i += ROAD_SPACING) {
+          ctx.beginPath();
+          ctx.moveTo(i * cell, 0);
+          ctx.lineTo(i * cell, h);
+          ctx.moveTo(0, i * cell);
+          ctx.lineTo(w, i * cell);
+          ctx.stroke();
+        }
+
+        if (inBounds(hover.r, hover.c)) {
+          ctx.strokeStyle = 'rgba(255, 240, 180, 0.95)';
+          ctx.lineWidth = 2 / camera.zoom;
+          if (mode === 'stamp2') {
+            ctx.strokeRect(hover.c * cell, hover.r * cell, cell * 2, cell * 2);
+          } else if (mode === 'block') {
+            const br0 = Math.floor(hover.r / ROAD_SPACING) * ROAD_SPACING;
+            const bc0 = Math.floor(hover.c / ROAD_SPACING) * ROAD_SPACING;
+            ctx.strokeRect(bc0 * cell, br0 * cell, ROAD_SPACING * cell, ROAD_SPACING * cell);
+          } else {
+            ctx.strokeRect(hover.c * cell, hover.r * cell, cell, cell);
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawIsoTile(c, r, ch, cell) {
+        const halfW = cell * 0.5;
+        const halfH = cell * 0.25;
+        const originX = size * halfW;
+        const originY = 40;
+        const cx = originX + (c - r) * halfW;
+        const cy = originY + (c + r) * halfH;
+        const h = BUILDING_H[ch] || 0;
+
+        function diamond(yOff, fill) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy + yOff);
+          ctx.lineTo(cx + halfW, cy + halfH + yOff);
+          ctx.lineTo(cx, cy + halfH * 2 + yOff);
+          ctx.lineTo(cx - halfW, cy + halfH + yOff);
+          ctx.closePath();
+          ctx.fillStyle = fill;
+          ctx.fill();
+        }
+
+        if (h > 0) {
+          ctx.beginPath();
+          ctx.moveTo(cx - halfW, cy + halfH);
+          ctx.lineTo(cx, cy + halfH * 2);
+          ctx.lineTo(cx, cy + halfH * 2 - h);
+          ctx.lineTo(cx - halfW, cy + halfH - h);
+          ctx.closePath();
+          ctx.fillStyle = '#77736b';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(cx + halfW, cy + halfH);
+          ctx.lineTo(cx, cy + halfH * 2);
+          ctx.lineTo(cx, cy + halfH * 2 - h);
+          ctx.lineTo(cx + halfW, cy + halfH - h);
+          ctx.closePath();
+          ctx.fillStyle = '#5f5c56';
+          ctx.fill();
+          diamond(-h, colorFor(ch));
+        } else {
+          let fill = colorFor(ch);
+          if (ch === 'R' || ch === 'I') fill = '#29251f';
+          if (ch === 'P') fill = '#355936';
+          if (ch === 'S' || ch === 'K' || ch === 'T' || ch === 'L') fill = '#beb39d';
+          diamond(0, fill);
+          if (ch === 'I') {
+            ctx.fillStyle = '#c9a227';
+            ctx.beginPath();
+            ctx.arc(cx, cy + halfH, 3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          if (isRoadChar(ch)) {
+            const axis = laneDashAxis(r, c);
+            if (axis) {
+              ctx.strokeStyle = 'rgba(216, 207, 186, 0.9)';
+              ctx.lineWidth = 1.2 / camera.zoom;
+              ctx.setLineDash([4, 3]);
+              ctx.beginPath();
+              if (axis === 'horizontal') {
+                ctx.moveTo(cx - halfW * 0.55, cy + halfH);
+                ctx.lineTo(cx + halfW * 0.55, cy + halfH);
+              } else {
+                ctx.moveTo(cx, cy + halfH * 0.35);
+                ctx.lineTo(cx, cy + halfH * 1.65);
+              }
+              ctx.stroke();
+              ctx.setLineDash([]);
+            }
+            drawIsoZebra(r, c, cx, cy, halfW, halfH);
+          }
+        }
+      }
+
+      function drawIso() {
+        const cell = 18;
+        ctx.save();
+        ctx.translate(camera.x, camera.y);
+        ctx.scale(camera.zoom, camera.zoom);
+        ctx.fillStyle = '#665e51';
+        const bounds = 40 + size * cell;
+        ctx.fillRect(-80, -40, bounds * 2, bounds * 2);
+
+        // Painter's algorithm: back to front by (r+c)
+        for (let sum = 0; sum <= size * 2; sum++) {
+          for (let r = 0; r < size; r++) {
+            const c = sum - r;
+            if (c < 0 || c >= size) continue;
+            drawIsoTile(c, r, grid[r][c], cell);
+          }
+        }
+
+        if (inBounds(hover.r, hover.c)) {
+          const halfW = cell * 0.5;
+          const halfH = cell * 0.25;
+          const originX = size * halfW;
+          const originY = 40;
+          const drawHover = (c, r) => {
+            const cx = originX + (c - r) * halfW;
+            const cy = originY + (c + r) * halfH;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + halfW, cy + halfH);
+            ctx.lineTo(cx, cy + halfH * 2);
+            ctx.lineTo(cx - halfW, cy + halfH);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(255,240,180,0.95)';
+            ctx.lineWidth = 2 / camera.zoom;
+            ctx.stroke();
+          };
+          if (mode === 'stamp2') {
+            drawHover(hover.c, hover.r);
+            drawHover(hover.c + 1, hover.r);
+            drawHover(hover.c, hover.r + 1);
+            drawHover(hover.c + 1, hover.r + 1);
+          } else {
+            drawHover(hover.c, hover.r);
+          }
+        }
+        ctx.restore();
+      }
+
+      function draw() {
+        const rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        if (viewMode === 'top') drawTop();
+        else drawIso();
+      }
+
+      function fitCamera() {
+        const rect = canvas.getBoundingClientRect();
+        const cell = viewMode === 'top' ? 14 : 18;
+        const worldW = viewMode === 'top' ? size * cell : size * cell;
+        const worldH = viewMode === 'top' ? size * cell : size * cell * 0.7;
+        const zx = rect.width / (worldW + 80);
+        const zy = rect.height / (worldH + 80);
+        camera.zoom = Math.max(camera.minZoom, Math.min(1.5, Math.min(zx, zy) * 0.92));
+        camera.x = (rect.width - worldW * camera.zoom) / 2;
+        camera.y = viewMode === 'iso' ? 24 : (rect.height - worldH * camera.zoom) / 2;
+        scheduleDraw();
+      }
+
+      function exportMapDataJs() {
+        const rows = rowsFromGrid(grid);
+        const result = validateMap(rows, size);
+        if (!result.ok) {
+          console.error('[KRCITY map export]', result.errors);
+          toast('Export blocked — map invalid (see console)');
+          refreshValidation();
+          return;
+        }
+        const rowsLit = rows.map(r => JSON.stringify(r)).join(',\n    ');
+        const out = `/* KRCITY map blueprint — edited in create.html */\n` +
+`(function (root) {\n` +
+`  const KRCITY_MAP = {\n` +
+`    size: ${size},\n` +
+`    legend: {\n` +
+`      R: 'road',\n` +
+`      I: 'road+trafficLight',\n` +
+`      P: 'park',\n` +
+`      S: 'sidewalk',\n` +
+`      '2': 'buildingLow',\n` +
+`      '3': 'buildingMid',\n` +
+`      '4': 'buildingTall',\n` +
+`      K: 'carpark',\n` +
+`      T: 'transformer',\n` +
+`      L: 'limeBay'\n` +
+`    },\n` +
+`    rows: [\n    ${rowsLit}\n    ]\n` +
+`  };\n\n` +
+`  function validateKrcityMap(blueprint) {\n` +
+`    const errors = [];\n` +
+`    if (!blueprint || typeof blueprint !== 'object') {\n` +
+`      return { ok: false, errors: ['KRCITY_MAP is missing or not an object'] };\n` +
+`    }\n` +
+`    const size = blueprint.size | 0;\n` +
+`    if (size <= 0) errors.push('size must be a positive integer');\n` +
+`    const rows = blueprint.rows;\n` +
+`    if (!Array.isArray(rows)) {\n` +
+`      errors.push('rows must be an array of strings');\n` +
+`      return { ok: false, errors };\n` +
+`    }\n` +
+`    if (rows.length !== size) errors.push('rows length ' + rows.length + ' !== size ' + size);\n` +
+`    for (let r = 0; r < rows.length; r++) {\n` +
+`      const row = rows[r];\n` +
+`      if (typeof row !== 'string') { errors.push('rows[' + r + '] is not a string'); continue; }\n` +
+`      if (row.length !== size) errors.push('rows[' + r + '] length ' + row.length + ' !== size ' + size);\n` +
+`      for (let c = 0; c < row.length; c++) {\n` +
+`        const ch = row.charAt(c);\n` +
+`        if (!'RIPS234KTL'.includes(ch)) {\n` +
+`          errors.push('unknown char "' + ch + '" at rows[' + r + '][' + c + ']');\n` +
+`          if (errors.length > 40) {\n` +
+`            errors.push('… further errors truncated');\n` +
+`            return { ok: false, errors };\n` +
+`          }\n` +
+`        }\n` +
+`      }\n` +
+`    }\n` +
+`    return { ok: errors.length === 0, errors };\n` +
+`  }\n\n` +
+`  root.KRCITY_MAP = KRCITY_MAP;\n` +
+`  root.validateKrcityMap = validateKrcityMap;\n` +
+`})(typeof window !== 'undefined' ? window : globalThis);\n`;
+
+        const blob = new Blob([out], { type: 'text/javascript' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'map-data.js';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Downloaded map-data.js');
+      }
+
+      function parseImportedText(text) {
+        text = String(text || '').trim();
+        if (!text) throw new Error('Empty file');
+        if (text[0] === '{' || text[0] === '[') {
+          const data = JSON.parse(text);
+          if (Array.isArray(data)) return { size: data.length, rows: data };
+          if (data.rows) return { size: data.size || data.rows.length, rows: data.rows };
+          throw new Error('JSON must include rows');
+        }
+        // Evaluate map-data.js-like file in a sandbox function
+        const sandbox = {};
+        const fn = new Function('window', 'globalThis', text + '\n;return typeof KRCITY_MAP !== "undefined" ? KRCITY_MAP : (typeof globalThis !== "undefined" && globalThis.KRCITY_MAP);');
+        // Provide a fake root the IIFE can assign to
+        const root = {};
+        const wrapped = text.replace(/\(typeof window[^)]+\)/g, '(root)');
+        try {
+          const runner = new Function('root', wrapped + '\n;return root.KRCITY_MAP;');
+          const map = runner(root);
+          if (map && map.rows) return map;
+        } catch (_) {}
+        // Fallback: extract rows array with regex
+        const m = text.match(/rows\s*:\s*\[([\s\S]*?)\]\s*[,}]/);
+        if (!m) throw new Error('Could not find KRCITY_MAP.rows');
+        const rows = JSON.parse('[' + m[1].replace(/,\s*$/, '') + ']');
+        return { size: rows.length, rows };
+      }
+
+      function importFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const map = parseImportedText(reader.result);
+            const check = validateMap(map.rows, map.size | map.rows.length);
+            if (!check.ok) {
+              console.error(check.errors);
+              toast('Import invalid — see console');
+              return;
+            }
+            size = map.size | map.rows.length;
+            grid = gridFromRows(map.rows);
+            history = [];
+            historyIndex = -1;
+            pushHistory();
+            refreshValidation();
+            queueAutosave();
+            fitCamera();
+            toast('Imported ' + file.name);
+          } catch (err) {
+            console.error(err);
+            toast('Import failed');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // --- events ---
+      document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setMode(btn.getAttribute('data-mode')));
+      });
+      document.getElementById('btnUndo').addEventListener('click', undo);
+      document.getElementById('btnRedo').addEventListener('click', redo);
+      document.getElementById('btnExport').addEventListener('click', exportMapDataJs);
+      document.getElementById('btnReload').addEventListener('click', () => {
+        loadFromBlueprint();
+        history = [];
+        historyIndex = -1;
+        pushHistory();
+        refreshValidation();
+        queueAutosave();
+        fitCamera();
+        toast('Loaded map-data.js');
+      });
+      document.getElementById('btnClearAutosave').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        statusSave.textContent = 'Autosave cleared';
+        toast('Autosave cleared');
+      });
+      document.getElementById('importFile').addEventListener('change', e => {
+        const file = e.target.files && e.target.files[0];
+        if (file) importFile(file);
+        e.target.value = '';
+      });
+      document.getElementById('btnViewTop').addEventListener('click', () => {
+        viewMode = 'top';
+        document.getElementById('btnViewTop').classList.add('active');
+        document.getElementById('btnViewIso').classList.remove('active');
+        fitCamera();
+      });
+      document.getElementById('btnViewIso').addEventListener('click', () => {
+        viewMode = 'iso';
+        document.getElementById('btnViewIso').classList.add('active');
+        document.getElementById('btnViewTop').classList.remove('active');
+        fitCamera();
+      });
+      document.getElementById('btnZoomIn').addEventListener('click', () => {
+        camera.zoom = Math.min(camera.maxZoom, camera.zoom * 1.15);
+        scheduleDraw();
+      });
+      document.getElementById('btnZoomOut').addEventListener('click', () => {
+        camera.zoom = Math.max(camera.minZoom, camera.zoom / 1.15);
+        scheduleDraw();
+      });
+      document.getElementById('btnZoomReset').addEventListener('click', fitCamera);
+
+      canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+      canvas.addEventListener('pointerdown', e => {
+        canvas.setPointerCapture(e.pointerId);
+        const pan = e.button === 1 || e.button === 2 || e.altKey || e.shiftKey;
+        if (pan) {
+          panDrag = { x: e.clientX, y: e.clientY, cx: camera.x, cy: camera.y };
+          return;
+        }
+        if (e.button !== 0) return;
+        painting = true;
+        dirtyPaint = false;
+        const tile = pickTile(e.clientX, e.clientY);
+        hover = tile;
+        applyAt(tile.r, tile.c);
+        scheduleDraw();
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (panDrag) {
+          camera.x = panDrag.cx + (e.clientX - panDrag.x);
+          camera.y = panDrag.cy + (e.clientY - panDrag.y);
+          scheduleDraw();
+          return;
+        }
+        const tile = pickTile(e.clientX, e.clientY);
+        if (tile.r !== hover.r || tile.c !== hover.c) {
+          hover = tile;
+          statusCursor.textContent = inBounds(tile.r, tile.c)
+            ? ('Tile r' + tile.r + ' c' + tile.c + ' · ' + grid[tile.r][tile.c])
+            : 'Tile —';
+          if (painting && mode !== 'fill' && mode !== 'eyedrop') {
+            applyAt(tile.r, tile.c);
+          }
+          scheduleDraw();
+        } else if (painting && mode === 'paint') {
+          applyAt(tile.r, tile.c);
+          scheduleDraw();
+        }
+      });
+
+      function endStroke() {
+        if (panDrag) {
+          panDrag = null;
+          return;
+        }
+        if (painting) {
+          painting = false;
+          if (dirtyPaint) {
+            pushHistory();
+            refreshValidation();
+            queueAutosave();
+            dirtyPaint = false;
+          }
+        }
+      }
+      canvas.addEventListener('pointerup', endStroke);
+      canvas.addEventListener('pointercancel', endStroke);
+
+      canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const before = camera.zoom;
+        const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+        camera.zoom = Math.max(camera.minZoom, Math.min(camera.maxZoom, camera.zoom * factor));
+        camera.x = mx - (mx - camera.x) * (camera.zoom / before);
+        camera.y = my - (my - camera.y) * (camera.zoom / before);
+        scheduleDraw();
+      }, { passive: false });
+
+      window.addEventListener('keydown', e => {
+        if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+        const key = e.key.toLowerCase();
+        if ((e.metaKey || e.ctrlKey) && key === 'z') {
+          e.preventDefault();
+          if (e.shiftKey) redo();
+          else undo();
+          return;
+        }
+        if ((e.metaKey || e.ctrlKey) && key === 'y') {
+          e.preventDefault();
+          redo();
+          return;
+        }
+        if (VALID_CHARS.includes(e.key.toUpperCase()) && e.key.length === 1) {
+          const ch = e.key.toUpperCase();
+          if (VALID_CHARS.includes(ch)) {
+            setBrush(ch);
+            e.preventDefault();
+          }
+        }
+        if (e.code === 'Space') {
+          setMode('erase');
+          e.preventDefault();
+        } else if (key === 'e') setMode('eyedrop');
+        else if (key === 'f') setMode('fill');
+        else if (key === 'b') setMode('block');
+        else if (key === 'g') setMode('stamp2');
+        else if (key === 'p' && !e.metaKey && !e.ctrlKey) setBrush('P');
+      });
+
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+      });
+
+      // boot
+      buildPalette();
+      loadFromBlueprint();
+      const restored = tryRestoreAutosave();
+      pushHistory();
+      refreshValidation();
+      updateToolStatus();
+      resizeCanvas();
+      fitCamera();
+      if (!restored) statusSave.textContent = 'Loaded map-data.js';
+      hud.textContent = 'Top-down for precise paint · Isometric to preview game look · Export → replace KRCITY/map-data.js';
+    })();
+  </script>
+</body>
+</html>
