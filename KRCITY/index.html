@@ -1727,15 +1727,21 @@
       title: 'KR CITY'
     };
     // On-foot locomotion tiers (auto sprint after full-move buildup).
+    // accelSec: always ~this long to reach the current target speed (half stick → half cap in accelSec).
+    // startFloor: instant fraction of target on first move (avoids near-zero crawl), then ramp to full in accelSec.
+    // walkWarmupSec: soft jog — hold full move this long before run unlocks.
     const FOOT = {
-      walkSpeed: 2.6,
+      walkSpeed: 1.2,
       runSpeed: 3.45,
       sprintSpeed: 4.65,
-      walkWarmupSec: 0.45,
+      walkWarmupSec: 2,
       sprintBuildupSec: 2,
+      accelSec: 6,
+      startFloor: 0.4,
       analogRunCommit: 0.78,
-      walkWarmupTicks: Math.round(0.45 * 120),
-      sprintBuildupTicks: Math.round(2 * 120)
+      walkWarmupTicks: Math.round(2 * 120),
+      sprintBuildupTicks: Math.round(2 * 120),
+      accelTicks: Math.round(6 * 120)
     };
     const DAMAGE_RET = {
       PUNCH: 0.9,
@@ -1944,6 +1950,11 @@
     const mobileAnalogSteer = { walk: 0, drive: 0 };
     // Right-stick continuous aim (car/bike/foot): world angle while stick past shoot deadzone.
     const mobileAnalogAim = { active: false, angle: 0, nx: 0, ny: 0 };
+    // On foot only: shoot cones around stick up/down; L/R outside = turn only.
+    // 23% of 90° ≈ ±20.7° from pure vertical.
+    const MOBILE_FOOT_AIM = {
+      maxAngleFromVertical: 0.23 * (Math.PI / 2)
+    };
 
     // Mobile car throttle (left stick): micro-move at bottom, full speed at full stick.
     // While turning, throttle is preserved from stick magnitude so steer doesn't dump speed
@@ -2029,7 +2040,7 @@
         label: 'Car',
         npcHealth: NPC_CAR_MAX_HEALTH,
         playerHealth: PLAYER_CAR_MAX_HEALTH,
-        maxSpeed: 7,
+        maxSpeed: 4,
         accel: 0.06,
         radius: 17,
         driveRadius: 13,
@@ -2050,7 +2061,7 @@
         label: 'Van',
         npcHealth: 60,
         playerHealth: 130,
-        maxSpeed: 5.4,
+        maxSpeed: 3,
         accel: 0.042,
         radius: 20,
         driveRadius: 15,
@@ -2071,7 +2082,7 @@
         label: 'Sports',
         npcHealth: 28,
         playerHealth: 65,
-        maxSpeed: 8.6,
+        maxSpeed: 7,
         accel: 0.082,
         radius: 15,
         driveRadius: 12,
@@ -2093,8 +2104,8 @@
         label: 'Impreza',
         npcHealth: 30,
         playerHealth: 70,
-        maxSpeed: 8.9,
-        accel: 0.088,
+        maxSpeed: 6,
+        accel: 0.048,
         radius: 15,
         driveRadius: 12,
         cruiseMin: 2.05,
@@ -2138,6 +2149,7 @@
       turnSpeed: 0.045,
       steerRate: 0,
       walkSpeed: FOOT.walkSpeed,
+      footSpeed: 0,
       walkPhase: 0,
       footWarmup: 0,
       footSprintBuild: 0,
@@ -2218,6 +2230,16 @@
       rawMul: 5.2,
       fxMuteBelow: 0.08,
       sfxMinScale: 0.22
+    };
+
+    // Arcade bounce: exit speed along the hit normal ≈ restitution × impact into the surface.
+    const ARCADE_BOUNCE = {
+      restitution: 0.7,
+      minImpact: 0.35,
+      wallSep: 2.8,
+      scrapeRetain: 0.62,
+      scrapeFriction: 0.988,
+      scrapeSpeedBlend: 0.55
     };
 
     function carCrashSeverity(impactSpeed) {
@@ -3986,6 +4008,8 @@
       policeAimDot: 0.72,
       // After jacking a police car, ejected officer waits this long before first shot (120 TPS).
       policeEjectShootDelayTicks: Math.round(1.5 * 120),
+      // Ordered bail-out: no shooting until this long after leaving the car.
+      policeExitShootDelayTicks: Math.round(2.3 * 120),
       spawnMinDist: BLOCK_WORLD * 0.85,
       spawnMaxDist: BLOCK_WORLD * 1.55,
       maxByStars: [0, 2, 3, 4, 5, 6],
@@ -3999,8 +4023,27 @@
       policeChaseTurnSpeed: 0.055,
       policeChaseSteerAccel: 0.085,
       policeChaseAccel: 0.068,
-      policeChaseRelease: 0.78
+      policeChaseRelease: 0.78,
+      // Low-star tactic: drive in, drift-park alongside, bail out and shoot.
+      policeApproachDist: 120,
+      policeParkOffset: 58,
+      policeParkArriveDist: 30,
+      policeParkCancelDist: 185,
+      policeRemountDist: 200,
+      policeAbandonDespawnTicks: Math.round(30 * 120),
+      // At this star level cars ram; one sticky backup still parks & shoots.
+      policeRamFromStars: 4,
+      policeBackupParkCount: 1
     };
+
+    const POLICE_FLANK_SLOTS = [
+      { side: 1, along: 0 },
+      { side: -1, along: 0 },
+      { side: 1, along: -52 },
+      { side: -1, along: -52 },
+      { side: 1, along: 48 },
+      { side: -1, along: 48 }
+    ];
     const POLICE_LOOK = {
       coat: '#1a3a6e',
       coatEdge: '#0f2448',
@@ -5383,12 +5426,10 @@
         player.x = slide.x;
         player.y = slide.y;
         if (slide.slid) {
-          player.speed *= WALL_SCRAPE_FRICTION;
-          if (!slide.usedX) player.vx = 0;
-          if (!slide.usedY) player.vy = 0;
+          applySmoothWallScrape(player, slide, headingX, headingY);
         }
       } else if (Math.hypot(player.vx, player.vy) > crawl) {
-        // Head-on / no free axis — keep bounce + shake (only if we actually tried to move)
+        // Head-on / no free axis — arcade reflect along wall normal
         if (DEBUG_DRIVE) {
           debugDrive('drive-blocked', {
             absSpeed,
@@ -5397,15 +5438,12 @@
             vy: player.vy
           });
         }
-        if (absSpeed > HAPTIC.crashMinSpeed) {
+        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
+        if (wallHit.impact > HAPTIC.crashMinSpeed || absSpeed > HAPTIC.crashMinSpeed) {
           addCameraShake(SHAKE.minorWall);
           haptic(HAPTIC.crashWall);
           playSfx('crashWall');
         }
-        player.speed = -player.speed * 0.25;
-        player.vx = headingX * player.speed;
-        player.vy = headingY * player.speed;
-        player.drifting = false;
       }
       player.motionSpeed = Math.hypot(player.vx, player.vy);
 
@@ -5456,6 +5494,8 @@
       activeVehicle.angle = player.angle;
       activeVehicle.dir = player.angle;
       activeVehicle.speed = player.speed;
+      activeVehicle.vx = player.vx;
+      activeVehicle.vy = player.vy;
     }
 
     function handleWalkingInput() {
@@ -5534,49 +5574,73 @@
         inputMag = Math.min(1, Math.hypot(keyFwd, keySide));
       }
 
-      // Walk → run → auto-sprint after holding full move ~2s (beta-style).
+      // Walk → soft jog → run → auto-sprint (hold full move to progress tiers).
       const fullCommit = inputMag >= FOOT.analogRunCommit;
       if (inputMag < 0.08) {
         player.footWarmup = 0;
         player.footSprintBuild = 0;
         player.footSprinting = false;
       } else if (!fullCommit) {
-        player.footWarmup = Math.min(FOOT.walkWarmupTicks, player.footWarmup + 1);
+        // Ease off full stick: lose sprint and bleed jog progress (must re-hold to unlock run).
         player.footSprintBuild = 0;
         player.footSprinting = false;
+        player.footWarmup = Math.max(0, player.footWarmup - 2);
       } else {
-        player.footWarmup = FOOT.walkWarmupTicks;
-        player.footSprintBuild = Math.min(FOOT.sprintBuildupTicks, player.footSprintBuild + 1);
-        if (!player.footSprinting && player.footSprintBuild >= FOOT.sprintBuildupTicks) {
-          player.footSprinting = true;
-          playSfx('sprint');
+        player.footWarmup = Math.min(FOOT.walkWarmupTicks, player.footWarmup + 1);
+        if (player.footWarmup >= FOOT.walkWarmupTicks) {
+          player.footSprintBuild = Math.min(FOOT.sprintBuildupTicks, player.footSprintBuild + 1);
+          if (!player.footSprinting && player.footSprintBuild >= FOOT.sprintBuildupTicks) {
+            player.footSprinting = true;
+            playSfx('sprint');
+          }
+        } else {
+          player.footSprintBuild = 0;
+          player.footSprinting = false;
         }
       }
 
-      let moveSpeed = FOOT.walkSpeed;
-      if (player.footSprinting) moveSpeed = FOOT.sprintSpeed;
-      else if (fullCommit && player.footWarmup >= FOOT.walkWarmupTicks) moveSpeed = FOOT.runSpeed;
-      else if (fullCommit) {
+      // Tier cap (walk / jog-lerp / run / sprint). Actual speed ramps toward inputMag * cap.
+      let tierCap = FOOT.walkSpeed;
+      if (player.footSprinting) {
+        tierCap = FOOT.sprintSpeed;
+      } else if (player.footWarmup >= FOOT.walkWarmupTicks) {
+        tierCap = FOOT.runSpeed;
+      } else if (fullCommit && player.footWarmup > 0) {
         const warmT = player.footWarmup / Math.max(1, FOOT.walkWarmupTicks);
-        moveSpeed = FOOT.walkSpeed + (FOOT.runSpeed - FOOT.walkSpeed) * warmT;
+        tierCap = FOOT.walkSpeed + (FOOT.runSpeed - FOOT.walkSpeed) * warmT;
       }
+
+      const targetSpeed = inputMag * tierCap;
+      // Start at startFloor * target, then ramp the rest over accelSec. Release / lower: snap down.
+      if (targetSpeed > player.footSpeed) {
+        const floor = targetSpeed * Math.max(0, Math.min(1, FOOT.startFloor));
+        if (player.footSpeed < floor) player.footSpeed = floor;
+        const rampSpan = Math.max(targetSpeed * (1 - Math.max(0, Math.min(1, FOOT.startFloor))), 0.0001);
+        const step = rampSpan / Math.max(1, FOOT.accelTicks);
+        player.footSpeed = Math.min(targetSpeed, player.footSpeed + step);
+      } else {
+        player.footSpeed = targetSpeed;
+      }
+      const moveSpeed = player.footSpeed;
       player.walkSpeed = moveSpeed;
 
       if (isMobile && (mobileMoveStick || smoothMag > MOBILE_WALK_FEEL.stopEpsilon)) {
-        right = mobileWalkSmooth.x * moveSpeed;
-        forward = mobileWalkSmooth.y * moveSpeed;
+        if (inputMag > 0.0001 && moveSpeed > 0) {
+          right = (mobileWalkSmooth.x / inputMag) * moveSpeed;
+          forward = (mobileWalkSmooth.y / inputMag) * moveSpeed;
+        }
       } else {
-        if (keys['w']) forward = moveSpeed;
-        if (keys['s']) forward = -moveSpeed * 0.7;
-        if (keys['d']) right = moveSpeed;
-        if (keys['a']) right = -moveSpeed;
-      }
-
-      const moveMag = Math.hypot(forward, right);
-      if (moveMag > moveSpeed && moveSpeed > 0) {
-        const scale = moveSpeed / moveMag;
-        forward *= scale;
-        right *= scale;
+        let wantF = 0;
+        let wantR = 0;
+        if (keys['w']) wantF = 1;
+        if (keys['s']) wantF = -0.7;
+        if (keys['d']) wantR = 1;
+        if (keys['a']) wantR = -1;
+        const wantMag = Math.hypot(wantF, wantR);
+        if (wantMag > 0.0001 && moveSpeed > 0) {
+          forward = (wantF / wantMag) * moveSpeed;
+          right = (wantR / wantMag) * moveSpeed;
+        }
       }
 
       if (forward !== 0 || right !== 0) {
@@ -5604,7 +5668,8 @@
           player.motionSpeed = movement;
           if (movement > 0.01) {
             player.travelAngle = Math.atan2(usedY, usedX);
-            player.moveAmount = Math.min(1, movement / Math.max(moveSpeed, 0.01));
+            // Anim intensity vs tier cap (not ramping footSpeed), so slow accel still reads as a light walk.
+            player.moveAmount = Math.min(1, movement / Math.max(tierCap, 0.01));
           }
         }
       }
@@ -5689,15 +5754,11 @@
         player.x = slide.x;
         player.y = slide.y;
         if (slide.slid) {
-          player.speed *= WALL_SCRAPE_FRICTION;
-          if (!slide.usedX) player.vx = 0;
-          if (!slide.usedY) player.vy = 0;
+          applySmoothWallScrape(player, slide, headingX, headingY);
         }
       } else if (Math.hypot(player.vx, player.vy) > crawl) {
-        if (absSpeed > 0.8) addCameraShake(SHAKE.minorWall);
-        player.speed = -player.speed * 0.25;
-        player.vx = headingX * player.speed;
-        player.vy = headingY * player.speed;
+        const wallHit = applyArcadeWallBounce(player, player.driveRadius, canDriveAt);
+        if (wallHit.impact > 0.8 || absSpeed > 0.8) addCameraShake(SHAKE.minorWall);
       }
       player.motionSpeed = Math.hypot(player.vx, player.vy);
 
@@ -5706,6 +5767,8 @@
       activeVehicle.angle = player.angle;
       activeVehicle.dir = player.angle;
       activeVehicle.speed = player.speed;
+      activeVehicle.vx = player.vx;
+      activeVehicle.vy = player.vy;
     }
 
     function clearBikeSlot(bike) {
@@ -5792,7 +5855,13 @@
         }
 
         if (hijacked.isPoliceCar) {
-          spawnEjectedPoliceOfficer(hijacked);
+          if (hijacked.policeAbandoned) {
+            hijacked.policeAbandoned = false;
+            hijacked.abandonTimer = 0;
+            clearPoliceCarTactic(hijacked);
+          } else {
+            spawnEjectedPoliceOfficer(hijacked);
+          }
         } else if (!hijacked.parked && Math.abs(hijacked.speed) > 0.35) {
           spawnFleeingDriver(hijacked);
         }
@@ -5942,6 +6011,7 @@
       player.accel = PLAYER_WALK_DRIVE.accel;
       player.driveRadius = PLAYER_WALK_DRIVE.driveRadius;
       player.walkSpeed = FOOT.walkSpeed;
+      player.footSpeed = 0;
       player.footWarmup = 0;
       player.footSprintBuild = 0;
       player.footSprinting = false;
@@ -6291,10 +6361,13 @@
       return anyNearbyPoliceAt(player.x, player.y, activeVehicle && activeVehicle.id);
     }
 
-    function countPoliceCars() {
+    function countPoliceCars(activeOnly) {
       let n = 0;
       for (let i = 0; i < vehicles.length; i++) {
-        if (vehicles[i].isPoliceCar) n++;
+        const car = vehicles[i];
+        if (!car.isPoliceCar) continue;
+        if (activeOnly && car.policeAbandoned) continue;
+        n++;
       }
       return n;
     }
@@ -6305,6 +6378,13 @@
         : WANTED.policeCarsBase;
     }
 
+    function clearPoliceCarTactic(vehicle) {
+      if (!vehicle) return;
+      vehicle.policeRole = null;
+      vehicle.policeFlankSlot = null;
+      vehicle.policeParking = false;
+    }
+
     function updatePoliceCarHuntState() {
       const wasHunting = policeCarsHunting;
       const maxWanted = getMaxWantedLevel();
@@ -6312,14 +6392,17 @@
       if (maxWanted <= 0 || getWantedTargets().length === 0) policeCarsHunting = false;
       if (wasHunting && !policeCarsHunting) {
         vehicles.forEach(vehicle => {
-          if (vehicle.isPoliceCar && vehicle.ai) snapPoliceCarToRoam(vehicle);
+          if (!vehicle.isPoliceCar || !vehicle.ai) return;
+          clearPoliceCarTactic(vehicle);
+          if (vehicle.policeAbandoned) return;
+          snapPoliceCarToRoam(vehicle);
         });
       }
     }
 
     function maintainPoliceCars() {
       const target = targetPoliceCarCount();
-      let count = countPoliceCars();
+      let count = countPoliceCars(true);
       while (count < target) {
         const car = createPoliceCar();
         if (!car) break;
@@ -6328,7 +6411,12 @@
       }
       if (count <= target) return;
       const extras = vehicles
-        .filter(v => v.isPoliceCar && v !== activeVehicle && !v.driverId)
+        .filter(v =>
+          v.isPoliceCar &&
+          v !== activeVehicle &&
+          !v.driverId &&
+          !v.policeAbandoned
+        )
         .sort((a, b) =>
           Math.hypot(b.x - player.x, b.y - player.y) -
           Math.hypot(a.x - player.x, a.y - player.y)
@@ -6341,6 +6429,123 @@
           count--;
         }
       }
+    }
+
+    function updateAbandonedPoliceCars() {
+      for (let i = vehicles.length - 1; i >= 0; i--) {
+        const vehicle = vehicles[i];
+        if (!vehicle.isPoliceCar || !vehicle.policeAbandoned) continue;
+        vehicle.speed = 0;
+        vehicle.vx = 0;
+        vehicle.vy = 0;
+        vehicle.steerRate = 0;
+        vehicle.drifting = false;
+        vehicle.parked = true;
+        vehicle.abandonTimer = (vehicle.abandonTimer || 0) - 1;
+        if (vehicle.abandonTimer > 0) continue;
+        for (let p = 0; p < pedestrians.length; p++) {
+          if (pedestrians[p].sourceVehicleId === vehicle.id) {
+            pedestrians[p].sourceVehicleId = null;
+          }
+        }
+        vehicles.splice(i, 1);
+      }
+    }
+
+    function getWantedTargetFacing(target) {
+      if (!target) return 0;
+      if (target.vehicleId) {
+        const veh = vehicles.find(v => v.id === target.vehicleId);
+        if (veh) return veh.angle || 0;
+      }
+      if (target.isLocal) return player.angle || 0;
+      if (target.rp && target.rp.angle != null) return target.rp.angle;
+      return 0;
+    }
+
+    function claimPoliceFlankSlot(vehicle) {
+      if (vehicle.policeFlankSlot != null) return vehicle.policeFlankSlot;
+      const used = new Set();
+      for (let i = 0; i < vehicles.length; i++) {
+        const other = vehicles[i];
+        if (!other.isPoliceCar || other === vehicle) continue;
+        if (other.policeFlankSlot == null) continue;
+        used.add(other.policeFlankSlot);
+      }
+      let slot = 0;
+      while (used.has(slot) && slot < POLICE_FLANK_SLOTS.length) slot++;
+      vehicle.policeFlankSlot = slot % POLICE_FLANK_SLOTS.length;
+      return vehicle.policeFlankSlot;
+    }
+
+    function resolvePoliceParkPose(vehicle, target) {
+      const slotIndex = claimPoliceFlankSlot(vehicle);
+      const slot = POLICE_FLANK_SLOTS[slotIndex] || POLICE_FLANK_SLOTS[0];
+      const facing = getWantedTargetFacing(target);
+      const fx = Math.cos(facing);
+      const fy = Math.sin(facing);
+      const px = -fy;
+      const py = fx;
+      const offset = WANTED.policeParkOffset;
+      let x = target.x + px * slot.side * offset + fx * slot.along;
+      let y = target.y + py * slot.side * offset + fy * slot.along;
+      const parkAngle = facing + slot.side * (Math.PI / 2);
+      const radius = vehicle.driveRadius || vehicle.radius || 13;
+      if (!canDriveAt(x, y, radius)) {
+        for (let t = 0.85; t >= 0.35; t -= 0.1) {
+          const tx = target.x + (x - target.x) * t;
+          const ty = target.y + (y - target.y) * t;
+          if (canDriveAt(tx, ty, radius)) {
+            x = tx;
+            y = ty;
+            break;
+          }
+        }
+      }
+      return { x, y, angle: parkAngle };
+    }
+
+    function assignPoliceCarRoles() {
+      const hunters = [];
+      for (let i = 0; i < vehicles.length; i++) {
+        const car = vehicles[i];
+        if (!car.isPoliceCar || !car.ai || car.policeAbandoned || car.driverId) continue;
+        if (car === activeVehicle) continue;
+        hunters.push(car);
+      }
+      const maxWanted = getMaxWantedLevel();
+      if (maxWanted < WANTED.policeRamFromStars) {
+        hunters.forEach(car => {
+          car.policeRole = 'bail';
+        });
+        return;
+      }
+      const sticky = hunters.filter(car =>
+        car.policeRole === 'bail' && (car.policeParking || car.policeFlankSlot != null)
+      );
+      const bailSet = new Set(sticky.slice(0, WANTED.policeBackupParkCount));
+      if (bailSet.size < WANTED.policeBackupParkCount) {
+        const ranked = hunters
+          .filter(car => !bailSet.has(car))
+          .map(car => {
+            const target = getNearestWantedTarget(car.x, car.y);
+            const dist = target
+              ? Math.hypot(target.x - car.x, target.y - car.y)
+              : Infinity;
+            return { car, dist };
+          })
+          .sort((a, b) => a.dist - b.dist);
+        for (let i = 0; i < ranked.length && bailSet.size < WANTED.policeBackupParkCount; i++) {
+          bailSet.add(ranked[i].car);
+        }
+      }
+      hunters.forEach(car => {
+        car.policeRole = bailSet.has(car) ? 'bail' : 'ram';
+        if (car.policeRole === 'ram') {
+          car.policeFlankSlot = null;
+          car.policeParking = false;
+        }
+      });
     }
 
     function snapPoliceCarToRoam(vehicle) {
@@ -6367,13 +6572,8 @@
       else vehicle.x = lane;
     }
 
-    function updatePoliceCarChase(vehicle) {
-      const target = getNearestWantedTarget(vehicle.x, vehicle.y);
-      if (!target) {
-        snapPoliceCarToRoam(vehicle);
-        return;
-      }
-
+    function drivePoliceCarToward(vehicle, goalX, goalY, opts) {
+      opts = opts || {};
       if (vehicle.vx == null) vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
       if (vehicle.vy == null) vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
       if (vehicle.steerRate == null) vehicle.steerRate = 0;
@@ -6381,15 +6581,19 @@
       const spec = getCarSpec(vehicle);
       const crawl = 0.12;
       const damageMultiplier = carHealthSpeedMult(vehicle);
-      const maxSpeed = WANTED.policeChaseSpeed * damageMultiplier;
+      const maxSpeed = WANTED.policeChaseSpeed * damageMultiplier * (opts.speedMul != null ? opts.speedMul : 1);
       const accel = WANTED.policeChaseAccel * damageMultiplier;
-      const turnSpeed = WANTED.policeChaseTurnSpeed;
+      const turnSpeed = WANTED.policeChaseTurnSpeed * (opts.turnMul != null ? opts.turnMul : 1);
       const steerAccel = WANTED.policeChaseSteerAccel;
 
-      const dx = target.x - vehicle.x;
-      const dy = target.y - vehicle.y;
+      const dx = goalX - vehicle.x;
+      const dy = goalY - vehicle.y;
       const dist = Math.hypot(dx, dy);
-      const desired = Math.atan2(dy, dx);
+      let desired = Math.atan2(dy, dx);
+      if (opts.faceAngle != null && dist < (opts.faceBlendDist != null ? opts.faceBlendDist : 70)) {
+        const blend = 1 - Math.min(1, dist / (opts.faceBlendDist != null ? opts.faceBlendDist : 70));
+        desired = desired + shortestAngleDiff(desired, opts.faceAngle) * (0.35 + 0.65 * blend);
+      }
       const angleDiff = shortestAngleDiff(vehicle.angle, desired);
 
       let intent = 0;
@@ -6398,8 +6602,12 @@
 
       // Throttle like a driven car: push to chase speed, ease when close / turning hard.
       let approach = maxSpeed;
-      if (dist < 45) approach = maxSpeed * 0.52;
-      else if (dist < 90) approach = maxSpeed * (0.55 + 0.45 * ((dist - 45) / 45));
+      const nearA = opts.nearSlow != null ? opts.nearSlow : 45;
+      const nearB = opts.midSlow != null ? opts.midSlow : 90;
+      if (dist < nearA) approach = maxSpeed * (opts.nearSpeedMul != null ? opts.nearSpeedMul : 0.52);
+      else if (dist < nearB) {
+        approach = maxSpeed * (0.55 + 0.45 * ((dist - nearA) / Math.max(1, nearB - nearA)));
+      }
       if (Math.abs(angleDiff) > 0.85) approach *= 0.78;
       else if (Math.abs(angleDiff) > 0.45) approach *= 0.9;
 
@@ -6416,15 +6624,20 @@
       const slipSigned = moveSpeed > crawl ? shortestAngleDiff(velAngle, vehicle.angle) : 0;
       const slipAngle = Math.abs(slipSigned);
 
+      const driftEnter = opts.forceDrift
+        ? Math.min(spec.driftEnter, 0.28)
+        : spec.driftEnter;
       const wantDrift = vehicle.speed > crawl &&
-        speedRatio >= spec.driftEnter &&
+        speedRatio >= driftEnter &&
         intent !== 0 &&
-        (Math.abs(vehicle.steerRate) > turnSpeed * 0.22 || slipAngle >= DRIVE_FEEL.driftSlipEnter);
+        (Math.abs(vehicle.steerRate) > turnSpeed * 0.22 ||
+          slipAngle >= DRIVE_FEEL.driftSlipEnter ||
+          !!opts.forceDrift);
       vehicle.drifting = wantDrift || (
         vehicle.drifting &&
         vehicle.speed > crawl &&
         speedRatio >= spec.driftHold &&
-        (intent !== 0 || slipAngle > DRIVE_FEEL.driftSlipHold)
+        (intent !== 0 || slipAngle > DRIVE_FEEL.driftSlipHold || !!opts.forceDrift)
       );
       if (absSpeed < crawl || speedRatio < 0.32) vehicle.drifting = false;
 
@@ -6436,6 +6649,7 @@
       if (absSpeed >= crawl) {
         let steerScale = 1.02 - 0.62 * speedRatio;
         if (vehicle.drifting) steerScale += spec.driftSteer;
+        if (opts.forceDrift) steerScale += 0.18;
         const maxSteer = turnSpeed *
           Math.max(0.26, Math.min(1.25, steerScale)) *
           Math.max(0.4, steerIntensity);
@@ -6486,12 +6700,10 @@
         vehicle.x = slide.x;
         vehicle.y = slide.y;
         if (slide.slid) {
-          vehicle.speed *= WALL_SCRAPE_FRICTION;
-          if (!slide.usedX) vehicle.vx = 0;
-          if (!slide.usedY) vehicle.vy = 0;
+          applySmoothWallScrape(vehicle, slide, headingX, headingY);
         }
       } else if (moveSpeed > crawl) {
-        // Blocked — probe left/right like before, but keep momentum model.
+        // Blocked — try a shallow dodge, otherwise arcade bounce off the wall.
         const left = vehicle.angle - 0.55;
         const right = vehicle.angle + 0.55;
         const probe = vehicle.speed * 0.65;
@@ -6504,20 +6716,112 @@
           vehicle.x = lx;
           vehicle.y = ly;
           vehicle.speed *= 0.88;
+          vehicle.dir = vehicle.angle;
+          vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
+          vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
+          vehicle.steerRate = 0;
+          vehicle.drifting = false;
         } else if (canDriveAt(rx, ry, radius)) {
           vehicle.angle = right;
           vehicle.x = rx;
           vehicle.y = ry;
           vehicle.speed *= 0.88;
+          vehicle.dir = vehicle.angle;
+          vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
+          vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
+          vehicle.steerRate = 0;
+          vehicle.drifting = false;
         } else {
-          vehicle.speed = -vehicle.speed * 0.28;
+          applyArcadeWallBounce(vehicle, radius, canDriveAt);
+          vehicle.dir = vehicle.angle;
+          vehicle.steerRate = 0;
         }
-        vehicle.dir = vehicle.angle;
-        vehicle.vx = Math.cos(vehicle.angle) * vehicle.speed;
-        vehicle.vy = Math.sin(vehicle.angle) * vehicle.speed;
-        vehicle.steerRate = 0;
-        vehicle.drifting = false;
       }
+    }
+
+    function updatePoliceCarChase(vehicle) {
+      const target = getNearestWantedTarget(vehicle.x, vehicle.y);
+      if (!target) {
+        snapPoliceCarToRoam(vehicle);
+        return;
+      }
+      drivePoliceCarToward(vehicle, target.x, target.y, null);
+    }
+
+    function abandonPoliceCarWithOfficer(vehicle) {
+      vehicle.speed = 0;
+      vehicle.vx = 0;
+      vehicle.vy = 0;
+      vehicle.steerRate = 0;
+      vehicle.drifting = false;
+      vehicle.parked = true;
+      vehicle.policeAbandoned = true;
+      vehicle.abandonTimer = WANTED.policeAbandonDespawnTicks;
+      vehicle.policeParking = false;
+      vehicle.policeFlankSlot = null;
+      spawnPoliceFromVehicle(vehicle, {
+        shootDelayTicks: WANTED.policeExitShootDelayTicks,
+        linkVehicle: true
+      });
+    }
+
+    function updatePoliceCarBailChase(vehicle) {
+      const target = getNearestWantedTarget(vehicle.x, vehicle.y);
+      if (!target) {
+        clearPoliceCarTactic(vehicle);
+        snapPoliceCarToRoam(vehicle);
+        return;
+      }
+
+      const distToTarget = Math.hypot(target.x - vehicle.x, target.y - vehicle.y);
+
+      // Player flees mid-park: cancel and chase in the car again.
+      if (vehicle.policeParking && distToTarget > WANTED.policeParkCancelDist) {
+        vehicle.policeParking = false;
+        vehicle.policeFlankSlot = null;
+      }
+
+      if (!vehicle.policeParking && distToTarget > WANTED.policeApproachDist) {
+        drivePoliceCarToward(vehicle, target.x, target.y, null);
+        return;
+      }
+
+      vehicle.policeParking = true;
+      const park = resolvePoliceParkPose(vehicle, target);
+      const distToPark = Math.hypot(park.x - vehicle.x, park.y - vehicle.y);
+
+      if (distToPark <= WANTED.policeParkArriveDist && Math.abs(vehicle.speed) < 1.35) {
+        const faceErr = Math.abs(shortestAngleDiff(vehicle.angle, park.angle));
+        if (faceErr < 0.55 || distToPark < 16) {
+          vehicle.angle = park.angle;
+          vehicle.dir = park.angle;
+          abandonPoliceCarWithOfficer(vehicle);
+          return;
+        }
+      }
+
+      drivePoliceCarToward(vehicle, park.x, park.y, {
+        speedMul: 0.88,
+        turnMul: 1.15,
+        nearSlow: 36,
+        midSlow: 78,
+        nearSpeedMul: 0.38,
+        forceDrift: distToPark < 95,
+        faceAngle: park.angle,
+        faceBlendDist: 85
+      });
+    }
+
+    function updatePoliceCarHuntAI(vehicle) {
+      if (vehicle.policeAbandoned) return;
+      if (!vehicle.policeRole) vehicle.policeRole = 'bail';
+      if (vehicle.policeRole === 'ram') {
+        vehicle.policeParking = false;
+        vehicle.policeFlankSlot = null;
+        updatePoliceCarChase(vehicle);
+        return;
+      }
+      updatePoliceCarBailChase(vehicle);
     }
 
     function countPolice() {
@@ -6887,6 +7191,23 @@
       }
     }
 
+    function remountPoliceOfficer(pedestrian, car) {
+      if (!pedestrian || !car || !car.isPoliceCar) return false;
+      car.policeAbandoned = false;
+      car.abandonTimer = 0;
+      car.parked = false;
+      car.ai = true;
+      car.driverId = null;
+      clearPoliceCarTactic(car);
+      car.policeRole = 'bail';
+      car.speed = 0;
+      car.vx = 0;
+      car.vy = 0;
+      car.steerRate = 0;
+      car.drifting = false;
+      return true;
+    }
+
     function updatePolicePedestrian(pedestrian) {
       const target = getNearestWantedTarget(pedestrian.x, pedestrian.y);
       if (!target) {
@@ -6916,9 +7237,26 @@
       }
 
       pedestrian.dismissing = false;
-      const dx = target.x - pedestrian.x;
-      const dy = target.y - pedestrian.y;
-      const dist = Math.hypot(dx, dy);
+      let dx = target.x - pedestrian.x;
+      let dy = target.y - pedestrian.y;
+      let dist = Math.hypot(dx, dy);
+
+      // Player escaped far: run back to the abandoned cruiser and remount.
+      if (pedestrian.sourceVehicleId && dist > WANTED.policeRemountDist) {
+        const car = vehicles.find(v => v.id === pedestrian.sourceVehicleId);
+        if (car && car.policeAbandoned && !car.driverId && car !== activeVehicle) {
+          const toCarX = car.x - pedestrian.x;
+          const toCarY = car.y - pedestrian.y;
+          const toCarDist = Math.hypot(toCarX, toCarY);
+          if (toCarDist < 36) {
+            return remountPoliceOfficer(pedestrian, car);
+          }
+          dx = toCarX;
+          dy = toCarY;
+          dist = toCarDist;
+        }
+      }
+
       const desired = Math.atan2(dy, dx);
       let angleDiff = desired - pedestrian.angle;
       while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
@@ -6938,10 +7276,15 @@
       }
 
       if (pedestrian.shootCooldown > 0) pedestrian.shootCooldown--;
-      const facingDot = Math.cos(pedestrian.angle) * (dx / Math.max(dist, 0.01)) +
-        Math.sin(pedestrian.angle) * (dy / Math.max(dist, 0.01));
+      // Only shoot while actively engaging the wanted target (not while remounting).
+      const engagingTarget = Math.hypot(target.x - pedestrian.x, target.y - pedestrian.y);
+      const toTargetDx = target.x - pedestrian.x;
+      const toTargetDy = target.y - pedestrian.y;
+      const facingDot = Math.cos(pedestrian.angle) * (toTargetDx / Math.max(engagingTarget, 0.01)) +
+        Math.sin(pedestrian.angle) * (toTargetDy / Math.max(engagingTarget, 0.01));
       if (
-        dist <= WANTED.policeShootRange &&
+        engagingTarget <= WANTED.policeShootRange &&
+        engagingTarget <= WANTED.policeRemountDist &&
         facingDot >= WANTED.policeAimDot &&
         pedestrian.shootCooldown <= 0 &&
         isOnPlayableMap(pedestrian.x, pedestrian.y)
@@ -7539,9 +7882,10 @@
       });
     }
 
-    // Jacking a police car dumps the officer beside it; they can't fire until delay elapses.
-    function spawnEjectedPoliceOfficer(vehicle) {
+    // Dump an officer beside a police car (jack or ordered bail-out).
+    function spawnPoliceFromVehicle(vehicle, opts) {
       if (!vehicle) return;
+      opts = opts || {};
       const rightX = -Math.sin(vehicle.angle);
       const rightY = Math.cos(vehicle.angle);
       let spawnX = vehicle.x + rightX * 24;
@@ -7558,6 +7902,9 @@
       });
       const faceX = player.x - spawnX;
       const faceY = player.y - spawnY;
+      const delay = opts.shootDelayTicks != null
+        ? opts.shootDelayTicks
+        : WANTED.policeEjectShootDelayTicks;
       pedestrians.push({
         id: `police-eject-${simulationTick}-${Math.floor(Math.random() * 999)}`,
         x: spawnX,
@@ -7575,7 +7922,15 @@
         isPolice: true,
         health: WANTED.policeHp,
         maxHealth: WANTED.policeHp,
-        shootCooldown: WANTED.policeEjectShootDelayTicks
+        shootCooldown: delay,
+        sourceVehicleId: opts.linkVehicle ? vehicle.id : null
+      });
+    }
+
+    function spawnEjectedPoliceOfficer(vehicle) {
+      spawnPoliceFromVehicle(vehicle, {
+        shootDelayTicks: WANTED.policeEjectShootDelayTicks,
+        linkVehicle: false
       });
     }
 
@@ -7627,7 +7982,111 @@
       return { x, y, slid: false, moved: false, usedX: false, usedY: false };
     }
 
-    const WALL_SCRAPE_FRICTION = 0.97;
+    const WALL_SCRAPE_FRICTION = ARCADE_BOUNCE.scrapeFriction;
+
+    function estimateWallNormal(x, y, vx, vy, radius, canFn) {
+      const probe = Math.max(4, radius * 0.55);
+      let nx = 0;
+      let ny = 0;
+      if (!canFn(x + probe, y, radius)) nx -= 1;
+      if (!canFn(x - probe, y, radius)) nx += 1;
+      if (!canFn(x, y + probe, radius)) ny -= 1;
+      if (!canFn(x, y - probe, radius)) ny += 1;
+      let len = Math.hypot(nx, ny);
+      if (len < 0.001) {
+        const sp = Math.hypot(vx, vy);
+        if (sp < 0.001) return { nx: 0, ny: -1 };
+        return { nx: -vx / sp, ny: -vy / sp };
+      }
+      return { nx: nx / len, ny: ny / len };
+    }
+
+    function arcadeReflectVelocity(vx, vy, nx, ny, restitution) {
+      const into = vx * nx + vy * ny;
+      if (into >= -0.02) {
+        return { vx, vy, impact: 0, bounced: false };
+      }
+      const impact = -into;
+      const e = restitution != null ? restitution : ARCADE_BOUNCE.restitution;
+      return {
+        vx: vx - (1 + e) * into * nx,
+        vy: vy - (1 + e) * into * ny,
+        impact,
+        bounced: true
+      };
+    }
+
+    function applySmoothWallScrape(body, slide, headingX, headingY) {
+      if (!slide.usedX) body.vx *= ARCADE_BOUNCE.scrapeRetain;
+      if (!slide.usedY) body.vy *= ARCADE_BOUNCE.scrapeRetain;
+      body.vx *= ARCADE_BOUNCE.scrapeFriction;
+      body.vy *= ARCADE_BOUNCE.scrapeFriction;
+      const forward = body.vx * headingX + body.vy * headingY;
+      body.speed += (forward - body.speed) * ARCADE_BOUNCE.scrapeSpeedBlend;
+    }
+
+    function applyArcadeWallBounce(body, radius, canFn) {
+      const headingX = Math.cos(body.angle);
+      const headingY = Math.sin(body.angle);
+      const normal = estimateWallNormal(body.x, body.y, body.vx, body.vy, radius, canFn);
+      const hit = arcadeReflectVelocity(
+        body.vx,
+        body.vy,
+        normal.nx,
+        normal.ny,
+        ARCADE_BOUNCE.restitution
+      );
+      if (!hit.bounced) {
+        const fallBack = Math.hypot(body.vx, body.vy) * ARCADE_BOUNCE.restitution;
+        body.speed = -Math.sign(body.speed || 1) * fallBack;
+        body.vx = headingX * body.speed;
+        body.vy = headingY * body.speed;
+        return hit;
+      }
+      body.vx = hit.vx;
+      body.vy = hit.vy;
+      body.x += normal.nx * ARCADE_BOUNCE.wallSep;
+      body.y += normal.ny * ARCADE_BOUNCE.wallSep;
+      if (!canFn(body.x, body.y, radius)) {
+        body.x += normal.nx * ARCADE_BOUNCE.wallSep;
+        body.y += normal.ny * ARCADE_BOUNCE.wallSep;
+      }
+      body.speed = body.vx * headingX + body.vy * headingY;
+      body.drifting = false;
+      return hit;
+    }
+
+    function vehicleShoveWeight(vehicle) {
+      if (!vehicle) return 1;
+      if (vehicle.isBike) return 0.72;
+      return getCarSpec(vehicle).shove || 1;
+    }
+
+    function applyContactNormalBounce(vehicle, nx, ny, bounceAlongNormal) {
+      const vel = vehicleWorldVel(vehicle);
+      const vn = vel.vx * nx + vel.vy * ny;
+      const newVx = vel.vx - vn * nx + nx * bounceAlongNormal;
+      const newVy = vel.vy - vn * ny + ny * bounceAlongNormal;
+      const forward = newVx * Math.cos(vehicle.angle) + newVy * Math.sin(vehicle.angle);
+
+      vehicle.vx = newVx;
+      vehicle.vy = newVy;
+      vehicle.speed = forward;
+
+      if (vehicle === activeVehicle) {
+        player.vx = newVx;
+        player.vy = newVy;
+        player.speed = forward;
+        player.drifting = false;
+      } else if (net.role === 'host' && vehicle.driverId && vehicle.driverId !== net.localId) {
+        const rp = net.players.get(vehicle.driverId);
+        if (rp) {
+          rp.vx = newVx;
+          rp.vy = newVy;
+          rp.speed = forward;
+        }
+      }
+    }
 
     function canDriveAt(x, y, radius) {
       if (hitsCabinet(x, y, radius)) return false;
@@ -8243,14 +8702,17 @@
         vehicle.speed *= 0.94;
       }
 
+      if (policeCarsHunting) assignPoliceCarRoles();
+
       for (let i = 0; i < vehicles.length; i++) {
         const vehicle = vehicles[i];
         if (!vehicle.ai) continue;
+        if (vehicle.isPoliceCar && vehicle.policeAbandoned) continue;
 
         if (vehicle.isPoliceCar && policeCarsHunting) {
           vehicle.turn = null;
           vehicle.turnIntent = null;
-          updatePoliceCarChase(vehicle);
+          updatePoliceCarHuntAI(vehicle);
           continue;
         }
 
@@ -8560,7 +9022,7 @@
       vehicleGridBucketsUsed = 0;
       for (let i = 0; i < vehicles.length; i++) {
         const vehicle = vehicles[i];
-        if (!vehicle || vehicle.isBike || vehicle.dead) continue;
+        if (!vehicle || vehicle.dead) continue;
         const cx = Math.floor(vehicle.x / VEHICLE_GRID_CELL);
         const cy = Math.floor(vehicle.y / VEHICLE_GRID_CELL);
         const key = cx + ',' + cy;
@@ -8580,7 +9042,7 @@
 
       for (let i = 0; i < vehicles.length; i++) {
         const first = vehicles[i];
-        if (!first || first.isBike || first.dead) continue;
+        if (!first || first.dead) continue;
 
         const cx = Math.floor(first.x / VEHICLE_GRID_CELL);
         const cy = Math.floor(first.y / VEHICLE_GRID_CELL);
@@ -8595,7 +9057,7 @@
               if (j <= i) continue;
 
               const second = vehicles[j];
-              if (!second || second.isBike || second.dead) continue;
+              if (!second || second.dead) continue;
 
               const dx = second.x - first.x;
               const dy = second.y - first.y;
@@ -8614,9 +9076,9 @@
               const closing = Math.max(0, -(relVx * normalX + relVy * normalY));
               const impactSpeed = Math.hypot(relVx, relVy);
               const kick = Math.min(10, closing * 0.7 + impactSpeed * 0.18);
-              const w1 = getCarSpec(first).shove;
-              const w2 = getCarSpec(second).shove;
-              const weightSum = w1 + w2;
+              const w1 = vehicleShoveWeight(first);
+              const w2 = vehicleShoveWeight(second);
+              const weightSum = Math.max(0.001, w1 + w2);
               const sep = overlap + kick * 0.84;
               const push1 = sep * (w2 / weightSum);
               const push2 = sep * (w1 / weightSum);
@@ -8656,7 +9118,8 @@
                       playSfx('crash');
                     }
                   }
-                  const dmg = carCrashDamageFromImpact(impactSpeed);
+                  const bikeInvolved = !!(first.isBike || second.isBike);
+                  const dmg = bikeInvolved ? 0 : carCrashDamageFromImpact(impactSpeed);
                   if (dmg > 0) {
                     first.health = Math.max(0, first.health - dmg);
                     second.health = Math.max(0, second.health - dmg);
@@ -8669,42 +9132,38 @@
                       if (crashDriver) playerCausedCrash = crashDriver;
                     }
                   }
-                  first.speed *= -0.28;
-                  second.speed *= -0.28;
-                  if (first === activeVehicle) {
-                    player.speed = first.speed;
-                    player.vx = Math.cos(player.angle) * player.speed;
-                    player.vy = Math.sin(player.angle) * player.speed;
-                    player.drifting = false;
-                  } else if (net.role === 'host' && first.driverId && first.driverId !== net.localId) {
+
+                  // Arcade: push apart along contact normal at 70% of closing speed.
+                  const repulse = Math.max(closing, impactSpeed * 0.35) * ARCADE_BOUNCE.restitution;
+                  applyContactNormalBounce(first, normalX, normalY, -repulse * (w2 / weightSum));
+                  applyContactNormalBounce(second, normalX, normalY, repulse * (w1 / weightSum));
+
+                  if (net.role === 'host' && first.driverId && first.driverId !== net.localId) {
                     const rp = net.players.get(first.driverId);
                     if (rp) {
-                      rp.speed = first.speed;
                       netSendToPeer(rp.id, {
                         t: 'car_bump',
                         vehicleId: first.id,
                         x: first.x,
                         y: first.y,
                         speed: first.speed,
+                        vx: first.vx,
+                        vy: first.vy,
                         shake: shakeAmt
                       });
                     }
                   }
-                  if (second === activeVehicle) {
-                    player.speed = second.speed;
-                    player.vx = Math.cos(player.angle) * player.speed;
-                    player.vy = Math.sin(player.angle) * player.speed;
-                    player.drifting = false;
-                  } else if (net.role === 'host' && second.driverId && second.driverId !== net.localId) {
+                  if (net.role === 'host' && second.driverId && second.driverId !== net.localId) {
                     const rp = net.players.get(second.driverId);
                     if (rp) {
-                      rp.speed = second.speed;
                       netSendToPeer(rp.id, {
                         t: 'car_bump',
                         vehicleId: second.id,
                         x: second.x,
                         y: second.y,
                         speed: second.speed,
+                        vx: second.vx,
+                        vy: second.vy,
                         shake: shakeAmt
                       });
                     }
@@ -8724,6 +9183,8 @@
         player.x = activeVehicle.x;
         player.y = activeVehicle.y;
         player.speed = activeVehicle.speed;
+        if (activeVehicle.vx != null) player.vx = activeVehicle.vx;
+        if (activeVehicle.vy != null) player.vy = activeVehicle.vy;
       }
     }
 
@@ -11833,7 +12294,13 @@
           });
         } else {
           if (v.isPoliceCar) {
-            spawnEjectedPoliceOfficer(v);
+            if (v.policeAbandoned) {
+              v.policeAbandoned = false;
+              v.abandonTimer = 0;
+              clearPoliceCarTactic(v);
+            } else {
+              spawnEjectedPoliceOfficer(v);
+            }
           } else if (!v.parked && Math.abs(v.speed) > 0.35) {
             spawnFleeingDriver(v);
           }
@@ -12071,8 +12538,13 @@
       } else if (msg.t === 'car_bump') {
         if (activeVehicle && activeVehicle.id === msg.vehicleId) {
           player.speed = msg.speed;
-          player.vx = Math.cos(player.angle) * player.speed;
-          player.vy = Math.sin(player.angle) * player.speed;
+          if (typeof msg.vx === 'number' && typeof msg.vy === 'number') {
+            player.vx = msg.vx;
+            player.vy = msg.vy;
+          } else {
+            player.vx = Math.cos(player.angle) * player.speed;
+            player.vy = Math.sin(player.angle) * player.speed;
+          }
           player.drifting = false;
           if (typeof msg.x === 'number' && typeof msg.y === 'number') {
             player.x += (msg.x - player.x) * 0.5;
@@ -12080,6 +12552,9 @@
             activeVehicle.x = player.x;
             activeVehicle.y = player.y;
           }
+          activeVehicle.speed = player.speed;
+          activeVehicle.vx = player.vx;
+          activeVehicle.vy = player.vy;
           addCameraShake(msg.shake || SHAKE.mediumCrash);
           playSfx('crash');
         }
@@ -13414,7 +13889,8 @@
         }
       }
 
-      // Right joystick → omnidirectional aim/shoot (car-relative). On foot: L/R still turns.
+      // Right joystick → aim/shoot. On foot: L/R turns; shoot only in up/down cones.
+      // Mounted: full omnidirectional aim (unchanged).
       if (mobileTouch.aim.active) {
         const walkTurnDz = walking
           ? mobileSteerDeadzone(MOBILE_STEER_FEEL.walkDeadzone, player.angle)
@@ -13432,16 +13908,46 @@
 
         const aimMag = Math.hypot(mobileTouch.aim.vx, mobileTouch.aim.vy);
         if (aimMag >= SHOOT_DEADZONE) {
-          const stickAng = Math.atan2(mobileTouch.aim.vx, -mobileTouch.aim.vy);
-          mobileAnalogAim.active = true;
-          mobileAnalogAim.angle = player.angle + stickAng;
-          mobileAnalogAim.nx = mobileTouch.aim.vx / aimMag;
-          mobileAnalogAim.ny = mobileTouch.aim.vy / aimMag;
-          const ax = Math.abs(mobileAnalogAim.nx);
-          const ay = Math.abs(mobileAnalogAim.ny);
-          gun.lastShootCode = ay >= ax
-            ? (mobileAnalogAim.ny > 0 ? 'ArrowDown' : 'ArrowUp')
-            : (mobileAnalogAim.nx < 0 ? 'ArrowLeft' : 'ArrowRight');
+          let stickAng = Math.atan2(mobileTouch.aim.vx, -mobileTouch.aim.vy);
+          let allowShoot = true;
+          let aimNx = mobileTouch.aim.vx / aimMag;
+          let aimNy = mobileTouch.aim.vy / aimMag;
+
+          if (walking) {
+            const maxA = MOBILE_FOOT_AIM.maxAngleFromVertical;
+            const absAng = Math.abs(stickAng);
+            const toFwd = absAng;
+            const toBack = Math.PI - absAng;
+            if (toFwd <= maxA) {
+              stickAng = Math.max(-maxA, Math.min(maxA, stickAng));
+            } else if (toBack <= maxA) {
+              if (stickAng >= 0) {
+                stickAng = Math.max(Math.PI - maxA, Math.min(Math.PI, stickAng));
+              } else {
+                stickAng = Math.min(-(Math.PI - maxA), Math.max(-Math.PI, stickAng));
+              }
+            } else {
+              // Mostly left/right: turn only, no fire.
+              allowShoot = false;
+            }
+            if (allowShoot) {
+              // Clamped stick space: 0 = up, ±PI = down.
+              aimNx = Math.sin(stickAng);
+              aimNy = -Math.cos(stickAng);
+            }
+          }
+
+          if (allowShoot) {
+            mobileAnalogAim.active = true;
+            mobileAnalogAim.angle = player.angle + stickAng;
+            mobileAnalogAim.nx = aimNx;
+            mobileAnalogAim.ny = aimNy;
+            const ax = Math.abs(mobileAnalogAim.nx);
+            const ay = Math.abs(mobileAnalogAim.ny);
+            gun.lastShootCode = ay >= ax
+              ? (mobileAnalogAim.ny > 0 ? 'ArrowDown' : 'ArrowUp')
+              : (mobileAnalogAim.nx < 0 ? 'ArrowLeft' : 'ArrowRight');
+          }
         } else if (mounted) {
           // Below fire deadzone: no shoot (omni aim uses SHOOT_DEADZONE only).
         }
@@ -13727,6 +14233,7 @@
         if (net.role === 'host' || !wasted) {
           updatePoliceCarHuntState();
           maintainPoliceCars();
+          updateAbandonedPoliceCars();
           updateEntities();
           updatePedestrians();
           updatePolice();
