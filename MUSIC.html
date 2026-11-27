@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Music — George Symonds</title>
+    <link rel="icon" type="image/png" href="Portfolio/static/img/GSICON.png">
+    <link rel="stylesheet" href="Portfolio/portfolio.css">
+    <link rel="canonical" href="https://www.1-earth.world/MUSIC.html">
+    <meta name="description" content="Stream recent music by George Symonds, including Me Myself &amp; I and 7 Days, on Spotify, Apple Music, and Deezer.">
+    <meta name="author" content="George Symonds">
+    <meta name="theme-color" content="#0e0e0e">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ONE EARTH PRODUCTIONS">
+    <meta property="og:title" content="Recent Music — George Symonds">
+    <meta property="og:description" content="Stream recent music by George Symonds, including Me Myself &amp; I and 7 Days, on Spotify, Apple Music, and Deezer.">
+    <meta property="og:url" content="https://www.1-earth.world/MUSIC.html">
+    <meta property="og:image" content="https://www.1-earth.world/static/images/images/MeMyself%26ICOVER.png">
+    <meta property="og:image:alt" content="Me Myself &amp; I cover art. George Symonds.">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Recent Music — George Symonds">
+    <meta name="twitter:description" content="Stream recent music by George Symonds, including Me Myself &amp; I and 7 Days, on Spotify, Apple Music, and Deezer.">
+    <meta name="twitter:image" content="https://www.1-earth.world/static/images/images/MeMyself%26ICOVER.png">
+    <meta name="twitter:image:alt" content="Me Myself &amp; I cover art. George Symonds.">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Recent Music — George Symonds",
+        "url": "https://www.1-earth.world/MUSIC.html",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "item": {
+                    "@type": "MusicRecording",
+                    "name": "Me Myself & I",
+                    "image": "https://www.1-earth.world/static/images/images/MeMyself%26ICOVER.png",
+                    "byArtist": { "@type": "Person", "name": "George Symonds" }
+                }
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "item": {
+                    "@type": "MusicRecording",
+                    "name": "7 Days",
+                    "image": "https://www.1-earth.world/Portfolio/static/img/7-days-cover.jpg",
+                    "byArtist": [
+                        { "@type": "Person", "name": "George Symonds" },
+                        { "@type": "Person", "name": "Vicky Kosasie" },
+                        { "@type": "Person", "name": "Jesse Ayo" },
+                        { "@type": "Person", "name": "Macz Payne" }
+                    ]
+                }
+            }
+        ]
+    }
+    </script>
+    <style>
+        html {
+            background: #000;
+        }
+
+        body {
+            background: transparent;
+        }
+
+        .video-background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .video-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.78);
+            pointer-events: none;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .music-page {
+            width: min(100% - 32px, 480px);
+            margin: 0 auto;
+            padding: 23px 0 48px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .kr-logo {
+            display: block;
+            width: 23px;
+            height: 23px;
+            object-fit: contain;
+            margin: 0 auto 16px;
+        }
+
+        .carousel {
+            position: relative;
+        }
+
+        .carousel-viewport {
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        .carousel-track {
+            display: flex;
+            width: 100%;
+            will-change: transform;
+        }
+
+        .carousel-track > .release {
+            flex: 0 0 86%;
+            width: 86%;
+            box-sizing: border-box;
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .carousel-arrow {
+            display: inline-flex;
+            position: absolute;
+            top: 78px;
+            z-index: 3;
+            width: 46px;
+            height: 46px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: 0.5px solid #fff;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.82);
+            color: #fff;
+            box-shadow: 0 3px 0 #3a3a3a;
+            font: inherit;
+            font-size: 1.4rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .carousel-arrow--prev {
+            left: -62px;
+        }
+
+        .carousel-arrow--next {
+            right: -62px;
+        }
+
+        .carousel-arrow:hover,
+        .carousel-arrow:focus-visible {
+            background: #fff;
+            color: #000;
+        }
+
+        .carousel-arrow:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .carousel-arrow:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #3a3a3a;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .carousel-dot {
+            width: 9px;
+            height: 9px;
+            padding: 0;
+            border: 0.5px solid #fff;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .carousel-dot[aria-current="true"] {
+            background: #fff;
+        }
+
+        .carousel-dot:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .carousel-arrow {
+                top: 86px;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                font-size: 1rem;
+                box-shadow: 0 2px 0 #3a3a3a;
+            }
+
+            .carousel-arrow--prev {
+                left: 0;
+            }
+
+            .carousel-arrow--next {
+                right: 0;
+            }
+        }
+
+        .cover {
+            width: min(78%, 100px);
+            height: auto;
+            display: block;
+            margin: 0 auto 16px;
+        }
+
+        .release h2 {
+            margin: 0;
+            font-size: 2.4rem;
+            font-weight: bold;
+            letter-spacing: 0.01em;
+            line-height: 1.1;
+        }
+
+        .artist {
+            margin: 10px 0 0;
+            font-size: 0.6rem;
+            color: #d0d0d0;
+        }
+
+        .streams {
+            list-style: none;
+            margin: 28px 0 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .stream-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 64px;
+            padding: 8px 8px 8px 14px;
+            background: rgba(26, 26, 26, 0.8);
+            color: #fff;
+            text-decoration: none;
+            border: 0.5px solid #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .stream-link:hover,
+        .stream-link:focus-visible {
+            background: #111;
+        }
+
+        .stream-link:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .stream-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            font-size: 1.05rem;
+        }
+
+        .stream-brand img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .youtube-video {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            height: auto;
+            border: 0.5px solid #fff;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .stream-play {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            background: #0000ff;
+            color: #fff;
+            border: 0.5px solid #fff;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .stream-link:hover .stream-play,
+        .stream-link:focus-visible .stream-play {
+            background: #fff;
+            color: #000;
+        }
+
+        .play-icon {
+            width: 0;
+            height: 0;
+            border-left: 9px solid currentColor;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .release-footer {
+            text-align: center;
+            color: hsl(0, 0%, 54%);
+            padding: 28px 16px 40px;
+            border-top: 0.5px solid #333;
+            position: relative;
+            z-index: 2;
+        }
+
+        .release-footer p {
+            margin: 0;
+        }
+
+        .release-footer p + p {
+            margin-top: 12px;
+        }
+
+        .connect {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .release-footer a {
+            color: #ff8c00;
+            text-decoration: none;
+        }
+
+        .release-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .release h2 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <video class="video-background" autoplay muted loop playsinline preload="auto" aria-hidden="true" tabindex="-1">
+        <source src="Portfolio/static/7DAYSCANVAS.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay" aria-hidden="true"></div>
+
+    <main class="music-page">
+        <h1 class="visually-hidden">Recent Music</h1>
+        <img class="kr-logo" src="Portfolio/static/img/KRICON.png" width="56" height="56" alt="KR">
+
+        <div class="carousel" data-carousel>
+            <button type="button" class="carousel-arrow carousel-arrow--prev" data-carousel-prev aria-label="Previous song">
+                <span aria-hidden="true">←</span>
+            </button>
+            <div class="carousel-viewport" data-carousel-viewport>
+                <div class="carousel-track" data-carousel-track>
+        <article class="release" id="me-myself-and-i">
+            <img class="cover" src="static/images/images/MeMyself%26ICOVER.png" width="800" height="800" alt="Me Myself &amp; I cover art. George Symonds.">
+            <h2>Me Myself &amp; I</h2>
+            <p class="artist">George Symonds</p>
+            <ul class="streams">
+                <li>
+                    <iframe class="youtube-video" width="560" height="315" src="https://www.youtube.com/embed/MPFPyzynmEc?si=4EqPPZ-xcNkRcwez&amp;enablejsapi=1" title="Me Myself &amp; I — YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://open.spotify.com/album/6c83g7DhfGqiKS0bSvSmEb" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/spotify.svg" alt="" width="32" height="32">
+                            Spotify
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://music.apple.com/us/album/me-myself-i-single/6827177349" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/apple-music.svg" alt="" width="32" height="32">
+                            Apple Music
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://www.deezer.com/album/1131035101" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/deezer.png" alt="" width="32" height="32">
+                            Deezer
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+            </ul>
+        </article>
+
+        <article class="release" id="7-days">
+            <img class="cover" src="Portfolio/static/img/7-days-cover.jpg" width="800" height="800" alt="7 Days cover art. George Symonds.">
+            <h2>7 Days</h2>
+            <p class="artist">ft. Vicky Kosasie, Jesse Ayo & Macz Payne</p>
+            <ul class="streams">
+                <li>
+                    <iframe class="youtube-video" width="560" height="315" src="https://www.youtube.com/embed/bTXHBBtAm1U?si=8TobIfPiHiFndw_v&amp;enablejsapi=1" title="7 Days — YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://open.spotify.com/track/2EOpFscOAIZfkYIcB74ZYo" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/spotify.svg" alt="" width="32" height="32">
+                            Spotify
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://music.apple.com/us/album/7-days/6808557913?i=6808557914" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/apple-music.svg" alt="" width="32" height="32">
+                            Apple Music
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="stream-link" href="https://www.deezer.com/track/4265662372" target="_blank" rel="noopener noreferrer">
+                        <span class="stream-brand">
+                            <img src="Portfolio/static/img/deezer.png" alt="" width="32" height="32">
+                            Deezer
+                        </span>
+                        <span class="stream-play"><span class="play-icon" aria-hidden="true"></span>Play</span>
+                    </a>
+                </li>
+            </ul>
+        </article>
+                </div>
+            </div>
+            <button type="button" class="carousel-arrow carousel-arrow--next" data-carousel-next aria-label="Next song">
+                <span aria-hidden="true">→</span>
+            </button>
+            <div class="carousel-dots" data-carousel-dots role="group" aria-label="Songs"></div>
+            <p class="visually-hidden" data-carousel-live aria-live="polite"></p>
+        </div>
+    </main>
+
+    <footer class="release-footer">
+        <p class="connect">
+            <a href="https://www.instagram.com/georgesymonds_" target="_blank" rel="noopener noreferrer">Instagram</a>
+            <a href="https://www.youtube.com/channel/UCdD02XnRrpd1lNZA2Rt7MiA" target="_blank" rel="noopener noreferrer">YouTube</a>
+        </p>
+        <p>Website by 🌐 <a href="/">ONE EARTH PRODUCTIONS</a></p>
+    </footer>
+
+    <script src="Portfolio/site-title-glitch.js"></script>
+    <script>
+        (function () {
+            var carousel = document.querySelector('[data-carousel]');
+            if (!carousel) return;
+
+            var viewport = carousel.querySelector('[data-carousel-viewport]');
+            var track = carousel.querySelector('[data-carousel-track]');
+            var live = carousel.querySelector('[data-carousel-live]');
+            var dotsWrap = carousel.querySelector('[data-carousel-dots]');
+            var originals = Array.prototype.slice.call(track.children);
+            var songCount = originals.length;
+            if (songCount < 2) return;
+
+            var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var index = 1;
+            var dragging = false;
+            var suppressClick = false;
+            var startX = 0;
+            var startY = 0;
+            var startOffset = 0;
+            var axis = '';
+            var animating = false;
+            var motionId = 0;
+
+            function songName(slide) {
+                var heading = slide.querySelector('h2');
+                var artist = slide.querySelector('.artist');
+                var name = heading ? heading.textContent.replace(/\s+/g, ' ').trim() : 'Song';
+                var who = artist ? artist.textContent.replace(/\s+/g, ' ').trim() : '';
+                return who ? name + ', ' + who : name;
+            }
+
+            function logicalIndex() {
+                return (index - 1 + songCount) % songCount;
+            }
+
+            function stride() {
+                var slide = track.children[0];
+                return slide ? slide.getBoundingClientRect().width : viewport.clientWidth;
+            }
+
+            function offsetFor(i) {
+                var width = stride();
+                return (viewport.clientWidth - width) / 2 - i * width;
+            }
+
+            function pauseFrame(frame) {
+                try {
+                    if (!frame.contentWindow) return;
+                    frame.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'pauseVideo',
+                        args: ''
+                    }), '*');
+                } catch (err) {
+                    return;
+                }
+            }
+
+            function pauseInactive() {
+                var slides = track.children;
+                for (var i = 0; i < slides.length; i += 1) {
+                    if (i === index) continue;
+                    var frames = slides[i].querySelectorAll('iframe');
+                    for (var f = 0; f < frames.length; f += 1) pauseFrame(frames[f]);
+                }
+            }
+
+            function updateA11y() {
+                var slides = track.children;
+                var current = logicalIndex();
+                for (var i = 0; i < slides.length; i += 1) {
+                    var active = i === index;
+                    slides[i].setAttribute('aria-hidden', active ? 'false' : 'true');
+                    if ('inert' in slides[i]) slides[i].inert = !active;
+                }
+                var dots = dotsWrap.querySelectorAll('[data-carousel-dot]');
+                for (var d = 0; d < dots.length; d += 1) {
+                    var on = Number(dots[d].getAttribute('data-carousel-dot')) === current;
+                    if (on) dots[d].setAttribute('aria-current', 'true');
+                    else dots[d].removeAttribute('aria-current');
+                }
+                if (live && slides[index]) live.textContent = songName(slides[index]);
+            }
+
+            function normalize() {
+                if (index === 0) index = songCount;
+                else if (index === songCount + 1) index = 1;
+                else return;
+                track.style.transition = 'none';
+                track.style.transform = 'translate3d(' + offsetFor(index) + 'px,0,0)';
+            }
+
+            function finish() {
+                animating = false;
+                normalize();
+                updateA11y();
+                pauseInactive();
+            }
+
+            function place(animate) {
+                var useMotion = animate && !reduced;
+                track.style.transition = useMotion ? 'transform 0.45s ease' : 'none';
+                track.style.transform = 'translate3d(' + offsetFor(index) + 'px,0,0)';
+                if (!useMotion) {
+                    finish();
+                    return;
+                }
+                animating = true;
+                var id = ++motionId;
+                window.setTimeout(function () {
+                    if (id !== motionId) return;
+                    finish();
+                }, 520);
+            }
+
+            function go(delta) {
+                if (animating || !delta) return;
+                index += delta;
+                pauseInactive();
+                place(true);
+            }
+
+            function goToSong(songIndex) {
+                var current = logicalIndex();
+                if (songIndex === current) return;
+                var forward = (songIndex - current + songCount) % songCount;
+                var back = (current - songIndex + songCount) % songCount;
+                go(forward <= back ? forward : -back);
+            }
+
+            var prevClone = originals[songCount - 1].cloneNode(true);
+            var nextClone = originals[0].cloneNode(true);
+            [prevClone, nextClone].forEach(function (clone) {
+                clone.removeAttribute('id');
+                clone.setAttribute('data-clone', 'true');
+            });
+            track.insertBefore(prevClone, track.firstChild);
+            track.appendChild(nextClone);
+
+            originals.forEach(function (slide, i) {
+                var dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'carousel-dot';
+                dot.setAttribute('data-carousel-dot', String(i));
+                dot.setAttribute('aria-label', songName(slide));
+                dot.addEventListener('click', function () {
+                    goToSong(i);
+                });
+                dotsWrap.appendChild(dot);
+            });
+
+            carousel.querySelector('[data-carousel-prev]').addEventListener('click', function () {
+                go(-1);
+            });
+            carousel.querySelector('[data-carousel-next]').addEventListener('click', function () {
+                go(1);
+            });
+
+            track.addEventListener('transitionend', function (event) {
+                if (event.target !== track || event.propertyName !== 'transform') return;
+                motionId += 1;
+                finish();
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.altKey || event.ctrlKey || event.metaKey) return;
+                var tag = event.target && event.target.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+                if (event.key === 'ArrowLeft') {
+                    event.preventDefault();
+                    go(-1);
+                } else if (event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    go(1);
+                }
+            });
+
+            viewport.addEventListener('pointerdown', function (event) {
+                if (event.button !== undefined && event.button !== 0) return;
+                if (animating) return;
+                dragging = true;
+                suppressClick = false;
+                axis = '';
+                startX = event.clientX;
+                startY = event.clientY;
+                startOffset = offsetFor(index);
+                if (viewport.setPointerCapture) viewport.setPointerCapture(event.pointerId);
+            });
+
+            viewport.addEventListener('pointermove', function (event) {
+                if (!dragging) return;
+                var dx = event.clientX - startX;
+                var dy = event.clientY - startY;
+                if (!axis) {
+                    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+                    axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+                }
+                if (axis !== 'x') return;
+                suppressClick = true;
+                if (event.cancelable) event.preventDefault();
+                track.style.transition = 'none';
+                track.style.transform = 'translate3d(' + (startOffset + dx) + 'px,0,0)';
+            }, { passive: false });
+
+            function endDrag(event) {
+                if (!dragging) return;
+                dragging = false;
+                if (axis !== 'x') return;
+                var dx = event.clientX - startX;
+                var threshold = Math.max(48, stride() * 0.18);
+                if (dx <= -threshold) go(1);
+                else if (dx >= threshold) go(-1);
+                else place(true);
+            }
+
+            viewport.addEventListener('pointerup', endDrag);
+            viewport.addEventListener('pointercancel', endDrag);
+
+            viewport.addEventListener('click', function (event) {
+                if (!suppressClick) return;
+                event.preventDefault();
+                event.stopPropagation();
+                suppressClick = false;
+            }, true);
+
+            window.addEventListener('resize', function () {
+                if (dragging) return;
+                place(false);
+            });
+
+            if (window.ResizeObserver) {
+                var observer = new ResizeObserver(function () {
+                    if (dragging) return;
+                    if (animating) {
+                        track.style.transition = 'none';
+                        track.style.transform = 'translate3d(' + offsetFor(index) + 'px,0,0)';
+                        return;
+                    }
+                    place(false);
+                });
+                observer.observe(viewport);
+            }
+
+            place(false);
+        })();
+    </script>
+</body>
+</html>

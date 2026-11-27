@@ -17,6 +17,7 @@
  * Examples already wired:
  *   Z plaza  — walkable open ground (id PLAZA)
  *   W water  — non-walkable / non-drivable (id WATER)
+ *   B bridge — road deck over water (drive/walk on top; swim under)
  *   K/T/L/I  — detail props on pavement or road
  *   A/N      — trees on park / sidewalk (same detail bucket)
  */
@@ -31,7 +32,8 @@
     BUILDING_TALL: 4,
     PAVEMENT: 5,
     PLAZA: 6,
-    WATER: 7
+    WATER: 7,
+    BRIDGE: 8
   };
 
   /**
@@ -101,6 +103,24 @@
       gameGround: '#1e3a4a',
       basinWall: '#243848',
       basinWallShade: '#1a2c38'
+    },
+    // Dual-mode: land treats as road; swimming treats as water under the deck.
+    // Do NOT set water:true — that would sink cars / auto-enter swim on the deck.
+    [TILE_ID.BRIDGE]: {
+      name: 'bridge',
+      flags: { road: true, drivable: true, walkable: true, bridge: true },
+      height: 0,
+      // Deck crown reference (game arch interpolates deckMin→deckMax along span).
+      surfaceZ: 12,
+      underSurfaceZ: -16,
+      deckMinZ: 5,
+      deckMaxZ: 13,
+      railHeight: 4.5,
+      color: '#29251f',
+      gameGround: '#29251f',
+      basinWall: '#243848',
+      basinWallShade: '#1a2c38',
+      underWater: '#163040'
     }
   };
 
@@ -158,6 +178,14 @@
     },
     Z: { id: TILE_ID.PLAZA, name: 'Plaza', detail: null, color: '#a89a82' },
     W: { id: TILE_ID.WATER, name: 'Water', detail: null, color: '#2a4a5c' },
+    B: {
+      id: TILE_ID.BRIDGE,
+      name: 'Bridge',
+      detail: null,
+      color: '#29251f',
+      // Builder ghost-water hint under the deck swatch.
+      mark: '#2a4a5c'
+    },
     A: {
       id: TILE_ID.PARK,
       name: 'Tree (park)',
@@ -175,7 +203,7 @@
   };
 
   /** Builder palette / hotkey order. */
-  const TILE_ORDER = ['R', 'I', 'P', 'S', 'Z', 'W', 'A', 'N', '2', '3', '4', 'K', 'T', 'L'];
+  const TILE_ORDER = ['R', 'I', 'P', 'S', 'Z', 'W', 'B', 'A', 'N', '2', '3', '4', 'K', 'T', 'L'];
 
   function baseOf(id) {
     return TILE_BASE[id] || null;
@@ -276,6 +304,7 @@
   function isPark(id) { return hasFlag(id, 'park'); }
   function isPlaza(id) { return hasFlag(id, 'plaza'); }
   function isWater(id) { return hasFlag(id, 'water'); }
+  function isBridge(id) { return hasFlag(id, 'bridge'); }
 
   /** BUILDING_HEIGHTS-style map for game render. */
   function buildingHeightsMap() {
@@ -378,6 +407,7 @@
     isPark: isPark,
     isPlaza: isPlaza,
     isWater: isWater,
+    isBridge: isBridge,
     buildingHeightsMap: buildingHeightsMap,
     emptyDetails: emptyDetails,
     builderTiles: builderTiles,

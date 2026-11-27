@@ -2072,7 +2072,20 @@
     const PAVEMENT_TILE = Tiles ? Tiles.ID.PAVEMENT : 5;
     const TILE_ID = Tiles ? Tiles.ID : {
       PARK: 0, ROAD: 1, BUILDING_LOW: 2, BUILDING_MID: 3, BUILDING_TALL: 4,
-      PAVEMENT: 5, PLAZA: 6, WATER: 7
+      PAVEMENT: 5, PLAZA: 6, WATER: 7, BRIDGE: 8
+    };
+    // Raised low-poly arch deck over canal (world Z).
+    const BRIDGE = {
+      deckMin: 0,
+      deckMax: 11,
+      thickness: 2.2,
+      railH: 5.5,
+      railThick: 5,
+      gateThick: 10,
+      // Pull deck slightly onto approach roads so no water slit shows.
+      endOverlap: 6,
+      underDark: '#163040',
+      dripLife: 26
     };
     const map = [];
 
@@ -2118,6 +2131,14 @@
       baseScale: 0.14 * 1.15,
       fastAt: 0.4,
       fastMul: 1.12
+    };
+    // In-vehicle side-aim camera: pan so more of the aimed side stays on screen.
+    const SHOOT_SIDE_CAM = {
+      screenShift: -30,   // px — player slides opposite aim (was ~22)
+      worldShift: 56,    // world units — camera origin shifts opposite aim
+      rotDeg: 10,        // mild yaw lean with aim
+      easeIn: 0.18,
+      easeOut: 0.1
     };
     // Mobile minimap CSS size (px) — lerps between on-foot and driving.
     const MOBILE_MINIMAP = {
@@ -2281,16 +2302,17 @@
     function tileIsBuilding(id) { return Tiles ? Tiles.isBuilding(id) : (id >= 2 && id <= 4); }
     function tileIsPlaza(id) { return Tiles ? Tiles.isPlaza(id) : id === 6; }
     function tileIsWater(id) { return Tiles ? Tiles.isWater(id) : id === 7; }
+    function tileIsBridge(id) { return Tiles ? Tiles.isBridge(id) : id === 8; }
     function tileGroundFill(id) {
       if (Tiles) {
         const g = Tiles.gameGroundColor(id);
         if (g) return g;
-        if (Tiles.isRoad(id)) return PALETTE.road;
+        if (Tiles.isBridge(id) || Tiles.isRoad(id)) return PALETTE.road;
         if (Tiles.isPark(id)) return PALETTE.grass;
         if (Tiles.isPavement(id)) return PALETTE.sidewalk;
         return Tiles.colorForId(id);
       }
-      if (id === 1) return PALETTE.road;
+      if (id === 8 || id === 1) return PALETTE.road;
       if (id === 0) return PALETTE.grass;
       return PALETTE.sidewalk;
     }
@@ -4822,17 +4844,212 @@
     }
 
     function isWaterWorldAt(x, y) {
+      // Deck is not hazard water — cars drive over; walkers stay dry.
       return tileIsWater(tileTypeAtWorld(x, y));
+    }
+
+    function isSwimSurfaceAt(x, y) {
+      const t = tileTypeAtWorld(x, y);
+      return tileIsWater(t) || tileIsBridge(t);
     }
 
     function isLandFootingAt(x, y) {
       const t = tileTypeAtWorld(x, y);
+      // Bridge deck is land for walkers/drivers, but swimmers stay *under* it.
+      if (tileIsBridge(t)) return false;
       return tileIsWalkable(t) && !tileIsWater(t);
+    }
+
+    function isMapBridgeTile(r, c) {
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && tileIsBridge(map[r][c]);
+    }
+
+    function isMapWaterTile(r, c) {
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE && tileIsWater(map[r][c]);
+    }
+
+    // Approach road = asphalt stub we connect to (not another bridge cell).
+    function isMapApproachRoad(r, c) {
+      return r >= 0 && c >= 0 && r < MAP_SIZE && c < MAP_SIZE &&
+        tileIsRoad(map[r][c]) && !tileIsBridge(map[r][c]);
+    }
+
+    // Travel axis = direction traffic crosses the canal (perpendicular to water).
+    // Do NOT infer from chained B tiles — a wide 1-deep bridge is BBB along the bank.
+    function bridgeTravelAxis(r, c) {
+      const wN = isMapWaterTile(r - 1, c);
+      const wS = isMapWaterTile(r + 1, c);
+      const wW = isMapWaterTile(r, c - 1);
+      const wE = isMapWaterTile(r, c + 1);
+      const rN = isMapApproachRoad(r - 1, c);
+      const rS = isMapApproachRoad(r + 1, c);
+      const rW = isMapApproachRoad(r, c - 1);
+      const rE = isMapApproachRoad(r, c + 1);
+      const waterNS = (wN ? 1 : 0) + (wS ? 1 : 0);
+      const waterEW = (wE ? 1 : 0) + (wW ? 1 : 0);
+      const roadNS = (rN ? 1 : 0) + (rS ? 1 : 0);
+      const roadEW = (rE ? 1 : 0) + (rW ? 1 : 0);
+
+      if (roadNS && !roadEW) return 'v';
+      if (roadEW && !roadNS) return 'h';
+      // Canal on the flanks → cross the other way (works for 1-tile spans).
+      if (waterEW && !waterNS) return 'v';
+      if (waterNS && !waterEW) return 'h';
+      if (waterEW > waterNS) return 'v';
+      if (waterNS > waterEW) return 'h';
+      if (roadNS >= roadEW) return 'v';
+      return 'h';
+    }
+
+    // Connected B blob → one seamless deck. Length may be 1; width may be many.
+    function bridgeBlobAt(r, c) {
+      if (!isMapBridgeTile(r, c)) return null;
+      const axis = bridgeTravelAxis(r, c);
+      const stack = [[r, c]];
+      const seen = Object.create(null);
+      let r0 = r;
+      let r1 = r;
+      let c0 = c;
+      let c1 = c;
+      while (stack.length) {
+        const cur = stack.pop();
+        const cr = cur[0];
+        const cc = cur[1];
+        const key = cr + ',' + cc;
+        if (seen[key]) continue;
+        if (!isMapBridgeTile(cr, cc)) continue;
+        seen[key] = true;
+        if (cr < r0) r0 = cr;
+        if (cr > r1) r1 = cr;
+        if (cc < c0) c0 = cc;
+        if (cc > c1) c1 = cc;
+        stack.push([cr - 1, cc], [cr + 1, cc], [cr, cc - 1], [cr, cc + 1]);
+      }
+      const length = axis === 'h' ? (c1 - c0 + 1) : (r1 - r0 + 1);
+      const width = axis === 'h' ? (r1 - r0 + 1) : (c1 - c0 + 1);
+      return {
+        axis: axis,
+        r0: r0,
+        r1: r1,
+        c0: c0,
+        c1: c1,
+        length: length,
+        width: width,
+        index: axis === 'h' ? (c - c0) : (r - r0),
+        widthIndex: axis === 'h' ? (r - r0) : (c - c0),
+        isOrigin: r === r0 && c === c0,
+        x0: c0 * TILE_SIZE,
+        y0: r0 * TILE_SIZE,
+        x1: (c1 + 1) * TILE_SIZE,
+        y1: (r1 + 1) * TILE_SIZE
+      };
+    }
+
+    // Back-compat alias used by older call sites.
+    function bridgeSpanAt(r, c) {
+      return bridgeBlobAt(r, c);
+    }
+
+    function bridgeDeckZForBlob(x, y, blob) {
+      if (!blob) return 0;
+      // Extend t-domain by endOverlap so arches ease to z=0 on the road aprons.
+      const pad = BRIDGE.endOverlap;
+      let t;
+      if (blob.axis === 'h') {
+        t = (x - (blob.x0 - pad)) / Math.max(1, (blob.x1 + pad) - (blob.x0 - pad));
+      } else {
+        t = (y - (blob.y0 - pad)) / Math.max(1, (blob.y1 + pad) - (blob.y0 - pad));
+      }
+      t = Math.max(0, Math.min(1, t));
+      // sin(0)=sin(π)=0 → flush with road at both abutments (no water slit).
+      return BRIDGE.deckMax * Math.sin(Math.PI * t);
+    }
+
+    function bridgeDeckZAt(x, y) {
+      const c = Math.floor(x / TILE_SIZE);
+      const r = Math.floor(y / TILE_SIZE);
+      if (!isMapBridgeTile(r, c)) return 0;
+      return bridgeDeckZForBlob(x, y, bridgeBlobAt(r, c));
+    }
+
+    function distPointToSegment(px, py, ax, ay, bx, by) {
+      const abx = bx - ax;
+      const aby = by - ay;
+      const apx = px - ax;
+      const apy = py - ay;
+      const ab2 = abx * abx + aby * aby;
+      const t = ab2 > 1e-6 ? Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2)) : 0;
+      const qx = ax + abx * t;
+      const qy = ay + aby * t;
+      return Math.hypot(px - qx, py - qy);
+    }
+
+    function findNearbyBridgeBlob(x, y) {
+      const c = Math.floor(x / TILE_SIZE);
+      const r = Math.floor(y / TILE_SIZE);
+      if (isMapBridgeTile(r, c)) return bridgeBlobAt(r, c);
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const rr = r + dr;
+          const cc = c + dc;
+          if (!isMapBridgeTile(rr, cc)) continue;
+          return bridgeBlobAt(rr, cc);
+        }
+      }
+      return null;
+    }
+
+    // Outer railings — block walk/drive/bike from falling into the canal.
+    function hitsBridgeRail(x, y, radius) {
+      const blob = findNearbyBridgeBlob(x, y);
+      if (!blob) return false;
+      const thick = BRIDGE.railThick * 0.5 + radius;
+      if (blob.axis === 'v') {
+        if (distPointToSegment(x, y, blob.x0, blob.y0, blob.x0, blob.y1) < thick) return true;
+        if (distPointToSegment(x, y, blob.x1, blob.y0, blob.x1, blob.y1) < thick) return true;
+      } else {
+        if (distPointToSegment(x, y, blob.x0, blob.y0, blob.x1, blob.y0) < thick) return true;
+        if (distPointToSegment(x, y, blob.x0, blob.y1, blob.x1, blob.y1) < thick) return true;
+      }
+      return false;
+    }
+
+    // Under-arch gates on road abutments — only while actually under the deck.
+    function hitsBridgeSwimGate(x, y, radius) {
+      if (!tileIsBridge(tileTypeAtWorld(x, y))) return false;
+      const blob = bridgeBlobAt(
+        Math.floor(y / TILE_SIZE),
+        Math.floor(x / TILE_SIZE)
+      );
+      if (!blob) return false;
+      const thick = BRIDGE.gateThick * 0.5 + radius;
+      // Inset gates slightly so open-water flanks stay free.
+      const inset = Math.min(TILE_SIZE * 0.2, blob.length * TILE_SIZE * 0.25);
+      if (blob.axis === 'v') {
+        if (distPointToSegment(x, y, blob.x0, blob.y0 + inset, blob.x1, blob.y0 + inset) < thick) return true;
+        if (distPointToSegment(x, y, blob.x0, blob.y1 - inset, blob.x1, blob.y1 - inset) < thick) return true;
+      } else {
+        if (distPointToSegment(x, y, blob.x0 + inset, blob.y0, blob.x0 + inset, blob.y1) < thick) return true;
+        if (distPointToSegment(x, y, blob.x1 - inset, blob.y0, blob.x1 - inset, blob.y1) < thick) return true;
+      }
+      return false;
+    }
+
+    function groundLiftAt(x, y) {
+      return bridgeDeckZAt(x, y);
+    }
+
+    // Depth sort bias so deck covers under-swimmers; traffic sits on top of deck.
+    function bridgeDepthBias(x, y, under) {
+      if (!tileIsBridge(tileTypeAtWorld(x, y))) return 0;
+      return under ? -0.35 : 0.55;
     }
 
     const waterFx = {
       rings: [],
-      splashes: []
+      splashes: [],
+      drips: []
     };
 
     function waterSurfaceZ() {
@@ -4847,6 +5064,34 @@
         maxLife: SWIM.ringLife,
         radius: 4
       });
+    }
+
+    function spawnBridgeDrips(x, y) {
+      for (let i = 0; i < 5; i++) {
+        if (waterFx.drips.length > 48) waterFx.drips.shift();
+        waterFx.drips.push({
+          x: x + (Math.random() - 0.5) * 12,
+          y: y + (Math.random() - 0.5) * 12,
+          z: 6 + Math.random() * 8,
+          vz: -0.55 - Math.random() * 0.55,
+          life: BRIDGE.dripLife + (Math.random() * 10) | 0,
+          maxLife: BRIDGE.dripLife + 10
+        });
+      }
+    }
+
+    function spawnBridgeExitFx(x, y) {
+      spawnWaterSplash(x, y, false);
+      spawnBridgeDrips(x, y);
+      spawnSwimKickRing(x, y);
+    }
+
+    function updateUnderBridgeState(entity, swimming) {
+      const onBridge = !!(swimming && tileIsBridge(tileTypeAtWorld(entity.x, entity.y)));
+      if (entity.underBridge && !onBridge) {
+        spawnBridgeExitFx(entity.x, entity.y);
+      }
+      entity.underBridge = onBridge;
     }
 
     function spawnWaterSplash(x, y, big) {
@@ -4877,6 +5122,13 @@
         s.radius += 0.85;
         if (s.life <= 0) waterFx.splashes.splice(i, 1);
       }
+      for (let i = waterFx.drips.length - 1; i >= 0; i--) {
+        const d = waterFx.drips[i];
+        d.life--;
+        d.z += d.vz;
+        d.vz -= 0.08;
+        if (d.life <= 0 || d.z < waterSurfaceZ() - 2) waterFx.drips.splice(i, 1);
+      }
     }
 
     function drawWaterFx() {
@@ -4900,6 +5152,13 @@
         ctx.beginPath();
         ctx.ellipse(p.x, p.y, ring.radius * 0.5, ring.radius * 0.26, 0, 0, Math.PI * 2);
         ctx.stroke();
+      }
+      for (let i = 0; i < waterFx.drips.length; i++) {
+        const d = waterFx.drips[i];
+        const fade = Math.max(0, d.life / d.maxLife);
+        const p = project(d.x, d.y, d.z);
+        ctx.fillStyle = `rgba(180, 210, 230, ${0.55 * fade})`;
+        ctx.fillRect(p.x - 1, p.y - 2, 2, 3);
       }
     }
 
@@ -6373,9 +6632,11 @@
       if (player.mode === 'walking') {
         handleWalkingInput();
         if (isWaterWorldAt(player.x, player.y)) enterSwimMode();
+        player.underBridge = false;
       } else if (player.mode === 'swimming') {
         handleSwimmingInput();
         if (isLandFootingAt(player.x, player.y)) exitSwimMode();
+        updateUnderBridgeState(player, player.mode === 'swimming');
       } else {
         resetMobileWalkMove();
         if (player.mode === 'biking') {
@@ -6462,12 +6723,15 @@
       player.cameraRearPeek += (targetRearPeek - player.cameraRearPeek) * peekEase;
 
       let targetSideLean = 0;
+      // Cars/bikes: aim L/R pans camera so more space opens on the aimed side.
       if (isMountedVehicle() && shootAim) {
-        // Continuous lean opposite the aim so more of the aimed-side world stays on screen.
         const rel = shortestAngleDiff(shootAim.angle, player.angle);
+        // Aim right → negative lean → player shifts left on screen / cam origin left.
         targetSideLean = -Math.sin(rel);
       }
-      const leanEase = Math.abs(targetSideLean) > Math.abs(player.cameraSideLean) ? 0.12 : 0.08;
+      const leanEase = Math.abs(targetSideLean) > Math.abs(player.cameraSideLean)
+        ? SHOOT_SIDE_CAM.easeIn
+        : SHOOT_SIDE_CAM.easeOut;
       player.cameraSideLean += (targetSideLean - player.cameraSideLean) * leanEase;
       if (Math.abs(player.cameraSideLean) < 0.01 && Math.abs(targetSideLean) < 0.01) {
         player.cameraSideLean = 0;
@@ -9750,7 +10014,7 @@
     }
 
     function hitsFootObstacle(x, y, radius) {
-      return hitsCabinet(x, y, radius) || hitsTree(x, y, radius);
+      return hitsCabinet(x, y, radius) || hitsTree(x, y, radius) || hitsBridgeRail(x, y, radius);
     }
 
     function isInParkingBay(x, y) {
@@ -9897,7 +10161,7 @@
     }
 
     function canDriveAt(x, y, radius, allowWater) {
-      if (hitsCabinet(x, y, radius)) return false;
+      if (hitsCabinet(x, y, radius) || hitsBridgeRail(x, y, radius)) return false;
       const samples = [
         [x - radius, y - radius],
         [x + radius, y - radius],
@@ -9922,7 +10186,10 @@
     }
 
     function canSwimAt(x, y, radius) {
-      if (hitsFootObstacle(x, y, radius)) return false;
+      // Rails are deck-only; under-arch uses abutment gates instead.
+      if (hitsCabinet(x, y, radius) || hitsTree(x, y, radius)) return false;
+      if (hitsBridgeSwimGate(x, y, radius)) return false;
+      const underBridge = tileIsBridge(tileTypeAtWorld(x, y));
       const samples = [
         [x - radius, y - radius],
         [x + radius, y - radius],
@@ -9934,7 +10201,10 @@
         const tileY = Math.floor(sy / TILE_SIZE);
         if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE) return false;
         const type = map[tileY][tileX];
-        return tileIsWater(type) || tileIsWalkable(type);
+        if (tileIsWater(type) || tileIsBridge(type)) return true;
+        // While under a bridge, don't climb out onto road abutments.
+        if (underBridge && tileIsRoad(type) && !tileIsBridge(type)) return false;
+        return tileIsWalkable(type);
       });
     }
 
@@ -11587,7 +11857,7 @@
       const copPunch = (!deathCam.active && !spawnCamIntro.active)
         ? getCopKillCameraPunch()
         : { bias: 0, zoom: 1 };
-      const sideLeanRad = player.cameraSideLean * (12 * Math.PI / 180);
+      const sideLeanRad = player.cameraSideLean * (SHOOT_SIDE_CAM.rotDeg * Math.PI / 180);
       const cameraRotation = -player.cameraAngle - sideLeanRad - shakeSample.angle - Math.PI * 0.75;
       camProj.cos = Math.cos(cameraRotation);
       camProj.sin = Math.sin(cameraRotation);
@@ -11598,8 +11868,12 @@
         camProj.originX = player.x + (copKillFx.x - player.x) * copPunch.bias;
         camProj.originY = player.y + (copKillFx.y - player.y) * copPunch.bias;
       } else {
-        camProj.originX = player.x;
-        camProj.originY = player.y;
+        // Lateral world pan opposite side-aim lean → more of the aimed side on screen.
+        const lean = deathCam.active ? 0 : player.cameraSideLean;
+        const rightX = -Math.sin(player.cameraAngle);
+        const rightY = Math.cos(player.cameraAngle);
+        camProj.originX = player.x + rightX * lean * SHOOT_SIDE_CAM.worldShift;
+        camProj.originY = player.y + rightY * lean * SHOOT_SIDE_CAM.worldShift;
       }
       const deathZoomMul = 1 + (DEATH_CAM.zoomMul - 1) * deathBlend;
       // Spawn intro zoomMul is absolute vs play zoom; still multiplied by user zoom factor.
@@ -11621,7 +11895,9 @@
         if (Math.abs(zoomTarget - camProj.zoom) < 0.0005) camProj.zoom = zoomTarget;
       }
       camProj.zoomRatio = camProj.zoom / CAMERA_ZOOM_HEIGHT_REF;
-      camProj.screenCX = screenWidth / 2 + (deathCam.active ? 0 : player.cameraSideLean * 22);
+      camProj.screenCX = screenWidth / 2 + (
+        deathCam.active ? 0 : player.cameraSideLean * SHOOT_SIDE_CAM.screenShift
+      );
       let lookAheadScale = LOOK_AHEAD.baseScale;
       if (player.cameraLookAhead >= LOOK_AHEAD.fastAt) {
         const t = Math.min(
@@ -11952,6 +12228,7 @@
 
         if (pedestrian.swimming) {
           if (isLandFootingAt(pedestrian.x, pedestrian.y)) {
+            updateUnderBridgeState(pedestrian, false);
             pedestrian.swimming = false;
             pedestrian.speed = 0.55 + Math.random() * 0.45;
             continue;
@@ -11976,6 +12253,7 @@
           if (canSwimAt(nextX, nextY, pedestrian.radius)) {
             pedestrian.x = nextX;
             pedestrian.y = nextY;
+            updateUnderBridgeState(pedestrian, true);
             pedestrian.walkPhase += swimSpeed * SWIM.phaseRate;
             pedestrian.swimKickTimer = (pedestrian.swimKickTimer || 0) + 1;
             if (pedestrian.swimKickTimer >= SWIM.kickEvery) {
@@ -12352,11 +12630,14 @@
 
     // Building occlusion ghost: fade occluding buildings so players stay visible.
     const buildingGhostAlpha = new Map();
+    const bridgeGhostAlpha = new Map();
     const occlusionSubjects = [];
     const GHOST_FADE_SPEED = 0.15;
     const GHOST_AABB_PAD = 100;
     const GHOST_WALL_FADE = 0.9;
     const GHOST_ROOF_FADE = 0.65;
+    // Bridge under-swim: deck fades to 50% so swimmer stays readable; rails keep outline.
+    const BRIDGE_GHOST_DECK_FADE = 0.5;
 
     function subjectScreenHeight(mode) {
       return mode === 'driving' || mode === 'biking' ? 14 : 20 * PED_SCALE;
@@ -12425,6 +12706,47 @@
         subject.sx <= aabb.maxX &&
         subject.sy >= aabb.minY &&
         subject.sy <= aabb.maxY;
+    }
+
+    function bridgeGhostKey(blob) {
+      return blob.r0 + ',' + blob.c0;
+    }
+
+    function markBridgeGhostTarget(targets, x, y, swimming) {
+      if (!swimming) return;
+      if (!tileIsBridge(tileTypeAtWorld(x, y))) return;
+      const blob = bridgeBlobAt(Math.floor(y / TILE_SIZE), Math.floor(x / TILE_SIZE));
+      if (!blob) return;
+      targets.add(bridgeGhostKey(blob));
+    }
+
+    // Local + remote players swimming under a span → ghost that deck (cars on top OK).
+    function updateBridgeGhostAlphas() {
+      const targets = new Set();
+      markBridgeGhostTarget(targets, player.x, player.y, player.mode === 'swimming');
+      if (net.players.size > 0) {
+        net.players.forEach(rp => {
+          if (rp.wasted) return;
+          markBridgeGhostTarget(targets, rp.x, rp.y, rp.mode === 'swimming');
+        });
+      }
+
+      const seen = new Set();
+      targets.forEach(key => {
+        seen.add(key);
+        let alpha = bridgeGhostAlpha.get(key) || 0;
+        alpha += (1 - alpha) * GHOST_FADE_SPEED;
+        if (alpha > 1) alpha = 1;
+        bridgeGhostAlpha.set(key, alpha);
+      });
+
+      for (const key of Array.from(bridgeGhostAlpha.keys())) {
+        if (seen.has(key)) continue;
+        let alpha = bridgeGhostAlpha.get(key) || 0;
+        alpha += (0 - alpha) * GHOST_FADE_SPEED;
+        if (alpha < 0.004) bridgeGhostAlpha.delete(key);
+        else bridgeGhostAlpha.set(key, alpha);
+      }
     }
 
     function updateBuildingGhostAlphas() {
@@ -12712,6 +13034,20 @@
             item.pedestrian = null;
             item.intersection = null;
             item.cabinet = null;
+          } else if (tileIsBridge(type) && !cityMap.fastDraw) {
+            const item = acquireRenderItem();
+            item.type = 'bridge';
+            item.r = r;
+            item.c = c;
+            item.tileType = type;
+            item.wx = wx;
+            item.wy = wy;
+            // Mid bias: under-swimmers sort below; deck traffic sorts above.
+            item.depth = depth + 0.2;
+            item.vehicle = null;
+            item.pedestrian = null;
+            item.intersection = null;
+            item.cabinet = null;
           }
         }
       }
@@ -12759,7 +13095,7 @@
         const item = acquireRenderItem();
         item.type = 'vehicle';
         item.vehicle = vehicle;
-        item.depth = projectDepth(vehicle.x, vehicle.y);
+        item.depth = projectDepth(vehicle.x, vehicle.y) + bridgeDepthBias(vehicle.x, vehicle.y, false);
         item.pedestrian = null;
         item.intersection = null;
         item.cabinet = null;
@@ -12802,7 +13138,8 @@
       if ((player.mode === 'walking' || player.mode === 'swimming') && !wasted && cityMap.blipAlpha < 0.35) {
         const item = acquireRenderItem();
         item.type = 'pedestrian';
-        item.depth = projectDepth(player.x, player.y);
+        item.depth = projectDepth(player.x, player.y) +
+          bridgeDepthBias(player.x, player.y, player.mode === 'swimming');
         item.vehicle = null;
         item.pedestrian = null;
         item.intersection = null;
@@ -12819,7 +13156,8 @@
         const item = acquireRenderItem();
         item.type = 'npcPedestrian';
         item.pedestrian = pedestrian;
-        item.depth = projectDepth(pedestrian.x, pedestrian.y);
+        item.depth = projectDepth(pedestrian.x, pedestrian.y) +
+          bridgeDepthBias(pedestrian.x, pedestrian.y, !!pedestrian.swimming);
         item.vehicle = null;
         item.intersection = null;
         item.cabinet = null;
@@ -12835,7 +13173,8 @@
           const item = acquireRenderItem();
           item.type = 'remotePlayer';
           item.pedestrian = rp;
-          item.depth = projectDepth(rp.x, rp.y);
+          item.depth = projectDepth(rp.x, rp.y) +
+            bridgeDepthBias(rp.x, rp.y, rp.mode === 'swimming');
           item.vehicle = null;
           item.intersection = null;
           item.cabinet = null;
@@ -12875,12 +13214,16 @@
 
       // Painter's Algorithm Depth Sort (Back to Front)
       renderQueue.sort((a, b) => a.depth - b.depth);
-      if (!cityMap.fastDraw) updateBuildingGhostAlphas();
+      if (!cityMap.fastDraw) {
+        updateBuildingGhostAlphas();
+        updateBridgeGhostAlphas();
+      }
 
       // Draw raised objects and vehicles.
       for (let i = 0; i < renderQueue.length; i++) {
         const item = renderQueue[i];
         if (item.type === 'building') drawTile(item, false);
+        else if (item.type === 'bridge') drawBridgeDeck(item, item.wx, item.wy, item.r, item.c);
         else if (item.type === 'vehicle') {
           if (item.vehicle.isBike) {
             let hasRider = item.vehicle === activeVehicle;
@@ -12917,7 +13260,8 @@
               hair: playerHair,
               showGun: aiming,
               gunAngle: shootAim ? shootAim.angle : player.bodyAngle,
-              swimming: player.mode === 'swimming'
+              swimming: player.mode === 'swimming',
+              zLift: player.mode === 'swimming' ? 0 : groundLiftAt(player.x, player.y)
             }
           );
         } else if (item.type === 'remotePlayer') {
@@ -12934,7 +13278,10 @@
             item.pedestrian.moveAmount,
             {
               hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat),
-              swimming: item.pedestrian.mode === 'swimming'
+              swimming: item.pedestrian.mode === 'swimming',
+              zLift: item.pedestrian.mode === 'swimming'
+                ? 0
+                : groundLiftAt(item.pedestrian.x, item.pedestrian.y)
             }
           );
         } else if (item.type === 'npcPedestrian') {
@@ -12952,7 +13299,10 @@
             {
               hair: item.pedestrian.hair || hairToneFromCoat(item.pedestrian.coat),
               slim: !item.pedestrian.isPolice,
-              swimming: !!item.pedestrian.swimming
+              swimming: !!item.pedestrian.swimming,
+              zLift: item.pedestrian.swimming
+                ? 0
+                : groundLiftAt(item.pedestrian.x, item.pedestrian.y)
             }
           );
         } else if (item.type === 'trafficLight') {
@@ -13193,6 +13543,176 @@
       ctx.drawImage(atmosGrainCanvas, 0, 0);
     }
 
+    function drawBridgeUnder(wx, wy) {
+      const zWater = waterSurfaceZ();
+      const underFill = (Tiles && Tiles.baseOf(TILE_ID.BRIDGE) && Tiles.baseOf(TILE_ID.BRIDGE).underWater) ||
+        BRIDGE.underDark;
+      ctx.fillStyle = underFill;
+      fillQuad(
+        project(wx, wy, zWater),
+        project(wx + TILE_SIZE, wy, zWater),
+        project(wx + TILE_SIZE, wy + TILE_SIZE, zWater),
+        project(wx, wy + TILE_SIZE, zWater)
+      );
+      ctx.fillStyle = 'rgba(6, 12, 20, 0.38)';
+      fillQuad(
+        project(wx + TILE_SIZE * 0.12, wy + TILE_SIZE * 0.12, zWater + 0.3),
+        project(wx + TILE_SIZE * 0.88, wy + TILE_SIZE * 0.12, zWater + 0.3),
+        project(wx + TILE_SIZE * 0.88, wy + TILE_SIZE * 0.88, zWater + 0.3),
+        project(wx + TILE_SIZE * 0.12, wy + TILE_SIZE * 0.88, zWater + 0.3)
+      );
+    }
+
+    // One seamless road-colored arch for the whole connected B blob (drawn once).
+    function drawBridgeDeck(tile, wx, wy, r, c) {
+      const blob = bridgeBlobAt(r, c);
+      if (!blob || !blob.isOrigin) return;
+
+      const ghost = bridgeGhostAlpha.get(bridgeGhostKey(blob)) || 0;
+      const deckAlpha = 1 - ghost * BRIDGE_GHOST_DECK_FADE;
+      const edgeBoost = ghost > 0.02;
+
+      const pad = BRIDGE.endOverlap;
+      // Overlap travel ends onto approach roads so water can't show through the seam.
+      const x0 = blob.axis === 'h' ? blob.x0 - pad : blob.x0;
+      const y0 = blob.axis === 'v' ? blob.y0 - pad : blob.y0;
+      const x1 = blob.axis === 'h' ? blob.x1 + pad : blob.x1;
+      const y1 = blob.axis === 'v' ? blob.y1 + pad : blob.y1;
+      const roadCol = PALETTE.road;
+      const segs = Math.max(5, blob.length * 4 + 2);
+
+      ctx.save();
+      ctx.globalAlpha *= deckAlpha;
+
+      for (let s = 0; s < segs; s++) {
+        const t0 = s / segs;
+        const t1 = (s + 1) / segs;
+        let p00x, p00y, p10x, p10y, p11x, p11y, p01x, p01y;
+        if (blob.axis === 'v') {
+          const ya = y0 + t0 * (y1 - y0);
+          const yb = y0 + t1 * (y1 - y0);
+          p00x = x0; p00y = ya;
+          p10x = x1; p10y = ya;
+          p11x = x1; p11y = yb;
+          p01x = x0; p01y = yb;
+        } else {
+          const xa = x0 + t0 * (x1 - x0);
+          const xb = x0 + t1 * (x1 - x0);
+          p00x = xa; p00y = y0;
+          p10x = xb; p10y = y0;
+          p11x = xb; p11y = y1;
+          p01x = xa; p01y = y1;
+        }
+        const z00 = bridgeDeckZForBlob(p00x, p00y, blob);
+        const z10 = bridgeDeckZForBlob(p10x, p10y, blob);
+        const z11 = bridgeDeckZForBlob(p11x, p11y, blob);
+        const z01 = bridgeDeckZForBlob(p01x, p01y, blob);
+
+        // Soft soffit (no chunky side walls).
+        ctx.fillStyle = 'rgba(20, 17, 14, 0.55)';
+        fillQuad(
+          project(p00x, p00y, z00 - BRIDGE.thickness),
+          project(p10x, p10y, z10 - BRIDGE.thickness),
+          project(p11x, p11y, z11 - BRIDGE.thickness),
+          project(p01x, p01y, z01 - BRIDGE.thickness)
+        );
+
+        ctx.fillStyle = roadCol;
+        fillQuad(
+          project(p00x, p00y, z00),
+          project(p10x, p10y, z10),
+          project(p11x, p11y, z11),
+          project(p01x, p01y, z01)
+        );
+      }
+
+      // Thin outer curb (fades with deck).
+      const railInset = 2;
+      const railPosts = Math.max(4, 2 + blob.length * 2);
+      const edges = blob.axis === 'v'
+        ? [
+            [x0 + railInset, y0, x0 + railInset, y1],
+            [x1 - railInset, y0, x1 - railInset, y1]
+          ]
+        : [
+            [x0, y0 + railInset, x1, y0 + railInset],
+            [x0, y1 - railInset, x1, y1 - railInset]
+          ];
+      for (let e = 0; e < edges.length; e++) {
+        const ax = edges[e][0];
+        const ay = edges[e][1];
+        const bx = edges[e][2];
+        const by = edges[e][3];
+        for (let i = 0; i < railPosts; i++) {
+          const u0 = i / railPosts;
+          const u1 = (i + 1) / railPosts;
+          const sx = ax + (bx - ax) * u0;
+          const sy = ay + (by - ay) * u0;
+          const ex = ax + (bx - ax) * u1;
+          const ey = ay + (by - ay) * u1;
+          const zs = bridgeDeckZForBlob(sx, sy, blob);
+          const ze = bridgeDeckZForBlob(ex, ey, blob);
+          ctx.fillStyle = shadeColor(roadCol, 18);
+          fillQuad(
+            project(sx, sy, zs),
+            project(ex, ey, ze),
+            project(ex, ey, ze + 1.6),
+            project(sx, sy, zs + 1.6)
+          );
+        }
+      }
+
+      // Lane dash along travel, centered on the blob.
+      ctx.strokeStyle = PALETTE.roadLine;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([9, 8]);
+      if (blob.axis === 'v') {
+        const midX = (x0 + x1) * 0.5;
+        drawProjectedLine(
+          project(midX, y0 + 4, bridgeDeckZForBlob(midX, y0 + 4, blob) + 0.5),
+          project(midX, y1 - 4, bridgeDeckZForBlob(midX, y1 - 4, blob) + 0.5)
+        );
+      } else {
+        const midY = (y0 + y1) * 0.5;
+        drawProjectedLine(
+          project(x0 + 4, midY, bridgeDeckZForBlob(x0 + 4, midY, blob) + 0.5),
+          project(x1 - 4, midY, bridgeDeckZForBlob(x1 - 4, midY, blob) + 0.5)
+        );
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // Rail outlines stay readable while the deck ghosts (building-edge style).
+      ctx.save();
+      if (edgeBoost) {
+        ctx.globalAlpha *= Math.min(1, 0.55 + ghost * 0.4);
+        ctx.lineWidth = 1.7 + ghost * 0.6;
+      } else {
+        ctx.lineWidth = 1.7;
+      }
+      ctx.strokeStyle = edgeBoost
+        ? 'rgba(230, 220, 200, 0.92)'
+        : 'rgba(210, 200, 180, 0.82)';
+      for (let e = 0; e < edges.length; e++) {
+        const ax = edges[e][0];
+        const ay = edges[e][1];
+        const bx = edges[e][2];
+        const by = edges[e][3];
+        for (let i = 0; i < railPosts; i++) {
+          const u = (i + 0.5) / railPosts;
+          const px = ax + (bx - ax) * u;
+          const py = ay + (by - ay) * u;
+          const zD = bridgeDeckZForBlob(px, py, blob);
+          drawProjectedLine(project(px, py, zD + 0.4), project(px, py, zD + BRIDGE.railH));
+        }
+        drawProjectedLine(
+          project(ax, ay, bridgeDeckZForBlob(ax, ay, blob) + BRIDGE.railH),
+          project(bx, by, bridgeDeckZForBlob(bx, by, blob) + BRIDGE.railH)
+        );
+      }
+      ctx.restore();
+    }
+
     // Sunken water: surface below street + basin walls where water meets land.
     function drawWaterBasin(tile, wx, wy, r, c) {
       const base = Tiles ? Tiles.baseOf(tile.tileType) : null;
@@ -13204,8 +13724,9 @@
       const neighborWater = (dr, dc) => {
         const rr = r + dr;
         const cc = c + dc;
+        // Bridge spans canal — no basin wall between open water and under-arch.
         return rr >= 0 && cc >= 0 && rr < MAP_SIZE && cc < MAP_SIZE &&
-          tileIsWater(map[rr][cc]);
+          (tileIsWater(map[rr][cc]) || tileIsBridge(map[rr][cc]));
       };
 
       // Basin walls from street level (z=0) down to water — back faces first.
@@ -13279,7 +13800,7 @@
           fillQuad(g0, g1, g2, g3);
           return;
         }
-        if (!tileIsWater(tileType)) {
+        if (!tileIsWater(tileType) && !tileIsBridge(tileType)) {
           ctx.fillStyle = tileGroundFill(tileType);
           fillQuad(g0, g1, g2, g3);
         }
@@ -13295,6 +13816,9 @@
           ctx.lineWidth = 1;
           strokeQuad(p0, p1, p2, p3);
           drawSurfaceWear(tile, 3);
+        } else if (tileIsBridge(tileType)) {
+          // Water + shadow only here; raised deck sorts with actors (swim-under).
+          drawBridgeUnder(wx, wy);
         } else if (tileIsRoad(tileType)) {
           // Lane dashes from blueprint neighbors (not ROAD_SPACING grid).
           const laneAxis = roadLaneDashAxis(r, c);
@@ -13840,10 +14364,11 @@
       const wx = bike.x;
       const wy = bike.y;
       const angle = bike.angle;
+      const deckZ = groundLiftAt(wx, wy);
       const toWorld = (side, forward, z) => ({
         x: wx + Math.cos(angle) * forward - Math.sin(angle) * side,
         y: wy + Math.sin(angle) * forward + Math.cos(angle) * side,
-        z
+        z: (z || 0) + deckZ
       });
       const drawBox = (halfWidth, halfLength, centerForward, bottom, top, boxColor, sideOffset = 0) => {
         const localCorners = [
@@ -14034,7 +14559,7 @@
         const aiming = !!(localRider && (shootAim || gun.fireCooldown > 0));
         drawPedestrian(wx, wy, angle, 0, riderCoat, riderSkin, false, angle, 0, {
           seated: true,
-          zLift: 5,
+          zLift: 5 + deckZ,
           hair: riderHair || hairToneFromCoat(riderCoat),
           showGun: aiming,
           gunAngle: shootAim ? shootAim.angle : angle
@@ -14367,6 +14892,7 @@
       const angle = vehicle.angle;
       const color = vehicle.color;
       const layout = getCarLayout(vehicle.carClass);
+      const deckZ = vehicle.sinking ? 0 : groundLiftAt(wx, wy);
       const sinkZ = vehicle.sinking
         ? waterSurfaceZ() * Math.min(1, (vehicle.sinkTick || 0) / WATER_SINK.duration) +
           Math.sin((vehicle.sinkTick || 0) * 0.35) * WATER_SINK.bobAmp *
@@ -14378,7 +14904,7 @@
       const toWorld = (side, forward, z) => ({
         x: wx + Math.cos(angle) * forward - Math.sin(angle) * side,
         y: wy + Math.sin(angle) * forward + Math.cos(angle) * side,
-        z: (z || 0) + sinkZ
+        z: (z || 0) + sinkZ + deckZ
       });
       ctx.save();
       ctx.globalAlpha *= sinkFade;
@@ -15058,7 +15584,8 @@
       const swimming = !!(opts && opts.swimming);
       const floating = !!(opts && opts.floating);
       const slim = !!(opts && opts.slim);
-      const alpha = opts && opts.alpha != null ? opts.alpha : 1;
+      const underBridge = !!(swimming && tileIsBridge(tileTypeAtWorld(wx, wy)));
+      const alpha = (opts && opts.alpha != null ? opts.alpha : 1) * (underBridge ? 0.72 : 1);
       const hair = resolvePedHair(opts && opts.hair, coatColor);
       const skin = skinColor || skinTones[0];
       const atlas = getPedAtlas(skin, hair, isPolice);

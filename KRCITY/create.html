@@ -253,7 +253,7 @@
     <div class="section">
       <h2>TILES</h2>
       <div class="tile-grid" id="tilePalette"></div>
-      <p class="hint">Hotkeys: <kbd>R</kbd> <kbd>I</kbd> <kbd>P</kbd> <kbd>S</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>K</kbd> <kbd>T</kbd> <kbd>L</kbd> · Space = erase · <kbd>E</kbd> eyedrop · <kbd>F</kbd> fill · <kbd>B</kbd> block · <kbd>G</kbd> 2×2</p>
+      <p class="hint">Hotkeys: <kbd>R</kbd> <kbd>I</kbd> <kbd>P</kbd> <kbd>S</kbd> <kbd>Z</kbd> <kbd>W</kbd> <kbd>B</kbd> bridge · <kbd>2</kbd>–<kbd>4</kbd> · Space = erase · <kbd>E</kbd> eyedrop · <kbd>F</kbd> fill · <kbd>U</kbd> block · <kbd>G</kbd> 2×2</p>
     </div>
 
     <div class="section">
@@ -775,7 +775,21 @@
             ctx.fillStyle = colorFor(ch);
             ctx.fillRect(x, y, cell, cell);
             const decoded = Tiles ? Tiles.decode(ch) : null;
-            if (ch === 'A' || ch === 'N') {
+            // Bridge: ghost water under deck so builders see the canal continues.
+            if (decoded && decoded.base.flags.bridge) {
+              const waterTint = (decoded.def.mark) || '#2a4a5c';
+              ctx.fillStyle = waterTint;
+              ctx.globalAlpha = 0.42;
+              ctx.fillRect(x + 1, y + cell * 0.55, cell - 2, cell * 0.38);
+              ctx.globalAlpha = 1;
+              ctx.strokeStyle = 'rgba(216, 207, 186, 0.55)';
+              ctx.lineWidth = 1 / camera.zoom;
+              ctx.strokeRect(x + 2, y + 2, cell - 4, cell * 0.42);
+              // Tiny rail hints
+              ctx.fillStyle = 'rgba(200, 190, 170, 0.7)';
+              ctx.fillRect(x + 1, y + 2, cell - 2, 1.5);
+              ctx.fillRect(x + 1, y + cell * 0.42, cell - 2, 1.5);
+            } else if (ch === 'A' || ch === 'N') {
               ctx.fillStyle = '#2f5a32';
               ctx.beginPath();
               ctx.arc(x + cell / 2, y + cell / 2, cell * 0.28, 0, Math.PI * 2);
@@ -895,30 +909,55 @@
           const surfaceZ = decoded && typeof decoded.base.surfaceZ === 'number'
             ? decoded.base.surfaceZ
             : 0;
+          const isBridge = !!(decoded && decoded.base.flags.bridge);
           // Iso preview: positive yOff drops the diamond (matches sunken water in game).
+          // Bridge: ghost water sunken + raised deck diamond.
           const yOff = surfaceZ < 0 ? Math.abs(surfaceZ) * 0.55 : 0;
-          if (yOff > 0) {
+          const deckUp = isBridge ? Math.min(10, Math.abs(surfaceZ) * 0.35) : 0;
+          if (yOff > 0 || isBridge) {
             const wall = (decoded && decoded.base.basinWall) || '#243848';
             const shade = (decoded && decoded.base.basinWallShade) || '#1a2c38';
+            const waterDrop = isBridge ? 8 : yOff;
+            const waterFill = isBridge
+              ? ((decoded && decoded.base.underWater) || '#163040')
+              : fill;
             ctx.beginPath();
             ctx.moveTo(cx - halfW, cy + halfH);
             ctx.lineTo(cx, cy + halfH * 2);
-            ctx.lineTo(cx, cy + halfH * 2 + yOff);
-            ctx.lineTo(cx - halfW, cy + halfH + yOff);
+            ctx.lineTo(cx, cy + halfH * 2 + waterDrop);
+            ctx.lineTo(cx - halfW, cy + halfH + waterDrop);
             ctx.closePath();
             ctx.fillStyle = shade;
             ctx.fill();
             ctx.beginPath();
             ctx.moveTo(cx + halfW, cy + halfH);
             ctx.lineTo(cx, cy + halfH * 2);
-            ctx.lineTo(cx, cy + halfH * 2 + yOff);
-            ctx.lineTo(cx + halfW, cy + halfH + yOff);
+            ctx.lineTo(cx, cy + halfH * 2 + waterDrop);
+            ctx.lineTo(cx + halfW, cy + halfH + waterDrop);
             ctx.closePath();
             ctx.fillStyle = wall;
             ctx.fill();
+            if (isBridge) {
+              diamond(waterDrop, waterFill);
+            }
           }
-          diamond(yOff, fill);
-          if (decoded && decoded.def.mark) {
+          if (isBridge) {
+            // Raised deck + rail ticks
+            diamond(-deckUp, fill);
+            ctx.strokeStyle = 'rgba(200, 190, 170, 0.75)';
+            ctx.lineWidth = 1.4 / camera.zoom;
+            ctx.beginPath();
+            ctx.moveTo(cx - halfW * 0.55, cy + halfH - deckUp * 0.85);
+            ctx.lineTo(cx + halfW * 0.15, cy + halfH * 0.55 - deckUp);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(cx - halfW * 0.15, cy + halfH * 1.45 - deckUp);
+            ctx.lineTo(cx + halfW * 0.55, cy + halfH - deckUp * 0.85);
+            ctx.stroke();
+          } else {
+            diamond(yOff, fill);
+          }
+          if (decoded && decoded.def.mark && !isBridge) {
             ctx.fillStyle = decoded.def.mark;
             ctx.beginPath();
             ctx.arc(cx, cy + halfH + yOff, 3, 0, Math.PI * 2);
@@ -1254,6 +1293,7 @@
           if (VALID_CHARS.includes(ch)) {
             setBrush(ch);
             e.preventDefault();
+            return;
           }
         }
         if (e.code === 'Space') {
@@ -1261,9 +1301,8 @@
           e.preventDefault();
         } else if (key === 'e') setMode('eyedrop');
         else if (key === 'f') setMode('fill');
-        else if (key === 'b') setMode('block');
+        else if (key === 'u') setMode('block');
         else if (key === 'g') setMode('stamp2');
-        else if (key === 'p' && !e.metaKey && !e.ctrlKey) setBrush('P');
       });
 
       window.addEventListener('resize', () => {
